@@ -1,0 +1,56 @@
+# Task runner for Cooper (https://just.systems). `just --list` shows all recipes.
+set dotenv-load := true
+
+# Run every check CI runs.
+check: fmt-check lint test sqlx-check migrations-check
+
+# Format all code.
+fmt:
+    cargo fmt --all
+
+fmt-check:
+    cargo fmt --all -- --check
+
+# Clippy with warnings as errors.
+lint:
+    cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+# All tests. Needs DATABASE_URL and a running database (`just db`).
+test:
+    cargo test --workspace --all-features
+
+# Start the local stack.
+up:
+    docker compose up -d
+
+# Start only PostgreSQL.
+db:
+    docker compose up -d --wait postgres
+
+# Apply migrations.
+migrate:
+    cargo sqlx migrate run
+
+# Refresh offline query data (.sqlx/). Commit the result.
+prepare:
+    cargo sqlx prepare --workspace -- --all-targets --all-features
+
+# Fail if .sqlx/ is stale.
+sqlx-check:
+    cargo sqlx prepare --workspace --check -- --all-targets --all-features
+
+# Fail if a migration that exists on main was changed or removed.
+migrations-check base="origin/main":
+    scripts/check-migrations.sh {{base}}
+
+# Run the HTTP server.
+server:
+    cargo run -p cooper-server
+
+# Run background jobs.
+worker:
+    cargo run -p cooper-worker
+
+# Licence, advisory and source checks.
+deny:
+    cargo deny check

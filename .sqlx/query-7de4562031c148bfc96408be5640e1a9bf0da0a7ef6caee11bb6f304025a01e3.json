@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO background_job_runs (id, job_name, worker_id, started_at, outcome) VALUES ($1, 'counter', 'dead-worker', now(), 'running')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7de4562031c148bfc96408be5640e1a9bf0da0a7ef6caee11bb6f304025a01e3"
+}

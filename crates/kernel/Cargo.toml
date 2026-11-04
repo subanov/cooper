@@ -1,0 +1,22 @@
+[package]
+name = "cooper-kernel"
+description = "Cooper shared kernel: typed IDs, tenancy, actors, clock, domain events, pagination and audit records. No business rules, no I/O."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+base64.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

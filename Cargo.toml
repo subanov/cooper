@@ -1,0 +1,74 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "apps/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99"
+repository = "https://github.com/subanov/cooper"
+publish = false
+
+[workspace.dependencies]
+# Internal crates
+cooper-kernel = { path = "crates/kernel" }
+cooper-platform = { path = "crates/platform" }
+cooper-http = { path = "crates/http" }
+
+# Runtime and web
+tokio = { version = "1.54", features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }
+axum = "0.8"
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.7", features = [
+    "catch-panic",
+    "compression-full",
+    "cors",
+    "limit",
+    "request-id",
+    "timeout",
+    "trace",
+    "util",
+] }
+http = "1.5"
+http-body-util = "0.1"
+
+# Database
+sqlx = { version = "0.9", default-features = false, features = [
+    "chrono",
+    "json",
+    "macros",
+    "migrate",
+    "postgres",
+    "runtime-tokio",
+    "tls-rustls-ring-webpki",
+    "uuid",
+] }
+
+# Data and errors
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+anyhow = "1.0"
+uuid = { version = "1.29", features = ["serde", "v7"] }
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde", "std"] }
+base64 = "0.23"
+async-trait = "0.1"
+
+# Observability
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+
+# Testing
+proptest = "1.12"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+dbg_macro = "deny"
+todo = "deny"
+print_stdout = "warn"

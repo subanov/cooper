@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT outcome, message, duration_ms, worker_id FROM background_job_runs ORDER BY started_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "outcome",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "outcome"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "message",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "message"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "duration_ms",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "duration_ms"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "worker_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "worker_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "5e28a26ee6f9c6f5ef0258956819881d07f7ec8a9883ca717f2993d3f2467528"
+}

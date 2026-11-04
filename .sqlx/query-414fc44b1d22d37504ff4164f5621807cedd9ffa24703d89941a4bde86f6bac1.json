@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT outcome FROM background_job_runs WHERE outcome <> 'succeeded' OR started_at > $1 ORDER BY outcome",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "outcome",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "outcome"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "414fc44b1d22d37504ff4164f5621807cedd9ffa24703d89941a4bde86f6bac1"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE background_job_runs\n            SET outcome = 'abandoned', finished_at = $2, message = 'worker stopped before the run finished'\n            WHERE job_name = $1 AND outcome = 'running'\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f97d25dd2fb22daaefaeabd3beee10aeaae851fdda926c0dc2288c147bfa812e"
+}

@@ -1,0 +1,6 @@
+# Pinned so local builds, CI and release images use the same compiler.
+# To upgrade: bump `channel`, run `just check`, fix new lints, update `rust-version` in Cargo.toml.
+[toolchain]
+channel = "1.99.1"
+components = ["rustfmt", "clippy"]
+profile = "minimal"
