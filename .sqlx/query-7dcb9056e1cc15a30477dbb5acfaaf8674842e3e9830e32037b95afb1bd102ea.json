@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT outcome FROM background_job_runs ORDER BY worker_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "outcome",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "outcome"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "7dcb9056e1cc15a30477dbb5acfaaf8674842e3e9830e32037b95afb1bd102ea"
+}

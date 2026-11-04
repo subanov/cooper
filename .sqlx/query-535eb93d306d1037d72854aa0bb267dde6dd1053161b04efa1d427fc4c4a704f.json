@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT attempts, dead_at, last_error FROM outbox_events WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "outbox_events",
+            "name": "attempts"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "dead_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "outbox_events",
+            "name": "dead_at"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "last_error",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbox_events",
+            "name": "last_error"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "535eb93d306d1037d72854aa0bb267dde6dd1053161b04efa1d427fc4c4a704f"
+}

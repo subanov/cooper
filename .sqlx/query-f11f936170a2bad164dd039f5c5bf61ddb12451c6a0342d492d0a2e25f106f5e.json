@@ -1,0 +1,137 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT id, change_set_id, tenant_id, action, field, old_value, new_value,\n               actor_kind, actor_id, occurred_at\n        FROM audit_entries\n        WHERE aggregate_type = $1 AND aggregate_id = $2\n        ORDER BY occurred_at, id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "change_set_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "change_set_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "action",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "action"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "field",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "field"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "old_value",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "old_value"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "new_value",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "new_value"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "actor_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "actor_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "actor_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "actor_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "occurred_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "audit_entries",
+            "name": "occurred_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "f11f936170a2bad164dd039f5c5bf61ddb12451c6a0342d492d0a2e25f106f5e"
+}

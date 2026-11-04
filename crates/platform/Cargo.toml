@@ -1,0 +1,31 @@
+[package]
+name = "cooper-platform"
+description = "Cooper shared infrastructure: configuration, PostgreSQL pool and migrations, tenant-scoped transactions, audit log, transactional outbox, background job runner and telemetry."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+# Helpers for tests in other crates (tenant isolation harness).
+testing = []
+
+[dependencies]
+async-trait.workspace = true
+chrono.workspace = true
+cooper-kernel.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+cooper-platform = { workspace = true, features = ["testing"] }
+proptest.workspace = true
+serde.workspace = true
+
+[lints]
+workspace = true
