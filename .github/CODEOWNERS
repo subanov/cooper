@@ -1,0 +1,10 @@
+# Default reviewers for everything. Add per-context owners as the team grows, e.g.
+#   /crates/service-desk/  @owner-login
+*                     @subanov
+
+# Changes to these affect every context or the security baseline.
+/migrations/          @subanov
+/crates/kernel/       @subanov
+/crates/platform/     @subanov
+/.github/             @subanov
+/deny.toml            @subanov

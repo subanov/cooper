@@ -1,0 +1,39 @@
+name: Feature
+description: Work on one or more functional requirements (FR-*).
+labels: ["type: feature"]
+body:
+  - type: input
+    id: requirements
+    attributes:
+      label: Requirement IDs
+      description: From docs/FUNCTIONAL_REQUIREMENTS.md. Add the requirement there first if it is missing.
+      placeholder: FR-TKT-008, FR-TKT-009
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Bounded context
+      options: [Identity & access, Tickets, Email intake, Channels, SLA & rota, Portal, Problems, Changes, Tasks, Knowledge, Service status, Morning checks, Assets, CMDB, Contracts, Calendar, Forms, Workflow & integrations, Reporting, AI, Administration, REST API, UI, Platform & kernel]
+    validations:
+      required: true
+  - type: textarea
+    id: intent
+    attributes:
+      label: Intent
+      description: What problem does this solve for Analysts or Requesters? Use docs/VOCABULARY.md terms.
+    validations:
+      required: true
+  - type: textarea
+    id: freeitsm
+    attributes:
+      label: FreeITSM behaviour and deviations
+      description: How FreeITSM does it, bugs found, and any deliberate deviation (AGENTS.md §1.1).
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      value: |
+        - [ ]
+    validations:
+      required: true

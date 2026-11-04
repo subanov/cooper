@@ -1,0 +1,28 @@
+name: Architecture decision
+description: A decision that is hard to reverse (new crate or dependency, data model, cross-context contract, significant FreeITSM deviation).
+labels: ["type: adr"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What forces the decision now? Which requirements or constraints apply?
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options to consider
+      value: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      value: |
+        - [ ] ADR written in `docs/adr/NNNN-title.md` (status, context, options, decision, consequences)
+        - [ ] AGENTS.md / README updated if conventions change
+        - [ ] Follow-up issues created

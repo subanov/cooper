@@ -1,0 +1,30 @@
+name: Bug
+description: Something does not behave as the requirements say.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Name the requirement ID (FR-*) if you know it.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Version, logs and request ID
+      description: Include the `x-request-id` response header if the bug is in the API. Remove secrets and personal data.
+  - type: checkboxes
+    id: regression
+    attributes:
+      label: Fix checklist
+      options:
+        - label: The fix will come with a regression test (AGENTS.md §7).
