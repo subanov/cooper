@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUST_BACKTRACE: short
+  SQLX_CLI_VERSION: "0.9.0"
+
+jobs:
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: false
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    env:
+      # Compile-time checked queries use the committed .sqlx/ data; no database needed.
+      SQLX_OFFLINE: "true"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+      - name: Rustdoc
+        run: cargo doc --workspace --no-deps --all-features --locked
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  test:
+    name: Test (PostgreSQL 16)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cooper
+          POSTGRES_PASSWORD: cooper
+          POSTGRES_DB: cooper
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cooper -d cooper"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    env:
+      DATABASE_URL: postgres://cooper:cooper@localhost:5432/cooper
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest
+      - name: Install sqlx-cli
+        run: |
+          if ! sqlx --version 2>/dev/null | grep -q "$SQLX_CLI_VERSION"; then
+            cargo install sqlx-cli --version "$SQLX_CLI_VERSION" --locked \
+              --no-default-features --features rustls,postgres
+          fi
+      - name: Apply migrations
+        run: cargo sqlx migrate run
+      - name: Check .sqlx offline data is up to date
+        run: cargo sqlx prepare --workspace --check -- --all-targets --all-features
+      - name: Tests
+        run: cargo nextest run --workspace --all-features --locked --no-fail-fast
+      - name: Doc tests
+        run: cargo test --workspace --all-features --locked --doc
+
+  migrations:
+    name: Migrations are forward-only
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check migrations
+        run: |
+          base="origin/${{ github.event.pull_request.base.ref || 'main' }}"
+          if [ "${{ github.event_name }}" = "push" ]; then base="${{ github.event.before }}"; fi
+          scripts/check-migrations.sh "$base"
+
+  dependencies:
+    name: Dependencies (cargo-deny, cargo-machete)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: false
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny,cargo-machete
+      - name: Advisories, licences, bans and sources
+        run: cargo deny --all-features check
+      - name: Unused dependencies
+        run: cargo machete
