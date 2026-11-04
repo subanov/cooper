@@ -24,7 +24,7 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           cache: false
@@ -37,7 +37,7 @@ jobs:
       # Compile-time checked queries use the committed .sqlx/ data; no database needed.
       SQLX_OFFLINE: "true"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - name: Rustdoc
@@ -65,7 +65,7 @@ jobs:
     env:
       DATABASE_URL: postgres://cooper:cooper@localhost:5432/cooper
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - uses: taiki-e/install-action@v2
         with:
@@ -89,7 +89,7 @@ jobs:
     name: Migrations are forward-only
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check migrations
@@ -102,7 +102,7 @@ jobs:
     name: Dependencies (cargo-deny, cargo-machete)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           cache: false
