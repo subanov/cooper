@@ -219,6 +219,7 @@ docker compose up -d --wait postgres     # local database (add mailpit/greenmail
 cargo sqlx migrate run                   # apply migrations
 cargo run -p cooper-server               # start the HTTP server (http://localhost:8080/health/ready)
 cargo run -p cooper-worker               # start background jobs and the outbox dispatcher
+docker compose --profile app up -d --build   # run migrate + server + worker from the Dockerfile
 cargo test --workspace --all-features    # all tests (needs DATABASE_URL)
 cargo fmt --all && cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo sqlx prepare --workspace -- --all-targets --all-features   # refresh .sqlx/ before committing

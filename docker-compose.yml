@@ -2,11 +2,15 @@
 #
 #   docker compose up -d                 # everything
 #   docker compose up -d postgres        # just the database
+#   docker compose --profile app up -d --build   # also build and run Cooper itself
 #
 # Services:
 #   postgres  PostgreSQL 16. Owner role `cooper` (runs migrations), app role `cooper_app`.
 #   mailpit   SMTP capture for outbound mail. Web UI: http://localhost:8025
 #   greenmail IMAP/SMTP test server for mailbox intake. Users are created on first login.
+#   migrate   (profile `app`) applies migrations as the owner role, then exits.
+#   server    (profile `app`) cooper-server on http://localhost:${COOPER_PORT:-8080}.
+#   worker    (profile `app`) cooper-worker background jobs.
 name: cooper
 
 services:
@@ -45,6 +49,44 @@ services:
       - "${GREENMAIL_SMTP_PORT:-3025}:3025"
       - "${GREENMAIL_IMAP_PORT:-3143}:3143"
       - "${GREENMAIL_IMAPS_PORT:-3993}:3993"
+
+  migrate:
+    profiles: ["app"]
+    build:
+      context: .
+      target: migrate
+    environment:
+      DATABASE_URL: postgres://cooper:cooper@postgres:5432/cooper
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  server:
+    profiles: ["app"]
+    build:
+      context: .
+      target: runtime
+    environment: &cooper-env
+      # The application connects as the non-superuser role so Row-Level Security applies.
+      COOPER_DATABASE_URL: postgres://cooper_app:cooper_app@postgres:5432/cooper
+      COOPER_LOG_FORMAT: ${COOPER_LOG_FORMAT:-json}
+      RUST_LOG: ${RUST_LOG:-info,sqlx=warn}
+    ports:
+      - "${COOPER_PORT:-8080}:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    profiles: ["app"]
+    build:
+      context: .
+      target: runtime
+    command: ["/usr/local/bin/cooper-worker"]
+    environment: *cooper-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:

@@ -23,6 +23,14 @@ test:
 up:
     docker compose up -d
 
+# Build and run Cooper itself in containers (migrate, server, worker) next to the stack.
+up-app:
+    docker compose --profile app up -d --build
+
+# Build the runtime image.
+image tag="cooper:dev":
+    docker build --target runtime -t {{tag}} .
+
 # Start only PostgreSQL.
 db:
     docker compose up -d --wait postgres

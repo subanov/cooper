@@ -50,6 +50,18 @@ cargo run -p cooper-worker               # background jobs and domain event disp
 `docker compose up -d` also starts Mailpit (captures outbound mail, UI on
 <http://localhost:8025>) and GreenMail (IMAP/SMTP test server).
 
+To run Cooper itself in containers instead (migrations, server and worker, built from the
+[Dockerfile](Dockerfile)):
+
+```bash
+docker compose --profile app up -d --build   # or: just up-app
+```
+
+Images: `runtime` (default; `cooper-server` and `cooper-worker` on distroless, non-root, start
+the worker with `/usr/local/bin/cooper-worker`) and `migrate` (`sqlx migrate run` as the owner
+role). Probe `GET /health/live` and `GET /health/ready`. Tagged releases (`v*`) publish both
+images to GitHub Container Registry.
+
 Run the checks before you push (or `just check`):
 
 ```bash
