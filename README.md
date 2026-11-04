@@ -34,26 +34,31 @@ See [AGENTS.md](AGENTS.md) for the architecture and coding conventions.
 
 ## Getting started
 
-> These steps describe the intended workflow. They will work once the workspace is scaffolded.
-
-Prerequisites: Rust (via [rustup](https://rustup.rs)), Docker, and `sqlx-cli`
-(`cargo install sqlx-cli --no-default-features --features rustls,postgres`).
+Prerequisites: Rust (via [rustup](https://rustup.rs); the toolchain version is pinned in
+`rust-toolchain.toml`), Docker with Compose, and `sqlx-cli`
+(`cargo install sqlx-cli --locked --no-default-features --features rustls,postgres`).
+[`just`](https://just.systems) is optional.
 
 ```bash
 cp .env.example .env                     # adjust settings
-docker compose up -d postgres            # start a local database
+docker compose up -d --wait postgres     # start a local database
 cargo sqlx migrate run                   # apply migrations
-cargo run -p cooper-server               # HTTP server
-cargo run -p cooper-worker               # background jobs (mail polling, SLA, schedules)
+cargo run -p cooper-server               # HTTP server: http://localhost:8080/health/ready
+cargo run -p cooper-worker               # background jobs and domain event dispatch
 ```
 
-Run the checks before you push:
+`docker compose up -d` also starts Mailpit (captures outbound mail, UI on
+<http://localhost:8025>) and GreenMail (IMAP/SMTP test server).
+
+Run the checks before you push (or `just check`):
 
 ```bash
 cargo fmt --all
-cargo clippy --all-targets --all-features -- -D warnings
-cargo test --workspace
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --all-features
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
 ## Documentation
 
@@ -62,7 +67,9 @@ cargo test --workspace
 | [AGENTS.md](AGENTS.md) | Architecture, conventions and workflow for contributors and AI agents |
 | [docs/VOCABULARY.md](docs/VOCABULARY.md) | Ubiquitous language: use these terms everywhere |
 | [docs/FUNCTIONAL_REQUIREMENTS.md](docs/FUNCTIONAL_REQUIREMENTS.md) | What Cooper must do, with IDs, priorities and phases |
-| `docs/adr/` | Architecture Decision Records |
+| [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Set-up, workflow, commit style |
+| [SECURITY.md](SECURITY.md) | How to report vulnerabilities |
 
 ## Contributing
 

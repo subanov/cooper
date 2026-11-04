@@ -89,9 +89,9 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TKT-001 | An Analyst can create a **Ticket** with subject, description, Requester, Department, Ticket Type, Category, Priority, Origin, Queue (Team), Assignee and Sensitivity. | M | P1 |
 | FR-TKT-002 | Each ticket gets a unique **Ticket Number** from a configurable format (prefix per department or type, `{COMPANY}` token, zero-padded sequence). | M | P1 |
 | FR-TKT-003 | When the number format changes or a ticket is renumbered, previous numbers are kept in Ticket Number History and still resolve to the ticket. | S | P2 |
-| FR-TKT-004 | **Ticket Statuses** are configurable, each with `is_closed`, `pauses_sla` and `is_default` flags. Seeded with Open (default), In Progress, On Hold (pauses SLA), Awaiting Response (pauses SLA), Closed. Exactly one status is the default. | M | P1 |
+| FR-TKT-004 | **Ticket Statuses** are configurable, each with `is_closed`, `pauses_sla` and `is_default` flags. Seeded with Open (default), In Progress, On Hold (pauses SLA), Awaiting Response (pauses SLA), Closed. Exactly one status is the default. Deviation from FreeITSM: the seed always sets `pauses_sla` (FreeITSM's verification seeder omits it, so those installs never pause the SLA). | M | P1 |
 | FR-TKT-005 | **Ticket Priorities** are configurable, each with SLA response minutes, resolution minutes and SLA Calendar. Seeded with Low, Normal (default), High, Critical, Urgent. | M | P1 |
-| FR-TKT-006 | **Ticket Types**, **Origins** and **Resolution Codes** are configurable. Resolution Codes are seeded with the 10 FreeITSM values (see Vocabulary). | M | P1 |
+| FR-TKT-006 | **Ticket Types**, **Origins** and **Resolution Codes** are configurable, with the FreeITSM seeds in the Vocabulary. Seeded rows have a stable `key` that code uses instead of the name. Deviation from FreeITSM: FreeITSM finds channel Origins by English name, so renaming one breaks channel intake. | M | P1 |
 | FR-TKT-007 | **Categories** are configurable as a tree of at most 3 levels. A category can be limited to Ticket Types and marked visible on the Portal. | M | P1 |
 | FR-TKT-008 | Closing a ticket (moving it to a closed status) records the closed timestamp. It requires a **Resolution Code**, and a **Closure Category** when configured. It also requires every Ticket Field marked *required on close*. | M | P1 |
 | FR-TKT-009 | A closed ticket can be reopened. Reopening clears the closed timestamp and is audited. A Requester reply to a closed ticket reopens it or creates a new linked ticket (configurable). | M | P1 |
@@ -197,11 +197,11 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
 | FR-CHG-001 | Analysts create a **Change** with title, Change Type, Priority, Impact, Category, Requester, Assigned To, Approver, Work Window, Outage Window, description, Reason for Change, Risk Evaluation, Test Plan and Rollback Plan. | M | P2 |
-| FR-CHG-002 | Change Types are configurable, each with an Approval Route. Seeded with Standard, Normal (default), Emergency. | M | P2 |
+| FR-CHG-002 | Change Types are configurable, each with an Approval Route (`review` or `emergency`). Seeded with Standard, Normal (default), Emergency. Deviation from FreeITSM: the seeded Emergency type uses the `emergency` route (FreeITSM seeds it with `review`, so emergency changes wait for approval). | M | P2 |
 | FR-CHG-003 | Change Statuses are configurable. Each maps to a fixed **Stage** (draft, awaiting, approved, implementing, done, stopped) and has an `is_closed` flag. Seeded with the 10 FreeITSM statuses. | M | P2 |
 | FR-CHG-004 | Status transitions follow the stage order. Changes in `draft` are editable. Moving to `awaiting` submits the Change for approval. Moving to `implementing` requires approval, except for **Standard** changes. | M | P2 |
-| FR-CHG-005 | Risk assessment: Risk Likelihood × Risk Impact Score gives a **Risk Score**, mapped to a **Risk Level** through configurable thresholds. | S | P2 |
-| FR-CHG-006 | **CAB**: when `cab_required`, CAB Members (some required) vote approve or reject with a comment. The **CAB Approval Type** (for example all, majority, any) decides the outcome. | M | P2 |
+| FR-CHG-005 | Risk assessment: Risk Likelihood (1–5) × Risk Impact Score (1–5) gives a **Risk Score**, mapped to a **Risk Level** through configurable thresholds (seed: Low ≤ 4, Medium 5–9, High 10–15, Very High 16–20, Critical 21–25). Deviation from FreeITSM: thresholds are reference data, computed in one place (FreeITSM hard-codes them in PHP and again in JavaScript). | S | P2 |
+| FR-CHG-006 | **CAB**: when `cab_required`, CAB Members (some required) vote approve or reject with a comment. The **CAB Approval Type** (`all` or `majority` of required members) decides the outcome; one rejection sends the Change back. | M | P2 |
 | FR-CHG-007 | Votes are append-only. Editing an approved Change's material content starts a new **Approval Round** and invalidates earlier approval. | M | P2 |
 | FR-CHG-008 | Changes have a checklist, comments, attachments, links to tickets, problems, CIs and other changes, and a full audit trail. | S | P2 |
 | FR-CHG-009 | Every saved version of long-text fields is kept as a **Text Revision** and can be compared. | S | P2 |
@@ -370,6 +370,7 @@ All AI features are optional and use a provider and key that the Administrator c
 | FR-SYS-004 | First-run setup creates the first Administrator, the default Company and seed reference data. | M | P1 |
 | FR-SYS-005 | Optional demo data loader for evaluation. | C | P4 |
 | FR-SYS-006 | Health and readiness endpoints for operations. | M | P1 |
+| FR-SYS-007 | **Import from FreeITSM**: a one-way, re-runnable importer reads a FreeITSM MySQL database, its attachment folders and (optionally) its encryption key file, and writes Cooper data through application services, with a dry-run mode and a report. See ADR-0008. | S | P4 |
 
 ## 23. REST API (API)
 
@@ -395,9 +396,13 @@ These are not functional requirements, but they constrain the design:
 
 ## Appendix B — Open questions
 
-1. Exact FreeITSM seed values still to confirm: Ticket Types, Origins, Problem Statuses and
-   Priorities, Task Statuses and Priorities, Asset Types and Statuses, Contract and Supplier
-   Statuses, Change Risk Levels, Approval Route and CAB Approval Type values.
-2. Migration path: should Cooper import an existing FreeITSM MySQL database? (A likely Should.)
-3. UI technology: server-rendered (askama + htmx) or SPA served by axum. Record the decision
-   in an ADR.
+Resolved questions stay listed with their answer.
+
+1. ~~Exact FreeITSM seed values~~ **Resolved:** confirmed against FreeITSM 4.9.0 and
+   recorded in the Vocabulary. Evidence and FreeITSM bugs found:
+   [research/freeitsm-schema-and-seeds.md](research/freeitsm-schema-and-seeds.md).
+   FreeITSM ships no seeds for Asset Types/Statuses or Contract/Supplier lookups.
+2. ~~Migration path from FreeITSM~~ **Resolved:** yes, as a one-way importer
+   (FR-SYS-007, [ADR-0008](adr/0008-freeitsm-database-import.md)).
+3. ~~UI technology~~ **Resolved:** server-rendered with askama + htmx
+   ([ADR-0003](adr/0003-server-rendered-ui-with-askama-and-htmx.md)).

@@ -11,7 +11,8 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
   them (they are reference data, not code). Values marked **(fixed)** are a closed set in
   the domain model.
 - ⚠ means the exact FreeITSM value has not been confirmed yet. Confirm it against the
-  FreeITSM schema before you implement it.
+  FreeITSM schema before you implement it. Seed values were confirmed against FreeITSM
+  4.9.0; see [research/freeitsm-schema-and-seeds.md](research/freeitsm-schema-and-seeds.md).
 
 ---
 
@@ -38,7 +39,10 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Actor** | Whoever performed an action: an Analyst, a Requester, an API Key or **Automation** (system). Recorded in every audit entry. | `Actor` | user (ambiguous) |
 | **Sensitivity** | Confidentiality of a ticket or department (fixed): `normal`, `confidential`. Confidential items are visible only to authorised Analysts. | `Sensitivity` | privacy level |
 | **System Setting** | A key/value configuration entry. | `SystemSetting` | |
-| **Audit** | An append-only record of who changed what and when. Every aggregate has one (ticket audit, change audit, …). | `*Audit` | history log |
+| **Audit** | An append-only record of who changed what and when: Actor, timestamp, field, old value, new value. Every aggregate has an audit trail (ticket audit, change audit, …), stored in one platform table keyed by aggregate type and ID (ADR-0009). | `AuditRecord`, `audit_entries` | history log |
+| **Tenant Scope** | The set of Companies a request or job may see: specific Companies, or all. Every tenant query runs inside one; the database enforces it with Row-Level Security (ADR-0004). | `TenantScope` | tenant context, org filter |
+| **Domain Event** | A past-tense fact recorded by an aggregate (`TicketCreated`, `ChangeApproved`), with a stable dotted type (`ticket.created`). The way contexts react to each other. | `DomainEvent`, `EventEnvelope` | message, notification (Notification is the in-app bell) |
+| **Outbox** | The table where Domain Events are stored in the same transaction as the change, then delivered at least once to Event Handlers by the worker (ADR-0005). | `outbox_events`, `EventHandler` | queue (generic) |
 
 ---
 
@@ -51,9 +55,9 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **SDREF** | The tag `[SDREF:<ticket number>]` placed in the subject of outbound emails. When a reply arrives, Cooper uses this tag to thread it onto the existing ticket. | `SdRef` | |
 | **Ticket Status** | Lifecycle state of a ticket. Flags: `is_closed`, `pauses_sla`, `is_default`. Seed: **Open** (default), **In Progress**, **On Hold** (pauses SLA), **Awaiting Response** (pauses SLA), **Closed** (closed). | `TicketStatus`, `ticket_statuses` | state, stage |
 | **Ticket Priority** | Urgency of a ticket. Carries the SLA targets: response minutes, resolution minutes and SLA Calendar. Seed: **Low**, **Normal** (default), **High**, **Critical**, **Urgent**. | `TicketPriority`, `ticket_priorities` | severity (Severity is used for monitoring events) |
-| **Ticket Type** | Classifies a ticket, for example Incident, Service Request, Problem, Task. ⚠ Exact seed names to be confirmed. | `TicketType`, `ticket_types` | kind |
+| **Ticket Type** | Classifies a ticket. Seed: **Incident**, **Service Request**, **Question**. There is no default flag: Ticket Type Rules pick the default. | `TicketType`, `ticket_types` | kind |
 | **Ticket Type Rule** | A rule that picks a ticket's default Type from its channel, mailbox, origin, department, subject words, requester domain or company. | `TicketTypeRule` | |
-| **Origin** | How the ticket arrived (for example Email, Phone, Portal, Walk-up). A Mailbox can stamp a default Origin. ⚠ Exact seed names to be confirmed. | `Origin`, `ticket_origins` | source, channel (Channel is the technical intake) |
+| **Origin** | How the ticket arrived. Seed: **Email**, **Phone**, **Portal**, **Walk-up**; **WhatsApp**, **Web chat**, **Slack** and **Telegram** are seeded when that Channel is enabled. Each seeded Origin has a stable `key`, so renaming it does not break Channels. A Mailbox can stamp a default Origin. | `Origin`, `ticket_origins` | source, channel (Channel is the technical intake) |
 | **Category** | A hierarchical classification (up to 3 levels) of what the ticket was **reported as**. Can be limited to a Ticket Type and shown on the Portal. | `TicketCategory` | topic |
 | **Closure Category** | The Category that the ticket **turned out to be**, set at closure. | `Ticket::closure_category_id` | |
 | **Resolution Code** | **How the ticket ended**. Seed: Fixed remotely, Fixed on site, Hardware replaced, Configuration change, Training given, Access granted, No fault found, Duplicate, Withdrawn, Referred to supplier. | `ResolutionCode` | outcome, close code |
@@ -118,7 +122,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Root Cause** | The investigated underlying cause of the Problem. | `Problem::root_cause` | RCA (RCA is the activity) |
 | **Workaround** | A temporary way to restore service while the root cause is not fixed. | `Problem::workaround` | |
 | **Known Error** | A Problem with a documented root cause and/or workaround (`is_known_error`). | `Problem::is_known_error` | |
-| **Problem Status / Priority** | Configurable lookups. ⚠ Seed values to be confirmed. | `ProblemStatus`, `ProblemPriority` | |
+| **Problem Status / Priority** | Configurable lookups. Status seed: **New** (default), **Investigating**, **Root Cause Identified**, **Known Error**, **Resolved** (closed), **Closed** (closed). Priority seed: **Low**, **Medium** (default), **High**, **Critical**. | `ProblemStatus`, `ProblemPriority` | |
 
 ---
 
@@ -127,7 +131,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Change** | A planned modification to IT services or infrastructure, with risk assessment, approval, schedule and review. | `Change`, `changes` | RFC, change request (in code) |
-| **Change Type** | Seed: **Standard** (pre-approved), **Normal** (default), **Emergency**. Each type has an **Approval Route** (default `review`). | `ChangeType` | |
+| **Change Type** | Seed: **Standard** (pre-approved), **Normal** (default), **Emergency**. Each type has an **Approval Route** (fixed): `review` (approve before work, default) or `emergency` (approve afterwards). Seeded Emergency uses `emergency`. | `ChangeType` | |
 | **Change Status** | Each status belongs to a **Stage** and may be closed. Seed (status → stage): Draft → draft (default), Submitted → draft, Pending Approval → awaiting, Approved → approved, Rejected → stopped (closed), Scheduled → implementing, In Progress → implementing, Completed → done (closed), Failed → done (closed), Cancelled → stopped (closed). | `ChangeStatus`, `ChangeStage` | |
 | **Change Stage** | Fixed lifecycle phase that groups statuses: `draft`, `awaiting`, `approved`, `implementing`, `done`, `stopped`. | `ChangeStage` | |
 | **Change Priority** | Seed: Low, Medium (default), High, Critical. | `ChangePriority` | |
@@ -138,10 +142,10 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Work Window** | Planned implementation start and end. | `Change::{work_start, work_end}` | |
 | **Outage Window** | Planned service downtime start and end. | `Change::{outage_start, outage_end}` | |
 | **Reason for Change** | Business justification. | `Change::reason_for_change` | |
-| **Risk Evaluation** | Narrative risk assessment, plus a **Risk Likelihood** × **Risk Impact Score** = **Risk Score**, mapped to a **Risk Level**. ⚠ Risk Level values to be confirmed. | `RiskAssessment` | |
+| **Risk Evaluation** | Narrative risk assessment, plus a **Risk Likelihood** × **Risk Impact Score** = **Risk Score**, mapped to a **Risk Level**. Likelihood and Impact Score are 1–5 (Very low, Low, Medium, High, Very high). Risk Level seed (score bands): **Low** ≤ 4, **Medium** 5–9, **High** 10–15, **Very High** 16–20, **Critical** 21–25. | `RiskAssessment` | |
 | **Test Plan** | How the change will be verified. | `Change::test_plan` | |
 | **Rollback Plan** | How to revert if the change fails. | `Change::rollback_plan` | backout plan |
-| **CAB** | Change Advisory Board: the members who vote on a Change. Members can be required. **CAB Approval Type** sets the rule for passing (default `all`). | `CabMember`, `Change::cab_required` | committee |
+| **CAB** | Change Advisory Board: the members who vote on a Change. Members can be required. **CAB Approval Type** (fixed) sets the rule for passing: `all` required members approve (default) or `majority` of required members approve. One rejection sends the Change back. | `CabMember`, `Change::cab_required` | committee |
 | **Vote** | A CAB member's decision, with a comment. Votes are append-only and are never updated. | `ChangeApprovalVote` | |
 | **Approval Round** | One cycle of approval. A Change that is edited after approval starts a new round. | `ChangeApproval::round_no` | |
 | **PIR** | Post-Implementation Review: was the change successful, actual start and end, lessons learned, follow-up. | `PostImplementationReview` | retrospective |
@@ -155,6 +159,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Task** | A unit of work with status, priority, start and due date, and an assignee (Analyst, Team, Supplier or Contact). Can link to a ticket, change, contract or project. Supports **Subtasks** (`parent_task_id`). | `Task`, `tasks` | to-do, job |
+| **Task Status / Priority** | Configurable lookups. Status seed: **To Do** (default), **In Progress**, **Blocked**, **Done** (closed), **Cancelled** (closed). Priority seed: **Low**, **Medium** (default), **High**, **Urgent**. | `TaskStatus`, `TaskPriority` | |
 | **Board** | Kanban view of Tasks by status (`board_position`). | — | |
 | **Recurrence** | A repeat rule for a Task (daily, weekly, monthly, yearly). Repeats **on completion** or on a **fixed schedule**. | `TaskRecurrence` | |
 | **Collaborator** | An extra Analyst involved in a Task. | `TaskCollaborator` | watcher |
@@ -182,8 +187,8 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Asset** | A physical or virtual IT item (PC, laptop, server, VM, phone …). Key fields: hostname, Service Tag (serial), Asset Tag, type, status, location, supplier, cost centre, purchase, warranty and lease dates. | `Asset`, `assets` | device, hardware, CI (CI is CMDB) |
 | **Asset Tag** | The per-company label identifier stuck on the item. Also printable as a QR label. | `AssetTag` | |
 | **Service Tag** | The manufacturer serial number. | `ServiceTag` | serial |
-| **Asset Type** | Configurable classification. Linked to a CMDB Class and to Field Sets. | `AssetType` | |
-| **Asset Status** | Configurable status. `is_retired` means the asset has left the estate. | `AssetStatus` | |
+| **Asset Type** | Configurable classification. Linked to a CMDB Class and to Field Sets. No seed values (Administrators create them). | `AssetType` | |
+| **Asset Status** | Configurable status. `is_retired` means the asset has left the estate. No seed values (Administrators create them). | `AssetStatus` | |
 | **Retire** | Remove an Asset from the estate, with a date and reason. | `Asset::retire()` | dispose, delete |
 | **Location** | Hierarchical physical location. | `AssetLocation` | site |
 | **Asset Field / Field Set** | Custom fields, grouped into Field Sets and assigned to Asset Types. | `AssetField`, `AssetFieldSet` | |
@@ -280,7 +285,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Contract** | An agreement with a Supplier (or a customer): number, title, owner, status, start and end, notice period and **Notice Date**, value, currency, payment schedule, cost centre, DMS link, data protection fields (personal data transferred, DPIA required or completed). | `Contract` | agreement, deal |
 | **Supplier** | An external vendor: legal name, trading name, registration number, VAT number, type, status. | `Supplier` | vendor |
 | **Contact** | A person at a Supplier. | `Contact` | (never use for Requesters) |
-| **Contract Status / Supplier Type / Supplier Status / Payment Schedule** | Configurable lookups. ⚠ Seed values to be confirmed. | — | |
+| **Contract Status / Supplier Type / Supplier Status / Payment Schedule** | Configurable lookups. No seed values (Administrators create them). | — | |
 | **Contract Terms** | Structured terms, organised in tabs. | `ContractTermTab`, `ContractTermValue` | |
 | **Notice Date** | The last date to give notice: contract end minus notice period. | `Contract::notice_date()` | |
 | **RFP** | Request for Proposal builder: documents, extracted requirements, conflicts, invited suppliers, scores. | `Rfp` | tender |
@@ -309,7 +314,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Webhook** | An outbound HTTP notification. Delivery status (fixed): `pending`, `delivering`, `delivered`, `failed`, `dead`. Message formats: slack, teams, discord, teams_workflows. | `WebhookDelivery` | callback |
 | **Integration Link** | A link from a Cooper record to an external issue (Jira, GitHub, GitLab, Azure DevOps). Status category (fixed): `todo`, `in_progress`, `done`, `cancelled`. | `IntegrationLink` | |
 | **Monitoring Event** | An alert from monitoring (for example Zabbix) that creates, updates or resolves tickets. Severity 0–5 (Not classified … Disaster). | `MonitoringEvent` | |
-| **Background Job** | A scheduled job (mailbox polling, SLA checks, syncs). Mode (fixed): `interval`, `daily`, `off`. | `JobSchedule`, `JobRun` | cron |
+| **Background Job** | A scheduled job (mailbox polling, SLA checks, syncs). Runs on one worker at a time. Schedule mode (fixed): `interval`, `daily`, `off`. Each run is recorded with outcome (fixed): `running`, `succeeded`, `failed`, `abandoned`, and duration. | `Job`, `Schedule`, `background_jobs`, `background_job_runs` | cron |
 
 ---
 
