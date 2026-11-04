@@ -1,0 +1,46 @@
+# Rust build output
+/target/
+**/*.rs.bk
+*.pdb
+
+# Keep Cargo.lock committed (Cooper ships binaries)
+# Keep .sqlx/ committed (sqlx offline query data for CI)
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local data
+/uploads/
+/data/
+*.log
+*.db
+pgdata/
+
+# Test & coverage artifacts
+*.profraw
+*.profdata
+/coverage/
+lcov.info
+tarpaulin-report.*
+*.snap.new
+*.pending-snap
+
+# Editors & IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings
+.claude/settings.local.json
