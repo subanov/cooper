@@ -38,7 +38,7 @@ services:
       - "${MAILPIT_UI_PORT:-8025}:8025"
 
   greenmail:
-    image: greenmail/standalone:2.1.5
+    image: greenmail/standalone:2.1.15
     environment:
       GREENMAIL_OPTS: >-
         -Dgreenmail.setup.test.all
