@@ -132,7 +132,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
-| FR-EML-001 | Administrators configure **Mailboxes**: provider `microsoft` (Graph, auth mode `delegated` or `app_only`), `google` or `imap`/`smtp`, with default Department, Origin, Company and Team. | M | P1 |
+| FR-EML-001 | Administrators configure **Mailboxes**: provider `microsoft` (Graph, auth mode `delegated` or `app_only`), `google` or `imap`/`smtp`, with default Department, Origin, Company and Team. Deviation from FreeITSM: OAuth refresh tokens are pasted until the consent flow ships with the Mailbox screens (ADR-0020). | M | P1 |
 | FR-EML-002 | A background job polls each active Mailbox on a configurable interval and imports new emails. | M | P1 |
 | FR-EML-003 | An inbound email whose subject contains a valid **SDREF** tag (or matches a known thread or message id) is added to the existing ticket. Otherwise it creates a new ticket. | M | P1 |
 | FR-EML-004 | The Requester is matched by sender address. Unknown senders create a Requester (configurable) or are rejected. The Company is set from **Sender Domains**. **Freemail Domains** never set a Company. | M | P1 |

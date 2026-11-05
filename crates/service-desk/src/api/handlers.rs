@@ -842,7 +842,8 @@ async fn list_mailboxes(
     ))
 }
 
-/// Creates a Mailbox; `password` is stored encrypted.
+/// Creates a Mailbox; `password` (IMAP) or `credentials` (Microsoft, Google) are stored
+/// encrypted.
 #[utoipa::path(post, path = "/mailboxes", tag = "Mailboxes", request_body = super::dto::MailboxDto, responses((status = 201, body = super::dto::MailboxDto)))]
 async fn create_mailbox(
     State(api): State<ServiceDeskApi>,
@@ -852,12 +853,13 @@ async fn create_mailbox(
     let settings = (&body).try_into()?;
     let m = api
         .service
-        .create_mailbox(&p, settings, body.password.as_deref())
+        .create_mailbox(&p, settings, body.secret().as_deref())
         .await?;
     Ok(created(super::dto::MailboxDto::from(m)))
 }
 
-/// Replaces a Mailbox's settings; the stored password is kept unless `password` is given.
+/// Replaces a Mailbox's settings; the stored secret is kept unless `password` or
+/// `credentials` is given.
 #[utoipa::path(put, path = "/mailboxes/{id}", tag = "Mailboxes", params(("id" = Uuid, Path)), request_body = super::dto::MailboxDto, responses((status = 200, body = super::dto::MailboxDto)))]
 async fn update_mailbox(
     State(api): State<ServiceDeskApi>,
@@ -868,7 +870,7 @@ async fn update_mailbox(
     let settings = (&body).try_into()?;
     Ok(Json(
         api.service
-            .update_mailbox(&p, id, settings, body.password.as_deref())
+            .update_mailbox(&p, id, settings, body.secret().as_deref())
             .await?
             .into(),
     ))

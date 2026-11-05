@@ -23,7 +23,7 @@ pub use events::{
 pub use lookups::{Category, CategoryInput, Lookup, LookupFlags, LookupKind, MAX_CATEGORY_DEPTH};
 pub use mailbox::{
     AfterImport, AfterReject, FAILURES_BEFORE_ALERT, ImapSettings, InboundEmail, Mailbox,
-    MailboxHealth, MailboxSettings, Provider, Security, WhitelistEntry,
+    MailboxHealth, MailboxSettings, OAuthCredentials, Provider, Security, WhitelistEntry,
 };
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{

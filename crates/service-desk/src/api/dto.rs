@@ -1080,7 +1080,8 @@ impl From<crate::domain::AttachmentInfo> for AttachmentDto {
     }
 }
 
-/// A Mailbox. Secrets are write-only: send `password` to set or replace it.
+/// A Mailbox. Secrets are write-only: send `password` (IMAP) or `credentials` (OAuth)
+/// to set or replace them.
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct MailboxDto {
     /// ID (ignored in requests).
@@ -1105,9 +1106,15 @@ pub struct MailboxDto {
     /// Folder to read (default `INBOX`).
     #[serde(default)]
     pub folder: String,
-    /// Password or credentials (requests only; never returned).
+    /// IMAP password (requests only; never returned).
     #[serde(default, skip_serializing)]
     pub password: Option<String>,
+    /// Microsoft and Google OAuth client credentials (requests only; never returned):
+    /// `client_id`, `client_secret`, `tenant` (Microsoft) and `refresh_token` (Microsoft
+    /// `delegated`, Google).
+    #[serde(default, skip_serializing)]
+    #[schema(value_type = Option<Object>)]
+    pub credentials: Option<serde_json::Value>,
     /// Whether a secret is stored (responses only).
     #[serde(default)]
     pub has_secret: bool,
@@ -1175,6 +1182,17 @@ pub struct MailboxHealthDto {
     pub consecutive_failures: u32,
 }
 
+impl MailboxDto {
+    /// The secret to store: `credentials` as JSON, else `password`.
+    #[must_use]
+    pub fn secret(&self) -> Option<String> {
+        self.credentials
+            .as_ref()
+            .map(serde_json::Value::to_string)
+            .or_else(|| self.password.clone())
+    }
+}
+
 impl From<crate::domain::Mailbox> for MailboxDto {
     fn from(m: crate::domain::Mailbox) -> Self {
         use crate::domain::{AfterImport, AfterReject, Security};
@@ -1206,6 +1224,7 @@ impl From<crate::domain::Mailbox> for MailboxDto {
             imap_username: s.imap.as_ref().map(|i| i.username.clone()),
             folder: s.folder.clone(),
             password: None,
+            credentials: None,
             has_secret: true,
             company_id: s.tenant_id.as_uuid(),
             department_id: s.department_id.map(|d| d.as_uuid()),
