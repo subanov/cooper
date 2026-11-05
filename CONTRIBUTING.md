@@ -17,8 +17,10 @@ cargo sqlx migrate run                   # or: just migrate
 cargo test --workspace                   # or: just test
 ```
 
-`docker compose up -d` also starts Mailpit (outbound mail capture, UI on
-<http://localhost:8025>) and GreenMail (IMAP/SMTP test server for mailbox intake).
+The local stack runs PostgreSQL 18 (CI tests against the same version; the minimum supported
+version is 16), Mailpit v1.33 and GreenMail 2.1.15. `docker compose up -d` also starts Mailpit
+(outbound mail capture, UI on <http://localhost:8025>) and GreenMail (IMAP/SMTP test server for
+mailbox intake). When you change an image version in `docker-compose.yml`, update these docs.
 
 ## Workflow
 

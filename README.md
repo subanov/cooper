@@ -47,8 +47,10 @@ cargo run -p cooper-server               # HTTP server: http://localhost:8080/he
 cargo run -p cooper-worker               # background jobs and domain event dispatch
 ```
 
-`docker compose up -d` also starts Mailpit (captures outbound mail, UI on
-<http://localhost:8025>) and GreenMail (IMAP/SMTP test server).
+The local stack ([docker-compose.yml](docker-compose.yml)) runs PostgreSQL 18 (the minimum
+supported version is 16), Mailpit v1.33 and GreenMail 2.1.15. `docker compose up -d` also starts
+Mailpit (captures outbound mail, UI on <http://localhost:8025>) and GreenMail (IMAP/SMTP test
+server).
 
 To run Cooper itself in containers instead (migrations, server and worker, built from the
 [Dockerfile](Dockerfile)):
