@@ -1,6 +1,6 @@
 # 0003. Server-rendered UI with askama and htmx
 
-- **Status:** Accepted
+- **Status:** Superseded by [0010](0010-typescript-react-spa-for-analyst-console-and-portal.md)
 - **Date:** 2026-11-04
 - **Issue:** #3 (Appendix B, open question 3)
 - **Requirements:** FR-GEN-005, FR-GEN-009, FR-TKT-025, FR-PRT-001; Appendix A (WCAG 2.1 AA)

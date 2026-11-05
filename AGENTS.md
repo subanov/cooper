@@ -39,6 +39,7 @@ See §1.1.
 | Language           | Rust (stable, edition 2024)                                     |
 | Async runtime      | `tokio`                                                         |
 | Web framework      | `axum` (with `tower` / `tower-http` middleware)                 |
+| Web UI             | TypeScript + React 19 SPA in `web/`, served by `cooper-server` (ADR-0010) |
 | Database           | PostgreSQL (18)                                                 |
 | DB access          | `sqlx` (compile-time checked queries, migrations)               |
 | Serialization      | `serde`                                                         |
@@ -101,6 +102,7 @@ cooper/
 └── apps/
     ├── cooper-server/            # axum HTTP server: wires contexts, routing, middleware
     └── cooper-worker/            # background jobs: mailbox polling, SLA clock, schedules
+web/                              # Analyst console + Portal SPA (TypeScript, React; ADR-0010)
 ```
 
 Create crates only when work on that context starts. Do not scaffold empty crates.
@@ -196,6 +198,20 @@ never `use` anything from `infrastructure`, `api`, `sqlx` or `axum`.
 - Middleware (`tower-http`): tracing, request-id, timeout, compression, CORS (config driven),
   body size limit.
 - Keep an OpenAPI description current (`utoipa`).
+
+### 6.1 Web UI (ADR-0010)
+
+- The UI in `web/` talks **only** to `/api/v1` and the SSE endpoint. Missing data or
+  actions are added to the API first (FR-API-001).
+- **No business rules in TypeScript.** SLA, risk, permissions, validation and state
+  transitions come from the API. Client-side checks only improve form feedback.
+- The API client and types are **generated** from the OpenAPI description. Never edit
+  `web/src/api/` by hand.
+- Use the design system in `web/src/components/` and Vocabulary terms in routes,
+  components and copy. All copy goes through the message catalogue.
+- Every screen is keyboard-usable and passes axe-core (WCAG 2.1 AA).
+- Browser sessions use the `HttpOnly` cookie plus CSRF token; never store tokens in
+  `localStorage`.
 
 ## 7. Testing
 

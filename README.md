@@ -26,6 +26,7 @@ delivery phases.
 | Language        | Rust (stable, edition 2024)    |
 | Async runtime   | tokio                          |
 | Web framework   | axum                           |
+| Web UI          | TypeScript + React SPA (ADR-0010) |
 | Database        | PostgreSQL 18 via sqlx         |
 | Observability   | tracing                        |
 
