@@ -1,0 +1,161 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, owner_type, owner_id, file_name, media_type, size_bytes, sha256, extraction_status,\n                created_by_kind, created_by_id, created_at\n         FROM attachments WHERE owner_type = $1 AND owner_id = $2 ORDER BY created_at, id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "owner_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "owner_type"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "owner_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "file_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "file_name"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "media_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "media_type"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "size_bytes",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "size_bytes"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "sha256",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "sha256"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "extraction_status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "extraction_status"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "32df93fdce74ab93ec0f4883c801b544f4c5b84860e9fe22d5f8d0fc809528d6"
+}

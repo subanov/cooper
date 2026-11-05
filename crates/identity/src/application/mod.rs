@@ -9,6 +9,7 @@ mod auth;
 mod companies;
 mod people;
 mod requesters;
+mod reset;
 mod two_factor;
 
 use std::collections::BTreeSet;
@@ -23,9 +24,9 @@ use uuid::Uuid;
 use crate::domain::{
     AnalystRepository, ApiKeyRepository, AuthorizationRepository, CompanyRepository,
     CostCentreRepository, DepartmentRepository, IdentityError, ListQuery, PasswordHasher,
-    RepoError, RequesterRepository, RoleRepository, SecurityPolicyProvider, SessionPolicy,
-    SessionRepository, SetupRepository, SignInThrottle, TeamRepository, TokenGenerator,
-    TrustedDeviceRepository,
+    PasswordResetRepository, RepoError, RequesterRepository, ResetMailer, RoleRepository,
+    SecurityPolicyProvider, SessionPolicy, SessionRepository, SetupRepository, SignInThrottle,
+    TeamRepository, TokenGenerator, TrustedDeviceRepository,
 };
 
 pub use api_keys::{ApiKeyInput, IssuedApiKey};
@@ -244,6 +245,10 @@ pub struct IdentityPorts {
     pub api_keys: Arc<dyn ApiKeyRepository>,
     /// Security settings.
     pub policy: Arc<dyn SecurityPolicyProvider>,
+    /// Password reset tokens.
+    pub resets: Arc<dyn PasswordResetRepository>,
+    /// Password reset emails.
+    pub reset_mailer: Arc<dyn ResetMailer>,
     /// Password hashing.
     pub hasher: Arc<dyn PasswordHasher>,
     /// Random tokens.

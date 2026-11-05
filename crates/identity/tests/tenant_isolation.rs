@@ -14,7 +14,7 @@ use cooper_identity::application::{
 use cooper_identity::domain::{
     CostCentreCode, DomainName, EmailAddress, Name, Password, SessionPolicy, TicketCode, Username,
 };
-use cooper_identity::infrastructure::{FixedSecurityPolicy, PgIdentityStore};
+use cooper_identity::infrastructure::{FixedSecurityPolicy, LoggingResetMailer, PgIdentityStore};
 use cooper_kernel::{Capability, SystemClock, TenantId, TenantScope};
 use cooper_platform::crypto::Keyring;
 use cooper_platform::testing;
@@ -28,6 +28,7 @@ fn service(pool: &PgPool) -> IdentityService {
         Arc::new(SystemClock),
         Keyring::ephemeral().unwrap(),
         Arc::new(FixedSecurityPolicy::default()),
+        Arc::new(LoggingResetMailer),
     )
     .unwrap();
     let catalogue: BTreeSet<Capability> = capabilities::ALL

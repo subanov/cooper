@@ -11,6 +11,7 @@ use anyhow::Context as _;
 use cooper_identity::domain::SessionPolicy;
 use cooper_identity::infrastructure::{IdentityHousekeeping, ReencryptIdentitySecrets};
 use cooper_kernel::{Clock, SystemClock};
+use cooper_notifications::email::{EmailSender, MailTransport, SmtpTransport};
 use cooper_platform::config::{self, ConfigError, DatabaseConfig};
 use cooper_platform::crypto::Keyring;
 use cooper_platform::db;
@@ -32,6 +33,8 @@ struct WorkerConfig {
     job_run_retention_days: u16,
     system_log_retention_days: u16,
     keyring: Keyring,
+    smtp_url: Option<String>,
+    blob_dir: std::path::PathBuf,
     log_format: LogFormat,
 }
 
@@ -49,6 +52,8 @@ impl WorkerConfig {
                 30_u16,
             )?,
             log_format: config::parse_or("COOPER_LOG_FORMAT", LogFormat::default())?,
+            smtp_url: config::var("COOPER_SMTP_URL")?,
+            blob_dir: config::parse_or("COOPER_BLOB_DIR", std::path::PathBuf::from("data/blobs"))?,
             keyring: Keyring::parse(&config::required("COOPER_ENCRYPTION_KEYS")?).map_err(|e| {
                 ConfigError::Invalid {
                     name: "COOPER_ENCRYPTION_KEYS",
@@ -78,6 +83,17 @@ async fn main() -> anyhow::Result<()> {
 
     let clock: Arc<dyn Clock> = Arc::new(SystemClock);
     let worker_id = format!("{}-{}", hostname(), uuid::Uuid::now_v7());
+    let transport: Option<Arc<dyn MailTransport>> = match config.smtp_url.as_deref() {
+        Some(url) => Some(Arc::new(
+            SmtpTransport::from_url(url)
+                .map_err(anyhow::Error::msg)
+                .context("invalid COOPER_SMTP_URL")?,
+        )),
+        None => {
+            tracing::warn!("COOPER_SMTP_URL is not set: outbound email stays queued");
+            None
+        }
+    };
     let runner = Arc::new(
         JobRunner::new(pool.clone(), clock.clone(), worker_id.clone())
             .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days)))
@@ -86,6 +102,7 @@ async fn main() -> anyhow::Result<()> {
             )))
             .with_job(Arc::new(IdentityHousekeeping))
             .with_job(Arc::new(SlaMonitor))
+            .with_job(Arc::new(EmailSender::new(transport)))
             .with_job(Arc::new(ReencryptIdentitySecrets::new(
                 config.keyring.clone(),
             ))),
@@ -103,6 +120,7 @@ async fn main() -> anyhow::Result<()> {
             secure_cookies: true,
             keyring: config.keyring.clone(),
             trusted_proxies: Vec::new(),
+            blob_dir: config.blob_dir.clone(),
         },
     )
     .context("failed to initialise application services")?;

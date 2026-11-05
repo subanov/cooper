@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO reply_templates (id, name, body, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, body = EXCLUDED.body, is_active = EXCLUDED.is_active,\n                 updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b6047b9c83828b61d60edb291c7b7f679576c5473dc3d0d3aed9c0655f3353ec"
+}

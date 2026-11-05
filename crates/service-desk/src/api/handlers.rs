@@ -121,6 +121,13 @@ where
         .routes(routes!(add_note))
         .routes(routes!(log_time, list_time_entries))
         .routes(routes!(timeline))
+        .routes(routes!(send_reply))
+        .routes(routes!(list_emails))
+        .routes(routes!(list_templates, create_template))
+        .routes(routes!(update_template))
+        .routes(routes!(render_template))
+        .routes(routes!(upload_attachment, list_attachments))
+        .routes(routes!(download_attachment))
         .routes(routes!(list_calendars, create_calendar))
         .routes(routes!(update_calendar))
         .routes(routes!(list_sla_rules, create_sla_rule))
@@ -524,4 +531,246 @@ async fn update_sla_rule(
             .await?
             .into(),
     ))
+}
+
+// ----- Replies, templates and attachments -------------------------------------------------
+
+/// Sends a Reply to the Requester by email (SDREF subject, your Signature appended).
+#[utoipa::path(post, path = "/tickets/{id}/replies", tag = "Tickets", params(("id" = Uuid, Path)), request_body = super::dto::ReplyRequest, responses((status = 201, body = super::dto::TicketEmailDto)))]
+async fn send_reply(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<super::dto::ReplyRequest>,
+) -> ApiResult<Response> {
+    let email = api
+        .service
+        .reply(
+            &p,
+            TicketId::from_uuid(id),
+            crate::application::ReplyInput {
+                body: body.body,
+                cc: body.cc,
+            },
+        )
+        .await?;
+    Ok(created(super::dto::TicketEmailDto::from(email)))
+}
+
+/// Emails of a ticket, oldest first.
+#[utoipa::path(get, path = "/tickets/{id}/emails", tag = "Tickets", params(("id" = Uuid, Path)), responses((status = 200, body = Vec<super::dto::TicketEmailDto>)))]
+async fn list_emails(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Vec<super::dto::TicketEmailDto>>> {
+    Ok(Json(
+        api.service
+            .emails(&p, TicketId::from_uuid(id))
+            .await?
+            .into_iter()
+            .map(super::dto::TicketEmailDto::from)
+            .collect(),
+    ))
+}
+
+/// Lists active Reply Templates.
+#[utoipa::path(get, path = "/reply-templates", tag = "Tickets", responses((status = 200, body = Vec<super::dto::ReplyTemplateDto>)))]
+async fn list_templates(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<Vec<super::dto::ReplyTemplateDto>>> {
+    let all = p.can(crate::application::capabilities::CONFIGURE);
+    Ok(Json(
+        api.service
+            .reply_templates(&p, all)
+            .await?
+            .into_iter()
+            .map(super::dto::ReplyTemplateDto::from)
+            .collect(),
+    ))
+}
+
+/// Creates a Reply Template (needs `tickets.configure`).
+#[utoipa::path(post, path = "/reply-templates", tag = "Tickets", request_body = super::dto::ReplyTemplateDto, responses((status = 201, body = super::dto::ReplyTemplateDto)))]
+async fn create_template(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<super::dto::ReplyTemplateDto>,
+) -> ApiResult<Response> {
+    Ok(created(super::dto::ReplyTemplateDto::from(
+        api.service
+            .create_reply_template(&p, &body.name, &body.body)
+            .await?,
+    )))
+}
+
+/// Replaces a Reply Template.
+#[utoipa::path(put, path = "/reply-templates/{id}", tag = "Tickets", params(("id" = Uuid, Path)), request_body = super::dto::ReplyTemplateDto, responses((status = 200, body = super::dto::ReplyTemplateDto)))]
+async fn update_template(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<super::dto::ReplyTemplateDto>,
+) -> ApiResult<Json<super::dto::ReplyTemplateDto>> {
+    Ok(Json(
+        api.service
+            .update_reply_template(&p, id, &body.name, &body.body, body.is_active)
+            .await?
+            .into(),
+    ))
+}
+
+/// A Reply Template filled in for a ticket.
+#[utoipa::path(get, path = "/tickets/{id}/reply-templates/{template_id}", tag = "Tickets", params(("id" = Uuid, Path), ("template_id" = Uuid, Path)), responses((status = 200, body = super::dto::RenderedTemplateDto)))]
+async fn render_template(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path((id, template)): Path<(Uuid, Uuid)>,
+) -> ApiResult<Json<super::dto::RenderedTemplateDto>> {
+    Ok(Json(super::dto::RenderedTemplateDto {
+        text: api
+            .service
+            .render_reply_template(&p, TicketId::from_uuid(id), template)
+            .await?,
+    }))
+}
+
+/// Uploads a file (multipart field `file`) as an attachment. The size limit is the
+/// `attachments.max_size_mb` setting; the media type is detected from the content.
+#[utoipa::path(post, path = "/tickets/{id}/attachments", tag = "Tickets", params(("id" = Uuid, Path)),
+    request_body(content_type = "multipart/form-data", description = "A `file` field"),
+    responses((status = 201, body = super::dto::AttachmentDto), (status = 413, description = "Too large")))]
+async fn upload_attachment(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    mut form: axum::extract::Multipart,
+) -> ApiResult<Response> {
+    use cooper_platform::attachments::{BlobError, clean_file_name};
+    let ticket = TicketId::from_uuid(id);
+    let limit = api.service.attachment_limit(&p, ticket).await?;
+    let bad = |m: &str| ApiError::from(TicketError::invalid("file", m.to_owned()));
+    while let Some(mut field) = form
+        .next_field()
+        .await
+        .map_err(|_| bad("is not valid multipart data"))?
+    {
+        if field.name() != Some("file") {
+            continue;
+        }
+        let file_name = clean_file_name(field.file_name().unwrap_or("file"));
+        let internal = |e: BlobError| match e {
+            BlobError::TooLarge { limit } => too_large(limit),
+            other => {
+                tracing::error!(error = %other, "attachment storage failed");
+                ApiError(crate::application::AppError::Internal).into_response()
+            }
+        };
+        let mut writer = match api.blobs.writer(limit).await {
+            Ok(w) => w,
+            Err(e) => return Ok(internal(e)),
+        };
+        while let Some(chunk) = field
+            .chunk()
+            .await
+            .map_err(|_| bad("upload was interrupted or is too large"))?
+        {
+            if let Err(e) = writer.write(&chunk).await {
+                return Ok(internal(e));
+            }
+        }
+        let stored = match writer.finish().await {
+            Ok(s) => s,
+            Err(e) => return Ok(internal(e)),
+        };
+        let info = api
+            .service
+            .attach(
+                &p,
+                ticket,
+                crate::application::StoredFile {
+                    file_name,
+                    media_type: stored.media_type.to_owned(),
+                    size_bytes: stored.size,
+                    sha256: stored.sha256,
+                },
+            )
+            .await?;
+        return Ok(created(super::dto::AttachmentDto::from(info)));
+    }
+    Err(bad("is missing"))
+}
+
+fn too_large(limit: u64) -> Response {
+    cooper_http::Problem::new(StatusCode::PAYLOAD_TOO_LARGE)
+        .with_detail(format!(
+            "Files may be at most {} MB.",
+            limit / (1024 * 1024)
+        ))
+        .into_response()
+}
+
+/// Attachments of a ticket.
+#[utoipa::path(get, path = "/tickets/{id}/attachments", tag = "Tickets", params(("id" = Uuid, Path)), responses((status = 200, body = Vec<super::dto::AttachmentDto>)))]
+async fn list_attachments(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Vec<super::dto::AttachmentDto>>> {
+    Ok(Json(
+        api.service
+            .attachments(&p, TicketId::from_uuid(id))
+            .await?
+            .into_iter()
+            .map(super::dto::AttachmentDto::from)
+            .collect(),
+    ))
+}
+
+/// Downloads an attachment (always as a download, never rendered inline).
+#[utoipa::path(get, path = "/tickets/{id}/attachments/{attachment_id}/content", tag = "Tickets", params(("id" = Uuid, Path), ("attachment_id" = Uuid, Path)), responses((status = 200, description = "The file")))]
+async fn download_attachment(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path((id, attachment)): Path<(Uuid, Uuid)>,
+) -> ApiResult<Response> {
+    use axum::http::{HeaderValue, header};
+    let info = api
+        .service
+        .attachments(&p, TicketId::from_uuid(id))
+        .await?
+        .into_iter()
+        .find(|a| a.id == attachment)
+        .ok_or(ApiError(crate::application::AppError::NotFound(
+            "Attachment",
+        )))?;
+    let bytes = api.blobs.read(&info.sha256).await.map_err(|e| {
+        tracing::error!(error = %e, attachment = %info.id, "attachment content missing");
+        ApiError(crate::application::AppError::Internal)
+    })?;
+    let mut response = bytes.into_response();
+    let headers = response.headers_mut();
+    let media = HeaderValue::from_str(&info.media_type)
+        .unwrap_or(HeaderValue::from_static("application/octet-stream"));
+    headers.insert(header::CONTENT_TYPE, media);
+    headers.insert(
+        header::X_CONTENT_TYPE_OPTIONS,
+        HeaderValue::from_static("nosniff"),
+    );
+    let ascii: String = info
+        .file_name
+        .chars()
+        .map(|c| {
+            if c.is_ascii_graphic() && c != '"' && c != '\\' || c == ' ' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    if let Ok(v) = HeaderValue::from_str(&format!("attachment; filename=\"{ascii}\"")) {
+        headers.insert(header::CONTENT_DISPOSITION, v);
+    }
+    Ok(response)
 }

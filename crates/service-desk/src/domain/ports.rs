@@ -241,6 +241,14 @@ pub trait Directory: Send + Sync {
         scope: &TenantScope,
         tenant: TenantId,
     ) -> Result<Option<String>, RepoError>;
+    /// A Requester's name and email.
+    async fn requester_contact(
+        &self,
+        scope: &TenantScope,
+        id: RequesterId,
+    ) -> Result<Option<RequesterContact>, RepoError>;
+    /// An Analyst's name and Signature.
+    async fn analyst_profile(&self, id: AnalystId) -> Result<Option<AnalystProfile>, RepoError>;
 }
 
 /// Service desk settings Administrators control.
@@ -254,6 +262,10 @@ pub struct TicketSettings {
     pub assignee_must_be_team_member: bool,
     /// Share of an SLA target after which it is in warning.
     pub sla_warning_percent: u8,
+    /// `From` of Replies.
+    pub from_address: String,
+    /// Largest attachment in bytes (FR-GEN-007).
+    pub max_attachment_bytes: u64,
 }
 
 impl Default for TicketSettings {
@@ -263,6 +275,8 @@ impl Default for TicketSettings {
             require_closure_category: false,
             assignee_must_be_team_member: true,
             sla_warning_percent: 80,
+            from_address: "Cooper <cooper@localhost>".to_owned(),
+            max_attachment_bytes: 25 * 1024 * 1024,
         }
     }
 }
@@ -293,4 +307,83 @@ pub trait SlaRepository: Send + Sync {
         rule: &super::SlaNotificationRule,
         audit: &AuditRecord,
     ) -> Result<(), RepoError>;
+}
+
+/// Attachment metadata as the service desk sees it (content is in the blob store).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AttachmentInfo {
+    /// ID.
+    pub id: Uuid,
+    /// Company.
+    pub tenant_id: TenantId,
+    /// The ticket.
+    pub ticket_id: TicketId,
+    /// File name.
+    pub file_name: String,
+    /// Detected media type.
+    pub media_type: String,
+    /// Size in bytes.
+    pub size_bytes: i64,
+    /// Content hash.
+    pub sha256: String,
+    /// Who uploaded it.
+    pub created_by: cooper_kernel::Actor,
+    /// When.
+    pub created_at: DateTime<Utc>,
+}
+
+/// Ticket emails, Reply Templates and attachments.
+#[async_trait]
+pub trait ContentRepository: Send + Sync {
+    /// Stores an email with its audit record and events.
+    async fn add_email(
+        &self,
+        email: &super::TicketEmail,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+    /// Emails of a ticket, oldest first.
+    async fn emails(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<super::TicketEmail>, RepoError>;
+    /// Every Reply Template.
+    async fn templates(&self) -> Result<Vec<super::ReplyTemplate>, RepoError>;
+    /// Stores a Reply Template.
+    async fn save_template(
+        &self,
+        template: &super::ReplyTemplate,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Stores attachment metadata (after the content).
+    async fn add_attachment(
+        &self,
+        attachment: &AttachmentInfo,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Attachments of a ticket.
+    async fn attachments(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<AttachmentInfo>, RepoError>;
+}
+
+/// Contact details of a Requester.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RequesterContact {
+    /// Display name.
+    pub name: String,
+    /// Email.
+    pub email: String,
+}
+
+/// Name and Signature of an Analyst.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AnalystProfile {
+    /// Display name.
+    pub name: String,
+    /// Email Signature.
+    pub signature: String,
 }

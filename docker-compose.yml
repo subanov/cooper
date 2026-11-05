@@ -73,7 +73,11 @@ services:
       # Development key only (public). Production sets its own (ADR-0013).
       COOPER_ENCRYPTION_KEYS: ${COOPER_ENCRYPTION_KEYS:-1:Y29vcGVyLWRldi1rZXktbmV2ZXItaW4tcHJvZC0wMDE=}
       COOPER_SECURE_COOKIES: ${COOPER_SECURE_COOKIES:-false}
+      COOPER_BLOB_DIR: /var/lib/cooper/blobs
+      COOPER_SMTP_URL: ${COOPER_SMTP_URL:-smtp://mailpit:1025}
       RUST_LOG: ${RUST_LOG:-info,sqlx=warn}
+    volumes:
+      - blobs:/var/lib/cooper/blobs
     ports:
       - "${COOPER_PORT:-8080}:8080"
     depends_on:
@@ -87,9 +91,12 @@ services:
       target: runtime
     command: ["/usr/local/bin/cooper-worker"]
     environment: *cooper-env
+    volumes:
+      - blobs:/var/lib/cooper/blobs
     depends_on:
       migrate:
         condition: service_completed_successfully
 
 volumes:
   pgdata:
+  blobs:

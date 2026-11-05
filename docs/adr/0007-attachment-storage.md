@@ -61,3 +61,7 @@ Option 3.
   step.
 - The importer from FreeITSM ([ADR-0008](0008-freeitsm-database-import.md)) reads
   FreeITSM's attachment folders and writes them through the same `BlobStore`.
+
+## Implementation note
+
+P1 implements the file-system backend ([ADR-0017](0017-outbound-email-and-attachments.md)); the S3 backend and the orphan clean-up job are tracked separately.

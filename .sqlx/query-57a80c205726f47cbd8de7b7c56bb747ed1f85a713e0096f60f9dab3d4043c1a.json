@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO outbound_emails (id, tenant_id, kind, from_address, to_addresses, cc_addresses, subject, text_body,\n                                          message_id, in_reply_to, references_ids, status, next_attempt_at, created_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'queued', $12, $12)\n             ON CONFLICT (message_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "TextArray",
+        "TextArray",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "57a80c205726f47cbd8de7b7c56bb747ed1f85a713e0096f60f9dab3d4043c1a"
+}

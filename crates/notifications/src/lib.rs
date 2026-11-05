@@ -6,6 +6,7 @@
 //! API. Delivery is idempotent: one Notification per source event and recipient.
 
 pub mod api;
+pub mod email;
 pub mod handlers;
 
 use std::collections::BTreeSet;

@@ -47,6 +47,8 @@ pub struct SecuritySettings {
     pub keyring: Keyring,
     /// Reverse proxies trusted for `X-Forwarded-For` (`COOPER_TRUSTED_PROXIES`).
     pub trusted_proxies: Vec<IpNetwork>,
+    /// Where attachment content is stored (`COOPER_BLOB_DIR`).
+    pub blob_dir: std::path::PathBuf,
 }
 
 impl SecuritySettings {
@@ -61,6 +63,7 @@ impl SecuritySettings {
             secure_cookies: true,
             keyring: Keyring::ephemeral()?,
             trusted_proxies: Vec::new(),
+            blob_dir: std::env::temp_dir().join(format!("cooper-blobs-{}", uuid::Uuid::now_v7())),
         })
     }
 }
@@ -143,6 +146,7 @@ pub fn setting_catalogue() -> Vec<SettingDefinition> {
         .iter()
         .chain(identity_settings::ALL)
         .chain(desk_settings::ALL)
+        .chain(cooper_notifications::email::settings::ALL)
         .copied()
         .collect()
 }
@@ -186,12 +190,24 @@ impl AppState {
             admin: admin.clone(),
             cache: RwLock::new(None),
         });
-        let ports = PgIdentityStore::ports(pool.clone(), clock.clone(), security.keyring, policy)?;
+        let outbox = cooper_notifications::email::EmailOutbox::new(pool.clone());
+        let reset_mailer = Arc::new(crate::adapters::OutboxResetMailer {
+            outbox,
+            admin: admin.clone(),
+        });
+        let ports = PgIdentityStore::ports(
+            pool.clone(),
+            clock.clone(),
+            security.keyring,
+            policy,
+            reset_mailer,
+        )?;
         let service = IdentityService::new(ports, capability_catalogue(), security.session_policy);
         let desk = ServiceDesk::new(ServiceDeskPorts {
             tickets: Arc::new(PgServiceDeskStore::new(pool.clone())),
             reference: Arc::new(PgServiceDeskStore::new(pool.clone())),
             sla: Arc::new(PgServiceDeskStore::new(pool.clone())),
+            content: Arc::new(PgServiceDeskStore::new(pool.clone())),
             directory: Arc::new(IdentityDirectory {
                 identity: service.clone(),
             }),
@@ -219,7 +235,10 @@ impl AppState {
             notifications: NotificationsApi {
                 service: notifications,
             },
-            service_desk: ServiceDeskApi { service: desk },
+            service_desk: ServiceDeskApi {
+                service: desk,
+                blobs: cooper_platform::attachments::FilesystemBlobStore::new(security.blob_dir),
+            },
         })
     }
 }
@@ -240,15 +259,20 @@ impl AppState {
     /// other contexts' Domain Events here.
     #[must_use]
     pub fn event_handlers(&self) -> Vec<Arc<dyn EventHandler>> {
-        vec![Arc::new(TicketNotifier {
-            notifications: self.notifications.service.clone(),
-            tickets: Arc::new(DeskTickets {
-                desk: self.service_desk.service.clone(),
+        vec![
+            Arc::new(TicketNotifier {
+                notifications: self.notifications.service.clone(),
+                tickets: Arc::new(DeskTickets {
+                    desk: self.service_desk.service.clone(),
+                }),
+                people: Arc::new(IdentityDirectory {
+                    identity: self.identity.service.clone(),
+                }),
             }),
-            people: Arc::new(IdentityDirectory {
-                identity: self.identity.service.clone(),
+            Arc::new(cooper_notifications::email::ReplyMailer {
+                outbox: cooper_notifications::email::EmailOutbox::new(self.pool.clone()),
             }),
-        })]
+        ]
     }
 }
 

@@ -1,5 +1,6 @@
 //! Service desk domain. Pure Rust: no I/O.
 
+mod email;
 mod events;
 mod lookups;
 mod number;
@@ -7,16 +8,22 @@ mod ports;
 mod sla;
 mod ticket;
 
+pub use email::{
+    Direction, PLACEHOLDERS, Placeholders, ReplyDraft, ReplyTemplate, TicketEmail, parse_sdref,
+    sdref_subject,
+};
 pub use events::{
-    SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed, TicketCreated, TicketNoteAdded,
-    TicketPriorityChanged, TicketReopened, TicketStatusChanged, mentions,
+    ReplyEmail, SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed, TicketCreated,
+    TicketNoteAdded, TicketPriorityChanged, TicketReopened, TicketReplySent, TicketStatusChanged,
+    mentions,
 };
 pub use lookups::{Category, CategoryInput, Lookup, LookupFlags, LookupKind, MAX_CATEGORY_DEPTH};
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{
-    DepartmentInfo, Directory, ListFilter, ReferenceData, RepoError, SlaRepository, SortField,
-    TicketListQuery, TicketRepository, TicketSettings, TicketSettingsProvider, TicketSummary,
-    TicketView, Visibility,
+    AnalystProfile, AttachmentInfo, ContentRepository, DepartmentInfo, Directory, ListFilter,
+    ReferenceData, RepoError, RequesterContact, SlaRepository, SortField, TicketListQuery,
+    TicketRepository, TicketSettings, TicketSettingsProvider, TicketSummary, TicketView,
+    Visibility,
 };
 pub use sla::{
     DayHours, RuleTarget, SlaCalendar, SlaCalendarInput, SlaNotificationRule, SlaRuleInput,

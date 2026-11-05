@@ -43,6 +43,8 @@ pub(crate) struct State {
     pub api_keys: HashMap<ApiKeyId, ApiKey>,
     pub usage: HashMap<(ApiKeyId, i64), u32>,
     pub policy: SecurityPolicy,
+    pub resets: HashMap<Vec<u8>, (AnalystId, DateTime<Utc>, bool)>,
+    pub reset_mails: Vec<(String, String)>,
 }
 
 #[derive(Clone)]
@@ -96,6 +98,8 @@ impl Fakes {
             throttle: me.clone(),
             api_keys: me.clone(),
             policy: me.clone(),
+            resets: me.clone(),
+            reset_mailer: me.clone(),
             hasher: me.clone(),
             tokens: me,
             clock: self.clock.clone(),
@@ -657,5 +661,55 @@ impl ApiKeyRepository for Fakes {
 impl SecurityPolicyProvider for Fakes {
     async fn policy(&self) -> SecurityPolicy {
         self.state().policy
+    }
+}
+
+#[async_trait]
+impl crate::domain::PasswordResetRepository for Fakes {
+    async fn issue(
+        &self,
+        analyst: AnalystId,
+        hash: &[u8],
+        _now: DateTime<Utc>,
+        expires_at: DateTime<Utc>,
+    ) -> Result<(), RepoError> {
+        let mut state = self.state();
+        state
+            .resets
+            .retain(|_, (a, _, used)| *a != analyst || *used);
+        state
+            .resets
+            .insert(hash.to_vec(), (analyst, expires_at, false));
+        Ok(())
+    }
+    async fn consume(
+        &self,
+        hash: &[u8],
+        now: DateTime<Utc>,
+    ) -> Result<Option<AnalystId>, RepoError> {
+        let mut state = self.state();
+        match state.resets.get_mut(hash) {
+            Some((a, expires, used)) if !*used && *expires > now => {
+                *used = true;
+                Ok(Some(*a))
+            }
+            _ => Ok(None),
+        }
+    }
+}
+
+#[async_trait]
+impl crate::domain::ResetMailer for Fakes {
+    async fn send_reset(
+        &self,
+        to: &str,
+        _name: &str,
+        token: &str,
+        _expires_at: DateTime<Utc>,
+    ) -> Result<(), RepoError> {
+        self.state()
+            .reset_mails
+            .push((to.to_owned(), token.to_owned()));
+        Ok(())
     }
 }

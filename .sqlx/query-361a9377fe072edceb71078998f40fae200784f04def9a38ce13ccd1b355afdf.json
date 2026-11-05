@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE outbound_emails SET status = CASE WHEN $4 THEN 'dead' ELSE 'queued' END, attempts = $2,\n                                last_error = $3, next_attempt_at = $5 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Text",
+        "Bool",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "361a9377fe072edceb71078998f40fae200784f04def9a38ce13ccd1b355afdf"
+}

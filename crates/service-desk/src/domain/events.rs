@@ -167,3 +167,40 @@ mod tests {
         assert!(mentions("no mentions @ all").is_empty());
     }
 }
+
+/// The email part of a [`TicketReplySent`]: the published shape the notifications
+/// context queues for sending.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ReplyEmail {
+    /// ID of the queued email (the ticket email ID).
+    pub id: Uuid,
+    /// Company.
+    pub tenant_id: Option<TenantId>,
+    /// Always `ticket_reply`.
+    pub kind: String,
+    /// `From`.
+    pub from: String,
+    /// `To`.
+    pub to: Vec<String>,
+    /// `Cc`.
+    pub cc: Vec<String>,
+    /// Subject with SDREF.
+    pub subject: String,
+    /// Body with Signature.
+    pub text_body: String,
+    /// `Message-ID`.
+    pub message_id: String,
+    /// `In-Reply-To`.
+    pub in_reply_to: Option<String>,
+    /// `References`.
+    pub references: Vec<String>,
+}
+
+ticket_event!(
+    /// An Analyst replied to the Requester (FR-TKT-021). The notifications context
+    /// queues the email.
+    TicketReplySent, "ticket.reply_sent" {
+        /// The email to send.
+        email: ReplyEmail,
+    }
+);

@@ -20,6 +20,8 @@ pub use dto::*;
 pub struct ServiceDeskApi {
     /// The application service.
     pub service: ServiceDesk,
+    /// Where attachment content is stored.
+    pub blobs: cooper_platform::attachments::FilesystemBlobStore,
 }
 
 /// The service desk routes, to be nested under `/api/v1`.
@@ -42,6 +44,7 @@ pub const ROUTE_PREFIXES: &[&str] = &[
     "/ticket-categories",
     "/sla-calendars",
     "/sla-notification-rules",
+    "/reply-templates",
 ];
 
 /// An application error rendered as problem+json.

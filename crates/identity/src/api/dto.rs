@@ -351,6 +351,8 @@ pub struct AnalystDto {
     pub has_password: bool,
     /// Whether two-factor sign-in is on.
     pub totp_enabled: bool,
+    /// Email Signature appended to Replies.
+    pub signature: String,
     /// When deactivated.
     pub deactivated_at: Option<DateTime<Utc>>,
     /// Roles assigned directly.
@@ -374,6 +376,7 @@ impl From<Analyst> for AnalystDto {
             is_active: a.is_active(),
             has_password: a.password_hash().is_some(),
             totp_enabled: a.totp_enabled(),
+            signature: a.signature().to_owned(),
             deactivated_at: a.deactivated_at(),
             role_ids: a.roles().iter().map(|r| r.as_uuid()).collect(),
             company_access: a.company_access().into(),
@@ -864,4 +867,27 @@ impl TryFrom<ApiKeyRequest> for crate::application::ApiKeyInput {
             expires_at: r.expires_at,
         })
     }
+}
+
+/// Start a password reset.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ResetRequest {
+    /// Username or email address.
+    pub login: String,
+}
+
+/// Finish a password reset.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ResetConfirmRequest {
+    /// The token from the email.
+    pub token: String,
+    /// The new password (at least 12 characters).
+    pub password: String,
+}
+
+/// The signed-in Analyst's Signature.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct SignatureRequest {
+    /// Appended to Replies (at most 2000 characters).
+    pub signature: String,
 }

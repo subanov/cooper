@@ -138,3 +138,52 @@ impl SignInThrottle for PgIdentityStore {
         Ok(())
     }
 }
+
+#[async_trait]
+impl crate::domain::PasswordResetRepository for PgIdentityStore {
+    async fn issue(
+        &self,
+        analyst: AnalystId,
+        token_hash: &[u8],
+        now: DateTime<Utc>,
+        expires_at: DateTime<Utc>,
+    ) -> Result<(), RepoError> {
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        sqlx::query!(
+            "DELETE FROM password_reset_tokens WHERE analyst_id = $1 AND used_at IS NULL",
+            analyst.as_uuid()
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        sqlx::query!(
+            "INSERT INTO password_reset_tokens (token_hash, analyst_id, created_at, expires_at) VALUES ($1, $2, $3, $4)",
+            token_hash,
+            analyst.as_uuid(),
+            now,
+            expires_at
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn consume(
+        &self,
+        token_hash: &[u8],
+        now: DateTime<Utc>,
+    ) -> Result<Option<AnalystId>, RepoError> {
+        let id = sqlx::query_scalar!(
+            "UPDATE password_reset_tokens SET used_at = $2
+             WHERE token_hash = $1 AND used_at IS NULL AND expires_at > $2
+             RETURNING analyst_id",
+            token_hash,
+            now
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(db_err)?;
+        Ok(id.map(AnalystId::from_uuid))
+    }
+}

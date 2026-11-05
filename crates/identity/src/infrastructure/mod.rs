@@ -48,6 +48,7 @@ impl PgIdentityStore {
         clock: Arc<dyn Clock>,
         keyring: Keyring,
         policy: Arc<dyn SecurityPolicyProvider>,
+        reset_mailer: Arc<dyn crate::domain::ResetMailer>,
     ) -> Result<IdentityPorts, RepoError> {
         let store = Arc::new(Self::new(pool, keyring));
         Ok(IdentityPorts {
@@ -63,7 +64,9 @@ impl PgIdentityStore {
             setup: store.clone(),
             trusted_devices: store.clone(),
             throttle: store.clone(),
-            api_keys: store,
+            api_keys: store.clone(),
+            resets: store,
+            reset_mailer,
             policy,
             hasher: Arc::new(Argon2Hasher::new()?),
             tokens: Arc::new(OsTokenGenerator),
@@ -119,5 +122,23 @@ pub struct FixedSecurityPolicy(pub crate::domain::SecurityPolicy);
 impl SecurityPolicyProvider for FixedSecurityPolicy {
     async fn policy(&self) -> crate::domain::SecurityPolicy {
         self.0
+    }
+}
+
+/// A [`crate::domain::ResetMailer`] that only logs (tests, or when email is not set up).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct LoggingResetMailer;
+
+#[async_trait::async_trait]
+impl crate::domain::ResetMailer for LoggingResetMailer {
+    async fn send_reset(
+        &self,
+        _to: &str,
+        _name: &str,
+        _token: &str,
+        expires_at: chrono::DateTime<chrono::Utc>,
+    ) -> Result<(), RepoError> {
+        tracing::warn!(%expires_at, "password reset requested but no mailer is configured");
+        Ok(())
     }
 }

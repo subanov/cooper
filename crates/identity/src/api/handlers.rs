@@ -39,6 +39,9 @@ where
         .routes(routes!(setup_status, complete_setup))
         .routes(routes!(current_session, sign_in, sign_out))
         .routes(routes!(change_own_password))
+        .routes(routes!(set_signature))
+        .routes(routes!(request_password_reset))
+        .routes(routes!(confirm_password_reset))
         .routes(routes!(begin_totp_enrollment))
         .routes(routes!(confirm_totp_enrollment))
         .routes(routes!(disable_totp))
@@ -1027,4 +1030,41 @@ async fn revoke_api_key(
             .await?
             .into(),
     ))
+}
+
+/// Changes your email Signature.
+#[utoipa::path(put, path = "/session/signature", tag = "Setup and session", request_body = super::dto::SignatureRequest,
+    responses((status = 204, description = "Saved")))]
+async fn set_signature(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<super::dto::SignatureRequest>,
+) -> ApiResult<StatusCode> {
+    api.service.set_own_signature(&p, &body.signature).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Emails a one-time password reset link. Always answers `202`, whether or not the
+/// account exists.
+#[utoipa::path(post, path = "/password-reset", tag = "Setup and session", request_body = super::dto::ResetRequest,
+    responses((status = 202, description = "If the account exists, an email is on its way")))]
+async fn request_password_reset(
+    State(api): State<IdentityApi>,
+    Json(body): Json<super::dto::ResetRequest>,
+) -> ApiResult<StatusCode> {
+    api.service.request_password_reset(&body.login).await?;
+    Ok(StatusCode::ACCEPTED)
+}
+
+/// Sets a new password with the token from the email. Ends every session.
+#[utoipa::path(post, path = "/password-reset/confirm", tag = "Setup and session", request_body = super::dto::ResetConfirmRequest,
+    responses((status = 204, description = "Password changed"), (status = 401, description = "Invalid or expired token")))]
+async fn confirm_password_reset(
+    State(api): State<IdentityApi>,
+    Json(body): Json<super::dto::ResetConfirmRequest>,
+) -> ApiResult<StatusCode> {
+    api.service
+        .confirm_password_reset(&body.token, password(body.password)?)
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
 }

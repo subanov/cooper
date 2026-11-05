@@ -115,6 +115,8 @@ pub enum TimelineEntry {
     Time(TimeEntry),
     /// A recorded change (status, assignment, fields).
     Change(AuditRecord),
+    /// An email.
+    Email(crate::domain::TicketEmail),
 }
 
 impl TimelineEntry {
@@ -125,6 +127,7 @@ impl TimelineEntry {
             Self::Note(n) => n.created_at(),
             Self::Time(t) => t.created_at(),
             Self::Change(a) => a.occurred_at,
+            Self::Email(e) => e.occurred_at,
         }
     }
 }
@@ -167,7 +170,7 @@ impl ServiceDesk {
         })
     }
 
-    async fn load(
+    pub(super) async fn load(
         &self,
         principal: &Principal,
         id: TicketId,
@@ -424,7 +427,7 @@ impl ServiceDesk {
             .ok_or(AppError::NotFound("Ticket"))
     }
 
-    async fn save(
+    pub(super) async fn save(
         &self,
         principal: &Principal,
         before: &Ticket,
@@ -803,6 +806,14 @@ impl ServiceDesk {
                 .await?
                 .into_iter()
                 .map(TimelineEntry::Change),
+        );
+        entries.extend(
+            self.ports
+                .content
+                .emails(scope, id)
+                .await?
+                .into_iter()
+                .map(TimelineEntry::Email),
         );
         entries.sort_by_key(TimelineEntry::at);
         Ok(entries)
