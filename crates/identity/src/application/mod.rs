@@ -8,6 +8,7 @@ mod api_keys;
 mod auth;
 mod companies;
 mod people;
+mod portal;
 mod requesters;
 mod reset;
 mod two_factor;
@@ -24,15 +25,16 @@ use uuid::Uuid;
 use crate::domain::{
     AnalystRepository, ApiKeyRepository, AuthorizationRepository, CompanyRepository,
     CostCentreRepository, DepartmentRepository, IdentityError, ListQuery, PasswordHasher,
-    PasswordResetRepository, RepoError, RequesterRepository, ResetMailer, RoleRepository,
-    SecurityPolicyProvider, SessionPolicy, SessionRepository, SetupRepository, SignInThrottle,
-    TeamRepository, TokenGenerator, TrustedDeviceRepository,
+    PasswordResetRepository, PortalRepository, RepoError, RequesterRepository, ResetMailer,
+    RoleRepository, SecurityPolicyProvider, SessionPolicy, SessionRepository, SetupRepository,
+    SignInThrottle, TeamRepository, TokenGenerator, TrustedDeviceRepository,
 };
 
 pub use api_keys::{ApiKeyInput, IssuedApiKey};
 pub use auth::{FirstRunSetup, SignIn, SignedIn};
 pub use companies::CompanyInput;
 pub use people::{AnalystInput, DepartmentInput, RoleInput, TeamInput};
+pub use portal::{PortalIdentity, PortalRegistration, PortalSignIn, PortalSignedIn};
 pub use requesters::{CostCentreInput, RequesterInput};
 pub use two_factor::TotpEnrollment;
 
@@ -93,8 +95,21 @@ pub mod settings {
         default: "15",
     };
 
+    /// People at a Company's Sender Domain may create a Portal Account (FR-PRT-001).
+    pub const PORTAL_SELF_REGISTRATION: SettingDefinition = SettingDefinition {
+        key: "portal.self_registration",
+        description: "Let people whose email belongs to a Company's Sender Domain create a Portal Account themselves (confirmed by email).",
+        kind: SettingKind::Bool,
+        default: "false",
+    };
+
     /// Every setting declared by the identity context.
-    pub const ALL: &[SettingDefinition] = &[REQUIRE_TOTP, MAX_FAILED_SIGN_INS, SIGN_IN_BAN_MINUTES];
+    pub const ALL: &[SettingDefinition] = &[
+        REQUIRE_TOTP,
+        MAX_FAILED_SIGN_INS,
+        SIGN_IN_BAN_MINUTES,
+        PORTAL_SELF_REGISTRATION,
+    ];
 }
 
 /// A use case failed.
@@ -247,7 +262,9 @@ pub struct IdentityPorts {
     pub policy: Arc<dyn SecurityPolicyProvider>,
     /// Password reset tokens.
     pub resets: Arc<dyn PasswordResetRepository>,
-    /// Password reset emails.
+    /// Portal Accounts, sessions and links.
+    pub portal: Arc<dyn PortalRepository>,
+    /// Password reset and Portal link emails.
     pub reset_mailer: Arc<dyn ResetMailer>,
     /// Password hashing.
     pub hasher: Arc<dyn PasswordHasher>,

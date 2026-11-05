@@ -152,7 +152,12 @@ impl IdentityService {
             Some(a) if password_ok && a.is_active() => a,
             _ => {
                 return Err(self
-                    .failed_sign_in(&request, &policy, AppError::InvalidCredentials)
+                    .failed_sign_in(
+                        request.login.trim(),
+                        request.ip_address,
+                        &policy,
+                        AppError::InvalidCredentials,
+                    )
                     .await);
             }
         };
@@ -179,7 +184,9 @@ impl IdentityService {
                 let before = analyst.clone();
                 if !analyst.verify_totp(code, now) {
                     let err = AppError::Rule(IdentityError::InvalidTotpCode);
-                    return Err(self.failed_sign_in(&request, &policy, err).await);
+                    return Err(self
+                        .failed_sign_in(request.login.trim(), request.ip_address, &policy, err)
+                        .await);
                 }
                 // Store the used step so the code cannot be replayed.
                 let audit = audit_record(
@@ -235,21 +242,22 @@ impl IdentityService {
 
     /// Records a failed sign-in for the client IP; turns `err` into
     /// [`AppError::TooManyAttempts`] when this failure starts a ban.
-    async fn failed_sign_in(
+    pub(super) async fn failed_sign_in(
         &self,
-        request: &SignIn,
+        login: &str,
+        ip_address: Option<IpAddr>,
         policy: &SecurityPolicy,
         err: AppError,
     ) -> AppError {
-        tracing::info!(login = %request.login.trim(), ip = ?request.ip_address, "failed sign-in");
-        let Some(ip) = request.ip_address else {
+        tracing::info!(%login, ip = ?ip_address, "failed sign-in");
+        let Some(ip) = ip_address else {
             return err;
         };
         let now = self.ports.clock.now();
         match self
             .ports
             .throttle
-            .record_failure(ip, request.login.trim(), now, policy)
+            .record_failure(ip, login, now, policy)
             .await
         {
             Ok(Some(until)) => {

@@ -386,49 +386,54 @@ impl cooper_notifications::handlers::PeopleLookup for IdentityDirectory {
     }
 }
 
-/// Sends password reset emails through the outbound email queue.
+/// Sends password reset and Portal link emails through the outbound email queue.
 pub struct OutboxResetMailer {
     pub outbox: cooper_notifications::email::EmailOutbox,
     pub admin: AdministrationService,
 }
 
-#[async_trait]
-impl cooper_identity::domain::ResetMailer for OutboxResetMailer {
-    async fn send_reset(
+impl OutboxResetMailer {
+    async fn text(&self, key: &'static str, default: &str) -> String {
+        self.admin
+            .setting_value(key)
+            .await
+            .ok()
+            .flatten()
+            .and_then(|v| v.as_str().map(str::to_owned))
+            .unwrap_or_else(|| default.to_owned())
+    }
+
+    /// From address, base URL and instance name.
+    async fn branding(&self) -> (String, String, String) {
+        let from = self
+            .text(
+                cooper_notifications::email::settings::FROM_ADDRESS.key,
+                "Cooper <cooper@localhost>",
+            )
+            .await;
+        let base = self
+            .text(
+                cooper_administration::application::settings::BASE_URL.key,
+                "http://localhost:8080",
+            )
+            .await;
+        let instance = self
+            .text(
+                cooper_administration::application::settings::INSTANCE_NAME.key,
+                "Cooper",
+            )
+            .await;
+        (from, base.trim_end_matches('/').to_owned(), instance)
+    }
+
+    async fn queue(
         &self,
+        kind: &str,
+        from: String,
         to: &str,
-        name: &str,
-        token: &str,
-        expires_at: chrono::DateTime<chrono::Utc>,
+        subject: String,
+        text_body: String,
     ) -> Result<(), cooper_identity::domain::RepoError> {
-        let text = |key: &'static str, default: &str| {
-            let admin = self.admin.clone();
-            let default = default.to_owned();
-            async move {
-                admin
-                    .setting_value(key)
-                    .await
-                    .ok()
-                    .flatten()
-                    .and_then(|v| v.as_str().map(str::to_owned))
-                    .unwrap_or(default)
-            }
-        };
-        let from = text(
-            cooper_notifications::email::settings::FROM_ADDRESS.key,
-            "Cooper <cooper@localhost>",
-        )
-        .await;
-        let base = text(
-            cooper_administration::application::settings::BASE_URL.key,
-            "http://localhost:8080",
-        )
-        .await;
-        let instance = text(
-            cooper_administration::application::settings::INSTANCE_NAME.key,
-            "Cooper",
-        )
-        .await;
         let id = uuid::Uuid::now_v7();
         let domain = from
             .rsplit('@')
@@ -439,15 +444,12 @@ impl cooper_identity::domain::ResetMailer for OutboxResetMailer {
         let email = cooper_notifications::email::OutboundEmail {
             id,
             tenant_id: None,
-            kind: "password_reset".into(),
+            kind: kind.into(),
             from,
             to: vec![to.to_owned()],
             cc: Vec::new(),
-            subject: format!("{instance}: reset your password"),
-            text_body: format!(
-                "Hello {name},\n\nSomeone asked to reset your {instance} password. If it was you, open this link before {expires_at} (UTC):\n\n{}/reset-password?token={token}\n\nIf it was not you, ignore this email; your password stays the same.\n",
-                base.trim_end_matches('/')
-            ),
+            subject,
+            text_body,
             message_id: format!("<{id}@{domain}>"),
             in_reply_to: None,
             references: Vec::new(),
@@ -457,5 +459,66 @@ impl cooper_identity::domain::ResetMailer for OutboxResetMailer {
             .await
             .map(|_| ())
             .map_err(|e| cooper_identity::domain::RepoError::Storage(e.to_string()))
+    }
+}
+
+#[async_trait]
+impl cooper_identity::domain::ResetMailer for OutboxResetMailer {
+    async fn send_portal_link(
+        &self,
+        link: &cooper_identity::domain::PortalLinkEmail,
+    ) -> Result<(), cooper_identity::domain::RepoError> {
+        use cooper_identity::domain::PortalLinkPurpose;
+        let (from, base, instance) = self.branding().await;
+        let url = format!("{base}/portal/set-password?token={}", link.token);
+        let (kind, subject, intro) = match link.purpose {
+            PortalLinkPurpose::Invitation => (
+                "portal_invitation",
+                format!("{instance}: you are invited to the Self-Service Portal"),
+                format!(
+                    "You can now raise and follow your IT requests on the {instance} Self-Service Portal. Choose a password with this link"
+                ),
+            ),
+            PortalLinkPurpose::Reset => (
+                "portal_password_reset",
+                format!("{instance}: set your Portal password"),
+                format!(
+                    "Someone asked to set or reset your {instance} Portal password. If it was you, open this link"
+                ),
+            ),
+            PortalLinkPurpose::Registration => (
+                "portal_registration",
+                format!("{instance}: confirm your Portal account"),
+                format!(
+                    "Thanks for registering for the {instance} Self-Service Portal. Confirm your address and choose a password with this link"
+                ),
+            ),
+        };
+        let body = format!(
+            "Hello {},\n\n{intro} before {} (UTC):\n\n{url}\n\nIf you did not expect this email, ignore it.\n",
+            link.name, link.expires_at
+        );
+        self.queue(kind, from, &link.to, subject, body).await
+    }
+
+    async fn send_reset(
+        &self,
+        to: &str,
+        name: &str,
+        token: &str,
+        expires_at: chrono::DateTime<chrono::Utc>,
+    ) -> Result<(), cooper_identity::domain::RepoError> {
+        let (from, base, instance) = self.branding().await;
+        let body = format!(
+            "Hello {name},\n\nSomeone asked to reset your {instance} password. If it was you, open this link before {expires_at} (UTC):\n\n{base}/reset-password?token={token}\n\nIf it was not you, ignore this email; your password stays the same.\n"
+        );
+        self.queue(
+            "password_reset",
+            from,
+            to,
+            format!("{instance}: reset your password"),
+            body,
+        )
+        .await
     }
 }

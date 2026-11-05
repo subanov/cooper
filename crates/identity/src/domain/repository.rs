@@ -341,4 +341,6 @@ pub trait ResetMailer: Send + Sync {
         token: &str,
         expires_at: DateTime<Utc>,
     ) -> Result<(), RepoError>;
+    /// Emails a Portal set-password link (Portal Invitation, reset or Self-Registration).
+    async fn send_portal_link(&self, email: &super::PortalLinkEmail) -> Result<(), RepoError>;
 }

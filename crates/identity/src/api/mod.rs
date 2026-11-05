@@ -4,6 +4,9 @@
 
 pub mod dto;
 mod handlers;
+mod portal;
+
+pub use portal::{CurrentPortalSession, PORTAL_SESSION_COOKIE, is_portal_path};
 
 use axum::extract::{FromRef, Request, State};
 use axum::middleware::Next;
@@ -50,7 +53,7 @@ where
     S: Clone + Send + Sync + 'static,
     IdentityApi: FromRef<S>,
 {
-    handlers::router()
+    handlers::router().merge(portal::router())
 }
 
 /// Authentication middleware for `/api/v1`.
@@ -60,6 +63,9 @@ where
 /// - Otherwise the session cookie is resolved and the CSRF token is enforced on unsafe
 ///   methods. While two-factor enrollment is required, only the session endpoints work.
 ///
+/// - Under `/api/v1/portal` only the Portal session cookie is read (ADR-0021): the
+///   principal is the current Requester, and the CSRF token is enforced the same way.
+///
 /// Requests without valid credentials continue unauthenticated; handlers that need a
 /// principal answer `401` through [`cooper_http::Authenticated`].
 pub async fn authenticate(
@@ -67,6 +73,9 @@ pub async fn authenticate(
     mut request: Request,
     next: Next,
 ) -> Response {
+    if is_portal_path(request.uri().path()) {
+        return authenticate_portal(&api, request, next).await;
+    }
     if let Some(key) = bearer_key(request.headers()) {
         return match api.service.authenticate_api_key(&key).await {
             Ok(principal) => {
@@ -97,6 +106,33 @@ pub async fn authenticate(
             request
                 .extensions_mut()
                 .insert(TotpEnrollmentRequired(totp_enrollment_required));
+            next.run(request).await
+        }
+        Err(AppError::Unauthenticated) => next.run(request).await,
+        Err(err) => ApiError(err).into_response(),
+    }
+}
+
+/// Resolves the Portal session cookie; Analyst sessions and API keys are ignored here.
+async fn authenticate_portal(api: &IdentityApi, mut request: Request, next: Next) -> Response {
+    let Some(token) = cookie(request.headers(), PORTAL_SESSION_COOKIE) else {
+        return next.run(request).await;
+    };
+    match api.service.portal_authenticate(&token).await {
+        Ok(signed_in) => {
+            if is_unsafe(request.method())
+                && !request
+                    .headers()
+                    .get(CSRF_HEADER)
+                    .and_then(|v| v.to_str().ok())
+                    .is_some_and(|v| signed_in.session.csrf_matches(v))
+            {
+                return csrf_problem().into_response();
+            }
+            request.extensions_mut().insert(signed_in.principal.clone());
+            request
+                .extensions_mut()
+                .insert(CurrentPortalSession(signed_in));
             next.run(request).await
         }
         Err(AppError::Unauthenticated) => next.run(request).await,

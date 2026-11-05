@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use chrono::Duration;
 use cooper_platform::jobs::{Job, JobContext, JobError, Schedule};
 
-/// Deletes expired sessions and trusted devices, old sign-in failures, expired IP bans
+/// Deletes expired Analyst and Portal sessions, Portal links and trusted devices, old sign-in failures, expired IP bans
 /// and API key usage counters. Runs hourly by default.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct IdentityHousekeeping;
@@ -29,6 +29,20 @@ impl Job for IdentityHousekeeping {
         .execute(&mut *tx)
         .await?
         .rows_affected();
+        let sessions = sessions
+            + sqlx::query!(
+                "DELETE FROM requester_sessions WHERE expires_at < $1 OR revoked_at < $1 - interval '1 day' OR idle_expires_at < $1 - interval '1 day'",
+                now
+            )
+            .execute(&mut *tx)
+            .await?
+            .rows_affected();
+        sqlx::query!(
+            "DELETE FROM portal_links WHERE expires_at < $1::timestamptz - interval '1 day'",
+            now
+        )
+        .execute(&mut *tx)
+        .await?;
         let devices = sqlx::query!(
             "DELETE FROM analyst_trusted_devices WHERE expires_at < $1",
             now

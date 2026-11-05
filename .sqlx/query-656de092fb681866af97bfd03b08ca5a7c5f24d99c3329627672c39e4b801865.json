@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM portal_links\n             WHERE lower(email) = lower($1) AND purpose = $2 AND used_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "656de092fb681866af97bfd03b08ca5a7c5f24d99c3329627672c39e4b801865"
+}

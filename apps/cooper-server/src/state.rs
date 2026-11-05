@@ -101,6 +101,10 @@ impl SecurityPolicyProvider for SettingsSecurityPolicy {
                 .await
                 .and_then(|v| v.as_i64())
                 .map_or(defaults.ban_duration, chrono::Duration::minutes),
+            portal_self_registration: get(identity_settings::PORTAL_SELF_REGISTRATION.key)
+                .await
+                .and_then(|v| v.as_bool())
+                .unwrap_or(defaults.portal_self_registration),
         };
         *self.cache.write().await = Some((Instant::now(), policy));
         policy
@@ -158,6 +162,7 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
     DESK_PREFIXES
         .iter()
         .map(|p| (*p, Module::Tickets))
+        .chain([("/portal", Module::Portal)])
         .collect()
 }
 

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM portal_links WHERE expires_at < $1::timestamptz - interval '1 day'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d27d9578127b31bc81ab850e1497ab1a5e026862a45d00ad656d0719d59976c6"
+}

@@ -45,6 +45,10 @@ pub(crate) struct State {
     pub policy: SecurityPolicy,
     pub resets: HashMap<Vec<u8>, (AnalystId, DateTime<Utc>, bool)>,
     pub reset_mails: Vec<(String, String)>,
+    pub portal_accounts: HashMap<crate::domain::PortalAccountId, crate::domain::PortalAccount>,
+    pub portal_links: HashMap<Vec<u8>, (crate::domain::PortalLink, bool)>,
+    pub portal_sessions: HashMap<Vec<u8>, crate::domain::PortalSession>,
+    pub portal_mails: Vec<crate::domain::PortalLinkEmail>,
 }
 
 #[derive(Clone)]
@@ -99,6 +103,7 @@ impl Fakes {
             api_keys: me.clone(),
             policy: me.clone(),
             resets: me.clone(),
+            portal: me.clone(),
             reset_mailer: me.clone(),
             hasher: me.clone(),
             tokens: me,
@@ -435,7 +440,7 @@ impl RequesterRepository for Fakes {
         scope: &TenantScope,
         email: &str,
     ) -> Result<Vec<Requester>, RepoError> {
-        Ok(self
+        let mut found: Vec<Requester> = self
             .state()
             .requesters
             .values()
@@ -443,7 +448,10 @@ impl RequesterRepository for Fakes {
                 scope.allows(r.tenant_id()) && r.email().as_str().eq_ignore_ascii_case(email)
             })
             .cloned()
-            .collect())
+            .collect();
+        // Oldest first, like the SQL repository (IDs are UUID v7).
+        found.sort_by_key(|r| (r.created_at(), r.id().as_uuid()));
+        Ok(found)
     }
     async fn manager_chain(
         &self,
@@ -733,6 +741,98 @@ impl crate::domain::ResetMailer for Fakes {
         self.state()
             .reset_mails
             .push((to.to_owned(), token.to_owned()));
+        Ok(())
+    }
+    async fn send_portal_link(
+        &self,
+        email: &crate::domain::PortalLinkEmail,
+    ) -> Result<(), RepoError> {
+        self.state().portal_mails.push(email.clone());
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl crate::domain::PortalRepository for Fakes {
+    async fn account_by_email(
+        &self,
+        email: &str,
+    ) -> Result<Option<crate::domain::PortalAccount>, RepoError> {
+        Ok(self
+            .state()
+            .portal_accounts
+            .values()
+            .find(|a| a.email().as_str().eq_ignore_ascii_case(email))
+            .cloned())
+    }
+    async fn account(
+        &self,
+        id: crate::domain::PortalAccountId,
+    ) -> Result<Option<crate::domain::PortalAccount>, RepoError> {
+        Ok(self.state().portal_accounts.get(&id).cloned())
+    }
+    async fn save_account(
+        &self,
+        account: &crate::domain::PortalAccount,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        let now = cooper_kernel::Clock::now(&*self.clock);
+        let mut state = self.state();
+        state.portal_accounts.insert(account.id(), account.clone());
+        for s in state.portal_sessions.values_mut() {
+            if s.account_id() == account.id() {
+                s.revoke(now);
+            }
+        }
+        state.audits.push(audit.clone());
+        Ok(())
+    }
+    async fn issue_link(&self, link: &crate::domain::PortalLink) -> Result<(), RepoError> {
+        let mut state = self.state();
+        state.portal_links.retain(|_, (l, used)| {
+            *used || l.email() != link.email() || l.purpose() != link.purpose()
+        });
+        state
+            .portal_links
+            .insert(link.token_hash().to_vec(), (link.clone(), false));
+        Ok(())
+    }
+    async fn consume_link(
+        &self,
+        hash: &[u8],
+        now: DateTime<Utc>,
+    ) -> Result<Option<crate::domain::PortalLink>, RepoError> {
+        let mut state = self.state();
+        match state.portal_links.get_mut(hash) {
+            Some((link, used)) if !*used && link.expires_at() > now => {
+                *used = true;
+                Ok(Some(link.clone()))
+            }
+            _ => Ok(None),
+        }
+    }
+    async fn insert_session(
+        &self,
+        session: &crate::domain::PortalSession,
+    ) -> Result<(), RepoError> {
+        self.state()
+            .portal_sessions
+            .insert(session.token_hash().to_vec(), session.clone());
+        Ok(())
+    }
+    async fn session_by_token_hash(
+        &self,
+        hash: &[u8],
+    ) -> Result<Option<crate::domain::PortalSession>, RepoError> {
+        Ok(self.state().portal_sessions.get(hash).cloned())
+    }
+    async fn update_session(
+        &self,
+        session: &crate::domain::PortalSession,
+    ) -> Result<(), RepoError> {
+        self.state()
+            .portal_sessions
+            .insert(session.token_hash().to_vec(), session.clone());
         Ok(())
     }
 }

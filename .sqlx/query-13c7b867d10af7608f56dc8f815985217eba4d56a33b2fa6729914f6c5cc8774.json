@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE requester_sessions SET revoked_at = $2\n             WHERE portal_account_id = $1 AND revoked_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "13c7b867d10af7608f56dc8f815985217eba4d56a33b2fa6729914f6c5cc8774"
+}

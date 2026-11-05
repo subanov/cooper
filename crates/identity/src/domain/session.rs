@@ -60,6 +60,11 @@ impl fmt::Debug for SessionToken {
     }
 }
 
+/// Compares two secrets without leaking where they differ.
+pub(super) fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    a.len() == b.len() && a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+}
+
 /// A signed-in browser session.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Session {
@@ -165,8 +170,7 @@ impl Session {
     /// Whether `candidate` is this session's CSRF token (constant-time comparison).
     #[must_use]
     pub fn csrf_matches(&self, candidate: &str) -> bool {
-        let (a, b) = (self.csrf_token.as_bytes(), candidate.as_bytes());
-        a.len() == b.len() && a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
+        constant_time_eq(self.csrf_token.as_bytes(), candidate.as_bytes())
     }
 
     /// The ID.
