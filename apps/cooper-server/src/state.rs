@@ -21,6 +21,13 @@ use cooper_identity::domain::{RepoError, SecurityPolicy, SecurityPolicyProvider,
 use cooper_identity::infrastructure::PgIdentityStore;
 use cooper_kernel::{Capability, Clock, Module, SettingDefinition, SystemClock};
 use cooper_platform::crypto::{CryptoError, Keyring};
+use cooper_service_desk::api::{ROUTE_PREFIXES as DESK_PREFIXES, ServiceDeskApi};
+use cooper_service_desk::application::{
+    ServiceDesk, ServiceDeskPorts, capabilities as desk_capabilities, settings as desk_settings,
+};
+use cooper_service_desk::infrastructure::PgServiceDeskStore;
+
+use crate::adapters::{DeskSettings, IdentityDirectory};
 use sqlx::PgPool;
 use tokio::sync::RwLock;
 
@@ -106,6 +113,8 @@ pub struct AppState {
     pub identity: IdentityApi,
     /// Administration context API state.
     pub administration: AdministrationApi,
+    /// Service desk API state.
+    pub service_desk: ServiceDeskApi,
 }
 
 /// Every Capability declared by the contexts wired into this server. Roles may only use
@@ -115,6 +124,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
     identity_capabilities::ALL
         .iter()
         .chain(admin_capabilities::ALL)
+        .chain(desk_capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -125,6 +135,7 @@ pub fn setting_catalogue() -> Vec<SettingDefinition> {
     admin_settings::ALL
         .iter()
         .chain(identity_settings::ALL)
+        .chain(desk_settings::ALL)
         .copied()
         .collect()
 }
@@ -133,7 +144,10 @@ pub fn setting_catalogue() -> Vec<SettingDefinition> {
 /// prefixes here as they are wired in.
 #[must_use]
 pub fn module_routes() -> Vec<(&'static str, Module)> {
-    Vec::new()
+    DESK_PREFIXES
+        .iter()
+        .map(|p| (*p, Module::Tickets))
+        .collect()
 }
 
 impl AppState {
@@ -167,6 +181,17 @@ impl AppState {
         });
         let ports = PgIdentityStore::ports(pool.clone(), clock.clone(), security.keyring, policy)?;
         let service = IdentityService::new(ports, capability_catalogue(), security.session_policy);
+        let desk = ServiceDesk::new(ServiceDeskPorts {
+            tickets: Arc::new(PgServiceDeskStore::new(pool.clone())),
+            reference: Arc::new(PgServiceDeskStore::new(pool.clone())),
+            directory: Arc::new(IdentityDirectory {
+                identity: service.clone(),
+            }),
+            settings: Arc::new(DeskSettings {
+                admin: admin.clone(),
+            }),
+            clock: clock.clone(),
+        });
         Ok(Self {
             pool,
             clock,
@@ -179,6 +204,7 @@ impl AppState {
                 gate: ModuleGate::new(admin.clone(), module_routes()),
                 service: admin,
             },
+            service_desk: ServiceDeskApi { service: desk },
         })
     }
 }
@@ -192,6 +218,12 @@ pub enum StateError {
     /// No randomness for the throw-away key.
     #[error(transparent)]
     Crypto(#[from] CryptoError),
+}
+
+impl FromRef<AppState> for ServiceDeskApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.service_desk.clone()
+    }
 }
 
 impl FromRef<AppState> for AdministrationApi {
@@ -214,7 +246,9 @@ mod tests {
     fn every_declared_capability_is_valid() {
         assert_eq!(
             capability_catalogue().len(),
-            identity_capabilities::ALL.len() + admin_capabilities::ALL.len()
+            identity_capabilities::ALL.len()
+                + admin_capabilities::ALL.len()
+                + desk_capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

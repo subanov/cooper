@@ -85,7 +85,7 @@ cooper/
 │   ├── http/                     # shared HTTP: problem+json, middleware stack (ADR-0009)
 │   ├── identity/                 # Analysts, Requesters, Teams, Departments, Companies, RBAC, auth
 │   ├── administration/           # Module switches, System Settings, job schedules, system log
-│   ├── service-desk/             # Tickets, Mailboxes, Channels, SLA, Rota, Reply Templates
+│   ├── service-desk/             # Tickets, reference data, Notes, time; later Mailboxes, SLA, …
 │   ├── problem-management/
 │   ├── change-management/
 │   ├── tasks/

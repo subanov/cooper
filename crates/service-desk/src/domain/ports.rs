@@ -1,0 +1,267 @@
+//! Repository and service ports of the service desk.
+
+use std::collections::BTreeSet;
+
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use cooper_kernel::{
+    AnalystId, AuditRecord, DepartmentId, EventEnvelope, Limit, RequesterId, Sensitivity, TeamId,
+    TenantId, TenantScope, TicketId,
+};
+use thiserror::Error;
+use uuid::Uuid;
+
+use super::{Category, Lookup, LookupKind, Note, Ticket, TimeEntry};
+
+/// A storage operation failed.
+#[derive(Debug, Clone, PartialEq, Eq, Error)]
+pub enum RepoError {
+    /// A unique constraint was violated (constraint name).
+    #[error("conflict on {0}")]
+    Conflict(String),
+    /// A referenced record does not exist (constraint name).
+    #[error("missing reference {0}")]
+    MissingReference(String),
+    /// The record does not exist or is not visible.
+    #[error("not found")]
+    NotFound,
+    /// Anything else; for logs only.
+    #[error("storage error: {0}")]
+    Storage(String),
+}
+
+/// Which tickets a caller may see beyond the tenant scope (FR-TKT-014, FR-GEN-004).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Visibility {
+    /// Holds `tickets.view_confidential`.
+    pub all_confidential: bool,
+    /// Departments served by the caller's Teams: their Confidential tickets are visible.
+    pub confidential_departments: BTreeSet<DepartmentId>,
+    /// Include soft-deleted tickets.
+    pub include_deleted: bool,
+}
+
+/// Sortable columns of ticket lists.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum SortField {
+    /// Creation time (default, newest first).
+    #[default]
+    CreatedAt,
+    /// Last change.
+    UpdatedAt,
+    /// Ticket Number.
+    Number,
+}
+
+/// Filters of ticket lists (FR-GEN-003). Empty sets mean "any".
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ListFilter {
+    /// Only these Companies.
+    pub tenant_ids: BTreeSet<TenantId>,
+    /// Only these statuses.
+    pub status_ids: BTreeSet<Uuid>,
+    /// `Some(true)`: only open tickets; `Some(false)`: only closed.
+    pub open: Option<bool>,
+    /// Only these Priorities.
+    pub priority_ids: BTreeSet<Uuid>,
+    /// Only these Ticket Types.
+    pub type_ids: BTreeSet<Uuid>,
+    /// Only these Queues.
+    pub team_ids: BTreeSet<TeamId>,
+    /// Only these Assignees.
+    pub analyst_ids: BTreeSet<AnalystId>,
+    /// Only tickets without an Assignee.
+    pub unassigned: bool,
+    /// Only this Requester.
+    pub requester_id: Option<RequesterId>,
+    /// Only this Department.
+    pub department_id: Option<DepartmentId>,
+    /// Only this Category.
+    pub category_id: Option<Uuid>,
+    /// Only this Sensitivity.
+    pub sensitivity: Option<Sensitivity>,
+    /// `Some(true)`: only snoozed; `Some(false)`: hide snoozed.
+    pub snoozed: Option<bool>,
+    /// Only tickets closed after this time.
+    pub closed_since: Option<DateTime<Utc>>,
+    /// Only soft-deleted tickets (needs `include_deleted` visibility).
+    pub deleted: bool,
+    /// Full-text search over number, subject, description and Notes (FR-TKT-041).
+    pub search: Option<String>,
+}
+
+/// A ticket list request.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct TicketListQuery {
+    /// Filters.
+    pub filter: ListFilter,
+    /// Sort column.
+    pub sort: SortField,
+    /// Newest / highest first.
+    pub descending: bool,
+    /// Continue after this `(sort value, id)`.
+    pub after: Option<(String, Uuid)>,
+    /// Page size; repositories fetch `limit + 1`.
+    pub limit: Limit,
+    /// The time used for snooze filters.
+    pub now: Option<DateTime<Utc>>,
+}
+
+/// A ticket list row.
+pub type TicketSummary = Ticket;
+/// A ticket loaded for display.
+pub type TicketView = Ticket;
+
+/// Ticket reference data.
+#[async_trait]
+pub trait ReferenceData: Send + Sync {
+    /// Every row of a kind, ordered.
+    async fn lookups(&self, kind: LookupKind) -> Result<Vec<Lookup>, RepoError>;
+    /// Stores a row; when it is the new default, other rows of its kind lose the flag in
+    /// the same transaction.
+    async fn save_lookup(
+        &self,
+        lookup: &Lookup,
+        audit: &AuditRecord,
+        created: bool,
+    ) -> Result<(), RepoError>;
+    /// Every Category.
+    async fn categories(&self) -> Result<Vec<Category>, RepoError>;
+    /// Stores a Category.
+    async fn save_category(
+        &self,
+        category: &Category,
+        audit: &AuditRecord,
+        created: bool,
+    ) -> Result<(), RepoError>;
+}
+
+/// Tickets, Notes and Time Entries (tenant-scoped).
+#[async_trait]
+pub trait TicketRepository: Send + Sync {
+    /// Takes the next value of the Company's Ticket Number sequence (committed at once;
+    /// a failed create leaves a gap, never a duplicate).
+    async fn next_sequence(&self, tenant: TenantId) -> Result<u64, RepoError>;
+    /// Inserts a ticket with its audit record and events.
+    async fn insert(
+        &self,
+        ticket: &Ticket,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+    /// Updates a ticket with its audit record and events.
+    async fn update(
+        &self,
+        ticket: &Ticket,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+    /// Loads a ticket visible to the caller.
+    async fn get(
+        &self,
+        scope: &TenantScope,
+        visibility: &Visibility,
+        id: TicketId,
+    ) -> Result<Option<Ticket>, RepoError>;
+    /// Loads a ticket by its number.
+    async fn get_by_number(
+        &self,
+        scope: &TenantScope,
+        visibility: &Visibility,
+        number: &str,
+    ) -> Result<Option<Ticket>, RepoError>;
+    /// Lists tickets.
+    async fn list(
+        &self,
+        scope: &TenantScope,
+        visibility: &Visibility,
+        query: &TicketListQuery,
+    ) -> Result<Vec<Ticket>, RepoError>;
+    /// Adds a Note.
+    async fn add_note(&self, note: &Note, audit: &AuditRecord) -> Result<(), RepoError>;
+    /// Notes of a ticket, oldest first.
+    async fn notes(&self, scope: &TenantScope, ticket: TicketId) -> Result<Vec<Note>, RepoError>;
+    /// Adds a Time Entry.
+    async fn add_time_entry(&self, entry: &TimeEntry, audit: &AuditRecord)
+    -> Result<(), RepoError>;
+    /// Time Entries of a ticket.
+    async fn time_entries(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<TimeEntry>, RepoError>;
+    /// Audit history of a ticket, oldest first.
+    async fn history(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<cooper_kernel::AuditRecord>, RepoError>;
+}
+
+/// What the service desk needs to know about a Department.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DepartmentInfo {
+    /// Sensitivity of new tickets.
+    pub default_sensitivity: Sensitivity,
+    /// Whether it is active.
+    pub is_active: bool,
+}
+
+/// Read access to the identity context (people, Teams, Departments, Companies), through
+/// its public application API.
+#[async_trait]
+pub trait Directory: Send + Sync {
+    /// The Company of a Requester, if they exist and are visible in `scope`.
+    async fn requester_company(
+        &self,
+        scope: &TenantScope,
+        id: RequesterId,
+    ) -> Result<Option<TenantId>, RepoError>;
+    /// A Department.
+    async fn department(&self, id: DepartmentId) -> Result<Option<DepartmentInfo>, RepoError>;
+    /// Members of an active Team (`None` when it does not exist or is inactive).
+    async fn team_members(&self, id: TeamId) -> Result<Option<BTreeSet<AnalystId>>, RepoError>;
+    /// Whether an Analyst exists and is active.
+    async fn analyst_is_active(&self, id: AnalystId) -> Result<bool, RepoError>;
+    /// Departments served by the active Teams an Analyst belongs to.
+    async fn departments_served_by(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<BTreeSet<DepartmentId>, RepoError>;
+    /// Teams an Analyst belongs to.
+    async fn teams_of(&self, analyst: AnalystId) -> Result<BTreeSet<TeamId>, RepoError>;
+    /// A Company's Ticket Code (`None` when the Company is not visible).
+    async fn ticket_code(
+        &self,
+        scope: &TenantScope,
+        tenant: TenantId,
+    ) -> Result<Option<String>, RepoError>;
+}
+
+/// Service desk settings Administrators control.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TicketSettings {
+    /// Ticket Number format.
+    pub number_format: String,
+    /// Closing needs a Closure Category.
+    pub require_closure_category: bool,
+    /// The Assignee must belong to the Queue.
+    pub assignee_must_be_team_member: bool,
+}
+
+impl Default for TicketSettings {
+    fn default() -> Self {
+        Self {
+            number_format: super::NumberFormat::DEFAULT.to_owned(),
+            require_closure_category: false,
+            assignee_must_be_team_member: true,
+        }
+    }
+}
+
+/// Reads [`TicketSettings`].
+#[async_trait]
+pub trait TicketSettingsProvider: Send + Sync {
+    /// The settings now in force.
+    async fn settings(&self) -> TicketSettings;
+}

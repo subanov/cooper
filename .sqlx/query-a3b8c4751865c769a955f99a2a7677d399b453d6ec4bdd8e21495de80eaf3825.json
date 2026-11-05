@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_number_counters (tenant_id, next_value) VALUES ($1, 2)\n               ON CONFLICT (tenant_id) DO UPDATE SET next_value = ticket_number_counters.next_value + 1\n               RETURNING next_value - 1 AS \"value!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "value!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "a3b8c4751865c769a955f99a2a7677d399b453d6ec4bdd8e21495de80eaf3825"
+}

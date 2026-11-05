@@ -1,0 +1,107 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id AS \"id!\", key, name AS \"name!\", is_closed AS \"is_closed!\", pauses_sla AS \"pauses_sla!\",\n                      is_default AS \"is_default!\", response_minutes, resolution_minutes, number_prefix,\n                      sort_order AS \"sort_order!\", is_active AS \"is_active!\", created_at AS \"created_at!\", updated_at AS \"updated_at!\"\n               FROM (\n                   SELECT id, key, name, is_closed, pauses_sla, is_default, NULL::int AS response_minutes,\n                          NULL::int AS resolution_minutes, NULL::text AS number_prefix, sort_order, is_active, created_at, updated_at\n                   FROM ticket_statuses WHERE $1 = 'status'\n                   UNION ALL\n                   SELECT id, key, name, false, false, is_default, response_minutes, resolution_minutes, NULL,\n                          sort_order, is_active, created_at, updated_at\n                   FROM ticket_priorities WHERE $1 = 'priority'\n                   UNION ALL\n                   SELECT id, key, name, false, false, false, NULL, NULL, number_prefix, sort_order, is_active, created_at, updated_at\n                   FROM ticket_types WHERE $1 = 'type'\n                   UNION ALL\n                   SELECT id, key, name, false, false, false, NULL, NULL, NULL, sort_order, is_active, created_at, updated_at\n                   FROM ticket_origins WHERE $1 = 'origin'\n                   UNION ALL\n                   SELECT id, key, name, false, false, false, NULL, NULL, NULL, sort_order, is_active, created_at, updated_at\n                   FROM resolution_codes WHERE $1 = 'resolution_code'\n               ) l\n               ORDER BY sort_order, lower(name)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!",
+        "type_info": "Uuid",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "key",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "name!",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_closed!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "pauses_sla!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_default!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 6,
+        "name": "response_minutes",
+        "type_info": "Int4",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "resolution_minutes",
+        "type_info": "Int4",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 8,
+        "name": "number_prefix",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 9,
+        "name": "sort_order!",
+        "type_info": "Int4",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 10,
+        "name": "is_active!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 12,
+        "name": "updated_at!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "afa8604153f68357e200a08efd7172814a62673fdbb0abf0bb1745980fdb0498"
+}

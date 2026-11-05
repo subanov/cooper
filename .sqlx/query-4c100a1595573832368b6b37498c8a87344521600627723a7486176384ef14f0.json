@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_category_types (category_id, ticket_type_id) SELECT $1, t FROM UNNEST($2::uuid[]) AS t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4c100a1595573832368b6b37498c8a87344521600627723a7486176384ef14f0"
+}

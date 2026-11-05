@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE ticket_priorities SET is_default = false, updated_at = $2 WHERE is_default AND id <> $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7fc603db108be38b32cd1d5394620136a64c53253b4e7e74b66fd64806dd288e"
+}

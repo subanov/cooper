@@ -5,6 +5,7 @@
 //! (`main.rs`) only reads configuration and starts serving; [`router`] is public so tests
 //! can drive the full stack with `tower::ServiceExt::oneshot`.
 
+mod adapters;
 pub mod config;
 mod health;
 mod state;
@@ -33,6 +34,8 @@ pub use state::{
         (name = "Requesters", description = "People who ask IT for help"),
         (name = "Cost Centres", description = "Financial units per Company"),
         (name = "API Keys", description = "Credentials for integrations"),
+        (name = "Tickets", description = "Tickets, Notes, Time Entries, views and search"),
+        (name = "Ticket reference data", description = "Statuses, Priorities, Types, Origins, Resolution Codes and Categories"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
     )
 )]
@@ -43,6 +46,7 @@ fn api() -> (Router<AppState>, OpenApi) {
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .merge(cooper_identity::api::router())
         .merge(cooper_administration::api::router())
+        .merge(cooper_service_desk::api::router())
         .split_for_parts()
 }
 
