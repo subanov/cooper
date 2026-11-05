@@ -26,7 +26,7 @@ delivery phases.
 | Language        | Rust (stable, edition 2024)    |
 | Async runtime   | tokio                          |
 | Web framework   | axum                           |
-| Database        | PostgreSQL 16+ via sqlx        |
+| Database        | PostgreSQL 18 via sqlx         |
 | Observability   | tracing                        |
 
 Cooper is a modular monolith, organised by bounded context following Domain-Driven Design.
