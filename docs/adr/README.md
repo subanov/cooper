@@ -9,10 +9,11 @@ rewrite an accepted ADR: supersede it with a new one.
 |---|---|---|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions; modular monolith by bounded context | Accepted |
 | [0002](0002-use-chrono-for-time.md) | Use `chrono` + `chrono-tz` for time | Accepted |
-| [0003](0003-server-rendered-ui-with-askama-and-htmx.md) | Server-rendered UI with askama + htmx | Accepted |
+| [0003](0003-server-rendered-ui-with-askama-and-htmx.md) | Server-rendered UI with askama + htmx | Superseded by 0010 |
 | [0004](0004-tenant-isolation-with-row-level-security.md) | Tenant isolation: explicit filters plus Row-Level Security | Accepted |
 | [0005](0005-domain-events-and-transactional-outbox.md) | Domain events through a transactional outbox | Accepted |
 | [0006](0006-postgresql-full-text-search.md) | PostgreSQL full-text search | Accepted |
 | [0007](0007-attachment-storage.md) | Attachments in a blob store (filesystem or S3), metadata in PostgreSQL | Accepted |
 | [0008](0008-freeitsm-database-import.md) | Offer a one-way FreeITSM importer, after P1 | Accepted |
 | [0009](0009-shared-crates-and-dependency-baseline.md) | Shared `kernel`, `platform`, `http` crates and the dependency baseline | Accepted |
+| [0010](0010-typescript-react-spa-for-analyst-console-and-portal.md) | Analyst console and Portal as a TypeScript React SPA served by `cooper-server` | Accepted |
