@@ -1,10 +1,14 @@
 //! PostgreSQL storage of the service desk.
 
 mod content;
+mod imap;
+mod mailboxes;
 mod reference;
 mod sla;
 mod tickets;
 
+pub use imap::{ImapClient, MailboxClient, MailboxPoller, MailboxSession, parse_email};
+pub use mailboxes::{PgMailboxStore, ReencryptMailboxSecrets};
 pub use sla::SlaMonitor;
 
 use cooper_kernel::{AuditRecord, EventEnvelope};

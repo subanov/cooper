@@ -1,0 +1,340 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT m.id, m.name, m.address, m.provider, m.auth_mode, m.imap_host, m.imap_port, m.imap_security,\n                      m.imap_username, m.folder, m.tenant_id, m.department_id, m.origin_id, m.team_id, m.post_import_action,\n                      m.move_to_folder, m.unknown_sender_action, m.rejected_action, m.is_active, m.last_polled_at,\n                      m.last_success_at, m.last_error, m.last_error_at, m.consecutive_failures, m.created_at, m.updated_at,\n                      ARRAY(SELECT w.pattern FROM mailbox_whitelist w WHERE w.mailbox_id = m.id ORDER BY w.pattern) AS \"patterns!\",\n                      ARRAY(SELECT w.kind = 'allow' FROM mailbox_whitelist w WHERE w.mailbox_id = m.id ORDER BY w.pattern) AS \"allows!\"\n               FROM mailboxes m ORDER BY lower(m.name)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "address",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "address"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "provider",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "provider"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "auth_mode",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "auth_mode"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "imap_host",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "imap_host"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "imap_port",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "imap_port"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "imap_security",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "imap_security"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "imap_username",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "imap_username"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "folder",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "folder"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "department_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "department_id"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "origin_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "origin_id"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "team_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "team_id"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "post_import_action",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "post_import_action"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "move_to_folder",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "move_to_folder"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "unknown_sender_action",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "unknown_sender_action"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "rejected_action",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "rejected_action"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "last_polled_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "last_polled_at"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "last_success_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "last_success_at"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "last_error",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "last_error"
+          }
+        }
+      },
+      {
+        "ordinal": 22,
+        "name": "last_error_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "last_error_at"
+          }
+        }
+      },
+      {
+        "ordinal": 23,
+        "name": "consecutive_failures",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "consecutive_failures"
+          }
+        }
+      },
+      {
+        "ordinal": 24,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 25,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 26,
+        "name": "patterns!",
+        "type_info": "TextArray",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 27,
+        "name": "allows!",
+        "type_info": "BoolArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "423d9a3cefa026836d37492af42240396ab37da99870c4bcb0c76ad83317d21f"
+}

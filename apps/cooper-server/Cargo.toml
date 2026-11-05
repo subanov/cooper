@@ -30,6 +30,7 @@ utoipa.workspace = true
 utoipa-axum.workspace = true
 
 [dev-dependencies]
+lettre.workspace = true
 chrono-tz.workspace = true
 uuid.workspace = true
 http-body-util.workspace = true

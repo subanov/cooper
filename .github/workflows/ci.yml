@@ -62,8 +62,21 @@ jobs:
           --health-interval 2s
           --health-timeout 3s
           --health-retries 30
+      # IMAP/SMTP test server for the email intake test (#91).
+      greenmail:
+        image: greenmail/standalone:2.1.15
+        env:
+          GREENMAIL_OPTS: >-
+            -Dgreenmail.setup.test.all
+            -Dgreenmail.hostname=0.0.0.0
+            -Dgreenmail.auth.disabled
+        ports:
+          - 3025:3025
+          - 3143:3143
     env:
       DATABASE_URL: postgres://cooper:cooper@localhost:5432/cooper
+      COOPER_TEST_GREENMAIL_HOST: localhost
+      COOPER_REQUIRE_GREENMAIL: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -78,6 +91,8 @@ jobs:
           fi
       - name: Apply migrations
         run: cargo sqlx migrate run
+      - name: Wait for GreenMail
+        run: for i in $(seq 1 60); do (echo > /dev/tcp/localhost/3143) 2>/dev/null && exit 0; sleep 1; done; exit 1
       - name: Check .sqlx offline data is up to date
         run: cargo sqlx prepare --workspace --check -- --all-targets --all-features
       - name: Tests

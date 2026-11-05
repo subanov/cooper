@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_emails (id, tenant_id, ticket_id, direction, from_address, to_addresses, cc_addresses,\n                                        subject, text_body, message_id, author_id, occurred_at, mailbox_id,\n                                        requester_id, in_reply_to)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "TextArray",
+        "TextArray",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7b8d06b3a6f2d6852c791d91c7bf3b889a68fb31b76ab4f222287564cd8c5fb2"
+}

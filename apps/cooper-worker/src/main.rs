@@ -20,7 +20,7 @@ use cooper_platform::outbox::Dispatcher;
 use cooper_platform::system_log::{self, PruneSystemLog};
 use cooper_platform::telemetry::{self, LogFormat};
 use cooper_server::{AppState, SecuritySettings};
-use cooper_service_desk::infrastructure::SlaMonitor;
+use cooper_service_desk::infrastructure::{ReencryptMailboxSecrets, SlaMonitor};
 use tokio::sync::watch;
 use tokio::task::JoinSet;
 
@@ -94,23 +94,6 @@ async fn main() -> anyhow::Result<()> {
             None
         }
     };
-    let runner = Arc::new(
-        JobRunner::new(pool.clone(), clock.clone(), worker_id.clone())
-            .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days)))
-            .with_job(Arc::new(PruneSystemLog::new(
-                config.system_log_retention_days,
-            )))
-            .with_job(Arc::new(IdentityHousekeeping))
-            .with_job(Arc::new(SlaMonitor))
-            .with_job(Arc::new(EmailSender::new(transport)))
-            .with_job(Arc::new(ReencryptIdentitySecrets::new(
-                config.keyring.clone(),
-            ))),
-    );
-    runner
-        .register_all()
-        .await
-        .context("failed to register jobs")?;
     // The same wiring as cooper-server, so handlers use each context's application API.
     let state = AppState::with_settings(
         pool.clone(),
@@ -124,6 +107,27 @@ async fn main() -> anyhow::Result<()> {
         },
     )
     .context("failed to initialise application services")?;
+    let runner = Arc::new(
+        JobRunner::new(pool.clone(), clock.clone(), worker_id.clone())
+            .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days)))
+            .with_job(Arc::new(PruneSystemLog::new(
+                config.system_log_retention_days,
+            )))
+            .with_job(Arc::new(IdentityHousekeeping))
+            .with_job(Arc::new(SlaMonitor))
+            .with_job(Arc::new(EmailSender::new(transport)))
+            .with_job(Arc::new(ReencryptIdentitySecrets::new(
+                config.keyring.clone(),
+            )))
+            .with_job(Arc::new(ReencryptMailboxSecrets::new(
+                config.keyring.clone(),
+            )))
+            .with_job(Arc::new(state.mailbox_poller())),
+    );
+    runner
+        .register_all()
+        .await
+        .context("failed to register jobs")?;
     let dispatcher = state.event_handlers().into_iter().fold(
         Dispatcher::new(pool, clock).with_batch_size(config.outbox_batch_size),
         Dispatcher::with_handler,

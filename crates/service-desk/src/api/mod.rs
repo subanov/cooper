@@ -45,6 +45,7 @@ pub const ROUTE_PREFIXES: &[&str] = &[
     "/sla-calendars",
     "/sla-notification-rules",
     "/reply-templates",
+    "/mailboxes",
 ];
 
 /// An application error rendered as problem+json.

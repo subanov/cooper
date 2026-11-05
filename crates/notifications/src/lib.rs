@@ -36,6 +36,8 @@ pub enum NotificationKind {
     SlaBreached,
     /// A Requester replied on a ticket the recipient is assigned to.
     ReplyReceived,
+    /// A Mailbox keeps failing to poll (Administrators).
+    MailboxFailing,
 }
 
 impl NotificationKind {
@@ -48,6 +50,7 @@ impl NotificationKind {
             Self::SlaWarning => "sla_warning",
             Self::SlaBreached => "sla_breached",
             Self::ReplyReceived => "reply_received",
+            Self::MailboxFailing => "mailbox_failing",
         }
     }
 
@@ -58,6 +61,7 @@ impl NotificationKind {
             Self::SlaWarning,
             Self::SlaBreached,
             Self::ReplyReceived,
+            Self::MailboxFailing,
         ]
         .into_iter()
         .find(|k| k.as_str() == s)

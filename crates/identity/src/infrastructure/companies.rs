@@ -170,6 +170,23 @@ impl CompanyRepository for PgIdentityStore {
         Ok(rows.into_iter().collect())
     }
 
+    async fn find_by_sender_domain(&self, domain: &str) -> Result<Option<TenantId>, RepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::All)
+            .await
+            .map_err(db_err)?;
+        let id = sqlx::query_scalar!(
+            "SELECT d.tenant_id FROM tenant_domains d JOIN tenants t ON t.id = d.tenant_id
+             WHERE d.domain = lower($1) AND t.is_active
+               AND NOT EXISTS (SELECT 1 FROM freemail_domains f WHERE f.domain = lower($1))",
+            domain
+        )
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        Ok(id.map(TenantId::from_uuid))
+    }
+
     async fn insert(&self, company: &Company, record: &AuditRecord) -> Result<(), RepoError> {
         let mut tx = tenancy::begin(&self.pool, &TenantScope::All)
             .await

@@ -179,6 +179,54 @@ impl Directory for IdentityDirectory {
         )
     }
 
+    async fn requesters_by_email(
+        &self,
+        email: &str,
+    ) -> Result<Vec<(RequesterId, TenantId, bool)>, RepoError> {
+        let found = self
+            .identity
+            .requesters_by_email(&system(TenantScope::All), email)
+            .await
+            .map_err(|e| RepoError::Storage(e.to_string()))?;
+        Ok(found
+            .into_iter()
+            .map(|r| (r.id(), r.tenant_id(), r.is_active()))
+            .collect())
+    }
+
+    async fn company_for_domain(&self, domain: &str) -> Result<Option<TenantId>, RepoError> {
+        self.identity
+            .company_for_sender_domain(domain)
+            .await
+            .map_err(|e| RepoError::Storage(e.to_string()))
+    }
+
+    async fn create_requester(
+        &self,
+        tenant: TenantId,
+        name: &str,
+        email: &str,
+    ) -> Result<RequesterId, RepoError> {
+        use cooper_identity::application::RequesterInput;
+        use cooper_identity::domain::{EmailAddress, Name};
+        let input = RequesterInput {
+            full_name: Name::try_from(name)
+                .or_else(|_| Name::try_from("Requester"))
+                .map_err(|e| RepoError::Storage(e.to_string()))?,
+            email: EmailAddress::try_from(email).map_err(|e| RepoError::Storage(e.to_string()))?,
+            username: None,
+            phone: None,
+            manager_id: None,
+            cost_centre_id: None,
+        };
+        let r = self
+            .identity
+            .create_requester(&admin(), tenant, input)
+            .await
+            .map_err(|e| RepoError::Storage(e.to_string()))?;
+        Ok(r.id())
+    }
+
     async fn ticket_code(
         &self,
         scope: &TenantScope,
@@ -295,6 +343,31 @@ impl cooper_notifications::handlers::PeopleLookup for IdentityDirectory {
             .await
             .map_err(|e| e.to_string())?
             .unwrap_or_default())
+    }
+
+    async fn administrators(&self) -> Result<BTreeSet<AnalystId>, String> {
+        let mut admins = BTreeSet::new();
+        let mut request = ListRequest {
+            limit: Limit::new(Limit::MAX).unwrap_or_default(),
+            ..ListRequest::default()
+        };
+        loop {
+            let page = self
+                .identity
+                .list_analysts(&admin(), &request)
+                .await
+                .map_err(|e| e.to_string())?;
+            admins.extend(
+                page.items
+                    .iter()
+                    .filter(|a| a.is_admin() && a.is_active())
+                    .map(|a| a.id()),
+            );
+            match page.next_cursor {
+                Some(c) => request.cursor = Some(c),
+                None => return Ok(admins),
+            }
+        }
     }
 
     async fn analysts_by_username(

@@ -1,6 +1,7 @@
 //! Service desk use cases.
 
 mod content;
+mod intake;
 mod reference;
 mod sla;
 mod tickets;
@@ -11,11 +12,12 @@ use cooper_kernel::{Actor, Clock, Forbidden, Principal};
 use thiserror::Error;
 
 use crate::domain::{
-    ContentRepository, Directory, ReferenceData, RepoError, SlaRepository, TicketError,
-    TicketRepository, TicketSettingsProvider,
+    ContentRepository, Directory, MailboxRepository, ReferenceData, RepoError, SlaRepository,
+    TicketError, TicketRepository, TicketSettingsProvider,
 };
 
 pub use content::{ReplyInput, StoredFile};
+pub use intake::IntakeOutcome;
 pub use reference::LookupInput;
 pub use tickets::{
     CreateTicket, ListRequest, TicketDetail, TicketView as View, TimelineEntry, ViewName,
@@ -171,6 +173,8 @@ pub struct ServiceDeskPorts {
     pub sla: Arc<dyn SlaRepository>,
     /// Emails, Reply Templates and attachments.
     pub content: Arc<dyn ContentRepository>,
+    /// Mailboxes.
+    pub mailboxes: Arc<dyn MailboxRepository>,
     /// The identity context.
     pub directory: Arc<dyn Directory>,
     /// Settings.

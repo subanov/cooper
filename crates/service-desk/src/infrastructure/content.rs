@@ -23,8 +23,9 @@ impl ContentRepository for PgServiceDeskStore {
             .map_err(db_err)?;
         sqlx::query!(
             "INSERT INTO ticket_emails (id, tenant_id, ticket_id, direction, from_address, to_addresses, cc_addresses,
-                                        subject, text_body, message_id, author_id, occurred_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+                                        subject, text_body, message_id, author_id, occurred_at, mailbox_id,
+                                        requester_id, in_reply_to)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
             e.id,
             e.tenant_id.as_uuid(),
             e.ticket_id.as_uuid(),
@@ -36,7 +37,10 @@ impl ContentRepository for PgServiceDeskStore {
             e.text_body,
             e.message_id,
             e.author_id.map(|a| a.as_uuid()),
-            e.occurred_at
+            e.occurred_at,
+            e.mailbox_id,
+            e.requester_id.map(|r| r.as_uuid()),
+            e.in_reply_to,
         )
         .execute(&mut *tx)
         .await
@@ -61,7 +65,7 @@ impl ContentRepository for PgServiceDeskStore {
         let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
         let rows = sqlx::query!(
             "SELECT id, tenant_id, ticket_id, direction, from_address, to_addresses, cc_addresses, subject, text_body,
-                    message_id, author_id, occurred_at
+                    message_id, author_id, occurred_at, mailbox_id, requester_id, in_reply_to
              FROM ticket_emails WHERE ticket_id = $1 ORDER BY occurred_at, id",
             ticket.as_uuid()
         )
@@ -88,8 +92,45 @@ impl ContentRepository for PgServiceDeskStore {
                 message_id: r.message_id,
                 author_id: r.author_id.map(AnalystId::from_uuid),
                 occurred_at: r.occurred_at,
+                mailbox_id: r.mailbox_id,
+                requester_id: r.requester_id.map(cooper_kernel::RequesterId::from_uuid),
+                in_reply_to: r.in_reply_to,
             })
             .collect())
+    }
+
+    async fn ticket_for_messages(
+        &self,
+        message_ids: &[String],
+    ) -> Result<Option<TicketId>, RepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::All)
+            .await
+            .map_err(db_err)?;
+        let id = sqlx::query_scalar!(
+            "SELECT e.ticket_id FROM ticket_emails e JOIN tickets t ON t.id = e.ticket_id
+             WHERE e.message_id = ANY($1) AND t.deleted_at IS NULL ORDER BY e.occurred_at DESC LIMIT 1",
+            message_ids
+        )
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        Ok(id.map(TicketId::from_uuid))
+    }
+
+    async fn inbound_exists(&self, message_id: &str) -> Result<bool, RepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::All)
+            .await
+            .map_err(db_err)?;
+        let exists = sqlx::query_scalar!(
+            r#"SELECT EXISTS (SELECT 1 FROM ticket_emails WHERE direction = 'inbound' AND message_id = $1) AS "e!""#,
+            message_id
+        )
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        Ok(exists)
     }
 
     async fn templates(&self) -> Result<Vec<ReplyTemplate>, RepoError> {

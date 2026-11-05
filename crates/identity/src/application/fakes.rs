@@ -192,6 +192,14 @@ impl CompanyRepository for Fakes {
     async fn freemail_domains(&self) -> Result<BTreeSet<String>, RepoError> {
         Ok(BTreeSet::from(["gmail.com".to_owned()]))
     }
+    async fn find_by_sender_domain(&self, domain: &str) -> Result<Option<TenantId>, RepoError> {
+        Ok(self
+            .state()
+            .companies
+            .values()
+            .find(|c| c.sender_domains().iter().any(|d| d.as_str() == domain))
+            .map(Company::id))
+    }
     async fn insert(&self, company: &Company, audit: &AuditRecord) -> Result<(), RepoError> {
         self.state().companies.insert(company.id(), company.clone());
         self.audit(audit);
@@ -421,6 +429,21 @@ impl RequesterRepository for Fakes {
         Ok(sorted(items, query, |r| {
             (r.full_name().as_str().to_lowercase(), r.id().as_uuid())
         }))
+    }
+    async fn find_by_email(
+        &self,
+        scope: &TenantScope,
+        email: &str,
+    ) -> Result<Vec<Requester>, RepoError> {
+        Ok(self
+            .state()
+            .requesters
+            .values()
+            .filter(|r| {
+                scope.allows(r.tenant_id()) && r.email().as_str().eq_ignore_ascii_case(email)
+            })
+            .cloned()
+            .collect())
     }
     async fn manager_chain(
         &self,

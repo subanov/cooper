@@ -56,6 +56,8 @@ pub trait PeopleLookup: Send + Sync {
         &self,
         usernames: &[String],
     ) -> Result<BTreeSet<AnalystId>, String>;
+    /// Active Administrators.
+    async fn administrators(&self) -> Result<BTreeSet<AnalystId>, String>;
 }
 
 /// Notifies Analysts about ticket events.
@@ -123,11 +125,43 @@ impl EventHandler for TicketNotifier {
     fn handles(&self, event_type: &str) -> bool {
         matches!(
             event_type,
-            "ticket.assigned" | "ticket.note_added" | "ticket.sla_warning" | "ticket.sla_breached"
+            "ticket.email_received"
+                | "ticket.assigned"
+                | "ticket.note_added"
+                | "ticket.sla_warning"
+                | "ticket.sla_breached"
         )
     }
 
     async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        if event.event_type == "ticket.email_received" {
+            let Some(facts) = self.facts(event).await? else {
+                return Ok(());
+            };
+            let Some(assignee) = facts.assignee else {
+                return Ok(());
+            };
+            let reopened = field(&event.payload, "reopened")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
+            let title = if reopened {
+                format!(
+                    "Ticket {} was reopened by a reply from the Requester",
+                    facts.number
+                )
+            } else {
+                format!("The Requester replied on ticket {}", facts.number)
+            };
+            return self
+                .send(
+                    event,
+                    NotificationKind::ReplyReceived,
+                    &facts,
+                    title,
+                    BTreeSet::from([assignee]),
+                )
+                .await;
+        }
         let Some(facts) = self.facts(event).await? else {
             return Ok(());
         };
@@ -206,5 +240,48 @@ impl EventHandler for TicketNotifier {
             }
             _ => Ok(()),
         }
+    }
+}
+
+/// Tells Administrators when a Mailbox keeps failing (FR-EML-010).
+pub struct MailboxAlerts {
+    /// The notifications service.
+    pub notifications: Notifications,
+    /// People.
+    pub people: Arc<dyn PeopleLookup>,
+}
+
+#[async_trait]
+impl EventHandler for MailboxAlerts {
+    fn name(&self) -> &'static str {
+        "mailbox-alerts"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        event_type == "mailbox.poll_failed"
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        let p = &event.payload;
+        let name = field(p, "name")
+            .and_then(Value::as_str)
+            .unwrap_or("A Mailbox");
+        let error = field(p, "error")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        let admins = self.people.administrators().await.map_err(handler_error)?;
+        let draft = Draft {
+            kind: NotificationKind::MailboxFailing,
+            tenant_id: None,
+            title: format!("Mailbox {name} keeps failing to poll"),
+            body: error.to_owned(),
+            ticket_id: None,
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, admins, event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
     }
 }

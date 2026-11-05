@@ -195,6 +195,10 @@ impl AppState {
             outbox,
             admin: admin.clone(),
         });
+        let mailboxes = Arc::new(cooper_service_desk::infrastructure::PgMailboxStore::new(
+            pool.clone(),
+            security.keyring.clone(),
+        ));
         let ports = PgIdentityStore::ports(
             pool.clone(),
             clock.clone(),
@@ -208,6 +212,7 @@ impl AppState {
             reference: Arc::new(PgServiceDeskStore::new(pool.clone())),
             sla: Arc::new(PgServiceDeskStore::new(pool.clone())),
             content: Arc::new(PgServiceDeskStore::new(pool.clone())),
+            mailboxes,
             directory: Arc::new(IdentityDirectory {
                 identity: service.clone(),
             }),
@@ -269,10 +274,28 @@ impl AppState {
                     identity: self.identity.service.clone(),
                 }),
             }),
+            Arc::new(cooper_notifications::handlers::MailboxAlerts {
+                notifications: self.notifications.service.clone(),
+                people: Arc::new(IdentityDirectory {
+                    identity: self.identity.service.clone(),
+                }),
+            }),
             Arc::new(cooper_notifications::email::ReplyMailer {
                 outbox: cooper_notifications::email::EmailOutbox::new(self.pool.clone()),
             }),
         ]
+    }
+}
+
+impl AppState {
+    /// The `mailbox-poll` Background Job, polling IMAP Mailboxes into tickets.
+    #[must_use]
+    pub fn mailbox_poller(&self) -> cooper_service_desk::infrastructure::MailboxPoller {
+        cooper_service_desk::infrastructure::MailboxPoller::new(
+            self.service_desk.service.clone(),
+            self.service_desk.blobs.clone(),
+            Arc::new(cooper_service_desk::infrastructure::ImapClient),
+        )
     }
 }
 

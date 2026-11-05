@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT d.tenant_id FROM tenant_domains d JOIN tenants t ON t.id = d.tenant_id\n             WHERE d.domain = lower($1) AND t.is_active\n               AND NOT EXISTS (SELECT 1 FROM freemail_domains f WHERE f.domain = lower($1))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tenant_domains",
+            "name": "tenant_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "f70af8fb536be85fbd60c4ea2e9547b7e0e5c8feeafdd7210baa1308d4a1f0d0"
+}
