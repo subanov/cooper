@@ -3,128 +3,14 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)] // test code
 
-use axum::Router;
-use axum::body::Body;
-use cooper_http::{HttpConfig, PROBLEM_JSON};
-use cooper_server::{AppState, SessionSettings, router};
-use http::{Method, Request, StatusCode, header};
-use http_body_util::BodyExt as _;
-use serde_json::{Value, json};
+use cooper_http::PROBLEM_JSON;
+use http::{Method, StatusCode, header};
+use serde_json::json;
 use sqlx::PgPool;
-use tower::ServiceExt as _;
 
-const ADMIN_PASSWORD: &str = "correct horse battery";
+mod common;
 
-#[derive(Clone)]
-struct Client {
-    app: Router,
-    cookie: Option<String>,
-    csrf: Option<String>,
-}
-
-struct Reply {
-    status: StatusCode,
-    headers: http::HeaderMap,
-    body: Value,
-}
-
-impl Client {
-    fn anonymous(pool: &PgPool) -> Self {
-        let state = AppState::with_settings(
-            pool.clone(),
-            std::sync::Arc::new(cooper_kernel::SystemClock),
-            SessionSettings {
-                secure_cookies: false,
-                ..SessionSettings::default()
-            },
-        )
-        .unwrap();
-        Self {
-            app: router(state, &HttpConfig::default()),
-            cookie: None,
-            csrf: None,
-        }
-    }
-
-    async fn send(&self, method: Method, uri: &str, body: Option<Value>) -> Reply {
-        let mut req = Request::builder().method(method).uri(uri);
-        if let Some(cookie) = &self.cookie {
-            req = req.header(header::COOKIE, cookie);
-        }
-        if let Some(csrf) = &self.csrf {
-            req = req.header("x-csrf-token", csrf);
-        }
-        let req = match body {
-            Some(b) => req
-                .header(header::CONTENT_TYPE, "application/json")
-                .body(Body::from(b.to_string()))
-                .unwrap(),
-            None => req.body(Body::empty()).unwrap(),
-        };
-        let response = self.app.clone().oneshot(req).await.unwrap();
-        let status = response.status();
-        let headers = response.headers().clone();
-        let bytes = response.into_body().collect().await.unwrap().to_bytes();
-        let body = if bytes.is_empty() {
-            Value::Null
-        } else {
-            serde_json::from_slice(&bytes).unwrap()
-        };
-        Reply {
-            status,
-            headers,
-            body,
-        }
-    }
-
-    async fn get(&self, uri: &str) -> Reply {
-        self.send(Method::GET, uri, None).await
-    }
-    async fn post(&self, uri: &str, body: Value) -> Reply {
-        self.send(Method::POST, uri, Some(body)).await
-    }
-    async fn put(&self, uri: &str, body: Value) -> Reply {
-        self.send(Method::PUT, uri, Some(body)).await
-    }
-
-    async fn sign_in(&self, login: &str, password: &str) -> Self {
-        let reply = self
-            .post(
-                "/api/v1/session",
-                json!({ "login": login, "password": password }),
-            )
-            .await;
-        assert_eq!(reply.status, StatusCode::OK, "{:?}", reply.body);
-        let set_cookie = reply.headers[header::SET_COOKIE]
-            .to_str()
-            .unwrap()
-            .to_owned();
-        assert!(set_cookie.contains("HttpOnly") && set_cookie.contains("SameSite=Lax"));
-        let cookie = set_cookie.split(';').next().unwrap().to_owned();
-        Self {
-            app: self.app.clone(),
-            cookie: Some(cookie),
-            csrf: Some(reply.body["csrf_token"].as_str().unwrap().to_owned()),
-        }
-    }
-}
-
-async fn setup(pool: &PgPool) -> (Client, Client) {
-    let anon = Client::anonymous(pool);
-    let reply = anon
-        .post(
-            "/api/v1/setup",
-            json!({
-                "company_name": "Default Company", "ticket_code": "DEF", "sender_domains": ["default.example"],
-                "username": "admin", "email": "admin@default.example", "full_name": "Ada Admin",
-                "password": ADMIN_PASSWORD
-            }),
-        )
-        .await;
-    assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
-    let admin = anon.sign_in("admin", ADMIN_PASSWORD).await;
-    (anon, admin)
-}
+use common::{ADMIN_PASSWORD, Client, setup};
 
 async fn default_company(admin: &Client) -> String {
     let reply = admin.get("/api/v1/companies").await;

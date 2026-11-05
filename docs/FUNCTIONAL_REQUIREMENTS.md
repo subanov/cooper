@@ -53,7 +53,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-GEN-002 | Every record that belongs to a Company is isolated by **Tenant**. An Analyst sees only the Companies they have access to (directly or through a Team). | M | P1 |
 | FR-GEN-003 | Lists support filtering, sorting, full-text search and cursor pagination. | M | P1 |
 | FR-GEN-004 | Records support soft delete where FreeITSM does (tickets, assets). Soft-deleted records are hidden by default and an Administrator can restore them. | S | P1 |
-| FR-GEN-005 | Each Module can be turned on or off. A disabled module is hidden from navigation and its API returns 404. | S | P1 |
+| FR-GEN-005 | Each Module can be turned on or off. A disabled module is hidden from navigation and its API returns 404. Deviation from FreeITSM: the Tickets Module is always on (ADR-0012). | S | P1 |
 | FR-GEN-006 | Users receive in-app **Notifications** (the bell) for assignments, mentions, replies and SLA events. | S | P1 |
 | FR-GEN-007 | Attachments can be uploaded to tickets, changes, problems, tasks, articles and contracts, with a configurable size limit. | M | P1 |
 | FR-GEN-008 | Users can save **Table Views** (columns, filters, sort) per list. | C | P4 |

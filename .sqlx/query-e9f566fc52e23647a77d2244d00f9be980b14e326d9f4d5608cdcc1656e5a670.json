@@ -1,0 +1,110 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT j.name, j.schedule_kind, j.interval_seconds, j.daily_at, j.next_run_at, j.last_run_at,\n                  r.outcome AS \"last_outcome?\", r.duration_ms AS \"last_duration_ms?\"\n           FROM background_jobs j\n           LEFT JOIN LATERAL (\n               SELECT outcome, duration_ms FROM background_job_runs\n               WHERE job_name = j.name ORDER BY started_at DESC LIMIT 1\n           ) r ON true\n           ORDER BY j.name",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "schedule_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "schedule_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "interval_seconds",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "interval_seconds"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "daily_at",
+        "type_info": "Time",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "daily_at"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "next_run_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "next_run_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "last_run_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "last_run_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "last_outcome?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "outcome"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "last_duration_ms?",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "background_job_runs",
+            "name": "duration_ms"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "e9f566fc52e23647a77d2244d00f9be980b14e326d9f4d5608cdcc1656e5a670"
+}

@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE background_jobs SET schedule_kind = $2, interval_seconds = $3, daily_at = $4,\n                next_run_at = $5, updated_at = $6 WHERE name = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int4",
+        "Time",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b8ddda6df7c190b6d8c05c57d3395058e49db976e918372f64b350f79c2682e9"
+}

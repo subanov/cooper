@@ -84,6 +84,7 @@ cooper/
 │   │                             # transactions, audit log, outbox, job runner (ADR-0009)
 │   ├── http/                     # shared HTTP: problem+json, middleware stack (ADR-0009)
 │   ├── identity/                 # Analysts, Requesters, Teams, Departments, Companies, RBAC, auth
+│   ├── administration/           # Module switches, System Settings, job schedules, system log
 │   ├── service-desk/             # Tickets, Mailboxes, Channels, SLA, Rota, Reply Templates
 │   ├── problem-management/
 │   ├── change-management/
@@ -257,6 +258,9 @@ Building blocks every context uses (ADR-0004, ADR-0005, ADR-0009):
   them with an `EventHandler` registered in `cooper-worker`.
 - `cooper_platform::jobs::Job` for scheduled work, registered in `cooper-worker`.
 - `cooper_http::Problem` for every API error.
+- Register a context's Capabilities, `SettingDefinition`s and Module route prefixes in
+  `apps/cooper-server/src/state.rs` (`capability_catalogue`, `setting_catalogue`,
+  `module_routes`); log with `tracing` (warnings and errors reach the System Log).
 
 ## 9. Workflow for agents
 
