@@ -21,23 +21,26 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Analyst** | A member of IT staff who signs in to Cooper to work tickets, changes, problems, tasks and so on. Can be an administrator. | `Analyst`, `analysts` | agent, technician, operator, engineer, staff user |
-| **Administrator** | An Analyst with the `is_admin` flag. Can configure the system. | `Analyst::is_admin` | superuser, root |
-| **Requester** | A person who asks IT for help: the end user who raises tickets, usually through email or the Self-Service Portal. FreeITSM stores requesters in the `users` table. | `Requester`, `users` | customer, caller, client, contact (Contact means a supplier contact) |
+| **Administrator** | An Analyst with the `is_admin` flag. Has every Capability and sees every Company. At least one active Administrator must always exist. | `Analyst::is_admin` | superuser, root |
+| **Requester** | A person who asks IT for help: the end user who raises tickets, usually through email or the Self-Service Portal. FreeITSM stores requesters in the `users` table; Cooper uses `requesters`. | `Requester`, `requesters` | customer, caller, client, contact (Contact means a supplier contact) |
 | **Manager** | A Requester whom other Requesters report to (`manager_id`). Managers can see tickets of their reports, as granted by Manager Grants. | `Requester::manager_id` | supervisor |
 | **Manager Grant** | A rule that gives a Requester visibility of other Requesters' tickets. Grant types (fixed): `everyone`, `user`, `group`, `department`, `reports`. | `ManagerGrant` | |
 | **Team** | A group of Analysts. Tickets, tasks and checks are assigned to teams. A team is also a ticket **Queue**. | `Team`, `teams` | group (in the Analyst sense), squad |
 | **Department** | The service area that a ticket belongs to (for example IT, HR, Facilities). Has a default Sensitivity. Linked to the Teams that serve it. | `Department`, `departments` | division |
 | **Company** | A customer organisation served by this Cooper instance (multi-tenancy). Has a Ticket Code used in ticket numbers. Called **Company** in the UI and **Tenant** in code. | `Tenant`, `TenantId`, `tenants` | organisation, account, client |
 | **Ticket Code** | A short code for a Company, used as the `{COMPANY}` token in ticket numbers. | `Tenant::ticket_code` | |
-| **Cost Centre** | A financial unit that Requesters and Assets can belong to. | `CostCentre` | |
-| **Role** | A named set of Capabilities assigned to Analysts or Teams (RBAC). | `Role`, `rbac_roles` | permission group |
+| **Cost Centre** | A financial unit within a Company that Requesters and Assets can belong to. Has a code unique within the Company. | `CostCentre`, `cost_centres` | |
+| **Role** | A named set of Capabilities assigned to Analysts or Teams (RBAC). An Analyst's Capabilities are the union of their own Roles and their active Teams' Roles. | `Role`, `rbac_roles` | permission group |
 | **Capability** | A permission string in the form `<module>.<action>`, for example `tickets.update`. | `Capability` | right, privilege |
 | **Module** | A functional area of Cooper (Tickets, Assets, Changes, …). An administrator can turn each one on or off. | `Module` | app, plugin |
 | **Auth Provider** | An external identity source: `oidc`, `ldap` or `carddav`. | `AuthProvider` | |
 | **Directory Sync** | A scheduled import of Requesters and groups from an Auth Provider. Run status (fixed): `running`, `ok`, `stopped`, `failed`. | `DirectorySyncRun` | |
+| **Session** | A signed-in browser session of an Analyst: an `HttpOnly` cookie holding a random token (stored only as a hash) plus a CSRF token for unsafe requests. Expires when idle and after an absolute lifetime (ADR-0011). | `Session`, `analyst_sessions` | login (as a noun) |
+| **Principal** | The authenticated caller of a request: its Actor, Capabilities and Tenant Scope. Built by the identity context, checked by every context. | `Principal` | user context |
 | **API Key** | A credential for REST integrations, with per-key permissions, allowed companies, a rate limit and an expiry. | `ApiKey` | token (ambiguous) |
 | **Actor** | Whoever performed an action: an Analyst, a Requester, an API Key or **Automation** (system). Recorded in every audit entry. | `Actor` | user (ambiguous) |
-| **Sensitivity** | Confidentiality of a ticket or department (fixed): `normal`, `confidential`. Confidential items are visible only to authorised Analysts. | `Sensitivity` | privacy level |
+| **Sensitivity** | Confidentiality of a ticket or department (fixed): `normal`, `confidential`. Confidential items are visible only to authorised Analysts. | `Sensitivity` (kernel) | privacy level |
+| **Company Access** | Which Companies an Analyst or Team may see: all Companies, specific Companies, or none. An Analyst's Tenant Scope is the union of their own and their active Teams' access. | `CompanyAccess`, `company_access_grants` | tenant membership |
 | **System Setting** | A key/value configuration entry. | `SystemSetting` | |
 | **Audit** | An append-only record of who changed what and when: Actor, timestamp, field, old value, new value. Every aggregate has an audit trail (ticket audit, change audit, …), stored in one platform table keyed by aggregate type and ID (ADR-0009). | `AuditRecord`, `audit_entries` | history log |
 | **Tenant Scope** | The set of Companies a request or job may see: specific Companies, or all. Every tenant query runs inside one; the database enforces it with Row-Level Security (ADR-0004). | `TenantScope` | tenant context, org filter |

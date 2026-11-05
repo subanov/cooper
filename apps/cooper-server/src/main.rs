@@ -1,7 +1,11 @@
 //! `cooper-server` binary: reads configuration, connects to PostgreSQL and serves HTTP
 //! until SIGINT/SIGTERM.
 
+use std::net::SocketAddr;
+use std::sync::Arc;
+
 use anyhow::Context as _;
+use cooper_kernel::SystemClock;
 use cooper_platform::{db, telemetry};
 use cooper_server::AppState;
 use cooper_server::config::ServerConfig;
@@ -21,7 +25,10 @@ async fn main() -> anyhow::Result<()> {
         );
     }
 
-    let app = cooper_server::router(AppState::new(pool), &config.http);
+    let state = AppState::with_settings(pool, Arc::new(SystemClock), config.sessions)
+        .context("failed to initialise application state")?;
+    let app = cooper_server::router(state, &config.http)
+        .into_make_service_with_connect_info::<SocketAddr>();
     let listener = tokio::net::TcpListener::bind(config.bind_addr)
         .await
         .with_context(|| format!("failed to bind {}", config.bind_addr))?;

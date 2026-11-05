@@ -14,6 +14,7 @@ publish = false
 cooper-kernel = { path = "crates/kernel" }
 cooper-platform = { path = "crates/platform" }
 cooper-http = { path = "crates/http" }
+cooper-identity = { path = "crates/identity" }
 
 # Runtime and web
 tokio = { version = "1.54", features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }
@@ -53,6 +54,16 @@ uuid = { version = "1.29", features = ["serde", "v7"] }
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde", "std"] }
 base64 = "0.23"
 async-trait = "0.1"
+
+# Security
+argon2 = "0.6"
+getrandom = "0.4"
+sha2 = "0.11"
+hex = "0.4"
+
+# OpenAPI
+utoipa = { version = "6", features = ["chrono", "uuid"] }
+utoipa-axum = "0.3"
 
 # Observability
 tracing = "0.1"

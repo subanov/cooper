@@ -1,0 +1,155 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,\n                    deactivated_at, created_at, updated_at\n             FROM requesters\n             WHERE ($1 OR tenant_id = ANY($2))\n               AND ($3::uuid IS NULL OR tenant_id = $3)\n               AND ($4 OR is_active)\n               AND ($5::text IS NULL OR lower(full_name) LIKE $5 OR lower(email) LIKE $5 OR lower(username) LIKE $5)\n               AND ($6::text IS NULL OR (lower(full_name), id) > ($6, $7))\n             ORDER BY lower(full_name), id\n             LIMIT $8",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "full_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "full_name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "username",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "username"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "phone",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "phone"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "manager_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "manager_id"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "cost_centre_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "cost_centre_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "deactivated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "deactivated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid",
+        "Bool",
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "95b94fe0dd700da7c67782d3362f915bbe18ade55fc8c1bdc02942884e673c7a"
+}

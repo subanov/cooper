@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM rbac_role_capabilities WHERE role_id = $1 AND NOT (capability = ANY($2))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ce4ca84448c48292370f83cdc1755b992f1d9f104fbd2f4631caed0acc8301cf"
+}

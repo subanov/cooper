@@ -1,0 +1,120 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT t.id, t.name, t.description, t.is_active, t.created_at, t.updated_at,\n                      ARRAY(SELECT m.analyst_id FROM team_members m WHERE m.team_id = t.id) AS \"members!\",\n                      ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.team_id = t.id) AS \"roles!\",\n                      EXISTS (SELECT 1 FROM company_access_grants g WHERE g.team_id = t.id AND g.tenant_id IS NULL) AS \"all_companies!\",\n                      ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.team_id = t.id AND g.tenant_id IS NOT NULL) AS \"companies!: Vec<Uuid>\"\n               FROM teams t WHERE ($1 OR t.is_active)\n                   AND ($2::text IS NULL OR lower(t.name) LIKE $2)\n                   AND ($3::text IS NULL OR (lower(t.name), t.id) > ($3, $4))\n                 ORDER BY lower(t.name), t.id\n                 LIMIT $5",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "teams",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "teams",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "teams",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "teams",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "teams",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "teams",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "members!",
+        "type_info": "UuidArray",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "roles!",
+        "type_info": "UuidArray",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 8,
+        "name": "all_companies!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 9,
+        "name": "companies!: Vec<Uuid>",
+        "type_info": "UuidArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "6ab6cff152cee260d17be19d60055206e3359e5a7e8e6a0df5d09138d33a794c"
+}

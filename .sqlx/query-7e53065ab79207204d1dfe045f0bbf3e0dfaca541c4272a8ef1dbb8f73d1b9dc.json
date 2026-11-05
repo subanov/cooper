@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rbac_role_capabilities (role_id, capability) SELECT $1, c FROM UNNEST($2::text[]) AS c ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7e53065ab79207204d1dfe045f0bbf3e0dfaca541c4272a8ef1dbb8f73d1b9dc"
+}

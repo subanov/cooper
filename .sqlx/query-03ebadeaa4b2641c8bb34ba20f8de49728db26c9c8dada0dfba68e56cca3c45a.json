@@ -1,0 +1,143 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, analyst_id, token_hash, csrf_token, created_at, last_seen_at, idle_expires_at,\n                    expires_at, revoked_at, host(ip_address) AS ip_address, user_agent\n             FROM analyst_sessions WHERE token_hash = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "analyst_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "analyst_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "token_hash",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "token_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "csrf_token",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "csrf_token"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "last_seen_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "last_seen_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "idle_expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "idle_expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "revoked_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "revoked_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "ip_address",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 10,
+        "name": "user_agent",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "analyst_sessions",
+            "name": "user_agent"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      null,
+      true
+    ]
+  },
+  "hash": "03ebadeaa4b2641c8bb34ba20f8de49728db26c9c8dada0dfba68e56cca3c45a"
+}

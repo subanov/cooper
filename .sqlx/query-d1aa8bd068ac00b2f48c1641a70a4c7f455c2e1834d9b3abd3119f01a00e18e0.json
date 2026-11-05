@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO analyst_sessions (id, analyst_id, token_hash, csrf_token, created_at, last_seen_at,\n                                           idle_expires_at, expires_at, revoked_at, ip_address, user_agent)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::text::inet, $11)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bytea",
+        "Text",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d1aa8bd068ac00b2f48c1641a70a4c7f455c2e1834d9b3abd3119f01a00e18e0"
+}

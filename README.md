@@ -48,6 +48,15 @@ cargo run -p cooper-server               # HTTP server: http://localhost:8080/he
 cargo run -p cooper-worker               # background jobs and domain event dispatch
 ```
 
+On a fresh database, create the default Company and the first Administrator once
+(FR-SYS-004), then sign in. The API is described at `/api/v1/openapi.json`.
+
+```bash
+curl -X POST http://localhost:8080/api/v1/setup -H 'content-type: application/json' -d '{
+  "company_name": "Default", "ticket_code": "SD", "username": "admin",
+  "email": "admin@example.com", "full_name": "Administrator", "password": "change me please"}'
+```
+
 `docker compose up -d` also starts Mailpit (captures outbound mail, UI on
 <http://localhost:8025>) and GreenMail (IMAP/SMTP test server).
 

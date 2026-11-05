@@ -25,7 +25,7 @@ fn get_req(uri: &str) -> Request<Body> {
 
 #[sqlx::test(migrations = "../../migrations")]
 async fn live_is_ok(pool: PgPool) {
-    let response = router(AppState::new(pool), &HttpConfig::default())
+    let response = router(AppState::new(pool).unwrap(), &HttpConfig::default())
         .oneshot(get_req("/health/live"))
         .await
         .unwrap();
@@ -35,7 +35,7 @@ async fn live_is_ok(pool: PgPool) {
 
 #[sqlx::test(migrations = "../../migrations")]
 async fn ready_when_database_is_migrated(pool: PgPool) {
-    let response = router(AppState::new(pool), &HttpConfig::default())
+    let response = router(AppState::new(pool).unwrap(), &HttpConfig::default())
         .oneshot(get_req("/health/ready"))
         .await
         .unwrap();
@@ -45,7 +45,7 @@ async fn ready_when_database_is_migrated(pool: PgPool) {
 
 #[sqlx::test(migrations = false)]
 async fn not_ready_while_migrations_are_pending(pool: PgPool) {
-    let response = router(AppState::new(pool), &HttpConfig::default())
+    let response = router(AppState::new(pool).unwrap(), &HttpConfig::default())
         .oneshot(get_req("/health/ready"))
         .await
         .unwrap();
@@ -56,7 +56,7 @@ async fn not_ready_while_migrations_are_pending(pool: PgPool) {
 
 #[sqlx::test(migrations = false)]
 async fn unknown_route_is_a_404_problem(pool: PgPool) {
-    let response = router(AppState::new(pool), &HttpConfig::default())
+    let response = router(AppState::new(pool).unwrap(), &HttpConfig::default())
         .oneshot(get_req("/api/v1/nope"))
         .await
         .unwrap();
@@ -67,7 +67,7 @@ async fn unknown_route_is_a_404_problem(pool: PgPool) {
 
 #[sqlx::test(migrations = false)]
 async fn request_id_is_generated_or_echoed(pool: PgPool) {
-    let app = router(AppState::new(pool), &HttpConfig::default());
+    let app = router(AppState::new(pool).unwrap(), &HttpConfig::default());
 
     let generated = app.clone().oneshot(get_req("/health/live")).await.unwrap();
     assert!(!generated.headers()[REQUEST_ID_HEADER].is_empty());
@@ -126,7 +126,7 @@ async fn cors_allows_configured_origins_only(pool: PgPool) {
         cors_allowed_origins: vec![http::HeaderValue::from_static("https://desk.example")],
         ..HttpConfig::default()
     };
-    let app = router(AppState::new(pool), &http);
+    let app = router(AppState::new(pool).unwrap(), &http);
     let request = |origin: &'static str| {
         Request::get("/health/live")
             .header(header::ORIGIN, origin)

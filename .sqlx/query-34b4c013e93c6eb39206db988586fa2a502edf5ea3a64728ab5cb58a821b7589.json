@@ -1,0 +1,113 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT t.id, t.name, t.ticket_code, t.is_default, t.is_active, t.created_at, t.updated_at,\n                      COALESCE(ARRAY(SELECT d.domain FROM tenant_domains d WHERE d.tenant_id = t.id ORDER BY d.domain), '{}') AS \"domains!\"\n               FROM tenants t\n               WHERE ($1 OR t.id = ANY($2))\n                 AND ($3 OR t.is_active)\n                 AND ($4::text IS NULL OR lower(t.name) LIKE $4 OR lower(t.ticket_code) LIKE $4)\n                 AND ($5::text IS NULL OR (lower(t.name), t.id) > ($5, $6))\n               ORDER BY lower(t.name), t.id\n               LIMIT $7",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "ticket_code",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "ticket_code"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_default",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "is_default"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "domains!",
+        "type_info": "TextArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Bool",
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "34b4c013e93c6eb39206db988586fa2a502edf5ea3a64728ab5cb58a821b7589"
+}

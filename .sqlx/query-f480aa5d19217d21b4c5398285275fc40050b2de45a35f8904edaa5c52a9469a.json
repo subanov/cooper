@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH RECURSIVE chain (id, manager_id, depth) AS (\n                   SELECT id, manager_id, 0 FROM requesters WHERE id = $1\n                   UNION ALL\n                   SELECT r.id, r.manager_id, c.depth + 1\n                   FROM requesters r JOIN chain c ON r.id = c.manager_id\n                   WHERE c.depth < $2\n               ) CYCLE id SET is_cycle USING path\n               SELECT id AS \"id!\" FROM chain WHERE NOT is_cycle ORDER BY depth",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!",
+        "type_info": "Uuid",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "f480aa5d19217d21b4c5398285275fc40050b2de45a35f8904edaa5c52a9469a"
+}

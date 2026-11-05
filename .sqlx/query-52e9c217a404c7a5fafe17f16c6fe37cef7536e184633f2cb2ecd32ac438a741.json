@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH my_teams AS (\n                 SELECT tm.team_id FROM team_members tm JOIN teams t ON t.id = tm.team_id\n                 WHERE tm.analyst_id = $1 AND t.is_active)\n             SELECT tenant_id FROM company_access_grants\n             WHERE analyst_id = $1 OR team_id IN (SELECT team_id FROM my_teams)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "company_access_grants",
+            "name": "tenant_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "52e9c217a404c7a5fafe17f16c6fe37cef7536e184633f2cb2ecd32ac438a741"
+}
