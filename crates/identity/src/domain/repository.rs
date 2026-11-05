@@ -71,6 +71,8 @@ pub trait CompanyRepository: Send + Sync {
     -> Result<Vec<Company>, RepoError>;
     /// The Freemail Domains.
     async fn freemail_domains(&self) -> Result<BTreeSet<String>, RepoError>;
+    /// The active Company with this Sender Domain, if any.
+    async fn find_by_sender_domain(&self, domain: &str) -> Result<Option<TenantId>, RepoError>;
     /// Inserts a Company.
     async fn insert(&self, company: &Company, audit: &AuditRecord) -> Result<(), RepoError>;
     /// Updates a Company.
@@ -197,6 +199,12 @@ pub trait RequesterRepository: Send + Sync {
         &self,
         scope: &TenantScope,
         query: &ListQuery,
+    ) -> Result<Vec<Requester>, RepoError>;
+    /// Requesters with this email address (case-insensitive) visible in `scope`.
+    async fn find_by_email(
+        &self,
+        scope: &TenantScope,
+        email: &str,
     ) -> Result<Vec<Requester>, RepoError>;
     /// The Manager chain above `id`, nearest first, stopping after `max` steps.
     async fn manager_chain(

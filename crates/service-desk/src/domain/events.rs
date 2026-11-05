@@ -204,3 +204,40 @@ ticket_event!(
         email: ReplyEmail,
     }
 );
+
+ticket_event!(
+    /// An email from the Requester arrived on an existing ticket (FR-EML-003). The
+    /// Assignee is notified (FR-GEN-006).
+    TicketEmailReceived, "ticket.email_received" {
+        /// The email.
+        email_id: Uuid,
+        /// Sender.
+        from: String,
+        /// Whether the email reopened a closed ticket.
+        reopened: bool,
+    }
+);
+
+/// A Mailbox failed to poll several times in a row (FR-EML-010).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MailboxPollFailed {
+    /// The Mailbox.
+    pub mailbox_id: Uuid,
+    /// Its name.
+    pub name: String,
+    /// The last error.
+    pub error: String,
+    /// Failures in a row.
+    pub failures: u32,
+}
+
+impl DomainEvent for MailboxPollFailed {
+    const EVENT_TYPE: &'static str = "mailbox.poll_failed";
+    const AGGREGATE_TYPE: &'static str = "mailbox";
+    fn aggregate_id(&self) -> Uuid {
+        self.mailbox_id
+    }
+    fn tenant_id(&self) -> Option<TenantId> {
+        None
+    }
+}

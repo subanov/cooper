@@ -12,6 +12,18 @@ use serde_json::{Value, json};
 use sqlx::PgPool;
 use tower::ServiceExt as _;
 
+/// Settings shared by every test `AppState`, with one fixed encryption key, so state
+/// built separately in a test can read what the HTTP client wrote.
+pub fn test_settings() -> SecuritySettings {
+    SecuritySettings {
+        keyring: cooper_platform::crypto::Keyring::parse(
+            "1:dGVzdC1rZXktZm9yLWNvb3Blci1pbnRlZ3JhdGlvbiE=",
+        )
+        .unwrap(),
+        ..SecuritySettings::ephemeral().unwrap()
+    }
+}
+
 pub const ADMIN_PASSWORD: &str = "correct horse battery";
 
 #[derive(Clone)]
@@ -38,7 +50,7 @@ impl Client {
             std::sync::Arc::new(cooper_kernel::SystemClock),
             SecuritySettings {
                 secure_cookies: false,
-                ..SecuritySettings::ephemeral().unwrap()
+                ..test_settings()
             },
         )
         .unwrap();

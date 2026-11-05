@@ -128,6 +128,9 @@ where
         .routes(routes!(render_template))
         .routes(routes!(upload_attachment, list_attachments))
         .routes(routes!(download_attachment))
+        .routes(routes!(list_mailboxes, create_mailbox))
+        .routes(routes!(update_mailbox))
+        .routes(routes!(list_rejected))
         .routes(routes!(list_calendars, create_calendar))
         .routes(routes!(update_calendar))
         .routes(routes!(list_sla_rules, create_sla_rule))
@@ -773,4 +776,76 @@ async fn download_attachment(
         headers.insert(header::CONTENT_DISPOSITION, v);
     }
     Ok(response)
+}
+
+// ----- Mailboxes -------------------------------------------------------------------------
+
+/// Lists Mailboxes with their health (needs `tickets.configure`).
+#[utoipa::path(get, path = "/mailboxes", tag = "Mailboxes", responses((status = 200, body = Vec<super::dto::MailboxDto>)))]
+async fn list_mailboxes(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<Vec<super::dto::MailboxDto>>> {
+    Ok(Json(
+        api.service
+            .mailboxes(&p)
+            .await?
+            .into_iter()
+            .map(super::dto::MailboxDto::from)
+            .collect(),
+    ))
+}
+
+/// Creates a Mailbox; `password` is stored encrypted.
+#[utoipa::path(post, path = "/mailboxes", tag = "Mailboxes", request_body = super::dto::MailboxDto, responses((status = 201, body = super::dto::MailboxDto)))]
+async fn create_mailbox(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<super::dto::MailboxDto>,
+) -> ApiResult<Response> {
+    let settings = (&body).try_into()?;
+    let m = api
+        .service
+        .create_mailbox(&p, settings, body.password.as_deref())
+        .await?;
+    Ok(created(super::dto::MailboxDto::from(m)))
+}
+
+/// Replaces a Mailbox's settings; the stored password is kept unless `password` is given.
+#[utoipa::path(put, path = "/mailboxes/{id}", tag = "Mailboxes", params(("id" = Uuid, Path)), request_body = super::dto::MailboxDto, responses((status = 200, body = super::dto::MailboxDto)))]
+async fn update_mailbox(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<super::dto::MailboxDto>,
+) -> ApiResult<Json<super::dto::MailboxDto>> {
+    let settings = (&body).try_into()?;
+    Ok(Json(
+        api.service
+            .update_mailbox(&p, id, settings, body.password.as_deref())
+            .await?
+            .into(),
+    ))
+}
+
+/// Recent Rejected Emails of a Mailbox (Whitelist, unknown senders, loop protection).
+#[utoipa::path(get, path = "/mailboxes/{id}/rejected-emails", tag = "Mailboxes", params(("id" = Uuid, Path)), responses((status = 200, body = Vec<super::dto::RejectedEmailDto>)))]
+async fn list_rejected(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<Vec<super::dto::RejectedEmailDto>>> {
+    let rows = api.service.rejected_emails(&p, id).await?;
+    Ok(Json(
+        rows.into_iter()
+            .map(
+                |(from, subject, reason, received_at)| super::dto::RejectedEmailDto {
+                    from,
+                    subject,
+                    reason,
+                    received_at,
+                },
+            )
+            .collect(),
+    ))
 }

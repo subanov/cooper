@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM mailbox_whitelist WHERE mailbox_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "1083e998037b3d5176a3d80a7dca55afdc67b1661f81ce1f8ee8d7c7d5c9043a"
+}

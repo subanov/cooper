@@ -988,3 +988,278 @@ impl From<crate::domain::AttachmentInfo> for AttachmentDto {
         }
     }
 }
+
+/// A Mailbox. Secrets are write-only: send `password` to set or replace it.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct MailboxDto {
+    /// ID (ignored in requests).
+    #[serde(default)]
+    pub id: Option<Uuid>,
+    /// Name.
+    pub name: String,
+    /// Address mail arrives at.
+    pub address: String,
+    /// `imap`, `microsoft` or `google`.
+    pub provider: String,
+    /// Microsoft: `delegated` or `app_only`.
+    pub auth_mode: Option<String>,
+    /// IMAP host.
+    pub imap_host: Option<String>,
+    /// IMAP port (993 for TLS).
+    pub imap_port: Option<u16>,
+    /// `tls` or `none` (test servers).
+    pub imap_security: Option<String>,
+    /// IMAP login.
+    pub imap_username: Option<String>,
+    /// Folder to read (default `INBOX`).
+    #[serde(default)]
+    pub folder: String,
+    /// Password or credentials (requests only; never returned).
+    #[serde(default, skip_serializing)]
+    pub password: Option<String>,
+    /// Whether a secret is stored (responses only).
+    #[serde(default)]
+    pub has_secret: bool,
+    /// Default Company of new tickets.
+    pub company_id: Uuid,
+    /// Default Department.
+    pub department_id: Option<Uuid>,
+    /// Origin of new tickets (default: Email).
+    pub origin_id: Option<Uuid>,
+    /// Default Queue.
+    pub team_id: Option<Uuid>,
+    /// `delete`, `move` or `mark_read` after import.
+    #[serde(default = "mark_read")]
+    pub post_import_action: String,
+    /// Folder for `move`.
+    pub move_to_folder: Option<String>,
+    /// `create_requester` (default) or `reject` for unknown senders.
+    #[serde(default = "create_requester")]
+    pub unknown_sender_action: String,
+    /// `delete` (default), `move` or `keep` for rejected emails.
+    #[serde(default = "delete")]
+    pub rejected_action: String,
+    /// Whitelist: `{pattern, allow}`, addresses or domains.
+    #[serde(default)]
+    pub whitelist: Vec<WhitelistDto>,
+    /// Polled when active.
+    #[serde(default = "yes")]
+    pub is_active: bool,
+    /// Health (responses only).
+    #[serde(default)]
+    pub health: Option<MailboxHealthDto>,
+}
+
+fn mark_read() -> String {
+    "mark_read".into()
+}
+fn create_requester() -> String {
+    "create_requester".into()
+}
+fn delete() -> String {
+    "delete".into()
+}
+
+/// A Whitelist entry.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct WhitelistDto {
+    /// Address or domain.
+    pub pattern: String,
+    /// Allow (`true`) or block.
+    pub allow: bool,
+}
+
+/// Mailbox health (FR-EML-010).
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct MailboxHealthDto {
+    /// Last poll.
+    pub last_polled_at: Option<DateTime<Utc>>,
+    /// Last successful poll.
+    pub last_success_at: Option<DateTime<Utc>>,
+    /// Last error.
+    pub last_error: Option<String>,
+    /// When.
+    pub last_error_at: Option<DateTime<Utc>>,
+    /// Failures in a row.
+    pub consecutive_failures: u32,
+}
+
+impl From<crate::domain::Mailbox> for MailboxDto {
+    fn from(m: crate::domain::Mailbox) -> Self {
+        use crate::domain::{AfterImport, AfterReject, Security};
+        let s = m.settings();
+        let h = m.health();
+        let (action, folder) = match &s.after_import {
+            AfterImport::Delete => ("delete", None),
+            AfterImport::Move(f) => ("move", Some(f.clone())),
+            AfterImport::MarkRead => ("mark_read", None),
+        };
+        let (rejected, reject_folder) = match &s.after_reject {
+            AfterReject::Delete => ("delete", None),
+            AfterReject::Move(f) => ("move", Some(f.clone())),
+            AfterReject::Keep => ("keep", None),
+        };
+        Self {
+            id: Some(m.id()),
+            name: s.name.clone(),
+            address: s.address.clone(),
+            provider: s.provider.as_str().to_owned(),
+            auth_mode: s.auth_mode.clone(),
+            imap_host: s.imap.as_ref().map(|i| i.host.clone()),
+            imap_port: s.imap.as_ref().map(|i| i.port),
+            imap_security: s.imap.as_ref().map(|i| match i.security {
+                Security::Tls => "tls".to_owned(),
+                Security::Starttls => "starttls".to_owned(),
+                Security::None => "none".to_owned(),
+            }),
+            imap_username: s.imap.as_ref().map(|i| i.username.clone()),
+            folder: s.folder.clone(),
+            password: None,
+            has_secret: true,
+            company_id: s.tenant_id.as_uuid(),
+            department_id: s.department_id.map(|d| d.as_uuid()),
+            origin_id: s.origin_id,
+            team_id: s.team_id.map(|t| t.as_uuid()),
+            post_import_action: action.into(),
+            move_to_folder: folder.or(reject_folder),
+            unknown_sender_action: if s.create_unknown_requesters {
+                "create_requester"
+            } else {
+                "reject"
+            }
+            .into(),
+            rejected_action: rejected.into(),
+            whitelist: s
+                .whitelist
+                .iter()
+                .map(|w| WhitelistDto {
+                    pattern: w.pattern.clone(),
+                    allow: w.allow,
+                })
+                .collect(),
+            is_active: s.is_active,
+            health: Some(MailboxHealthDto {
+                last_polled_at: h.last_polled_at,
+                last_success_at: h.last_success_at,
+                last_error: h.last_error.clone(),
+                last_error_at: h.last_error_at,
+                consecutive_failures: h.consecutive_failures,
+            }),
+        }
+    }
+}
+
+impl TryFrom<&MailboxDto> for crate::domain::MailboxSettings {
+    type Error = AppError;
+    fn try_from(d: &MailboxDto) -> Result<Self, AppError> {
+        use crate::domain::{
+            AfterImport, AfterReject, ImapSettings, Provider, Security, WhitelistEntry,
+        };
+        let provider = match d.provider.as_str() {
+            "imap" => Provider::Imap,
+            "microsoft" => Provider::Microsoft,
+            "google" => Provider::Google,
+            _ => {
+                return Err(
+                    TicketError::invalid("provider", "must be imap, microsoft or google").into(),
+                );
+            }
+        };
+        let imap = match (
+            &d.imap_host,
+            d.imap_port,
+            d.imap_security.as_deref(),
+            &d.imap_username,
+        ) {
+            (Some(host), Some(port), Some(sec), Some(username)) => Some(ImapSettings {
+                host: host.clone(),
+                port,
+                security: match sec {
+                    "tls" => Security::Tls,
+                    "starttls" => Security::Starttls,
+                    "none" => Security::None,
+                    _ => {
+                        return Err(
+                            TicketError::invalid("imap_security", "must be tls or none").into()
+                        );
+                    }
+                },
+                username: username.clone(),
+            }),
+            _ => None,
+        };
+        let folder = d.move_to_folder.clone().unwrap_or_default();
+        let after_import = match d.post_import_action.as_str() {
+            "delete" => AfterImport::Delete,
+            "move" => AfterImport::Move(folder.clone()),
+            "mark_read" => AfterImport::MarkRead,
+            _ => {
+                return Err(TicketError::invalid(
+                    "post_import_action",
+                    "must be delete, move or mark_read",
+                )
+                .into());
+            }
+        };
+        let after_reject = match d.rejected_action.as_str() {
+            "delete" => AfterReject::Delete,
+            "move" => AfterReject::Move(folder),
+            "keep" => AfterReject::Keep,
+            _ => {
+                return Err(TicketError::invalid(
+                    "rejected_action",
+                    "must be delete, move or keep",
+                )
+                .into());
+            }
+        };
+        let create_unknown_requesters = match d.unknown_sender_action.as_str() {
+            "create_requester" => true,
+            "reject" => false,
+            _ => {
+                return Err(TicketError::invalid(
+                    "unknown_sender_action",
+                    "must be create_requester or reject",
+                )
+                .into());
+            }
+        };
+        Ok(Self {
+            name: d.name.clone(),
+            address: d.address.clone(),
+            provider,
+            auth_mode: d.auth_mode.clone(),
+            imap,
+            folder: d.folder.clone(),
+            tenant_id: TenantId::from_uuid(d.company_id),
+            department_id: d.department_id.map(DepartmentId::from_uuid),
+            origin_id: d.origin_id,
+            team_id: d.team_id.map(TeamId::from_uuid),
+            after_import,
+            create_unknown_requesters,
+            after_reject,
+            whitelist: d
+                .whitelist
+                .iter()
+                .map(|w| WhitelistEntry {
+                    pattern: w.pattern.clone(),
+                    allow: w.allow,
+                })
+                .collect(),
+            is_active: d.is_active,
+        })
+    }
+}
+
+/// A rejected email.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct RejectedEmailDto {
+    /// Sender.
+    pub from: String,
+    /// Subject.
+    pub subject: String,
+    /// Why.
+    pub reason: String,
+    /// Received.
+    pub received_at: DateTime<Utc>,
+}

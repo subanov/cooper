@@ -76,6 +76,12 @@ pub struct TicketEmail {
     pub author_id: Option<AnalystId>,
     /// Sent or received.
     pub occurred_at: DateTime<Utc>,
+    /// The Mailbox an inbound email arrived in.
+    pub mailbox_id: Option<Uuid>,
+    /// The Requester who sent an inbound email.
+    pub requester_id: Option<cooper_kernel::RequesterId>,
+    /// `In-Reply-To`.
+    pub in_reply_to: Option<String>,
 }
 
 /// What a Reply needs besides the ticket.
@@ -170,6 +176,9 @@ impl TicketEmail {
             text_body,
             author_id: draft.author_id,
             occurred_at: now,
+            mailbox_id: None,
+            requester_id: None,
+            in_reply_to: draft.in_reply_to,
         })
     }
 }

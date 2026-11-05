@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT secret_encrypted FROM mailboxes WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "secret_encrypted",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "secret_encrypted"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "5861be79dbcb112f752762e27f6b065d815492a5fc4e2da39a583100eba182c0"
+}

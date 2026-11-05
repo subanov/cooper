@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, tenant_id, ticket_id, direction, from_address, to_addresses, cc_addresses, subject, text_body,\n                    message_id, author_id, occurred_at\n             FROM ticket_emails WHERE ticket_id = $1 ORDER BY occurred_at, id",
+  "query": "SELECT id, tenant_id, ticket_id, direction, from_address, to_addresses, cc_addresses, subject, text_body,\n                    message_id, author_id, occurred_at, mailbox_id, requester_id, in_reply_to\n             FROM ticket_emails WHERE ticket_id = $1 ORDER BY occurred_at, id",
   "describe": {
     "columns": [
       {
@@ -134,6 +134,39 @@
             "name": "occurred_at"
           }
         }
+      },
+      {
+        "ordinal": 12,
+        "name": "mailbox_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_emails",
+            "name": "mailbox_id"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "requester_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_emails",
+            "name": "requester_id"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "in_reply_to",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ticket_emails",
+            "name": "in_reply_to"
+          }
+        }
       }
     ],
     "parameters": {
@@ -153,8 +186,11 @@
       false,
       false,
       true,
-      false
+      false,
+      true,
+      true,
+      true
     ]
   },
-  "hash": "6a12e0ca82853723c5a7dfdfa9ed5138a4423a83ae9c1797974ed460e0b766ac"
+  "hash": "ac2f12e8a1a7f0a8bbf74b008713a5038d445863ed95b6c223955a99765d54f5"
 }

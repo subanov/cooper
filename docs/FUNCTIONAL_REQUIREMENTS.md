@@ -142,7 +142,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-EML-008 | Every outbound send attempt is logged (success or failure, error). Failed sends are retried. | M | P1 |
 | FR-EML-009 | **Email Templates** send automated emails on events (ticket created, assigned, replied, closed), matched by recipient address or domain. | S | P1 |
 | FR-EML-010 | Mailbox health (last poll, last error) is visible to Administrators and raises a notification on failure. | S | P1 |
-| FR-EML-011 | Loop protection: auto-replies, bounces and Cooper's own outbound mail do not create tickets. | M | P1 |
+| FR-EML-011 | Loop protection: auto-replies, bounces and Cooper's own outbound mail do not create tickets. Cooper also skips duplicates by Message-ID, so a message read twice never creates two tickets (ADR-0018). | M | P1 |
 | FR-EML-012 | OAuth tokens and mailbox passwords are encrypted at rest. Deviation from FreeITSM: keys are versioned and rotatable (ADR-0013). | M | P1 |
 
 ## 5. Other Channels (CHN)

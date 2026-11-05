@@ -3,6 +3,7 @@
 mod email;
 mod events;
 mod lookups;
+mod mailbox;
 mod number;
 mod ports;
 mod sla;
@@ -13,17 +14,21 @@ pub use email::{
     sdref_subject,
 };
 pub use events::{
-    ReplyEmail, SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed, TicketCreated,
-    TicketNoteAdded, TicketPriorityChanged, TicketReopened, TicketReplySent, TicketStatusChanged,
-    mentions,
+    MailboxPollFailed, ReplyEmail, SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed,
+    TicketCreated, TicketEmailReceived, TicketNoteAdded, TicketPriorityChanged, TicketReopened,
+    TicketReplySent, TicketStatusChanged, mentions,
 };
 pub use lookups::{Category, CategoryInput, Lookup, LookupFlags, LookupKind, MAX_CATEGORY_DEPTH};
+pub use mailbox::{
+    AfterImport, AfterReject, FAILURES_BEFORE_ALERT, ImapSettings, InboundEmail, Mailbox,
+    MailboxHealth, MailboxSettings, Provider, Security, WhitelistEntry,
+};
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{
     AnalystProfile, AttachmentInfo, ContentRepository, DepartmentInfo, Directory, ListFilter,
-    ReferenceData, RepoError, RequesterContact, SlaRepository, SortField, TicketListQuery,
-    TicketRepository, TicketSettings, TicketSettingsProvider, TicketSummary, TicketView,
-    Visibility,
+    MailboxRepository, ReferenceData, RepoError, RequesterContact, SlaRepository, SortField,
+    TicketListQuery, TicketRepository, TicketSettings, TicketSettingsProvider, TicketSummary,
+    TicketView, Visibility,
 };
 pub use sla::{
     DayHours, RuleTarget, SlaCalendar, SlaCalendarInput, SlaNotificationRule, SlaRuleInput,

@@ -249,6 +249,20 @@ pub trait Directory: Send + Sync {
     ) -> Result<Option<RequesterContact>, RepoError>;
     /// An Analyst's name and Signature.
     async fn analyst_profile(&self, id: AnalystId) -> Result<Option<AnalystProfile>, RepoError>;
+    /// Requesters with this email address in any Company: `(id, Company, active)`.
+    async fn requesters_by_email(
+        &self,
+        email: &str,
+    ) -> Result<Vec<(RequesterId, TenantId, bool)>, RepoError>;
+    /// The Company whose Sender Domains include `domain` (never a Freemail Domain).
+    async fn company_for_domain(&self, domain: &str) -> Result<Option<TenantId>, RepoError>;
+    /// Creates a Requester for an unknown sender (FR-EML-004).
+    async fn create_requester(
+        &self,
+        tenant: TenantId,
+        name: &str,
+        email: &str,
+    ) -> Result<RequesterId, RepoError>;
 }
 
 /// Service desk settings Administrators control.
@@ -348,6 +362,13 @@ pub trait ContentRepository: Send + Sync {
         scope: &TenantScope,
         ticket: TicketId,
     ) -> Result<Vec<super::TicketEmail>, RepoError>;
+    /// The ticket an email with one of these `Message-ID`s belongs to (threading).
+    async fn ticket_for_messages(
+        &self,
+        message_ids: &[String],
+    ) -> Result<Option<TicketId>, RepoError>;
+    /// Whether an inbound email with this `Message-ID` was already imported.
+    async fn inbound_exists(&self, message_id: &str) -> Result<bool, RepoError>;
     /// Every Reply Template.
     async fn templates(&self) -> Result<Vec<super::ReplyTemplate>, RepoError>;
     /// Stores a Reply Template.
@@ -386,4 +407,40 @@ pub struct AnalystProfile {
     pub name: String,
     /// Email Signature.
     pub signature: String,
+}
+
+/// Mailboxes, their credentials and the Rejected Email log.
+#[async_trait]
+pub trait MailboxRepository: Send + Sync {
+    /// Every Mailbox.
+    async fn mailboxes(&self) -> Result<Vec<super::Mailbox>, RepoError>;
+    /// Stores a Mailbox; `secret` replaces the stored password or credentials when given.
+    async fn save(
+        &self,
+        mailbox: &super::Mailbox,
+        secret: Option<&str>,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// The decrypted password or credentials.
+    async fn secret(&self, mailbox: Uuid) -> Result<Option<String>, RepoError>;
+    /// Stores poll health (and an event, e.g. after repeated failures).
+    async fn record_health(
+        &self,
+        mailbox: &super::Mailbox,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+    /// Logs a rejected email.
+    async fn log_rejected(
+        &self,
+        mailbox: Uuid,
+        email: &super::InboundEmail,
+        reason: &str,
+        at: DateTime<Utc>,
+    ) -> Result<(), RepoError>;
+    /// Recent rejected emails of a Mailbox: `(from, subject, reason, received)`.
+    async fn rejected(
+        &self,
+        mailbox: Uuid,
+        limit: i64,
+    ) -> Result<Vec<(String, String, String, DateTime<Utc>)>, RepoError>;
 }

@@ -245,6 +245,41 @@ impl IdentityService {
         Ok(())
     }
 
+    /// Requesters with this email address in the caller's scope (email intake).
+    ///
+    /// # Errors
+    ///
+    /// Forbidden or storage failures.
+    pub async fn requesters_by_email(
+        &self,
+        principal: &Principal,
+        email: &str,
+    ) -> Result<Vec<Requester>, AppError> {
+        require(principal, capabilities::REQUESTERS_READ)?;
+        Ok(self
+            .ports
+            .requesters
+            .find_by_email(principal.scope(), email.trim())
+            .await?)
+    }
+
+    /// The Company whose Sender Domains include `domain`; never a Freemail Domain
+    /// (FR-EML-004).
+    ///
+    /// # Errors
+    ///
+    /// Storage failures.
+    pub async fn company_for_sender_domain(
+        &self,
+        domain: &str,
+    ) -> Result<Option<TenantId>, AppError> {
+        Ok(self
+            .ports
+            .companies
+            .find_by_sender_domain(domain.trim())
+            .await?)
+    }
+
     // ----- Cost Centres ---------------------------------------------------------------
 
     /// Lists Cost Centres in the caller's scope.

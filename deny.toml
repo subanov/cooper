@@ -8,7 +8,10 @@ all-features = true
 # RustSec advisories (this replaces a separate cargo-audit run). Every ignore needs a
 # comment with the reason and an issue link.
 yanked = "deny"
-ignore = []
+ignore = [
+    # pin-utils is unmaintained but stable and tiny; only async-imap uses it. #244
+    { id = "RUSTSEC-2026-0441", reason = "unmaintained, no vulnerability; via async-imap (#244)" },
+]
 
 [licenses]
 # Permissive licences compatible with any licence Cooper may choose. Add to this list

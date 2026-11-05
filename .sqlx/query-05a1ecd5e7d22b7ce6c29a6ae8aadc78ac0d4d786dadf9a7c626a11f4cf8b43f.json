@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, secret_encrypted AS \"secret!\" FROM mailboxes WHERE secret_encrypted NOT LIKE $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "secret!",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailboxes",
+            "name": "secret_encrypted"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "05a1ecd5e7d22b7ce6c29a6ae8aadc78ac0d4d786dadf9a7c626a11f4cf8b43f"
+}

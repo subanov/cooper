@@ -111,6 +111,30 @@ impl RequesterRepository for PgIdentityStore {
         rows.into_iter().map(Requester::try_from).collect()
     }
 
+    async fn find_by_email(
+        &self,
+        scope: &TenantScope,
+        email: &str,
+    ) -> Result<Vec<Requester>, RepoError> {
+        let (all, ids) = scope_params(scope);
+        let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
+        let rows = sqlx::query_as!(
+            RequesterRow,
+            "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,
+                    deactivated_at, created_at, updated_at
+             FROM requesters WHERE lower(email) = lower($1) AND ($2 OR tenant_id = ANY($3))
+             ORDER BY created_at",
+            email,
+            all,
+            &ids
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        rows.into_iter().map(Requester::try_from).collect()
+    }
+
     async fn manager_chain(
         &self,
         scope: &TenantScope,
