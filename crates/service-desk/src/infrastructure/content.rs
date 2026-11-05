@@ -7,7 +7,8 @@ use cooper_platform::tenancy;
 
 use super::{PgServiceDeskStore, db_err, record};
 use crate::domain::{
-    AttachmentInfo, ContentRepository, Direction, ReplyTemplate, RepoError, TicketEmail,
+    AttachmentInfo, ContentRepository, Direction, EmailTemplate, EmailTemplateEvent,
+    EmailTemplateInput, ReplyTemplate, RepoError, TicketEmail,
 };
 
 #[async_trait]
@@ -131,6 +132,81 @@ impl ContentRepository for PgServiceDeskStore {
         .map_err(db_err)?;
         tx.commit().await.map_err(db_err)?;
         Ok(exists)
+    }
+
+    async fn outbound_exists(&self, message_id: &str) -> Result<bool, RepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::All)
+            .await
+            .map_err(db_err)?;
+        let exists = sqlx::query_scalar!(
+            r#"SELECT EXISTS (SELECT 1 FROM ticket_emails WHERE direction = 'outbound' AND message_id = $1) AS "e!""#,
+            message_id
+        )
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        Ok(exists)
+    }
+
+    async fn email_templates(&self) -> Result<Vec<EmailTemplate>, RepoError> {
+        let rows = sqlx::query!(
+            "SELECT id, name, event, match_pattern, subject, body, is_active, created_at, updated_at
+             FROM email_templates ORDER BY event, lower(name)"
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(db_err)?;
+        rows.into_iter()
+            .map(|r| {
+                let event = EmailTemplateEvent::parse(&r.event).ok_or_else(|| {
+                    RepoError::Storage(format!("unknown email template event {}", r.event))
+                })?;
+                Ok(EmailTemplate::restore(
+                    r.id,
+                    EmailTemplateInput {
+                        name: r.name,
+                        event,
+                        match_pattern: r.match_pattern,
+                        subject: r.subject,
+                        body: r.body,
+                        is_active: r.is_active,
+                    },
+                    r.created_at,
+                    r.updated_at,
+                ))
+            })
+            .collect()
+    }
+
+    async fn save_email_template(
+        &self,
+        t: &EmailTemplate,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        let i = t.input();
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        sqlx::query!(
+            "INSERT INTO email_templates (id, name, event, match_pattern, subject, body, is_active, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, event = EXCLUDED.event,
+                 match_pattern = EXCLUDED.match_pattern, subject = EXCLUDED.subject, body = EXCLUDED.body,
+                 is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+            t.id(),
+            i.name,
+            i.event.as_str(),
+            i.match_pattern,
+            i.subject,
+            i.body,
+            i.is_active,
+            t.created_at(),
+            t.updated_at()
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        record(&mut tx, audit, &[]).await?;
+        tx.commit().await.map_err(db_err)
     }
 
     async fn templates(&self) -> Result<Vec<ReplyTemplate>, RepoError> {

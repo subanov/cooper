@@ -25,3 +25,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0016](0016-in-app-notifications.md) | In-app Notifications from Domain Events, delivered idempotently | Accepted |
 | [0017](0017-outbound-email-and-attachments.md) | Outbound email through a queue with a send log; file-system attachments first | Accepted |
 | [0018](0018-email-intake.md) | Email intake: Mailboxes, threading, matching and loop protection | Accepted |
+| [0019](0019-email-templates.md) | Email Templates sent from ticket events, most specific match wins | Accepted |

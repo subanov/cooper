@@ -280,6 +280,9 @@ impl AppState {
                     identity: self.identity.service.clone(),
                 }),
             }),
+            Arc::new(cooper_service_desk::infrastructure::EmailTemplateMailer {
+                desk: self.service_desk.service.clone(),
+            }),
             Arc::new(cooper_notifications::email::ReplyMailer {
                 outbox: cooper_notifications::email::EmailOutbox::new(self.pool.clone()),
             }),

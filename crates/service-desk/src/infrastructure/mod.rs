@@ -5,11 +5,13 @@ mod imap;
 mod mailboxes;
 mod reference;
 mod sla;
+mod template_mailer;
 mod tickets;
 
 pub use imap::{ImapClient, MailboxClient, MailboxPoller, MailboxSession, parse_email};
 pub use mailboxes::{PgMailboxStore, ReencryptMailboxSecrets};
 pub use sla::SlaMonitor;
+pub use template_mailer::EmailTemplateMailer;
 
 use cooper_kernel::{AuditRecord, EventEnvelope};
 use cooper_platform::db::Tx;

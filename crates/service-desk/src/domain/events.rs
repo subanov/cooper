@@ -176,7 +176,7 @@ pub struct ReplyEmail {
     pub id: Uuid,
     /// Company.
     pub tenant_id: Option<TenantId>,
-    /// Always `ticket_reply`.
+    /// `ticket_reply` or `email_template`.
     pub kind: String,
     /// `From`.
     pub from: String,
@@ -200,6 +200,15 @@ ticket_event!(
     /// An Analyst replied to the Requester (FR-TKT-021). The notifications context
     /// queues the email.
     TicketReplySent, "ticket.reply_sent" {
+        /// The email to send.
+        email: ReplyEmail,
+    }
+);
+
+ticket_event!(
+    /// An Email Template was sent for a ticket event (FR-EML-009). The notifications
+    /// context queues the email. Unlike a Reply, it is not an SLA response.
+    TicketAutomaticEmailSent, "ticket.automatic_email_sent" {
         /// The email to send.
         email: ReplyEmail,
     }

@@ -88,7 +88,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Ticket Presence** | Live indicator showing which Analysts are viewing or replying to a ticket (collision detection). | `TicketPresence` | |
 | **CSAT** | Customer satisfaction rating a Requester gives after closure. | `CsatResponse` | survey score |
 | **Reply Template** | A canned reply an Analyst can insert. | `ReplyTemplate` | canned response, macro |
-| **Email Template** | An automated email sent on an event (for example ticket created or closed). Can be matched by address or domain. | `EmailTemplate` | notification template |
+| **Email Template** | An automated email sent on a ticket event (created, assigned, replied, closed). Can be matched by the recipient's address or domain; the most specific one is sent. | `EmailTemplate` | notification template |
 | **Signature** | An Analyst's email signature. | `AnalystSignature` | |
 | **Ticket Checklist** | A checklist attached to a ticket from a Checklist Template. | `TicketChecklist` | |
 | **Workspace** | A ticket used as a personal work area (`is_workspace`). | `Ticket::is_workspace` | |

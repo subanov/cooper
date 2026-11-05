@@ -126,6 +126,8 @@ where
         .routes(routes!(list_templates, create_template))
         .routes(routes!(update_template))
         .routes(routes!(render_template))
+        .routes(routes!(list_email_templates, create_email_template))
+        .routes(routes!(update_email_template))
         .routes(routes!(upload_attachment, list_attachments))
         .routes(routes!(download_attachment))
         .routes(routes!(list_mailboxes, create_mailbox))
@@ -619,6 +621,50 @@ async fn update_template(
     Ok(Json(
         api.service
             .update_reply_template(&p, id, &body.name, &body.body, body.is_active)
+            .await?
+            .into(),
+    ))
+}
+
+/// Lists Email Templates (needs `tickets.configure`).
+#[utoipa::path(get, path = "/email-templates", tag = "Tickets", responses((status = 200, body = Vec<super::dto::EmailTemplateDto>)))]
+async fn list_email_templates(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<Vec<super::dto::EmailTemplateDto>>> {
+    Ok(Json(
+        api.service
+            .email_templates(&p)
+            .await?
+            .into_iter()
+            .map(super::dto::EmailTemplateDto::from)
+            .collect(),
+    ))
+}
+
+/// Creates an Email Template (needs `tickets.configure`).
+#[utoipa::path(post, path = "/email-templates", tag = "Tickets", request_body = super::dto::EmailTemplateDto, responses((status = 201, body = super::dto::EmailTemplateDto)))]
+async fn create_email_template(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<super::dto::EmailTemplateDto>,
+) -> ApiResult<Response> {
+    Ok(created(super::dto::EmailTemplateDto::from(
+        api.service.create_email_template(&p, body.into()).await?,
+    )))
+}
+
+/// Replaces an Email Template (needs `tickets.configure`).
+#[utoipa::path(put, path = "/email-templates/{id}", tag = "Tickets", params(("id" = Uuid, Path)), request_body = super::dto::EmailTemplateDto, responses((status = 200, body = super::dto::EmailTemplateDto)))]
+async fn update_email_template(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<super::dto::EmailTemplateDto>,
+) -> ApiResult<Json<super::dto::EmailTemplateDto>> {
+    Ok(Json(
+        api.service
+            .update_email_template(&p, id, body.into())
             .await?
             .into(),
     ))

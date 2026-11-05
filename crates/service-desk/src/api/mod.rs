@@ -45,6 +45,7 @@ pub const ROUTE_PREFIXES: &[&str] = &[
     "/sla-calendars",
     "/sla-notification-rules",
     "/reply-templates",
+    "/email-templates",
     "/mailboxes",
 ];
 
