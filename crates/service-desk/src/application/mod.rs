@@ -3,6 +3,7 @@
 mod content;
 mod email_templates;
 mod intake;
+mod portal;
 mod reference;
 mod sla;
 mod tickets;
@@ -19,6 +20,7 @@ use crate::domain::{
 
 pub use content::{ReplyInput, StoredFile};
 pub use intake::IntakeOutcome;
+pub use portal::PortalTicketInput;
 pub use reference::LookupInput;
 pub use tickets::{
     CreateTicket, ListRequest, TicketDetail, TicketView as View, TimelineEntry, ViewName,

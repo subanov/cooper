@@ -305,6 +305,16 @@ impl ServiceDesk {
         if input.team_id.is_some() || input.analyst_id.is_some() {
             require(principal, capabilities::ASSIGN)?;
         }
+        self.open_ticket(principal, input).await
+    }
+
+    /// Opens a ticket for `principal` without checking Capabilities: the callers do
+    /// (staff through [`ServiceDesk::create_ticket`], Requesters through the Portal).
+    pub(super) async fn open_ticket(
+        &self,
+        principal: &Principal,
+        input: CreateTicket,
+    ) -> Result<Ticket, AppError> {
         let tenant = input.tenant_id;
         let company_code = self
             .ports
