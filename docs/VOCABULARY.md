@@ -58,7 +58,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Ticket** | The core record of a request for help or report of a fault. The Ticket Type classifies it (incident, service request, …). | `Ticket`, `tickets` | case, issue, call, job |
-| **Ticket Number** | The human-readable, unique reference of a ticket, built from a configurable format (prefixes, `{COMPANY}` token, sequence). Old numbers remain valid after renumbering (Ticket Number History). | `TicketNumber` | ref, ID (ID is the internal UUID) |
+| **Ticket Number** | The human-readable, unique reference of a ticket, built from the `tickets.number_format` setting (tokens `{COMPANY}`, `{TYPE}`, `{YEAR}`, `{SEQ:n}`; one sequence per Company). Old numbers remain valid after renumbering (Ticket Number History). | `NumberFormat`, `tickets.ticket_number` | ref, ID (ID is the internal UUID) |
 | **SDREF** | The tag `[SDREF:<ticket number>]` placed in the subject of outbound emails. When a reply arrives, Cooper uses this tag to thread it onto the existing ticket. | `SdRef` | |
 | **Ticket Status** | Lifecycle state of a ticket. Flags: `is_closed`, `pauses_sla`, `is_default`. Seed: **Open** (default), **In Progress**, **On Hold** (pauses SLA), **Awaiting Response** (pauses SLA), **Closed** (closed). | `TicketStatus`, `ticket_statuses` | state, stage |
 | **Ticket Priority** | Urgency of a ticket. Carries the SLA targets: response minutes, resolution minutes and SLA Calendar. Seed: **Low**, **Normal** (default), **High**, **Critical**, **Urgent**. | `TicketPriority`, `ticket_priorities` | severity (Severity is used for monitoring events) |
@@ -82,6 +82,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **First Time Fix** | Flag: the ticket was resolved on first contact. | `Ticket::first_time_fix` | FCR |
 | **Training Provided** | Flag: IT training was given as part of the ticket. | `Ticket::it_training_provided` | |
 | **Ticket Field** | An administrator-defined custom field on tickets. Can be required on create or on close, and can be asked of the Requester. | `TicketField` | custom attribute |
+| **View** | A built-in ticket list: My tickets (`mine`), My team's tickets (`queue`), Unassigned, All open (`open`), Snoozed, Recently closed (7 days), Deleted (Administrators). | `ViewName` | filter preset |
 | **Ticket Presence** | Live indicator showing which Analysts are viewing or replying to a ticket (collision detection). | `TicketPresence` | |
 | **CSAT** | Customer satisfaction rating a Requester gives after closure. | `CsatResponse` | survey score |
 | **Reply Template** | A canned reply an Analyst can insert. | `ReplyTemplate` | canned response, macro |

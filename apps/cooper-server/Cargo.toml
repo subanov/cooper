@@ -18,6 +18,7 @@ cooper-http.workspace = true
 cooper-identity.workspace = true
 cooper-kernel.workspace = true
 cooper-platform.workspace = true
+cooper-service-desk.workspace = true
 http.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true

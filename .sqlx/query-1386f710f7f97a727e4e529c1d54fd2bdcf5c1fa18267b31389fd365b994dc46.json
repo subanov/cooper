@@ -1,0 +1,102 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, ticket_id, author_id, body, is_public, created_at FROM ticket_notes\n             WHERE ticket_id = $1 AND ($2 OR tenant_id = ANY($3)) ORDER BY created_at, id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_notes",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_notes",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "ticket_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_notes",
+            "name": "ticket_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "author_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_notes",
+            "name": "author_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "body",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ticket_notes",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "is_public",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "ticket_notes",
+            "name": "is_public"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ticket_notes",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1386f710f7f97a727e4e529c1d54fd2bdcf5c1fa18267b31389fd365b994dc46"
+}

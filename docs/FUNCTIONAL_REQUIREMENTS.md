@@ -87,7 +87,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
 | FR-TKT-001 | An Analyst can create a **Ticket** with subject, description, Requester, Department, Ticket Type, Category, Priority, Origin, Queue (Team), Assignee and Sensitivity. | M | P1 |
-| FR-TKT-002 | Each ticket gets a unique **Ticket Number** from a configurable format (prefix per department or type, `{COMPANY}` token, zero-padded sequence). | M | P1 |
+| FR-TKT-002 | Each ticket gets a unique **Ticket Number** from a configurable format (prefix per department or type, `{COMPANY}` token, zero-padded sequence). Cooper tokens: `{COMPANY}`, `{TYPE}`, `{YEAR}`, `{SEQ:n}`, one sequence per Company; a per-Department prefix is not supported yet (ADR-0014). | M | P1 |
 | FR-TKT-003 | When the number format changes or a ticket is renumbered, previous numbers are kept in Ticket Number History and still resolve to the ticket. | S | P2 |
 | FR-TKT-004 | **Ticket Statuses** are configurable, each with `is_closed`, `pauses_sla` and `is_default` flags. Seeded with Open (default), In Progress, On Hold (pauses SLA), Awaiting Response (pauses SLA), Closed. Exactly one status is the default. Deviation from FreeITSM: the seed always sets `pauses_sla` (FreeITSM's verification seeder omits it, so those installs never pause the SLA). | M | P1 |
 | FR-TKT-005 | **Ticket Priorities** are configurable, each with SLA response minutes, resolution minutes and SLA Calendar. Seeded with Low, Normal (default), High, Critical, Urgent. | M | P1 |

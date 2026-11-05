@@ -24,7 +24,9 @@ pub use actor::{Actor, ActorKind, ParseActorError};
 pub use audit::{AuditAction, AuditChange, AuditRecord};
 pub use clock::{Clock, FixedClock, SystemClock};
 pub use event::{DomainEvent, EventEnvelope, EventId};
-pub use id::{AnalystId, ApiKeyId, DepartmentId, ParseIdError, RequesterId, TeamId, TenantId};
+pub use id::{
+    AnalystId, ApiKeyId, DepartmentId, ParseIdError, RequesterId, TeamId, TenantId, TicketId,
+};
 pub use module::{Module, ParseModuleError};
 pub use pagination::{Cursor, CursorError, Limit, LimitError, Page};
 pub use principal::{Capability, Forbidden, ParseCapabilityError, Principal};

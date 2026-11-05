@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tickets SET subject = $3, description = $4, requester_id = $5, department_id = $6, type_id = $7,\n                    category_id = $8, priority_id = $9, status_id = $10, origin_id = $11, assigned_team_id = $12,\n                    assigned_analyst_id = $13, sensitivity = $14, first_time_fix = $15, training_provided = $16,\n                    resolution_code_id = $17, closure_category_id = $18, closed_at = $19, snoozed_until = $20,\n                    snooze_reason = $21, deleted_at = $22, updated_at = $23\n             WHERE id = $1 AND tenant_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Bool",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "24b03397e1d68955853eb19723a670e8481e978a3b1b3e8cfbcc28bb487ff5ed"
+}

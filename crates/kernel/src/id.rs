@@ -130,6 +130,11 @@ define_id!(
     DepartmentId
 );
 
+define_id!(
+    /// Identifies a Ticket. Shared because other contexts link to tickets.
+    TicketId
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;
