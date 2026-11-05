@@ -333,7 +333,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Self-Service Portal** | The web interface for Requesters: raise and track tickets, fill in Forms, read customer and public Articles, see Service Status. | `portal` | customer portal, help center (UI may say "Help Centre") |
-| **Portal Catalogue** | The Categories and Forms marked `is_portal_visible`. | — | service catalog |
+| **Portal Catalogue** | The Categories and Forms a Requester can choose from to raise a ticket: active and marked `portal_visible`, with every parent Category also active and visible. | `portal_catalogue` | service catalog |
 | **Portal Account** | The Portal sign-in of one email address: a password that acts for every active Requester with that address, in any Company. Created when the person first sets a password through an emailed link (invitation, reset or Self-Registration). | `PortalAccount`, `portal_accounts` | user account, login |
 | **Portal Invitation** | An email an Analyst sends a Requester with a link to set a Portal password (valid 7 days). | `PortalLinkPurpose::Invitation` | |
 | **Self-Registration** | A person whose email belongs to a Company's Sender Domain asks for a Portal Account; the emailed link confirms the address, sets the password and creates the Requester. Off by default (`portal.self_registration`). | `PortalLinkPurpose::Registration` | sign-up |

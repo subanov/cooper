@@ -2,6 +2,9 @@
 
 mod dto;
 mod handlers;
+mod portal;
+
+pub use portal::{CatalogueEntryDto, PortalTicketDto, PortalTicketRequest};
 
 use axum::extract::FromRef;
 use axum::response::{IntoResponse, Response};
@@ -30,7 +33,7 @@ where
     S: Clone + Send + Sync + 'static,
     ServiceDeskApi: FromRef<S>,
 {
-    handlers::router()
+    handlers::router().merge(portal::router())
 }
 
 /// `/api/v1` path prefixes owned by the Tickets Module (FR-GEN-005).
