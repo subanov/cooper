@@ -1206,9 +1206,11 @@ impl TryFrom<&MailboxDto> for crate::domain::MailboxSettings {
             "move" => AfterReject::Move(folder),
             "keep" => AfterReject::Keep,
             _ => {
-                return Err(
-                    TicketError::invalid("rejected_action", "must be delete, move or keep").into(),
-                );
+                return Err(TicketError::invalid(
+                    "rejected_action",
+                    "must be delete, move or keep",
+                )
+                .into());
             }
         };
         let create_unknown_requesters = match d.unknown_sender_action.as_str() {
