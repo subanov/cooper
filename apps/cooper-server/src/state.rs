@@ -184,6 +184,7 @@ impl AppState {
         let desk = ServiceDesk::new(ServiceDeskPorts {
             tickets: Arc::new(PgServiceDeskStore::new(pool.clone())),
             reference: Arc::new(PgServiceDeskStore::new(pool.clone())),
+            sla: Arc::new(PgServiceDeskStore::new(pool.clone())),
             directory: Arc::new(IdentityDirectory {
                 identity: service.clone(),
             }),

@@ -354,6 +354,9 @@ impl ServiceDesk {
             settings.assignee_must_be_team_member,
             now,
         )?;
+        self.start_sla(&mut ticket).await?;
+        self.follow_status(&mut ticket, status.flags().pauses_sla, now)
+            .await?;
         let actor = principal.actor();
         let mut events = vec![event(
             &TicketCreated {
@@ -463,6 +466,7 @@ impl ServiceDesk {
         let priority_changed = ticket.edit(details, now)?;
         let mut events = Vec::new();
         if priority_changed {
+            self.start_sla(&mut ticket).await?;
             events.push(event(
                 &TicketPriorityChanged {
                     ticket_id: id,
@@ -522,6 +526,9 @@ impl ServiceDesk {
         let settings = self.ports.settings.settings().await;
         let before = ticket.clone();
         let now = self.ports.clock.now();
+        if !status.flags().pauses_sla {
+            self.follow_status(&mut ticket, false, now).await?;
+        }
         let transition = ticket.change_status(
             &status,
             resolution_code_id,
@@ -529,6 +536,9 @@ impl ServiceDesk {
             settings.require_closure_category,
             now,
         )?;
+        if status.flags().pauses_sla {
+            self.follow_status(&mut ticket, true, now).await?;
+        }
         let (actor, tenant) = (principal.actor(), ticket.tenant_id());
         let events = match transition {
             StatusTransition::Unchanged => Vec::new(),
@@ -683,6 +693,14 @@ impl ServiceDesk {
         let note = Note::write(&ticket, acting_analyst(principal), body, is_public, now)?;
         let audit = audit_record(None, &note, AuditAction::Created, principal.actor(), now);
         self.ports.tickets.add_note(&note, &audit).await?;
+        // A Note visible to the Requester is a response (FR-SLA-004).
+        if is_public && acting_analyst(principal).is_some() {
+            let before = ticket.clone();
+            let mut ticket = ticket;
+            if ticket.record_response(now) {
+                self.save(principal, &before, &ticket, &[]).await?;
+            }
+        }
         Ok(note)
     }
 

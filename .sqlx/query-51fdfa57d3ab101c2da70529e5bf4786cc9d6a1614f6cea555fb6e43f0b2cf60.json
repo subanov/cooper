@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM sla_holidays WHERE calendar_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "51fdfa57d3ab101c2da70529e5bf4786cc9d6a1614f6cea555fb6e43f0b2cf60"
+}

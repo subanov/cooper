@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO sla_notification_rules (id, name, trigger, target, notify_assignee, notify_team, analyst_ids, is_active, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, trigger = EXCLUDED.trigger, target = EXCLUDED.target,\n                 notify_assignee = EXCLUDED.notify_assignee, notify_team = EXCLUDED.notify_team,\n                 analyst_ids = EXCLUDED.analyst_ids, is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "UuidArray",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "65be12ad2ce567d3ba56bd90676005f8cca609464cd820cd5ae4a54da467aa10"
+}

@@ -10,7 +10,7 @@ use cooper_kernel::{
 use serde_json::{Value, json};
 use uuid::Uuid;
 
-use super::{Audited, Lookup, TicketError};
+use super::{Audited, Lookup, TargetState, TicketError, WorkingTime};
 
 /// Fields an Analyst sets when creating or editing a ticket.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,6 +71,40 @@ pub struct NewTicket {
     pub created_by: Actor,
 }
 
+/// SLA targets taken from the ticket's Priority (FR-SLA-001).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct SlaTargets {
+    /// Calendar the targets count against (`None`: 24×7).
+    pub calendar_id: Option<Uuid>,
+    /// Response target in working minutes.
+    pub response_minutes: Option<u32>,
+    /// Resolution target in working minutes.
+    pub resolution_minutes: Option<u32>,
+}
+
+/// The SLA clock of a ticket. Due times are always `created_at + target + paused
+/// working time`, so pausing and Priority changes only recompute them (FR-SLA-001,
+/// FR-SLA-003).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct TicketSla {
+    /// Targets in force.
+    pub targets: SlaTargets,
+    /// Response due.
+    pub response_due_at: Option<DateTime<Utc>>,
+    /// Resolution due.
+    pub resolution_due_at: Option<DateTime<Utc>>,
+    /// When the response target reaches its warning point.
+    pub response_warning_at: Option<DateTime<Utc>>,
+    /// When the resolution target reaches its warning point.
+    pub resolution_warning_at: Option<DateTime<Utc>>,
+    /// First response (FR-SLA-004).
+    pub responded_at: Option<DateTime<Utc>>,
+    /// When the current pause started.
+    pub paused_at: Option<DateTime<Utc>>,
+    /// Working minutes spent paused so far (excluding the current pause).
+    pub paused_minutes: i64,
+}
+
 /// A request for help or report of a fault.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ticket {
@@ -87,6 +121,7 @@ pub struct Ticket {
     snoozed_until: Option<DateTime<Utc>>,
     snooze_reason: Option<String>,
     deleted_at: Option<DateTime<Utc>>,
+    sla: TicketSla,
     created_by: Actor,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
@@ -126,6 +161,7 @@ impl Ticket {
             snoozed_until: None,
             snooze_reason: None,
             deleted_at: None,
+            sla: TicketSla::default(),
             created_by: new.created_by,
             created_at: now,
             updated_at: now,
@@ -149,11 +185,13 @@ impl Ticket {
         snoozed_until: Option<DateTime<Utc>>,
         snooze_reason: Option<String>,
         deleted_at: Option<DateTime<Utc>>,
+        sla: TicketSla,
         created_by: Actor,
         created_at: DateTime<Utc>,
         updated_at: DateTime<Utc>,
     ) -> Self {
         Self {
+            sla,
             id,
             tenant_id,
             number,
@@ -357,6 +395,90 @@ impl Ticket {
         Ok(())
     }
 
+    /// Sets the SLA targets (from the Priority) and recomputes due and warning times.
+    /// `warning_percent` is the share of a target after which it is in warning.
+    pub fn apply_sla(&mut self, targets: SlaTargets, time: WorkingTime<'_>, warning_percent: u8) {
+        self.sla.targets = targets;
+        self.recompute_sla(time, warning_percent);
+    }
+
+    fn recompute_sla(&mut self, time: WorkingTime<'_>, warning_percent: u8) {
+        let paused = self.sla.paused_minutes;
+        let due = |target: Option<u32>| {
+            target.and_then(|m| time.add(self.created_at, i64::from(m) + paused))
+        };
+        let warn = |target: Option<u32>| {
+            target.and_then(|m| {
+                time.add(
+                    self.created_at,
+                    i64::from(m) * i64::from(warning_percent.min(100)) / 100 + paused,
+                )
+            })
+        };
+        let t = self.sla.targets;
+        self.sla.response_due_at = due(t.response_minutes);
+        self.sla.resolution_due_at = due(t.resolution_minutes);
+        self.sla.response_warning_at = warn(t.response_minutes);
+        self.sla.resolution_warning_at = warn(t.resolution_minutes);
+    }
+
+    /// Stops the SLA clock (the ticket entered a status that pauses it).
+    pub fn pause_sla(&mut self, now: DateTime<Utc>) {
+        if self.sla.paused_at.is_none() && self.closed_at.is_none() {
+            self.sla.paused_at = Some(now);
+        }
+    }
+
+    /// Restarts the SLA clock; due times move by the working time spent paused.
+    pub fn resume_sla(&mut self, time: WorkingTime<'_>, warning_percent: u8, now: DateTime<Utc>) {
+        if let Some(since) = self.sla.paused_at.take() {
+            self.sla.paused_minutes += time.between(since, now);
+            self.recompute_sla(time, warning_percent);
+        }
+    }
+
+    /// Records the first response (an Analyst reply or a Note visible to the Requester).
+    /// Returns whether this was the first one.
+    pub fn record_response(&mut self, now: DateTime<Utc>) -> bool {
+        if self.sla.responded_at.is_some() {
+            return false;
+        }
+        self.sla.responded_at = Some(now);
+        true
+    }
+
+    /// The state of the response and resolution targets at `now` (FR-SLA-007).
+    #[must_use]
+    pub fn sla_state(&self, now: DateTime<Utc>) -> (TargetState, TargetState) {
+        let state = |due: Option<DateTime<Utc>>,
+                     warning: Option<DateTime<Utc>>,
+                     done: Option<DateTime<Utc>>| match (due, done) {
+            (None, _) => TargetState::None,
+            (Some(due), Some(at)) => {
+                if at <= due {
+                    TargetState::Met
+                } else {
+                    TargetState::MetLate
+                }
+            }
+            (Some(_), None) if self.sla.paused_at.is_some() => TargetState::Paused,
+            (Some(due), None) if now >= due => TargetState::Breached,
+            (Some(_), None) if warning.is_some_and(|w| now >= w) => TargetState::Warning,
+            (Some(_), None) => TargetState::OnTrack,
+        };
+        let s = &self.sla;
+        (
+            state(s.response_due_at, s.response_warning_at, s.responded_at),
+            state(s.resolution_due_at, s.resolution_warning_at, self.closed_at),
+        )
+    }
+
+    /// The SLA clock.
+    #[must_use]
+    pub const fn sla(&self) -> &TicketSla {
+        &self.sla
+    }
+
     /// Whether the ticket is snoozed at `now`.
     #[must_use]
     pub fn is_snoozed(&self, now: DateTime<Utc>) -> bool {
@@ -477,6 +599,10 @@ impl Audited for Ticket {
             ("closed_at", json!(self.closed_at)),
             ("snoozed_until", json!(self.snoozed_until)),
             ("deleted_at", json!(self.deleted_at)),
+            ("responded_at", json!(self.sla.responded_at)),
+            ("response_due_at", json!(self.sla.response_due_at)),
+            ("resolution_due_at", json!(self.sla.resolution_due_at)),
+            ("sla_paused_at", json!(self.sla.paused_at)),
         ]
     }
 }
@@ -889,6 +1015,65 @@ mod tests {
         )
         .unwrap();
         assert_eq!(t.snoozed_until(), None, "closing ends the snooze");
+    }
+
+    #[test]
+    fn sla_due_times_follow_priority_and_pauses() {
+        let mut t = ticket();
+        let targets = SlaTargets {
+            calendar_id: None,
+            response_minutes: Some(60),
+            resolution_minutes: Some(240),
+        };
+        t.apply_sla(targets, WorkingTime(None), 80);
+        assert_eq!(t.sla().response_due_at, Some(now() + Duration::minutes(60)));
+        assert_eq!(
+            t.sla().response_warning_at,
+            Some(now() + Duration::minutes(48))
+        );
+        assert_eq!(t.sla_state(now()).0, TargetState::OnTrack);
+        assert_eq!(
+            t.sla_state(now() + Duration::minutes(50)).0,
+            TargetState::Warning
+        );
+        assert_eq!(
+            t.sla_state(now() + Duration::minutes(61)).0,
+            TargetState::Breached
+        );
+
+        // Paused for 30 minutes: both due times move by 30 minutes.
+        t.pause_sla(now() + Duration::minutes(10));
+        assert_eq!(
+            t.sla_state(now() + Duration::minutes(100)).1,
+            TargetState::Paused
+        );
+        t.resume_sla(WorkingTime(None), 80, now() + Duration::minutes(40));
+        assert_eq!(
+            t.sla().resolution_due_at,
+            Some(now() + Duration::minutes(270))
+        );
+
+        // A response satisfies the response target once.
+        assert!(t.record_response(now() + Duration::minutes(45)));
+        assert!(!t.record_response(now() + Duration::minutes(46)));
+        assert_eq!(
+            t.sla_state(now() + Duration::minutes(200)).0,
+            TargetState::Met
+        );
+
+        // A Priority change recomputes from creation, keeping paused time.
+        t.apply_sla(
+            SlaTargets {
+                resolution_minutes: Some(60),
+                ..targets
+            },
+            WorkingTime(None),
+            80,
+        );
+        assert_eq!(
+            t.sla().resolution_due_at,
+            Some(now() + Duration::minutes(90))
+        );
     }
 
     #[test]

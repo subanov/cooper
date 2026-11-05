@@ -84,6 +84,9 @@ pub struct LookupFlags {
     pub response_minutes: Option<u32>,
     /// Priority: SLA resolution target in working minutes.
     pub resolution_minutes: Option<u32>,
+    /// Priority: SLA Calendar its targets count against (`None`: the default calendar,
+    /// or 24×7 when there is none).
+    pub sla_calendar_id: Option<Uuid>,
     /// Type: the `{TYPE}` token of Ticket Numbers.
     pub number_prefix: Option<String>,
 }
@@ -120,6 +123,7 @@ fn normalise(kind: LookupKind, mut flags: LookupFlags) -> Result<LookupFlags, Ti
     if !priority {
         flags.response_minutes = None;
         flags.resolution_minutes = None;
+        flags.sla_calendar_id = None;
     }
     if kind != LookupKind::Type {
         flags.number_prefix = None;

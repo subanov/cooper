@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM sla_calendar_hours WHERE calendar_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "be34a4a2f74241c1e57cf75f71ab98cbe699e6623a0558e408720ee0f04d4f62"
+}

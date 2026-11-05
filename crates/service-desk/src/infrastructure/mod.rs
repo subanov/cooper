@@ -1,7 +1,10 @@
 //! PostgreSQL storage of the service desk.
 
 mod reference;
+mod sla;
 mod tickets;
+
+pub use sla::SlaMonitor;
 
 use cooper_kernel::{AuditRecord, EventEnvelope};
 use cooper_platform::db::Tx;

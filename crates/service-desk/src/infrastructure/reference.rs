@@ -20,6 +20,7 @@ struct LookupRow {
     response_minutes: Option<i32>,
     resolution_minutes: Option<i32>,
     number_prefix: Option<String>,
+    sla_calendar_id: Option<Uuid>,
     sort_order: i32,
     is_active: bool,
     created_at: DateTime<Utc>,
@@ -46,24 +47,25 @@ impl ReferenceData for PgServiceDeskStore {
         let rows = sqlx::query_as!(
             LookupRow,
             r#"SELECT id AS "id!", key, name AS "name!", is_closed AS "is_closed!", pauses_sla AS "pauses_sla!",
-                      is_default AS "is_default!", response_minutes, resolution_minutes, number_prefix,
+                      is_default AS "is_default!", response_minutes, resolution_minutes, number_prefix, sla_calendar_id,
                       sort_order AS "sort_order!", is_active AS "is_active!", created_at AS "created_at!", updated_at AS "updated_at!"
                FROM (
                    SELECT id, key, name, is_closed, pauses_sla, is_default, NULL::int AS response_minutes,
-                          NULL::int AS resolution_minutes, NULL::text AS number_prefix, sort_order, is_active, created_at, updated_at
+                          NULL::int AS resolution_minutes, NULL::text AS number_prefix, NULL::uuid AS sla_calendar_id,
+                          sort_order, is_active, created_at, updated_at
                    FROM ticket_statuses WHERE $1 = 'status'
                    UNION ALL
                    SELECT id, key, name, false, false, is_default, response_minutes, resolution_minutes, NULL,
-                          sort_order, is_active, created_at, updated_at
+                          sla_calendar_id, sort_order, is_active, created_at, updated_at
                    FROM ticket_priorities WHERE $1 = 'priority'
                    UNION ALL
-                   SELECT id, key, name, false, false, false, NULL, NULL, number_prefix, sort_order, is_active, created_at, updated_at
+                   SELECT id, key, name, false, false, false, NULL, NULL, number_prefix, NULL, sort_order, is_active, created_at, updated_at
                    FROM ticket_types WHERE $1 = 'type'
                    UNION ALL
-                   SELECT id, key, name, false, false, false, NULL, NULL, NULL, sort_order, is_active, created_at, updated_at
+                   SELECT id, key, name, false, false, false, NULL, NULL, NULL, NULL, sort_order, is_active, created_at, updated_at
                    FROM ticket_origins WHERE $1 = 'origin'
                    UNION ALL
-                   SELECT id, key, name, false, false, false, NULL, NULL, NULL, sort_order, is_active, created_at, updated_at
+                   SELECT id, key, name, false, false, false, NULL, NULL, NULL, NULL, sort_order, is_active, created_at, updated_at
                    FROM resolution_codes WHERE $1 = 'resolution_code'
                ) l
                ORDER BY sort_order, lower(name)"#,
@@ -89,6 +91,7 @@ impl ReferenceData for PgServiceDeskStore {
                             .resolution_minutes
                             .and_then(|m| u32::try_from(m).ok()),
                         number_prefix: r.number_prefix,
+                        sla_calendar_id: r.sla_calendar_id,
                     },
                     r.sort_order,
                     r.is_active,
@@ -128,13 +131,14 @@ impl ReferenceData for PgServiceDeskStore {
                         .execute(&mut *tx).await.map_err(db_err)?;
                 }
                 sqlx::query!(
-                    "INSERT INTO ticket_priorities (id, key, name, response_minutes, resolution_minutes, is_default, sort_order, is_active, created_at, updated_at)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                    "INSERT INTO ticket_priorities (id, key, name, response_minutes, resolution_minutes, is_default, sort_order, is_active, created_at, updated_at, sla_calendar_id)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, response_minutes = EXCLUDED.response_minutes,
                          resolution_minutes = EXCLUDED.resolution_minutes, is_default = EXCLUDED.is_default,
-                         sort_order = EXCLUDED.sort_order, is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+                         sort_order = EXCLUDED.sort_order, is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at,
+                         sla_calendar_id = EXCLUDED.sla_calendar_id",
                     l.id(), l.key(), l.name(), minutes(f.response_minutes), minutes(f.resolution_minutes), f.is_default,
-                    l.sort_order(), l.is_active(), l.created_at(), l.updated_at()
+                    l.sort_order(), l.is_active(), l.created_at(), l.updated_at(), f.sla_calendar_id
                 ).execute(&mut *tx).await.map_err(db_err)?;
             }
             LookupKind::Type => {

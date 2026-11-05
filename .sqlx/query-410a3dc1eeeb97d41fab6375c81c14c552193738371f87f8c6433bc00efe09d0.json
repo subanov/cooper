@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO sla_calendar_hours (calendar_id, weekday, start_time, end_time)\n             SELECT $1, d, s, e FROM UNNEST($2::smallint[], $3::time[], $4::time[]) AS h(d, s, e)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int2Array",
+        "TimeArray",
+        "TimeArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "410a3dc1eeeb97d41fab6375c81c14c552193738371f87f8c6433bc00efe09d0"
+}
