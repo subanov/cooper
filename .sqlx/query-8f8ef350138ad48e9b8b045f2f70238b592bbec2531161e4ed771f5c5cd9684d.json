@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE outbound_emails SET status = 'sent', attempts = $2, sent_at = $3, last_error = NULL WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8f8ef350138ad48e9b8b045f2f70238b592bbec2531161e4ed771f5c5cd9684d"
+}

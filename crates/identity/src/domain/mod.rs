@@ -26,9 +26,9 @@ pub use cost_centre::{CostCentre, CostCentreId};
 pub use department::Department;
 pub use repository::{
     AnalystRepository, ApiKeyRepository, Authorization, AuthorizationRepository, CompanyRepository,
-    CostCentreRepository, DepartmentRepository, ListQuery, PasswordHasher, RepoError,
-    RequesterRepository, Revocations, RoleRepository, SessionRepository, SetupRepository,
-    TeamRepository, TokenGenerator,
+    CostCentreRepository, DepartmentRepository, ListQuery, PasswordHasher, PasswordResetRepository,
+    RepoError, RequesterRepository, ResetMailer, Revocations, RoleRepository, SessionRepository,
+    SetupRepository, TeamRepository, TokenGenerator,
 };
 pub use requester::{NewRequester, Requester};
 pub use role::{Role, RoleId};

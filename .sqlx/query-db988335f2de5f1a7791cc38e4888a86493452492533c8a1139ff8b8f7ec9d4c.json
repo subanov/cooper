@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO attachments (id, tenant_id, owner_type, owner_id, file_name, media_type, size_bytes, sha256,\n                                  extraction_status, created_by_kind, created_by_id, created_at)\n         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Text",
+        "Text",
+        "Int8",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "db988335f2de5f1a7791cc38e4888a86493452492533c8a1139ff8b8f7ec9d4c"
+}

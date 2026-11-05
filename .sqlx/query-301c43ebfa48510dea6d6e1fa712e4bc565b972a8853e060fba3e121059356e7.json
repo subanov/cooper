@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,\n                      a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,\n                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,\n                      ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS \"roles!\",\n                      EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS \"all_companies!\",\n                      ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS \"companies!: Vec<Uuid>\"\n               FROM analysts a WHERE a.id = $1",
+  "query": "SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,\n                      a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,\n                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step, a.signature,\n                      ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS \"roles!\",\n                      EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS \"all_companies!\",\n                      ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS \"companies!: Vec<Uuid>\"\n               FROM analysts a WHERE a.id = $1",
   "describe": {
     "columns": [
       {
@@ -159,18 +159,29 @@
       },
       {
         "ordinal": 14,
+        "name": "signature",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "analysts",
+            "name": "signature"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
         "name": "roles!",
         "type_info": "UuidArray",
         "origin": "Expression"
       },
       {
-        "ordinal": 15,
+        "ordinal": 16,
         "name": "all_companies!",
         "type_info": "Bool",
         "origin": "Expression"
       },
       {
-        "ordinal": 16,
+        "ordinal": 17,
         "name": "companies!: Vec<Uuid>",
         "type_info": "UuidArray",
         "origin": "Expression"
@@ -196,10 +207,11 @@
       true,
       true,
       true,
+      false,
       null,
       null,
       null
     ]
   },
-  "hash": "5bc57875c00926564f1f71861bd2d398a5304ce095e8c6139973ea7e9c5b6536"
+  "hash": "301c43ebfa48510dea6d6e1fa712e4bc565b972a8853e060fba3e121059356e7"
 }

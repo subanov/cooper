@@ -90,6 +90,44 @@ impl Client {
         }
     }
 
+    /// Sends a raw body with a content type (for multipart uploads).
+    pub async fn send_raw(
+        &self,
+        method: Method,
+        uri: &str,
+        content_type: &str,
+        body: Vec<u8>,
+    ) -> (StatusCode, http::HeaderMap, Vec<u8>) {
+        let mut req = Request::builder()
+            .method(method)
+            .uri(uri)
+            .header(header::CONTENT_TYPE, content_type);
+        if let Some(cookie) = &self.cookie {
+            req = req.header(header::COOKIE, cookie);
+        }
+        if let Some(csrf) = &self.csrf {
+            req = req.header("x-csrf-token", csrf);
+        }
+        let response = self
+            .app
+            .clone()
+            .oneshot(req.body(Body::from(body)).unwrap())
+            .await
+            .unwrap();
+        let (status, headers) = (response.status(), response.headers().clone());
+        (
+            status,
+            headers,
+            response
+                .into_body()
+                .collect()
+                .await
+                .unwrap()
+                .to_bytes()
+                .to_vec(),
+        )
+    }
+
     pub async fn get(&self, uri: &str) -> Reply {
         self.send(Method::GET, uri, None).await
     }

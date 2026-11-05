@@ -137,6 +137,7 @@ struct AnalystRow {
     totp_pending_encrypted: Option<String>,
     totp_enabled_at: Option<DateTime<Utc>>,
     totp_last_step: Option<i64>,
+    signature: String,
 }
 
 fn totp_purpose(kind: &str, id: Uuid) -> String {
@@ -179,6 +180,7 @@ fn encrypt_secret(
 impl AnalystRow {
     fn into_analyst(self, keyring: &Keyring) -> Result<Analyst, RepoError> {
         let r = self;
+        let r_signature = r.signature.clone();
         let totp = TotpState {
             secret: decrypt_secret(keyring, "totp", r.id, r.totp_secret_encrypted)?,
             pending: decrypt_secret(keyring, "totp_pending", r.id, r.totp_pending_encrypted)?,
@@ -199,7 +201,8 @@ impl AnalystRow {
             totp,
             r.created_at,
             r.updated_at,
-        ))
+        )
+        .with_signature(r_signature))
     }
 }
 
@@ -246,7 +249,7 @@ impl AnalystRepository for PgIdentityStore {
     async fn get(&self, id: AnalystId) -> Result<Option<Analyst>, RepoError> {
         sqlx::query_as!(AnalystRow, r#"SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,
                       a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,
-                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,
+                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step, a.signature,
                       ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS "roles!",
                       EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS "all_companies!",
                       ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS "companies!: Vec<Uuid>"
@@ -263,7 +266,7 @@ impl AnalystRepository for PgIdentityStore {
             AnalystRow,
             r#"SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,
                       a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,
-                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,
+                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step, a.signature,
                       ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS "roles!",
                       EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS "all_companies!",
                       ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS "companies!: Vec<Uuid>"
@@ -283,7 +286,7 @@ impl AnalystRepository for PgIdentityStore {
             AnalystRow,
             r#"SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,
                       a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,
-                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,
+                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step, a.signature,
                       ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS "roles!",
                       EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS "all_companies!",
                       ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS "companies!: Vec<Uuid>"
@@ -336,7 +339,7 @@ impl AnalystRepository for PgIdentityStore {
             "UPDATE analysts SET username = $2, email = $3, full_name = $4, is_admin = $5, is_active = $6,
                     password_hash = $7, password_changed_at = $8, deactivated_at = $9, updated_at = $10,
                     totp_secret_encrypted = $11, totp_pending_encrypted = $12, totp_enabled_at = $13,
-                    totp_last_step = $14
+                    totp_last_step = $14, signature = $15
              WHERE id = $1",
             a.id().as_uuid(),
             a.username().as_str(),
@@ -352,6 +355,7 @@ impl AnalystRepository for PgIdentityStore {
             pending,
             a.totp().enabled_at,
             a.totp().last_step,
+            a.signature(),
         )
         .execute(&mut *tx)
         .await

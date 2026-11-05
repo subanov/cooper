@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE analysts SET username = $2, email = $3, full_name = $4, is_admin = $5, is_active = $6,\n                    password_hash = $7, password_changed_at = $8, deactivated_at = $9, updated_at = $10,\n                    totp_secret_encrypted = $11, totp_pending_encrypted = $12, totp_enabled_at = $13,\n                    totp_last_step = $14, signature = $15\n             WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Text",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8ccf1539978f75a1c5f805d210da12b5587e72d4bf4af053f5d124cc9b7598b4"
+}

@@ -1,5 +1,6 @@
 //! Service desk use cases.
 
+mod content;
 mod reference;
 mod sla;
 mod tickets;
@@ -10,10 +11,11 @@ use cooper_kernel::{Actor, Clock, Forbidden, Principal};
 use thiserror::Error;
 
 use crate::domain::{
-    Directory, ReferenceData, RepoError, SlaRepository, TicketError, TicketRepository,
-    TicketSettingsProvider,
+    ContentRepository, Directory, ReferenceData, RepoError, SlaRepository, TicketError,
+    TicketRepository, TicketSettingsProvider,
 };
 
+pub use content::{ReplyInput, StoredFile};
 pub use reference::LookupInput;
 pub use tickets::{
     CreateTicket, ListRequest, TicketDetail, TicketView as View, TimelineEntry, ViewName,
@@ -88,8 +90,17 @@ pub mod settings {
         default: "80",
     };
 
+    /// Largest attachment in megabytes (FR-GEN-007).
+    pub const MAX_ATTACHMENT_MB: SettingDefinition = SettingDefinition {
+        key: "attachments.max_size_mb",
+        description: "Largest file that can be attached, in megabytes.",
+        kind: SettingKind::Integer { min: 1, max: 100 },
+        default: "25",
+    };
+
     /// Every setting declared by the service desk.
     pub const ALL: &[SettingDefinition] = &[
+        MAX_ATTACHMENT_MB,
         SLA_WARNING_PERCENT,
         NUMBER_FORMAT,
         REQUIRE_CLOSURE_CATEGORY,
@@ -158,6 +169,8 @@ pub struct ServiceDeskPorts {
     pub reference: Arc<dyn ReferenceData>,
     /// SLA configuration.
     pub sla: Arc<dyn SlaRepository>,
+    /// Emails, Reply Templates and attachments.
+    pub content: Arc<dyn ContentRepository>,
     /// The identity context.
     pub directory: Arc<dyn Directory>,
     /// Settings.

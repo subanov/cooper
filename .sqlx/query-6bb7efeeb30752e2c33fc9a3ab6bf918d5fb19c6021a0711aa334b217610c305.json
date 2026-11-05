@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,\n                      a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,\n                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,\n                      ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS \"roles!\",\n                      EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS \"all_companies!\",\n                      ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS \"companies!: Vec<Uuid>\"\n               FROM analysts a WHERE lower(a.username) = lower($1) OR lower(a.email) = lower($1) ORDER BY lower(a.username) = lower($1) DESC LIMIT 1",
+  "query": "SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,\n                      a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,\n                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step, a.signature,\n                      ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS \"roles!\",\n                      EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS \"all_companies!\",\n                      ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS \"companies!: Vec<Uuid>\"\n               FROM analysts a WHERE ($1 OR a.is_active)\n                   AND ($2::text IS NULL OR lower(a.full_name) LIKE $2 OR lower(a.username) LIKE $2 OR lower(a.email) LIKE $2)\n                   AND ($3::text IS NULL OR (lower(a.full_name), a.id) > ($3, $4))\n                 ORDER BY lower(a.full_name), a.id\n                 LIMIT $5",
   "describe": {
     "columns": [
       {
@@ -159,18 +159,29 @@
       },
       {
         "ordinal": 14,
+        "name": "signature",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "analysts",
+            "name": "signature"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
         "name": "roles!",
         "type_info": "UuidArray",
         "origin": "Expression"
       },
       {
-        "ordinal": 15,
+        "ordinal": 16,
         "name": "all_companies!",
         "type_info": "Bool",
         "origin": "Expression"
       },
       {
-        "ordinal": 16,
+        "ordinal": 17,
         "name": "companies!: Vec<Uuid>",
         "type_info": "UuidArray",
         "origin": "Expression"
@@ -178,7 +189,11 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Bool",
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
       ]
     },
     "nullable": [
@@ -196,10 +211,11 @@
       true,
       true,
       true,
+      false,
       null,
       null,
       null
     ]
   },
-  "hash": "28f491eec6713a64fe1429e83b2ed36f21d288188a01fb8fec2409bb158ba0ee"
+  "hash": "6bb7efeeb30752e2c33fc9a3ab6bf918d5fb19c6021a0711aa334b217610c305"
 }

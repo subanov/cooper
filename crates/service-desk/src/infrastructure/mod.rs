@@ -1,5 +1,6 @@
 //! PostgreSQL storage of the service desk.
 
+mod content;
 mod reference;
 mod sla;
 mod tickets;

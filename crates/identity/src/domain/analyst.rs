@@ -51,6 +51,7 @@ pub struct Analyst {
     roles: BTreeSet<RoleId>,
     company_access: CompanyAccess,
     totp: TotpState,
+    signature: String,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -71,6 +72,7 @@ impl Analyst {
             roles: BTreeSet::new(),
             company_access: CompanyAccess::None,
             totp: TotpState::default(),
+            signature: String::new(),
             created_at: now,
             updated_at: now,
         }
@@ -106,6 +108,7 @@ impl Analyst {
             roles,
             company_access,
             totp,
+            signature: String::new(),
             created_at,
             updated_at,
         }
@@ -180,6 +183,41 @@ impl Analyst {
         self.deactivated_at = None;
         self.updated_at = now;
         Ok(())
+    }
+
+    /// Sets the stored Signature when rebuilding from storage.
+    #[must_use]
+    pub fn with_signature(mut self, signature: String) -> Self {
+        self.signature = signature;
+        self
+    }
+
+    /// Changes the email Signature appended to Replies (FR-TKT-021).
+    ///
+    /// # Errors
+    ///
+    /// [`IdentityError::Invalid`] when longer than 2000 characters.
+    pub fn set_signature(
+        &mut self,
+        signature: &str,
+        now: DateTime<Utc>,
+    ) -> Result<(), IdentityError> {
+        let signature = signature.trim_end();
+        if signature.chars().count() > 2000 {
+            return Err(IdentityError::Invalid {
+                field: "signature",
+                reason: "must be at most 2000 characters".into(),
+            });
+        }
+        self.signature = signature.to_owned();
+        self.updated_at = now;
+        Ok(())
+    }
+
+    /// The email Signature.
+    #[must_use]
+    pub fn signature(&self) -> &str {
+        &self.signature
     }
 
     /// Starts (or restarts) two-factor enrollment with a new secret. Two-factor
@@ -351,6 +389,7 @@ impl Audited for Analyst {
             ("roles", json!(self.roles)),
             ("company_access", json!(self.company_access)),
             ("totp_enabled_at", json!(self.totp.enabled_at)),
+            ("signature", json!(self.signature)),
         ]
     }
 }

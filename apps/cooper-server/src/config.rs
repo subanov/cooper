@@ -102,6 +102,7 @@ fn security_from_env() -> Result<SecuritySettings, ConfigError> {
         secure_cookies: config::parse_or("COOPER_SECURE_COOKIES", true)?,
         keyring,
         trusted_proxies,
+        blob_dir: config::parse_or("COOPER_BLOB_DIR", std::path::PathBuf::from("data/blobs"))?,
     })
 }
 

@@ -38,8 +38,16 @@ pub mod settings {
         default: "\"Cooper\"",
     };
 
+    /// Public address of this instance, used in links in emails.
+    pub const BASE_URL: SettingDefinition = SettingDefinition {
+        key: "general.base_url",
+        description: "Public address of Cooper (for links in emails), for example https://desk.example.com.",
+        kind: SettingKind::Text { max_chars: 200 },
+        default: "\"http://localhost:8080\"",
+    };
+
     /// Every setting declared by the administration context.
-    pub const ALL: &[SettingDefinition] = &[INSTANCE_NAME];
+    pub const ALL: &[SettingDefinition] = &[INSTANCE_NAME, BASE_URL];
 }
 
 /// A use case failed.

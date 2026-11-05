@@ -7,6 +7,7 @@
 //! - [`db`]: connection pool, embedded migrations and migration status.
 //! - [`tenancy`]: transactions scoped to a set of Companies, enforced by Row-Level
 //!   Security (ADR-0004).
+//! - [`attachments`]: content-addressed blob store and attachment metadata (ADR-0007).
 //! - [`audit`]: the append-only Audit trail (FR-GEN-001).
 //! - [`outbox`]: the transactional outbox and its dispatcher (ADR-0005).
 //! - [`jobs`]: background jobs with schedules, single-worker locking and run history
@@ -16,6 +17,7 @@
 //!
 //! This crate is infrastructure: context `domain` modules must not depend on it.
 
+pub mod attachments;
 pub mod audit;
 pub mod config;
 pub mod crypto;

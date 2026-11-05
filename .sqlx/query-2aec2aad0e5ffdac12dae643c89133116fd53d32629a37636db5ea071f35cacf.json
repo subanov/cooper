@@ -1,0 +1,160 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, kind, from_address, to_addresses, cc_addresses, subject, text_body, message_id,\n                    in_reply_to, references_ids, attempts\n             FROM outbound_emails WHERE status = 'queued' AND next_attempt_at <= $1\n             ORDER BY next_attempt_at LIMIT 20 FOR UPDATE SKIP LOCKED",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "from_address",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "from_address"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "to_addresses",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "to_addresses"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "cc_addresses",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "cc_addresses"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "subject",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "subject"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "text_body",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "text_body"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "message_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "message_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "in_reply_to",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "in_reply_to"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "references_ids",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "references_ids"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "outbound_emails",
+            "name": "attempts"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "2aec2aad0e5ffdac12dae643c89133116fd53d32629a37636db5ea071f35cacf"
+}

@@ -301,3 +301,36 @@ pub trait TokenGenerator: Send + Sync {
     /// A new random token: hex of 32 random bytes.
     fn token(&self) -> Result<String, RepoError>;
 }
+
+/// One-time password reset tokens (FR-IAM-004). Only hashes are stored.
+#[async_trait]
+pub trait PasswordResetRepository: Send + Sync {
+    /// Stores a token for an Analyst, replacing their unused ones.
+    async fn issue(
+        &self,
+        analyst: AnalystId,
+        token_hash: &[u8],
+        now: DateTime<Utc>,
+        expires_at: DateTime<Utc>,
+    ) -> Result<(), RepoError>;
+    /// Marks a token used and returns its Analyst, if it exists, is unused and has not
+    /// expired.
+    async fn consume(
+        &self,
+        token_hash: &[u8],
+        now: DateTime<Utc>,
+    ) -> Result<Option<AnalystId>, RepoError>;
+}
+
+/// Sends password reset emails (through the notifications context).
+#[async_trait]
+pub trait ResetMailer: Send + Sync {
+    /// Emails a reset link with `token` to the Analyst.
+    async fn send_reset(
+        &self,
+        to: &str,
+        name: &str,
+        token: &str,
+        expires_at: DateTime<Utc>,
+    ) -> Result<(), RepoError>;
+}

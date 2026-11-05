@@ -20,8 +20,8 @@ cooper-service-desk = { path = "crates/service-desk" }
 cooper-notifications = { path = "crates/notifications" }
 
 # Runtime and web
-tokio = { version = "1.54", features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }
-axum = "0.8"
+tokio = { version = "1.54", features = ["fs", "io-util", "macros", "rt-multi-thread", "signal", "sync", "time"] }
+axum = { version = "0.8", features = ["multipart"] }
 tower = { version = "0.5", features = ["util"] }
 tower-http = { version = "0.7", features = [
     "catch-panic",
@@ -67,6 +67,7 @@ hex = "0.4"
 hmac = "0.13"
 sha1 = "0.11"
 aes-gcm = "0.11"
+lettre = { version = "0.11", default-features = false, features = ["builder", "hostname", "smtp-transport", "tokio1", "tokio1-rustls", "ring", "webpki-roots"] }
 
 # OpenAPI
 utoipa = { version = "6", features = ["chrono", "uuid"] }

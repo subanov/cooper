@@ -12,6 +12,7 @@ async-trait.workspace = true
 axum.workspace = true
 chrono.workspace = true
 cooper-http.workspace = true
+lettre.workspace = true
 cooper-kernel.workspace = true
 cooper-platform.workspace = true
 http.workspace = true

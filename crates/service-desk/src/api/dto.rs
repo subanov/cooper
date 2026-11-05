@@ -572,6 +572,12 @@ impl From<TimelineEntry> for TimelineItemDto {
                 actor: serde_json::json!({ "kind": "analyst", "id": t.analyst_id() }),
                 data: serde_json::to_value(TimeEntryDto::from(t)).unwrap_or_default(),
             },
+            TimelineEntry::Email(e) => Self {
+                kind: "email".into(),
+                at,
+                actor: serde_json::json!({ "kind": if e.author_id.is_some() { "analyst" } else { "requester" }, "id": e.author_id }),
+                data: serde_json::to_value(TicketEmailDto::from(e)).unwrap_or_default(),
+            },
             TimelineEntry::Change(a) => Self {
                 kind: "change".into(),
                 at,
@@ -867,5 +873,118 @@ impl TryFrom<SlaRuleDto> for crate::domain::SlaRuleInput {
                 .collect(),
             is_active: d.is_active,
         })
+    }
+}
+
+/// An email on a ticket.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct TicketEmailDto {
+    /// ID.
+    pub id: Uuid,
+    /// `inbound` or `outbound`.
+    pub direction: String,
+    /// `From`.
+    pub from: String,
+    /// `To`.
+    pub to: Vec<String>,
+    /// `Cc`.
+    pub cc: Vec<String>,
+    /// Subject.
+    pub subject: String,
+    /// Plain-text body.
+    pub text_body: String,
+    /// `Message-ID`.
+    pub message_id: String,
+    /// Author (outbound).
+    pub author_id: Option<Uuid>,
+    /// Sent or received.
+    pub occurred_at: DateTime<Utc>,
+}
+
+impl From<crate::domain::TicketEmail> for TicketEmailDto {
+    fn from(e: crate::domain::TicketEmail) -> Self {
+        Self {
+            id: e.id,
+            direction: e.direction.as_str().to_owned(),
+            from: e.from,
+            to: e.to,
+            cc: e.cc,
+            subject: e.subject,
+            text_body: e.text_body,
+            message_id: e.message_id,
+            author_id: e.author_id.map(|a| a.as_uuid()),
+            occurred_at: e.occurred_at,
+        }
+    }
+}
+
+/// A Reply to the Requester.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ReplyRequest {
+    /// Text; your Signature is appended.
+    pub body: String,
+    /// Copy recipients.
+    #[serde(default)]
+    pub cc: Vec<String>,
+}
+
+/// A Reply Template.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct ReplyTemplateDto {
+    /// ID (ignored in requests).
+    #[serde(default)]
+    pub id: Option<Uuid>,
+    /// Name.
+    pub name: String,
+    /// Body with placeholders: `{requester_name}`, `{ticket_number}`, `{ticket_subject}`,
+    /// `{analyst_name}`.
+    pub body: String,
+    /// Active flag.
+    #[serde(default = "yes")]
+    pub is_active: bool,
+}
+
+impl From<crate::domain::ReplyTemplate> for ReplyTemplateDto {
+    fn from(t: crate::domain::ReplyTemplate) -> Self {
+        Self {
+            id: Some(t.id()),
+            name: t.name().to_owned(),
+            body: t.body().to_owned(),
+            is_active: t.is_active(),
+        }
+    }
+}
+
+/// A rendered Reply Template.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct RenderedTemplateDto {
+    /// The text with placeholders filled in.
+    pub text: String,
+}
+
+/// An attachment.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct AttachmentDto {
+    /// ID.
+    pub id: Uuid,
+    /// File name.
+    pub file_name: String,
+    /// Media type detected from the content.
+    pub media_type: String,
+    /// Size in bytes.
+    pub size_bytes: i64,
+    /// Uploaded.
+    pub created_at: DateTime<Utc>,
+}
+
+impl From<crate::domain::AttachmentInfo> for AttachmentDto {
+    fn from(a: crate::domain::AttachmentInfo) -> Self {
+        Self {
+            id: a.id,
+            file_name: a.file_name,
+            media_type: a.media_type,
+            size_bytes: a.size_bytes,
+            created_at: a.created_at,
+        }
     }
 }

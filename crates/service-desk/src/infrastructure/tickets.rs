@@ -446,7 +446,9 @@ impl TicketRepository for PgServiceDeskStore {
                 .push_bind(format!("{}%", text.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_")))
                 .push(" OR t.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
                 .push_bind(text.to_owned())
-                .push(")) OR EXISTS (SELECT 1 FROM ticket_notes n WHERE n.ticket_id = t.id AND n.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
+                .push(")) OR EXISTS (SELECT 1 FROM ticket_emails e WHERE e.ticket_id = t.id AND e.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
+                .push_bind(text.to_owned())
+                .push("))) OR EXISTS (SELECT 1 FROM ticket_notes n WHERE n.ticket_id = t.id AND n.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
                 .push_bind(text.to_owned())
                 .push("))))");
         }
