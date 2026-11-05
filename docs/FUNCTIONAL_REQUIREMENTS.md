@@ -64,15 +64,15 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
 | FR-IAM-001 | Administrators can create, update and deactivate **Analysts** (name, email, username, admin flag, active flag). | M | P1 |
-| FR-IAM-002 | Analysts sign in with username/email and password (Argon2id). Sessions expire after a configurable period. | M | P1 |
+| FR-IAM-002 | Analysts sign in with username/email and password (Argon2id). Sessions expire after a configurable period. Deviation from FreeITSM: sessions have an idle timeout and an absolute lifetime, tokens are stored hashed, and every unsafe request needs a CSRF token (ADR-0011). | M | P1 |
 | FR-IAM-003 | Analysts can turn on **TOTP two-factor authentication**. Administrators can require it. Trusted devices can be remembered. | S | P1 |
 | FR-IAM-004 | Password reset by emailed one-time token. | M | P1 |
 | FR-IAM-005 | Repeated failed logins from an IP address cause a temporary ban. | S | P1 |
 | FR-IAM-006 | Administrators manage **Teams** and Team membership. | M | P1 |
 | FR-IAM-007 | Administrators manage **Departments** (name, default Sensitivity) and link them to the Teams that serve them. | M | P1 |
-| FR-IAM-008 | Administrators manage **Companies** (name, Ticket Code, Sender Domains). A "Default" company exists on install. | M | P1 |
-| FR-IAM-009 | Administrators grant Analysts or Teams access to specific Companies or to all Companies. | M | P1 |
-| FR-IAM-010 | RBAC: Administrators define **Roles** as sets of **Capabilities** (`<module>.<action>`) and assign them to Analysts or Teams. Every API endpoint checks a Capability. | M | P1 |
+| FR-IAM-008 | Administrators manage **Companies** (name, Ticket Code, Sender Domains). A "Default" company exists on install. Deviation from FreeITSM: a Sender Domain belongs to one Company only and can never be a Freemail Domain; the default Company cannot be deactivated. | M | P1 |
+| FR-IAM-009 | Administrators grant Analysts or Teams access to specific Companies or to all Companies. Deviation from FreeITSM: Administrators always see every Company; non-Administrators can only grant access within their own scope (ADR-0011). | M | P1 |
+| FR-IAM-010 | RBAC: Administrators define **Roles** as sets of **Capabilities** (`<module>.<action>`) and assign them to Analysts or Teams. Every API endpoint checks a Capability. Roles may only contain Capabilities a context declares, and a non-Administrator can only grant Capabilities they hold. | M | P1 |
 | FR-IAM-011 | Administrators and Directory Sync manage **Requesters** (name, email, username, Manager, Cost Centre, Company, active flag). Deactivation is recorded with a timestamp. | M | P1 |
 | FR-IAM-012 | SSO for Analysts and Requesters through **OIDC**. | S | P2 |
 | FR-IAM-013 | LDAP/Active Directory authentication and **Directory Sync** of Requesters and groups, with run history (running/ok/stopped/failed). | S | P3 |

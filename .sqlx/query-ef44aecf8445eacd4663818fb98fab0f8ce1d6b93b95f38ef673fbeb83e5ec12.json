@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH my_teams AS (\n                 SELECT tm.team_id FROM team_members tm JOIN teams t ON t.id = tm.team_id\n                 WHERE tm.analyst_id = $1 AND t.is_active)\n             SELECT DISTINCT c.capability\n             FROM rbac_role_capabilities c\n             JOIN rbac_role_assignments a ON a.role_id = c.role_id\n             WHERE a.analyst_id = $1 OR a.team_id IN (SELECT team_id FROM my_teams)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "capability",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "rbac_role_capabilities",
+            "name": "capability"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "ef44aecf8445eacd4663818fb98fab0f8ce1d6b93b95f38ef673fbeb83e5ec12"
+}

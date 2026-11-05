@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM team_members WHERE team_id = $1 AND NOT (analyst_id = ANY($2))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ee676704a706642d26ecd6ab75bf922c9dae82bddc5cdc21ec73255c46cf170d"
+}

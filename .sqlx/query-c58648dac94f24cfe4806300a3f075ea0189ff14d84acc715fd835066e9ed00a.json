@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM rbac_role_assignments\n         WHERE analyst_id IS NOT DISTINCT FROM $1 AND team_id IS NOT DISTINCT FROM $2 AND NOT (role_id = ANY($3))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c58648dac94f24cfe4806300a3f075ea0189ff14d84acc715fd835066e9ed00a"
+}

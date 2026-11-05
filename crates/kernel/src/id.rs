@@ -119,6 +119,17 @@ define_id!(
     ApiKeyId
 );
 
+define_id!(
+    /// Identifies a Team. Shared because tickets, tasks and checks are assigned to Teams
+    /// (a Team is also a ticket Queue).
+    TeamId
+);
+
+define_id!(
+    /// Identifies a Department. Shared because tickets belong to a Department.
+    DepartmentId
+);
+
 #[cfg(test)]
 mod tests {
     use super::*;

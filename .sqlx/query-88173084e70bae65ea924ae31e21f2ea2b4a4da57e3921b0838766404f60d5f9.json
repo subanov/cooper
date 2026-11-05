@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE requesters SET full_name = $2, email = $3, username = $4, phone = $5, manager_id = $6,\n                    cost_centre_id = $7, is_active = $8, deactivated_at = $9, updated_at = $10\n             WHERE id = $1 AND tenant_id = $11 AND ($12 OR tenant_id = ANY($13))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz",
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "88173084e70bae65ea924ae31e21f2ea2b4a4da57e3921b0838766404f60d5f9"
+}

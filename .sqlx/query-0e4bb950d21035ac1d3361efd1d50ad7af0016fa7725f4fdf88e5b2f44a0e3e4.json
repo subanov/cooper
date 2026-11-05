@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO tenant_domains (id, tenant_id, domain, created_at)\n         SELECT d.new_id, $2, d.domain, $3 FROM UNNEST($1::uuid[], $4::text[]) AS d(new_id, domain)\n         WHERE NOT EXISTS (SELECT 1 FROM tenant_domains x WHERE x.tenant_id = $2 AND x.domain = d.domain)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        "Uuid",
+        "Timestamptz",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0e4bb950d21035ac1d3361efd1d50ad7af0016fa7725f4fdf88e5b2f44a0e3e4"
+}

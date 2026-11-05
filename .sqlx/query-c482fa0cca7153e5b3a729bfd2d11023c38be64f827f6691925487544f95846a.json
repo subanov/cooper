@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE cost_centres SET code = $2, name = $3, is_active = $4, updated_at = $5\n             WHERE id = $1 AND ($6 OR tenant_id = ANY($7))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Bool",
+        "Timestamptz",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c482fa0cca7153e5b3a729bfd2d11023c38be64f827f6691925487544f95846a"
+}

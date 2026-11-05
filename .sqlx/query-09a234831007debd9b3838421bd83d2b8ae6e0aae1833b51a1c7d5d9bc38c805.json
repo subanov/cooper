@@ -1,0 +1,99 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT d.id, d.name, d.default_sensitivity, d.is_active, d.created_at, d.updated_at,\n                      ARRAY(SELECT x.team_id FROM department_teams x WHERE x.department_id = d.id) AS \"teams!\"\n               FROM departments d WHERE ($1 OR d.is_active)\n                   AND ($2::text IS NULL OR lower(d.name) LIKE $2)\n                   AND ($3::text IS NULL OR (lower(d.name), d.id) > ($3, $4))\n                 ORDER BY lower(d.name), d.id\n                 LIMIT $5",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "departments",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "departments",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "default_sensitivity",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "departments",
+            "name": "default_sensitivity"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "departments",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "departments",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "departments",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "teams!",
+        "type_info": "UuidArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "09a234831007debd9b3838421bd83d2b8ae6e0aae1833b51a1c7d5d9bc38c805"
+}

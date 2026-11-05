@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO department_teams (department_id, team_id) SELECT $1, t FROM UNNEST($2::uuid[]) AS t ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5318f552db1755137eeacfa4b48085081b0fc1a9cae2ab358b7e82b2af0934a9"
+}

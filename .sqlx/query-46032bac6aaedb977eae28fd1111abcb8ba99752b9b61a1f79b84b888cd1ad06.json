@@ -1,0 +1,109 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT t.id, t.name, t.ticket_code, t.is_default, t.is_active, t.created_at, t.updated_at,\n                      COALESCE(ARRAY(SELECT d.domain FROM tenant_domains d WHERE d.tenant_id = t.id ORDER BY d.domain), '{}') AS \"domains!\"\n               FROM tenants t\n               WHERE t.id = $1 AND ($2 OR t.id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "ticket_code",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "ticket_code"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_default",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "is_default"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "tenants",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "domains!",
+        "type_info": "TextArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "46032bac6aaedb977eae28fd1111abcb8ba99752b9b61a1f79b84b888cd1ad06"
+}

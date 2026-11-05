@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM tenant_domains WHERE tenant_id = $1 AND NOT (domain = ANY($2))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "33097e641f9e36a7c094db2269f21d0ba8d012485e6a502aec58fdb64b58e7a4"
+}

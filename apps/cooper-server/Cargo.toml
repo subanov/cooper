@@ -9,8 +9,10 @@ publish.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+chrono.workspace = true
 axum.workspace = true
 cooper-http.workspace = true
+cooper-identity.workspace = true
 cooper-kernel.workspace = true
 cooper-platform.workspace = true
 http.workspace = true
@@ -18,6 +20,8 @@ serde_json.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+utoipa.workspace = true
+utoipa-axum.workspace = true
 
 [dev-dependencies]
 http-body-util.workspace = true
