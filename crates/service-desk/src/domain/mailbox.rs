@@ -125,6 +125,79 @@ pub struct MailboxSettings {
     pub is_active: bool,
 }
 
+/// OAuth client credentials of a Microsoft or Google Mailbox, stored as its encrypted
+/// secret (FR-EML-012). `Debug` never prints the secrets.
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OAuthCredentials {
+    /// Microsoft Entra tenant (directory) ID or domain; Microsoft only.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tenant: Option<String>,
+    /// Application (client) ID.
+    pub client_id: String,
+    /// Client secret.
+    pub client_secret: String,
+    /// Refresh token from the account's consent: Microsoft `delegated` and Google.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refresh_token: Option<String>,
+}
+
+impl std::fmt::Debug for OAuthCredentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OAuthCredentials")
+            .field("tenant", &self.tenant)
+            .field("client_id", &self.client_id)
+            .field("client_secret", &"<redacted>")
+            .field(
+                "refresh_token",
+                &self.refresh_token.as_ref().map(|_| "<redacted>"),
+            )
+            .finish()
+    }
+}
+
+impl OAuthCredentials {
+    /// Parses and checks the credentials JSON for a Mailbox's provider and auth mode:
+    /// Microsoft needs `tenant`; `delegated` and Google need a `refresh_token`.
+    ///
+    /// # Errors
+    ///
+    /// Not JSON, missing fields, or an IMAP Mailbox.
+    pub fn parse(settings: &MailboxSettings, secret: &str) -> Result<Self, TicketError> {
+        let invalid = |reason: &str| TicketError::invalid("credentials", reason.to_owned());
+        let c: Self = serde_json::from_str(secret).map_err(|_| {
+            invalid("must be an object with client_id, client_secret and, as needed, tenant and refresh_token")
+        })?;
+        let blank = |v: &str| v.trim().is_empty();
+        if blank(&c.client_id) || blank(&c.client_secret) {
+            return Err(invalid("client_id and client_secret are required"));
+        }
+        let has_refresh = c.refresh_token.as_deref().is_some_and(|t| !blank(t));
+        match settings.provider {
+            Provider::Imap => return Err(invalid("are for Microsoft and Google Mailboxes")),
+            Provider::Microsoft => {
+                if c.tenant.as_deref().is_none_or(blank) {
+                    return Err(invalid("tenant is required for Microsoft"));
+                }
+                if settings.auth_mode.as_deref() == Some("delegated") && !has_refresh {
+                    return Err(invalid("refresh_token is required for delegated access"));
+                }
+            }
+            Provider::Google => {
+                if !has_refresh {
+                    return Err(invalid("refresh_token is required for Google"));
+                }
+            }
+        }
+        Ok(c)
+    }
+
+    /// The JSON stored as the Mailbox secret.
+    #[must_use]
+    pub fn to_secret(&self) -> String {
+        serde_json::to_string(self).unwrap_or_default()
+    }
+}
+
 /// Poll health of a Mailbox (FR-EML-010).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct MailboxHealth {
@@ -510,6 +583,55 @@ mod tests {
             ..settings()
         };
         assert!(Mailbox::create(mv, Utc::now()).is_err());
+    }
+
+    #[test]
+    fn oauth_credentials_depend_on_provider_and_auth_mode() {
+        let ms = |mode: &str| MailboxSettings {
+            provider: Provider::Microsoft,
+            auth_mode: Some(mode.into()),
+            imap: None,
+            ..settings()
+        };
+        let google = MailboxSettings {
+            provider: Provider::Google,
+            imap: None,
+            ..settings()
+        };
+        let app = r#"{"tenant":"contoso.example","client_id":"c","client_secret":"s"}"#;
+        let full = r#"{"tenant":"t","client_id":"c","client_secret":"s","refresh_token":"r"}"#;
+        assert!(OAuthCredentials::parse(&ms("app_only"), app).is_ok());
+        assert!(OAuthCredentials::parse(&ms("delegated"), app).is_err());
+        assert!(OAuthCredentials::parse(&ms("delegated"), full).is_ok());
+        assert!(
+            OAuthCredentials::parse(&ms("app_only"), r#"{"client_id":"c","client_secret":"s"}"#)
+                .is_err()
+        );
+        assert!(
+            OAuthCredentials::parse(&google, r#"{"client_id":"c","client_secret":"s"}"#).is_err()
+        );
+        assert!(
+            OAuthCredentials::parse(
+                &google,
+                r#"{"client_id":"c","client_secret":"s","refresh_token":"r"}"#
+            )
+            .is_ok()
+        );
+        assert!(
+            OAuthCredentials::parse(&settings(), full).is_err(),
+            "not for IMAP"
+        );
+        assert!(OAuthCredentials::parse(&google, "a password").is_err());
+        let c = OAuthCredentials::parse(&ms("delegated"), full).unwrap();
+        let shown = format!("{c:?}");
+        assert!(
+            !shown.contains("\"s\"") && !shown.contains("\"r\""),
+            "{shown}"
+        );
+        assert_eq!(
+            OAuthCredentials::parse(&ms("delegated"), &c.to_secret()).unwrap(),
+            c
+        );
     }
 
     #[test]

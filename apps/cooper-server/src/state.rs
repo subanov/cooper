@@ -291,14 +291,35 @@ impl AppState {
 }
 
 impl AppState {
-    /// The `mailbox-poll` Background Job, polling IMAP Mailboxes into tickets.
+    /// The `mailbox-poll` Background Job, polling Mailboxes into tickets: IMAP, and
+    /// Microsoft Graph and Gmail when built with the `graph` and `google` features.
     #[must_use]
     pub fn mailbox_poller(&self) -> cooper_service_desk::infrastructure::MailboxPoller {
-        cooper_service_desk::infrastructure::MailboxPoller::new(
+        #[allow(unused_mut)]
+        let mut poller = cooper_service_desk::infrastructure::MailboxPoller::new(
             self.service_desk.service.clone(),
             self.service_desk.blobs.clone(),
             Arc::new(cooper_service_desk::infrastructure::ImapClient),
-        )
+        );
+        #[cfg(feature = "graph")]
+        match cooper_service_desk::infrastructure::GraphClient::new() {
+            Ok(c) => {
+                poller = poller.with_client(
+                    cooper_service_desk::domain::Provider::Microsoft,
+                    Arc::new(c),
+                );
+            }
+            Err(e) => tracing::error!(error = %e, "Microsoft Graph client unavailable"),
+        }
+        #[cfg(feature = "google")]
+        match cooper_service_desk::infrastructure::GmailClient::new() {
+            Ok(c) => {
+                poller =
+                    poller.with_client(cooper_service_desk::domain::Provider::Google, Arc::new(c));
+            }
+            Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
+        }
+        poller
     }
 }
 

@@ -26,3 +26,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0017](0017-outbound-email-and-attachments.md) | Outbound email through a queue with a send log; file-system attachments first | Accepted |
 | [0018](0018-email-intake.md) | Email intake: Mailboxes, threading, matching and loop protection | Accepted |
 | [0019](0019-email-templates.md) | Email Templates sent from ticket events, most specific match wins | Accepted |
+| [0020](0020-microsoft-graph-and-gmail-mailboxes.md) | Microsoft Graph and Gmail Mailboxes on the shared intake pipeline | Accepted |

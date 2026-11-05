@@ -7,10 +7,17 @@ rust-version.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[features]
+## Microsoft 365 Mailboxes through Microsoft Graph.
+graph = ["dep:reqwest", "dep:base64"]
+## Google Workspace Mailboxes through the Gmail API.
+google = ["dep:reqwest", "dep:base64"]
+
 [dependencies]
 async-imap.workspace = true
 async-trait.workspace = true
 axum.workspace = true
+base64 = { workspace = true, optional = true }
 chrono.workspace = true
 chrono-tz.workspace = true
 cooper-http.workspace = true
@@ -20,6 +27,7 @@ futures.workspace = true
 hex.workspace = true
 http.workspace = true
 mail-parser.workspace = true
+reqwest = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

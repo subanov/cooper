@@ -49,6 +49,11 @@ pub trait MailboxSession: Send {
     async fn finish(&mut self, uid: &str, disposition: &Disposition) -> Result<(), String>;
     /// Closes the connection.
     async fn close(&mut self) -> Result<(), String>;
+    /// A replacement secret issued while opening the session (a rotated refresh
+    /// token), to be stored.
+    fn rotated_secret(&self) -> Option<String> {
+        None
+    }
 }
 
 /// Opens mailbox sessions for a provider.
@@ -395,21 +400,34 @@ fn strip_html(html: &str) -> String {
 pub struct MailboxPoller {
     desk: ServiceDesk,
     blobs: FilesystemBlobStore,
-    imap: Arc<dyn MailboxClient>,
+    clients: Vec<(Provider, Arc<dyn MailboxClient>)>,
 }
 
 /// Messages handled per Mailbox per run.
 const BATCH: usize = 50;
 
 impl MailboxPoller {
-    /// A poller using `imap` for IMAP Mailboxes.
+    /// A poller using `imap` for IMAP Mailboxes. Add other providers with
+    /// [`MailboxPoller::with_client`].
     #[must_use]
     pub fn new(
         desk: ServiceDesk,
         blobs: FilesystemBlobStore,
         imap: Arc<dyn MailboxClient>,
     ) -> Self {
-        Self { desk, blobs, imap }
+        Self {
+            desk,
+            blobs,
+            clients: vec![(Provider::Imap, imap)],
+        }
+    }
+
+    /// Uses `client` for Mailboxes of `provider`.
+    #[must_use]
+    pub fn with_client(mut self, provider: Provider, client: Arc<dyn MailboxClient>) -> Self {
+        self.clients.retain(|(p, _)| *p != provider);
+        self.clients.push((provider, client));
+        self
     }
 
     async fn store_attachments(
@@ -448,22 +466,31 @@ impl MailboxPoller {
     }
 
     async fn poll(&self, mailbox: &Mailbox) -> Result<usize, String> {
-        let client = match mailbox.settings().provider {
-            Provider::Imap => &self.imap,
-            other => {
-                return Err(format!(
-                    "the {} provider is not available yet",
-                    other.as_str()
-                ));
-            }
-        };
+        let provider = mailbox.settings().provider;
+        let client = self
+            .clients
+            .iter()
+            .find(|(p, _)| *p == provider)
+            .map(|(_, c)| c)
+            .ok_or_else(|| {
+                format!(
+                    "the {} provider is not enabled in this build",
+                    provider.as_str()
+                )
+            })?;
         let secret = self
             .desk
             .mailbox_secret(mailbox.id())
             .await
             .map_err(|e| e.to_string())?
-            .ok_or("the Mailbox has no password")?;
+            .ok_or("the Mailbox has no password or credentials")?;
         let mut session = client.open(mailbox, &secret).await?;
+        if let Some(rotated) = session.rotated_secret() {
+            self.desk
+                .rotate_mailbox_secret(mailbox, &rotated)
+                .await
+                .map_err(|e| format!("cannot store the rotated credentials: {e}"))?;
+        }
         let messages = session.fetch(BATCH).await?;
         let count = messages.len();
         for message in messages {

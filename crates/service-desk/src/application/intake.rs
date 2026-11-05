@@ -9,7 +9,8 @@ use uuid::Uuid;
 use super::{AppError, CreateTicket, ServiceDesk, capabilities, require};
 use crate::domain::{
     Direction, InboundEmail, LookupKind, Mailbox, MailboxPollFailed, MailboxSettings,
-    TicketDetails, TicketEmail, TicketEmailReceived, audit_record, parse_sdref,
+    OAuthCredentials, Provider, TicketDetails, TicketEmail, TicketEmailReceived, audit_record,
+    parse_sdref,
 };
 
 /// What happened to an inbound email.
@@ -55,6 +56,7 @@ impl ServiceDesk {
         require(principal, capabilities::CONFIGURE)?;
         let now = self.ports.clock.now();
         let mailbox = Mailbox::create(settings, now)?;
+        check_secret(&mailbox, secret)?;
         let audit = audit_record(None, &mailbox, AuditAction::Created, principal.actor(), now);
         self.ports.mailboxes.save(&mailbox, secret, &audit).await?;
         Ok(mailbox)
@@ -77,6 +79,7 @@ impl ServiceDesk {
         let before = mailbox.clone();
         let now = self.ports.clock.now();
         mailbox.update(settings, now)?;
+        check_secret(&mailbox, secret)?;
         let mut audit = audit_record(
             Some(&before),
             &mailbox,
@@ -150,6 +153,38 @@ impl ServiceDesk {
             }
         }
         Ok(self.ports.mailboxes.record_health(mailbox, &events).await?)
+    }
+
+    /// Replaces a Mailbox's secret after its provider rotated it (a Microsoft refresh
+    /// token is replaced on every use).
+    ///
+    /// # Errors
+    ///
+    /// Storage failures.
+    pub async fn rotate_mailbox_secret(
+        &self,
+        mailbox: &Mailbox,
+        secret: &str,
+    ) -> Result<(), AppError> {
+        let now = self.ports.clock.now();
+        let audit = AuditRecord::new(
+            None,
+            "mailbox",
+            mailbox.id(),
+            AuditAction::Updated,
+            Actor::Automation,
+            now,
+        )
+        .change(
+            "secret",
+            Some(&"(unchanged)"),
+            Some(&"(rotated by the provider)"),
+        );
+        Ok(self
+            .ports
+            .mailboxes
+            .save(mailbox, Some(secret), &audit)
+            .await?)
     }
 
     /// The decrypted secret of a Mailbox, for its client.
@@ -380,6 +415,17 @@ impl ServiceDesk {
         } else {
             IntakeOutcome::Appended(ticket.id())
         })
+    }
+}
+
+/// OAuth Mailboxes take credentials JSON, checked before it is stored.
+fn check_secret(mailbox: &Mailbox, secret: Option<&str>) -> Result<(), AppError> {
+    match secret {
+        Some(s) if mailbox.settings().provider != Provider::Imap => {
+            OAuthCredentials::parse(mailbox.settings(), s)?;
+            Ok(())
+        }
+        _ => Ok(()),
     }
 }
 

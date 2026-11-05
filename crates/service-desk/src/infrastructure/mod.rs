@@ -1,14 +1,27 @@
 //! PostgreSQL storage of the service desk.
 
 mod content;
+#[cfg(feature = "google")]
+mod google;
+#[cfg(feature = "graph")]
+mod graph;
 mod imap;
 mod mailboxes;
+#[cfg(any(feature = "graph", feature = "google"))]
+mod oauth;
 mod reference;
 mod sla;
 mod template_mailer;
 mod tickets;
 
-pub use imap::{ImapClient, MailboxClient, MailboxPoller, MailboxSession, parse_email};
+#[cfg(feature = "google")]
+pub use google::GmailClient;
+#[cfg(feature = "graph")]
+pub use graph::GraphClient;
+pub use imap::{
+    Disposition, FetchedMessage, ImapClient, MailboxClient, MailboxPoller, MailboxSession,
+    parse_email,
+};
 pub use mailboxes::{PgMailboxStore, ReencryptMailboxSecrets};
 pub use sla::SlaMonitor;
 pub use template_mailer::EmailTemplateMailer;
