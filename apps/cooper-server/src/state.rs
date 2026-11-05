@@ -4,11 +4,16 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use axum::extract::FromRef;
+use cooper_administration::api::{AdministrationApi, ModuleGate};
+use cooper_administration::application::{
+    AdministrationService, capabilities as admin_capabilities, settings as admin_settings,
+};
+use cooper_administration::infrastructure::PgAdministrationStore;
 use cooper_identity::api::IdentityApi;
 use cooper_identity::application::{IdentityService, capabilities as identity_capabilities};
 use cooper_identity::domain::{RepoError, SessionPolicy};
 use cooper_identity::infrastructure::PgIdentityStore;
-use cooper_kernel::{Capability, Clock, SystemClock};
+use cooper_kernel::{Capability, Clock, Module, SettingDefinition, SystemClock};
 use sqlx::PgPool;
 
 /// Settings for sign-in sessions.
@@ -38,6 +43,8 @@ pub struct AppState {
     pub clock: Arc<dyn Clock>,
     /// Identity context API state.
     pub identity: IdentityApi,
+    /// Administration context API state.
+    pub administration: AdministrationApi,
 }
 
 /// Every Capability declared by the contexts wired into this server. Roles may only use
@@ -46,8 +53,22 @@ pub struct AppState {
 pub fn capability_catalogue() -> BTreeSet<Capability> {
     identity_capabilities::ALL
         .iter()
+        .chain(admin_capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
+}
+
+/// Every System Setting declared by the contexts wired into this server.
+#[must_use]
+pub fn setting_catalogue() -> Vec<SettingDefinition> {
+    admin_settings::ALL.to_vec()
+}
+
+/// `/api/v1` path prefixes owned by switchable Modules (FR-GEN-005). Contexts add their
+/// prefixes here as they are wired in.
+#[must_use]
+pub fn module_routes() -> Vec<(&'static str, Module)> {
+    Vec::new()
 }
 
 impl AppState {
@@ -72,6 +93,11 @@ impl AppState {
     ) -> Result<Self, RepoError> {
         let ports = PgIdentityStore::ports(pool.clone(), clock.clone())?;
         let service = IdentityService::new(ports, capability_catalogue(), sessions.policy);
+        let admin = AdministrationService::new(
+            Arc::new(PgAdministrationStore::new(pool.clone())),
+            clock.clone(),
+            &setting_catalogue(),
+        );
         Ok(Self {
             pool,
             clock,
@@ -79,7 +105,17 @@ impl AppState {
                 service,
                 secure_cookies: sessions.secure_cookies,
             },
+            administration: AdministrationApi {
+                gate: ModuleGate::new(admin.clone(), module_routes()),
+                service: admin,
+            },
         })
+    }
+}
+
+impl FromRef<AppState> for AdministrationApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.administration.clone()
     }
 }
 
@@ -97,7 +133,13 @@ mod tests {
     fn every_declared_capability_is_valid() {
         assert_eq!(
             capability_catalogue().len(),
-            identity_capabilities::ALL.len()
+            identity_capabilities::ALL.len() + admin_capabilities::ALL.len()
+        );
+        let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
+        assert_eq!(
+            keys.len(),
+            setting_catalogue().len(),
+            "setting keys are unique"
         );
     }
 }

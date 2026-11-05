@@ -18,3 +18,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0009](0009-shared-crates-and-dependency-baseline.md) | Shared `kernel`, `platform`, `http` crates and the dependency baseline | Accepted |
 | [0010](0010-typescript-react-spa-for-analyst-console-and-portal.md) | Analyst console and Portal as a TypeScript React SPA served by `cooper-server` | Accepted |
 | [0011](0011-identity-context-sessions-and-rbac.md) | Identity context: Companies, Analysts, Requesters, browser sessions and RBAC | Accepted |
+| [0012](0012-administration-context.md) | Administration context: Module switches, typed System Settings, job schedules, system log | Accepted |

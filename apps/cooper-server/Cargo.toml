@@ -11,6 +11,7 @@ publish.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
 axum.workspace = true
+cooper-administration.workspace = true
 cooper-http.workspace = true
 cooper-identity.workspace = true
 cooper-kernel.workspace = true

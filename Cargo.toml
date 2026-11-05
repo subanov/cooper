@@ -15,6 +15,7 @@ cooper-kernel = { path = "crates/kernel" }
 cooper-platform = { path = "crates/platform" }
 cooper-http = { path = "crates/http" }
 cooper-identity = { path = "crates/identity" }
+cooper-administration = { path = "crates/administration" }
 
 # Runtime and web
 tokio = { version = "1.54", features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }
@@ -50,7 +51,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "2.0"
 anyhow = "1.0"
-uuid = { version = "1.29", features = ["serde", "v7"] }
+uuid = { version = "1.29", features = ["serde", "v5", "v7"] }
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde", "std"] }
 base64 = "0.23"
 async-trait = "0.1"

@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT schedule_kind, interval_seconds, daily_at FROM background_jobs WHERE name = $1 FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "schedule_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "schedule_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "interval_seconds",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "interval_seconds"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "daily_at",
+        "type_info": "Time",
+        "origin": {
+          "Table": {
+            "table": "background_jobs",
+            "name": "daily_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "d5a3a5c267ca417c7bf28e177af06861c06f5f539fdb4afcc87145470d8d6059"
+}

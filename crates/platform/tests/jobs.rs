@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use async_trait::async_trait;
 use chrono::{Duration, NaiveTime, TimeZone, Utc};
-use cooper_kernel::FixedClock;
+use cooper_kernel::{Clock as _, FixedClock};
 use cooper_platform::jobs::{
     Job, JobContext, JobError, JobRunner, PruneJobRuns, RunOutcome, Schedule, lock_key,
 };
@@ -155,7 +155,7 @@ async fn stale_running_run_is_marked_abandoned(pool: PgPool) {
 async fn registration_keeps_an_administrators_schedule(pool: PgPool) {
     let (_clock, job, runner) = setup(&pool, false);
     runner.register_all().await.unwrap();
-    sqlx::query!("UPDATE background_jobs SET schedule_kind = 'off', interval_seconds = NULL WHERE name = 'counter'")
+    sqlx::query!("UPDATE background_jobs SET schedule_kind = 'off', interval_seconds = NULL, next_run_at = NULL WHERE name = 'counter'")
         .execute(&pool)
         .await
         .unwrap();
@@ -219,4 +219,46 @@ async fn prune_deletes_only_old_finished_runs(pool: PgPool) {
         .await
         .unwrap();
     assert_eq!(daily_at, NaiveTime::from_hms_opt(3, 0, 0));
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn administrators_change_schedules_and_request_runs(pool: PgPool) {
+    use cooper_platform::jobs::admin;
+    let (clock, job, runner) = setup(&pool, false);
+    runner.register_all().await.unwrap();
+    let now = clock.now();
+
+    let mut conn = pool.acquire().await.unwrap();
+    let previous = admin::set_schedule(&mut conn, "counter", Schedule::Off, now)
+        .await
+        .unwrap();
+    drop(conn);
+    assert!(matches!(previous, Schedule::Interval { .. }));
+    assert_eq!(
+        runner.run_if_due("counter").await.unwrap(),
+        RunOutcome::NotDue
+    );
+
+    // "Run now" runs an off job exactly once.
+    admin::request_run(&pool, "counter", now).await.unwrap();
+    assert_eq!(
+        runner.run_if_due("counter").await.unwrap(),
+        RunOutcome::Succeeded
+    );
+    assert_eq!(
+        runner.run_if_due("counter").await.unwrap(),
+        RunOutcome::NotDue
+    );
+    assert_eq!(job.runs.load(Ordering::SeqCst), 1);
+
+    let jobs = admin::list_jobs(&pool).await.unwrap();
+    assert_eq!(jobs.len(), 1);
+    assert_eq!(jobs[0].schedule, Schedule::Off);
+    assert_eq!(jobs[0].last_outcome.as_deref(), Some("succeeded"));
+    let runs = admin::list_runs(&pool, "counter", None, 10).await.unwrap();
+    assert_eq!(runs.len(), 1);
+    assert!(matches!(
+        admin::request_run(&pool, "nope", now).await,
+        Err(admin::JobAdminError::UnknownJob(_))
+    ));
 }

@@ -9,6 +9,7 @@
 //! to take the lock and skip the job. If a worker dies, PostgreSQL releases the lock with
 //! the connection; the next run marks the dead worker's run as `abandoned`.
 
+pub mod admin;
 mod prune;
 mod schedule;
 
@@ -199,10 +200,11 @@ impl JobRunner {
                     job: job.name().to_owned(),
                     source,
                 })?;
+        // An `off` job has no next run, unless an Administrator asked for one run now.
         let due = match (&schedule, row.next_run_at) {
-            (Schedule::Off, _) => false,
-            (_, None) => true,
             (_, Some(at)) => at <= now,
+            (Schedule::Off, None) => false,
+            (_, None) => true,
         };
         if !due {
             return Ok(RunOutcome::NotDue);

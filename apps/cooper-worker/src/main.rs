@@ -13,6 +13,7 @@ use cooper_platform::config::{self, ConfigError, DatabaseConfig};
 use cooper_platform::db;
 use cooper_platform::jobs::{JobRunner, PruneJobRuns, RunOutcome};
 use cooper_platform::outbox::Dispatcher;
+use cooper_platform::system_log::{self, PruneSystemLog};
 use cooper_platform::telemetry::{self, LogFormat};
 use tokio::sync::watch;
 use tokio::task::JoinSet;
@@ -24,6 +25,7 @@ struct WorkerConfig {
     tick: Duration,
     outbox_batch_size: u16,
     job_run_retention_days: u16,
+    system_log_retention_days: u16,
     log_format: LogFormat,
 }
 
@@ -36,6 +38,10 @@ impl WorkerConfig {
             ),
             outbox_batch_size: config::parse_or("COOPER_OUTBOX_BATCH_SIZE", 100_u16)?,
             job_run_retention_days: config::parse_or("COOPER_JOB_RUN_RETENTION_DAYS", 30_u16)?,
+            system_log_retention_days: config::parse_or(
+                "COOPER_SYSTEM_LOG_RETENTION_DAYS",
+                30_u16,
+            )?,
             log_format: config::parse_or("COOPER_LOG_FORMAT", LogFormat::default())?,
         })
     }
@@ -44,7 +50,8 @@ impl WorkerConfig {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let config = WorkerConfig::from_env().context("invalid configuration")?;
-    telemetry::init(config.log_format).context("failed to initialise logging")?;
+    let (system_log, system_log_writer) = system_log::channel("worker");
+    telemetry::init(config.log_format, Some(system_log)).context("failed to initialise logging")?;
 
     let pool = db::connect(&config.database)
         .await
@@ -55,11 +62,16 @@ async fn main() -> anyhow::Result<()> {
         );
     }
 
+    tokio::spawn(system_log_writer.run(pool.clone()));
+
     let clock: Arc<dyn Clock> = Arc::new(SystemClock);
     let worker_id = format!("{}-{}", hostname(), uuid::Uuid::now_v7());
     let runner = Arc::new(
         JobRunner::new(pool.clone(), clock.clone(), worker_id.clone())
-            .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days))),
+            .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days)))
+            .with_job(Arc::new(PruneSystemLog::new(
+                config.system_log_retention_days,
+            ))),
     );
     runner
         .register_all()

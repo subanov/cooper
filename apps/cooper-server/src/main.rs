@@ -6,18 +6,20 @@ use std::sync::Arc;
 
 use anyhow::Context as _;
 use cooper_kernel::SystemClock;
-use cooper_platform::{db, telemetry};
+use cooper_platform::{db, system_log, telemetry};
 use cooper_server::AppState;
 use cooper_server::config::ServerConfig;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let config = ServerConfig::from_env().context("invalid configuration")?;
-    telemetry::init(config.log_format).context("failed to initialise logging")?;
+    let (system_log, system_log_writer) = system_log::channel("server");
+    telemetry::init(config.log_format, Some(system_log)).context("failed to initialise logging")?;
 
     let pool = db::connect(&config.database)
         .await
         .context("failed to connect to the database")?;
+    tokio::spawn(system_log_writer.run(pool.clone()));
     if let db::MigrationStatus::Pending { versions } = db::migration_status(&pool).await? {
         tracing::warn!(
             ?versions,

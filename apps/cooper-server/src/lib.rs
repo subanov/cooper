@@ -16,7 +16,9 @@ use utoipa::OpenApi as _;
 use utoipa::openapi::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 
-pub use state::{AppState, SessionSettings, capability_catalogue};
+pub use state::{
+    AppState, SessionSettings, capability_catalogue, module_routes, setting_catalogue,
+};
 
 #[derive(utoipa::OpenApi)]
 #[openapi(
@@ -30,6 +32,7 @@ pub use state::{AppState, SessionSettings, capability_catalogue};
         (name = "Roles", description = "RBAC Roles and Capabilities"),
         (name = "Requesters", description = "People who ask IT for help"),
         (name = "Cost Centres", description = "Financial units per Company"),
+        (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
     )
 )]
 struct ApiDoc;
@@ -38,6 +41,7 @@ struct ApiDoc;
 fn api() -> (Router<AppState>, OpenApi) {
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .merge(cooper_identity::api::router())
+        .merge(cooper_administration::api::router())
         .split_for_parts()
 }
 
@@ -62,6 +66,10 @@ pub fn router(state: AppState, http: &HttpConfig) -> Router {
         .layer(axum::middleware::from_fn_with_state(
             state.identity.clone(),
             cooper_identity::api::authenticate,
+        ))
+        .layer(axum::middleware::from_fn_with_state(
+            state.administration.gate.clone(),
+            cooper_administration::api::module_gate,
         ));
     let app = Router::new()
         .merge(health::routes())

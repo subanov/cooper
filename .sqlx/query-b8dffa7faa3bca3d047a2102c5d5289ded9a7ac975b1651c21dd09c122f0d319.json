@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE background_jobs SET schedule_kind = 'off', interval_seconds = NULL, next_run_at = NULL WHERE name = 'counter'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "b8dffa7faa3bca3d047a2102c5d5289ded9a7ac975b1651c21dd09c122f0d319"
+}

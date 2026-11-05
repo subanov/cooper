@@ -32,7 +32,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Cost Centre** | A financial unit within a Company that Requesters and Assets can belong to. Has a code unique within the Company. | `CostCentre`, `cost_centres` | |
 | **Role** | A named set of Capabilities assigned to Analysts or Teams (RBAC). An Analyst's Capabilities are the union of their own Roles and their active Teams' Roles. | `Role`, `rbac_roles` | permission group |
 | **Capability** | A permission string in the form `<module>.<action>`, for example `tickets.update`. | `Capability` | right, privilege |
-| **Module** | A functional area of Cooper (Tickets, Assets, Changes, …). An administrator can turn each one on or off. | `Module` | app, plugin |
+| **Module** | A functional area of Cooper (fixed set): Tickets, Portal, Problems, Changes, Tasks, Assets, CMDB, Knowledge, Service Status, Morning Checks, Contracts, Forms, Calendar, Workflow, Reporting. An administrator can turn each one on or off, except Tickets. | `Module`, `modules` | app, plugin |
 | **Auth Provider** | An external identity source: `oidc`, `ldap` or `carddav`. | `AuthProvider` | |
 | **Directory Sync** | A scheduled import of Requesters and groups from an Auth Provider. Run status (fixed): `running`, `ok`, `stopped`, `failed`. | `DirectorySyncRun` | |
 | **Session** | A signed-in browser session of an Analyst: an `HttpOnly` cookie holding a random token (stored only as a hash) plus a CSRF token for unsafe requests. Expires when idle and after an absolute lifetime (ADR-0011). | `Session`, `analyst_sessions` | login (as a noun) |
@@ -41,7 +41,8 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Actor** | Whoever performed an action: an Analyst, a Requester, an API Key or **Automation** (system). Recorded in every audit entry. | `Actor` | user (ambiguous) |
 | **Sensitivity** | Confidentiality of a ticket or department (fixed): `normal`, `confidential`. Confidential items are visible only to authorised Analysts. | `Sensitivity` (kernel) | privacy level |
 | **Company Access** | Which Companies an Analyst or Team may see: all Companies, specific Companies, or none. An Analyst's Tenant Scope is the union of their own and their active Teams' access. | `CompanyAccess`, `company_access_grants` | tenant membership |
-| **System Setting** | A key/value configuration entry. | `SystemSetting` | |
+| **System Setting** | A typed configuration value (bool, integer, text or choice) declared by a context with a default; Administrators change it. | `SettingDefinition`, `Setting`, `system_settings` | option, config key |
+| **System Log** | Warnings and errors from cooper-server and cooper-worker, stored for Administrators to read in Cooper. | `system_log_entries` | error log |
 | **Audit** | An append-only record of who changed what and when: Actor, timestamp, field, old value, new value. Every aggregate has an audit trail (ticket audit, change audit, …), stored in one platform table keyed by aggregate type and ID (ADR-0009). | `AuditRecord`, `audit_entries` | history log |
 | **Tenant Scope** | The set of Companies a request or job may see: specific Companies, or all. Every tenant query runs inside one; the database enforces it with Row-Level Security (ADR-0004). | `TenantScope` | tenant context, org filter |
 | **Domain Event** | A past-tense fact recorded by an aggregate (`TicketCreated`, `ChangeApproved`), with a stable dotted type (`ticket.created`). The way contexts react to each other. | `DomainEvent`, `EventEnvelope` | message, notification (Notification is the in-app bell) |
