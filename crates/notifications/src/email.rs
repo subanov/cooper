@@ -292,7 +292,8 @@ impl Job for EmailSender {
     }
 }
 
-/// Queues the email of a `ticket.reply_sent` event (FR-TKT-021).
+/// Queues the email of a `ticket.reply_sent` (FR-TKT-021) or
+/// `ticket.automatic_email_sent` (FR-EML-009) event.
 pub struct ReplyMailer {
     /// The queue.
     pub outbox: EmailOutbox,
@@ -305,7 +306,10 @@ impl EventHandler for ReplyMailer {
     }
 
     fn handles(&self, event_type: &str) -> bool {
-        event_type == "ticket.reply_sent"
+        matches!(
+            event_type,
+            "ticket.reply_sent" | "ticket.automatic_email_sent"
+        )
     }
 
     async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {

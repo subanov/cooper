@@ -140,7 +140,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-EML-006 | After import, the mailbox message is deleted, moved or marked read (configurable). | M | P1 |
 | FR-EML-007 | Attachments and inline images are stored. Text is extracted asynchronously for search, with extraction status recorded. | S | P2 |
 | FR-EML-008 | Every outbound send attempt is logged (success or failure, error). Failed sends are retried. | M | P1 |
-| FR-EML-009 | **Email Templates** send automated emails on events (ticket created, assigned, replied, closed), matched by recipient address or domain. | S | P1 |
+| FR-EML-009 | **Email Templates** send automated emails on events (ticket created, assigned, replied, closed), matched by recipient address or domain. Deviation from FreeITSM: only the most specific template is sent, and never twice for one event (ADR-0019). | S | P1 |
 | FR-EML-010 | Mailbox health (last poll, last error) is visible to Administrators and raises a notification on failure. | S | P1 |
 | FR-EML-011 | Loop protection: auto-replies, bounces and Cooper's own outbound mail do not create tickets. Cooper also skips duplicates by Message-ID, so a message read twice never creates two tickets (ADR-0018). | M | P1 |
 | FR-EML-012 | OAuth tokens and mailbox passwords are encrypted at rest. Deviation from FreeITSM: keys are versioned and rotatable (ADR-0013). | M | P1 |

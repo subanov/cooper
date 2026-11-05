@@ -103,7 +103,7 @@ pub struct ReplyDraft {
     pub in_reply_to: Option<String>,
 }
 
-fn domain_of(from: &str) -> &str {
+pub(super) fn domain_of(from: &str) -> &str {
     let addr = from
         .rsplit('<')
         .next()
@@ -115,7 +115,7 @@ fn domain_of(from: &str) -> &str {
         .unwrap_or("localhost")
 }
 
-fn valid_address(a: &str) -> bool {
+pub(super) fn valid_address(a: &str) -> bool {
     let a = a.trim();
     a.len() <= 254
         && a.split_once('@')
@@ -217,6 +217,17 @@ pub struct Placeholders {
     pub analyst_name: String,
 }
 
+impl Placeholders {
+    /// `text` with every placeholder replaced by its value.
+    #[must_use]
+    pub fn fill(&self, text: &str) -> String {
+        text.replace("{requester_name}", &self.requester_name)
+            .replace("{ticket_number}", &self.ticket_number)
+            .replace("{ticket_subject}", &self.ticket_subject)
+            .replace("{analyst_name}", &self.analyst_name)
+    }
+}
+
 /// A canned reply (FR-TKT-022).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReplyTemplate {
@@ -247,7 +258,13 @@ fn check_template(name: &str, body: &str) -> Result<(String, String), TicketErro
             "must be 1 to 20000 characters",
         ));
     }
-    let mut rest = body;
+    check_placeholders("body", body)?;
+    Ok((name.to_owned(), body.to_owned()))
+}
+
+/// Rejects `{unknown_placeholder}` tokens in a template text.
+pub(super) fn check_placeholders(field: &'static str, text: &str) -> Result<(), TicketError> {
+    let mut rest = text;
     while let Some(start) = rest.find('{') {
         let Some(end) = rest[start..].find('}') else {
             break;
@@ -259,7 +276,7 @@ fn check_template(name: &str, body: &str) -> Result<(String, String), TicketErro
             && !PLACEHOLDERS.contains(&token)
         {
             return Err(TicketError::invalid(
-                "body",
+                field,
                 format!(
                     "unknown placeholder {token}; use {}",
                     PLACEHOLDERS.join(", ")
@@ -268,7 +285,7 @@ fn check_template(name: &str, body: &str) -> Result<(String, String), TicketErro
         }
         rest = &rest[start + end + 1..];
     }
-    Ok((name.to_owned(), body.to_owned()))
+    Ok(())
 }
 
 impl ReplyTemplate {
@@ -332,11 +349,7 @@ impl ReplyTemplate {
     /// The body with placeholders filled in.
     #[must_use]
     pub fn render(&self, values: &Placeholders) -> String {
-        self.body
-            .replace("{requester_name}", &values.requester_name)
-            .replace("{ticket_number}", &values.ticket_number)
-            .replace("{ticket_subject}", &values.ticket_subject)
-            .replace("{analyst_name}", &values.analyst_name)
+        values.fill(&self.body)
     }
 
     /// ID.

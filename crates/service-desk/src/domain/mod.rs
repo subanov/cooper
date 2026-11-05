@@ -1,6 +1,7 @@
 //! Service desk domain. Pure Rust: no I/O.
 
 mod email;
+mod email_template;
 mod events;
 mod lookups;
 mod mailbox;
@@ -13,10 +14,11 @@ pub use email::{
     Direction, PLACEHOLDERS, Placeholders, ReplyDraft, ReplyTemplate, TicketEmail, parse_sdref,
     sdref_subject,
 };
+pub use email_template::{EmailTemplate, EmailTemplateEvent, EmailTemplateInput, select_template};
 pub use events::{
-    MailboxPollFailed, ReplyEmail, SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed,
-    TicketCreated, TicketEmailReceived, TicketNoteAdded, TicketPriorityChanged, TicketReopened,
-    TicketReplySent, TicketStatusChanged, mentions,
+    MailboxPollFailed, ReplyEmail, SlaBreached, SlaWarningRaised, TicketAssigned,
+    TicketAutomaticEmailSent, TicketClosed, TicketCreated, TicketEmailReceived, TicketNoteAdded,
+    TicketPriorityChanged, TicketReopened, TicketReplySent, TicketStatusChanged, mentions,
 };
 pub use lookups::{Category, CategoryInput, Lookup, LookupFlags, LookupKind, MAX_CATEGORY_DEPTH};
 pub use mailbox::{

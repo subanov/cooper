@@ -955,6 +955,97 @@ impl From<crate::domain::ReplyTemplate> for ReplyTemplateDto {
     }
 }
 
+/// The ticket event an Email Template is sent on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum EmailTemplateEventDto {
+    /// A ticket was created (to the Requester).
+    TicketCreated,
+    /// A ticket was assigned (to the new Assignee).
+    TicketAssigned,
+    /// The Requester replied by email (to the Requester).
+    TicketReplied,
+    /// A ticket was closed (to the Requester).
+    TicketClosed,
+}
+
+impl From<crate::domain::EmailTemplateEvent> for EmailTemplateEventDto {
+    fn from(e: crate::domain::EmailTemplateEvent) -> Self {
+        use crate::domain::EmailTemplateEvent as E;
+        match e {
+            E::TicketCreated => Self::TicketCreated,
+            E::TicketAssigned => Self::TicketAssigned,
+            E::TicketReplied => Self::TicketReplied,
+            E::TicketClosed => Self::TicketClosed,
+        }
+    }
+}
+
+impl From<EmailTemplateEventDto> for crate::domain::EmailTemplateEvent {
+    fn from(e: EmailTemplateEventDto) -> Self {
+        match e {
+            EmailTemplateEventDto::TicketCreated => Self::TicketCreated,
+            EmailTemplateEventDto::TicketAssigned => Self::TicketAssigned,
+            EmailTemplateEventDto::TicketReplied => Self::TicketReplied,
+            EmailTemplateEventDto::TicketClosed => Self::TicketClosed,
+        }
+    }
+}
+
+/// An Email Template (FR-EML-009).
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct EmailTemplateDto {
+    /// ID (ignored in requests).
+    #[serde(default)]
+    pub id: Option<Uuid>,
+    /// Name.
+    pub name: String,
+    /// Event it is sent on: `ticket_created` and `ticket_closed` (to the Requester),
+    /// `ticket_assigned` (to the new Assignee) or `ticket_replied` (an acknowledgement
+    /// when the Requester emails an update).
+    pub event: EmailTemplateEventDto,
+    /// Recipient address or domain this template is for; empty for everyone else. The
+    /// most specific template wins: address, then domain, then none.
+    #[serde(default)]
+    pub match_pattern: Option<String>,
+    /// Subject with placeholders; the SDREF tag is added.
+    pub subject: String,
+    /// Body with placeholders: `{requester_name}`, `{ticket_number}`, `{ticket_subject}`,
+    /// `{analyst_name}` (the Assignee).
+    pub body: String,
+    /// Active flag.
+    #[serde(default = "yes")]
+    pub is_active: bool,
+}
+
+impl From<crate::domain::EmailTemplate> for EmailTemplateDto {
+    fn from(t: crate::domain::EmailTemplate) -> Self {
+        let i = t.input().clone();
+        Self {
+            id: Some(t.id()),
+            name: i.name,
+            event: i.event.into(),
+            match_pattern: i.match_pattern,
+            subject: i.subject,
+            body: i.body,
+            is_active: i.is_active,
+        }
+    }
+}
+
+impl From<EmailTemplateDto> for crate::domain::EmailTemplateInput {
+    fn from(d: EmailTemplateDto) -> Self {
+        Self {
+            name: d.name,
+            event: d.event.into(),
+            match_pattern: d.match_pattern,
+            subject: d.subject,
+            body: d.body,
+            is_active: d.is_active,
+        }
+    }
+}
+
 /// A rendered Reply Template.
 #[derive(Debug, Serialize, ToSchema)]
 pub struct RenderedTemplateDto {

@@ -1,6 +1,7 @@
 //! Service desk use cases.
 
 mod content;
+mod email_templates;
 mod intake;
 mod reference;
 mod sla;

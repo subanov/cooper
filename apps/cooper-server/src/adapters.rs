@@ -174,6 +174,8 @@ impl Directory for IdentityDirectory {
                 cooper_service_desk::domain::AnalystProfile {
                     name: a.full_name().to_string(),
                     signature: a.signature().to_owned(),
+                    email: a.email().to_string(),
+                    is_active: a.is_active(),
                 }
             }),
         )

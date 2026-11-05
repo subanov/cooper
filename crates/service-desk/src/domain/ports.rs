@@ -369,6 +369,16 @@ pub trait ContentRepository: Send + Sync {
     ) -> Result<Option<TicketId>, RepoError>;
     /// Whether an inbound email with this `Message-ID` was already imported.
     async fn inbound_exists(&self, message_id: &str) -> Result<bool, RepoError>;
+    /// Whether an outbound email with this `Message-ID` was already recorded.
+    async fn outbound_exists(&self, message_id: &str) -> Result<bool, RepoError>;
+    /// Every Email Template.
+    async fn email_templates(&self) -> Result<Vec<super::EmailTemplate>, RepoError>;
+    /// Stores an Email Template.
+    async fn save_email_template(
+        &self,
+        template: &super::EmailTemplate,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
     /// Every Reply Template.
     async fn templates(&self) -> Result<Vec<super::ReplyTemplate>, RepoError>;
     /// Stores a Reply Template.
@@ -407,6 +417,10 @@ pub struct AnalystProfile {
     pub name: String,
     /// Email Signature.
     pub signature: String,
+    /// Email address.
+    pub email: String,
+    /// Whether the Analyst can sign in.
+    pub is_active: bool,
 }
 
 /// Mailboxes, their credentials and the Rejected Email log.

@@ -393,3 +393,174 @@ async fn password_reset_by_emailed_one_time_token(pool: PgPool) {
     );
     anon.sign_in("admin", "a brand new password").await;
 }
+
+async fn key_id(admin: &Client, path: &str, key: &str) -> String {
+    admin
+        .get(&format!("/api/v1/{path}"))
+        .await
+        .body
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["key"] == key)
+        .unwrap()["id"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
+/// FR-EML-009.
+#[sqlx::test(migrations = "../../migrations")]
+async fn email_templates_are_sent_on_ticket_events_by_best_match(pool: PgPool) {
+    let (_anon, admin) = setup(&pool).await;
+    let template = |name: &str, event: &str, pattern: Value, subject: &str, body: &str| json!({ "name": name, "event": event, "match_pattern": pattern, "subject": subject, "body": body });
+    let bad = admin
+        .post(
+            "/api/v1/email-templates",
+            template("Bad", "ticket_created", Value::Null, "Hi {nobody}", "x"),
+        )
+        .await;
+    assert_eq!(
+        bad.status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "{:?}",
+        bad.body
+    );
+    for t in [
+        template(
+            "Created",
+            "ticket_created",
+            Value::Null,
+            "We received: {ticket_subject}",
+            "Hi {requester_name}, your ticket is {ticket_number}.",
+        ),
+        template(
+            "Created Other",
+            "ticket_created",
+            json!("other.example"),
+            "Other",
+            "Other",
+        ),
+        template(
+            "Assigned",
+            "ticket_assigned",
+            Value::Null,
+            "Assigned to you",
+            "{analyst_name}: {ticket_subject} for {requester_name}",
+        ),
+        template(
+            "Closed Sam",
+            "ticket_closed",
+            json!("SAM@default.example"),
+            "Closed for Sam",
+            "Bye {requester_name}",
+        ),
+        template(
+            "Closed",
+            "ticket_closed",
+            json!("default.example"),
+            "Closed",
+            "Generic",
+        ),
+    ] {
+        let r = admin.post("/api/v1/email-templates", t).await;
+        assert_eq!(r.status, StatusCode::CREATED, "{:?}", r.body);
+    }
+    let listed = admin.get("/api/v1/email-templates").await.body;
+    assert_eq!(listed.as_array().unwrap().len(), 5);
+    assert!(
+        listed
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|t| t["match_pattern"] == "sam@default.example")
+    );
+
+    let dee = admin.post("/api/v1/analysts", json!({ "username": "dee", "email": "dee@default.example", "full_name": "Dee Lee", "password": "analyst password 1" })).await;
+    assert_eq!(dee.status, StatusCode::CREATED, "{:?}", dee.body);
+    let company: String = sqlx::query_scalar("SELECT id::text FROM tenants LIMIT 1")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    let r = admin.post("/api/v1/requesters", json!({ "company_id": company, "full_name": "Sam Smith", "email": "sam@default.example" })).await.body;
+    let t = admin
+        .post(
+            "/api/v1/tickets",
+            json!({ "company_id": company, "subject": "VPN drops", "requester_id": r["id"], "analyst_id": dee.body["id"] }),
+        )
+        .await
+        .body;
+    let id = t["id"].as_str().unwrap();
+    let number = t["number"].as_str().unwrap();
+    dispatch(&pool).await;
+    dispatch(&pool).await;
+
+    let sent = || async {
+        sqlx::query_as::<_, (Vec<String>, String, String)>(
+            "SELECT to_addresses, subject, text_body FROM outbound_emails WHERE kind = 'email_template' ORDER BY created_at",
+        )
+        .fetch_all(&pool)
+        .await
+        .unwrap()
+    };
+    let emails = sent().await;
+    assert_eq!(emails.len(), 2, "{emails:?}");
+    let ack = emails
+        .iter()
+        .find(|e| e.0 == ["sam@default.example"])
+        .unwrap();
+    assert_eq!(ack.1, format!("[SDREF:{number}] We received: VPN drops"));
+    assert_eq!(ack.2, format!("Hi Sam Smith, your ticket is {number}."));
+    let assigned = emails
+        .iter()
+        .find(|e| e.0 == ["dee@default.example"])
+        .unwrap();
+    assert_eq!(assigned.2, "Dee Lee: VPN drops for Sam Smith");
+
+    // Redelivery of the same event sends nothing new.
+    let created_event: uuid::Uuid = sqlx::query_scalar(
+        "SELECT id FROM outbox_events WHERE event_type = 'ticket.created' AND aggregate_id = $1::uuid",
+    )
+    .bind(id)
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    let state =
+        AppState::with_settings(pool.clone(), Arc::new(SystemClock), common::test_settings())
+            .unwrap();
+    let again = state
+        .service_desk
+        .service
+        .send_email_template(
+            cooper_service_desk::domain::EmailTemplateEvent::TicketCreated,
+            cooper_kernel::TicketId::from_uuid(uuid::Uuid::parse_str(id).unwrap()),
+            created_event,
+            cooper_kernel::Actor::Automation,
+            None,
+        )
+        .await
+        .unwrap();
+    assert!(again.is_none());
+
+    // The most specific Closed template wins; the email is on the ticket's timeline.
+    let closed = key_id(&admin, "ticket-statuses", "closed").await;
+    let fixed = key_id(&admin, "resolution-codes", "fixed_remotely").await;
+    let c = admin
+        .post(
+            &format!("/api/v1/tickets/{id}/status"),
+            json!({ "status_id": closed, "resolution_code_id": fixed }),
+        )
+        .await;
+    assert_eq!(c.status, StatusCode::OK, "{:?}", c.body);
+    dispatch(&pool).await;
+    dispatch(&pool).await;
+    let emails = sent().await;
+    assert_eq!(emails.len(), 3, "{emails:?}");
+    assert_eq!(emails[2].1, format!("[SDREF:{number}] Closed for Sam"));
+    assert_eq!(emails[2].2, "Bye Sam Smith");
+    let timeline = admin
+        .get(&format!("/api/v1/tickets/{id}/emails"))
+        .await
+        .body;
+    assert_eq!(timeline.as_array().unwrap().len(), 3);
+}
