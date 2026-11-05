@@ -404,5 +404,8 @@ Resolved questions stay listed with their answer.
    FreeITSM ships no seeds for Asset Types/Statuses or Contract/Supplier lookups.
 2. ~~Migration path from FreeITSM~~ **Resolved:** yes, as a one-way importer
    (FR-SYS-007, [ADR-0008](adr/0008-freeitsm-database-import.md)).
-3. ~~UI technology~~ **Resolved:** server-rendered with askama + htmx
-   ([ADR-0003](adr/0003-server-rendered-ui-with-askama-and-htmx.md)).
+3. ~~UI technology~~ **Resolved:** a TypeScript React SPA served by `cooper-server`,
+   talking only to `/api/v1`
+   ([ADR-0010](adr/0010-typescript-react-spa-for-analyst-console-and-portal.md), which
+   supersedes [ADR-0003](adr/0003-server-rendered-ui-with-askama-and-htmx.md)). The public
+   status page stays server-rendered.
