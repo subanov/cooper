@@ -14,7 +14,7 @@ use http::{HeaderMap, HeaderValue, Method, StatusCode, header};
 use utoipa_axum::router::OpenApiRouter;
 
 use crate::application::{AppError, IdentityService, SignedIn};
-use crate::domain::{IdentityError, Session, SessionToken};
+use crate::domain::{IdentityError, PlainApiKey, Session, SessionToken};
 
 /// Name of the session cookie.
 pub const SESSION_COOKIE: &str = "cooper_session";
@@ -29,11 +29,20 @@ pub struct IdentityApi {
     /// Whether the session cookie gets the `Secure` attribute. Only disable for local
     /// development over plain HTTP.
     pub secure_cookies: bool,
+    /// Reverse proxies whose `X-Forwarded-For` header is believed (IP bans).
+    pub trusted_proxies: std::sync::Arc<Vec<cooper_http::client_ip::IpNetwork>>,
 }
+
+/// Name of the trusted-device cookie (two-factor sign-in).
+pub const TRUSTED_DEVICE_COOKIE: &str = "cooper_trusted_device";
 
 /// The session behind a cookie-authenticated request, stored in request extensions.
 #[derive(Debug, Clone)]
 pub struct CurrentSession(pub Session);
+
+/// Whether the session's Analyst still has to set up required two-factor sign-in.
+#[derive(Debug, Clone, Copy)]
+pub struct TotpEnrollmentRequired(pub bool);
 
 /// The identity routes, to be nested under `/api/v1`.
 pub fn router<S>() -> OpenApiRouter<S>
@@ -44,32 +53,79 @@ where
     handlers::router()
 }
 
-/// Authentication middleware for `/api/v1`. Resolves the session cookie into a
-/// [`cooper_kernel::Principal`] and enforces the CSRF token on unsafe methods.
-/// Requests without a valid session continue unauthenticated; handlers that need a
+/// Authentication middleware for `/api/v1`.
+///
+/// - `Authorization: Bearer cpr_…` authenticates an API key (no cookies, no CSRF) and
+///   counts the request against its rate limit.
+/// - Otherwise the session cookie is resolved and the CSRF token is enforced on unsafe
+///   methods. While two-factor enrollment is required, only the session endpoints work.
+///
+/// Requests without valid credentials continue unauthenticated; handlers that need a
 /// principal answer `401` through [`cooper_http::Authenticated`].
 pub async fn authenticate(
     State(api): State<IdentityApi>,
     mut request: Request,
     next: Next,
 ) -> Response {
+    if let Some(key) = bearer_key(request.headers()) {
+        return match api.service.authenticate_api_key(&key).await {
+            Ok(principal) => {
+                request.extensions_mut().insert(principal);
+                next.run(request).await
+            }
+            Err(err) => ApiError(err).into_response(),
+        };
+    }
     let Some(token) = session_cookie(request.headers()) else {
         return next.run(request).await;
     };
     match api.service.authenticate(&token).await {
         Ok(SignedIn {
-            principal, session, ..
+            principal,
+            session,
+            totp_enrollment_required,
+            ..
         }) => {
             if is_unsafe(request.method()) && !csrf_ok(request.headers(), &session) {
                 return csrf_problem().into_response();
             }
+            if totp_enrollment_required && !enrollment_allowed(request.uri().path()) {
+                return enrollment_problem().into_response();
+            }
             request.extensions_mut().insert(principal);
             request.extensions_mut().insert(CurrentSession(session));
+            request
+                .extensions_mut()
+                .insert(TotpEnrollmentRequired(totp_enrollment_required));
             next.run(request).await
         }
         Err(AppError::Unauthenticated) => next.run(request).await,
         Err(err) => ApiError(err).into_response(),
     }
+}
+
+/// Paths usable before a required two-factor enrollment is done.
+fn enrollment_allowed(path: &str) -> bool {
+    let path = path.strip_prefix("/api/v1").unwrap_or(path);
+    path == "/session" || path.starts_with("/session/")
+}
+
+fn enrollment_problem() -> Problem {
+    Problem::new(StatusCode::FORBIDDEN)
+        .with_type(
+            "https://cooper.dev/problems/totp-enrollment-required",
+            "Two-factor sign-in must be set up",
+        )
+        .with_detail("Set up two-factor sign-in under /api/v1/session/totp before continuing.")
+}
+
+/// Reads an API key from `Authorization: Bearer`.
+fn bearer_key(headers: &HeaderMap) -> Option<PlainApiKey> {
+    let value = headers.get(header::AUTHORIZATION)?.to_str().ok()?;
+    let (scheme, key) = value.split_once(' ')?;
+    scheme
+        .eq_ignore_ascii_case("bearer")
+        .then(|| PlainApiKey::from_client(key.trim().to_owned()))
 }
 
 fn is_unsafe(method: &Method) -> bool {
@@ -96,13 +152,18 @@ fn csrf_problem() -> Problem {
 
 /// Reads the session token from the `Cookie` header.
 fn session_cookie(headers: &HeaderMap) -> Option<SessionToken> {
+    cookie(headers, SESSION_COOKIE)
+}
+
+/// Reads a cookie's value as a token.
+pub(crate) fn cookie(headers: &HeaderMap, name: &str) -> Option<SessionToken> {
     headers
         .get_all(header::COOKIE)
         .iter()
         .filter_map(|v| v.to_str().ok())
         .flat_map(|v| v.split(';'))
         .filter_map(|pair| pair.trim().split_once('='))
-        .find(|(name, value)| *name == SESSION_COOKIE && !value.is_empty())
+        .find(|(n, value)| *n == name && !value.is_empty())
         .map(|(_, value)| SessionToken::new(value.to_owned()))
 }
 
@@ -115,6 +176,18 @@ fn set_session_cookie(
     let secure = if secure { "; Secure" } else { "" };
     HeaderValue::from_str(&format!(
         "{SESSION_COOKIE}={}; Path=/; HttpOnly; SameSite=Lax; Max-Age={max_age_secs}{secure}",
+        token.expose()
+    ))
+    .ok()
+}
+
+/// `Set-Cookie` value for a remembered device: 30 days, sent only to the session
+/// endpoints.
+fn set_trusted_device_cookie(token: &SessionToken, secure: bool) -> Option<HeaderValue> {
+    let secure = if secure { "; Secure" } else { "" };
+    let max_age = crate::domain::TRUSTED_DEVICE_DAYS * 24 * 3600;
+    HeaderValue::from_str(&format!(
+        "{TRUSTED_DEVICE_COOKIE}={}; Path=/api/v1/session; HttpOnly; SameSite=Strict; Max-Age={max_age}{secure}",
         token.expose()
     ))
     .ok()
@@ -148,6 +221,14 @@ impl From<IdentityError> for ApiError {
 
 const PROBLEMS: &str = "https://cooper.dev/problems/";
 
+fn too_many(problem: Problem, retry_after_secs: u64) -> Response {
+    let mut response = problem.into_response();
+    if let Ok(value) = HeaderValue::from_str(&retry_after_secs.to_string()) {
+        response.headers_mut().insert(header::RETRY_AFTER, value);
+    }
+    response
+}
+
 fn typed(status: StatusCode, slug: &str, title: &str, detail: String) -> Problem {
     Problem::new(status)
         .with_type(format!("{PROBLEMS}{slug}"), title)
@@ -172,8 +253,15 @@ impl IntoResponse for ApiError {
                 detail,
             )
             .with_extension("field", field),
+            AppError::Rule(IdentityError::InvalidTotpCode) => typed(
+                StatusCode::UNAUTHORIZED,
+                "totp-invalid",
+                "Two-factor code rejected",
+                detail,
+            ),
             AppError::Rule(
                 IdentityError::LastAdministrator
+                | IdentityError::TotpRequiredByPolicy
                 | IdentityError::SelfLockout
                 | IdentityError::DefaultCompanyRequired
                 | IdentityError::InvalidState(_),
@@ -199,6 +287,35 @@ impl IntoResponse for ApiError {
                 detail,
             ),
             AppError::Unauthenticated => unauthenticated(),
+            AppError::TotpRequired => typed(
+                StatusCode::UNAUTHORIZED,
+                "totp-required",
+                "Two-factor code required",
+                detail,
+            ),
+            AppError::TooManyAttempts { retry_after } => {
+                let secs = (retry_after - chrono::Utc::now()).num_seconds().max(1);
+                return too_many(
+                    typed(
+                        StatusCode::TOO_MANY_REQUESTS,
+                        "too-many-sign-in-attempts",
+                        "Too many failed sign-ins",
+                        detail,
+                    ),
+                    u64::try_from(secs).unwrap_or(1),
+                );
+            }
+            AppError::RateLimited { retry_after_secs } => {
+                return too_many(
+                    typed(
+                        StatusCode::TOO_MANY_REQUESTS,
+                        "rate-limited",
+                        "Rate limit exceeded",
+                        detail,
+                    ),
+                    u64::from(retry_after_secs),
+                );
+            }
             AppError::SetupCompleted => typed(
                 StatusCode::CONFLICT,
                 "setup-completed",

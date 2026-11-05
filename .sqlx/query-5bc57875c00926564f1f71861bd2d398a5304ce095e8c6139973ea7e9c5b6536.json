@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,\n                      a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,\n                      ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS \"roles!\",\n                      EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS \"all_companies!\",\n                      ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS \"companies!: Vec<Uuid>\"\n               FROM analysts a WHERE lower(a.username) = lower($1) OR lower(a.email) = lower($1) ORDER BY lower(a.username) = lower($1) DESC LIMIT 1",
+  "query": "SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,\n                      a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,\n                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,\n                      ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS \"roles!\",\n                      EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS \"all_companies!\",\n                      ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS \"companies!: Vec<Uuid>\"\n               FROM analysts a WHERE a.id = $1",
   "describe": {
     "columns": [
       {
@@ -115,18 +115,62 @@
       },
       {
         "ordinal": 10,
+        "name": "totp_secret_encrypted",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "analysts",
+            "name": "totp_secret_encrypted"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "totp_pending_encrypted",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "analysts",
+            "name": "totp_pending_encrypted"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "totp_enabled_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "analysts",
+            "name": "totp_enabled_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "totp_last_step",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "analysts",
+            "name": "totp_last_step"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
         "name": "roles!",
         "type_info": "UuidArray",
         "origin": "Expression"
       },
       {
-        "ordinal": 11,
+        "ordinal": 15,
         "name": "all_companies!",
         "type_info": "Bool",
         "origin": "Expression"
       },
       {
-        "ordinal": 12,
+        "ordinal": 16,
         "name": "companies!: Vec<Uuid>",
         "type_info": "UuidArray",
         "origin": "Expression"
@@ -134,7 +178,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -148,10 +192,14 @@
       true,
       false,
       false,
+      true,
+      true,
+      true,
+      true,
       null,
       null,
       null
     ]
   },
-  "hash": "95c164d9c0c115911f21bd86492260bce0621303c972af39a6c1ffcef19bf366"
+  "hash": "5bc57875c00926564f1f71861bd2d398a5304ce095e8c6139973ea7e9c5b6536"
 }

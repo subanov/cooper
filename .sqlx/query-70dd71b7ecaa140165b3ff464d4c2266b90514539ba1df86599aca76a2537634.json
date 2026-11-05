@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM analyst_trusted_devices WHERE analyst_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "70dd71b7ecaa140165b3ff464d4c2266b90514539ba1df86599aca76a2537634"
+}

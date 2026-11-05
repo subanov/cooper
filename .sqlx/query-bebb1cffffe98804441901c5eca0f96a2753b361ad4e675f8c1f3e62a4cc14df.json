@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE analysts SET totp_secret_encrypted = $2, totp_pending_encrypted = $3 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bebb1cffffe98804441901c5eca0f96a2753b361ad4e675f8c1f3e62a4cc14df"
+}

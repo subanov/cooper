@@ -65,7 +65,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 |---|---|---|---|
 | FR-IAM-001 | Administrators can create, update and deactivate **Analysts** (name, email, username, admin flag, active flag). | M | P1 |
 | FR-IAM-002 | Analysts sign in with username/email and password (Argon2id). Sessions expire after a configurable period. Deviation from FreeITSM: sessions have an idle timeout and an absolute lifetime, tokens are stored hashed, and every unsafe request needs a CSRF token (ADR-0011). | M | P1 |
-| FR-IAM-003 | Analysts can turn on **TOTP two-factor authentication**. Administrators can require it. Trusted devices can be remembered. | S | P1 |
+| FR-IAM-003 | Analysts can turn on **TOTP two-factor authentication**. Administrators can require it. Trusted devices can be remembered. Deviation from FreeITSM: a code is accepted only once (ADR-0013). | S | P1 |
 | FR-IAM-004 | Password reset by emailed one-time token. | M | P1 |
 | FR-IAM-005 | Repeated failed logins from an IP address cause a temporary ban. | S | P1 |
 | FR-IAM-006 | Administrators manage **Teams** and Team membership. | M | P1 |
@@ -143,7 +143,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-EML-009 | **Email Templates** send automated emails on events (ticket created, assigned, replied, closed), matched by recipient address or domain. | S | P1 |
 | FR-EML-010 | Mailbox health (last poll, last error) is visible to Administrators and raises a notification on failure. | S | P1 |
 | FR-EML-011 | Loop protection: auto-replies, bounces and Cooper's own outbound mail do not create tickets. | M | P1 |
-| FR-EML-012 | OAuth tokens and mailbox passwords are encrypted at rest. | M | P1 |
+| FR-EML-012 | OAuth tokens and mailbox passwords are encrypted at rest. Deviation from FreeITSM: keys are versioned and rotatable (ADR-0013). | M | P1 |
 
 ## 5. Other Channels (CHN)
 
@@ -377,7 +377,7 @@ All AI features are optional and use a provider and key that the Administrator c
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
 | FR-API-001 | Every UI capability is available through a versioned REST/JSON API (`/api/v1`). | M | P1 |
-| FR-API-002 | **API Keys**, which Administrators manage: prefix plus hash storage, the full key shown once, per-key Capabilities, allowed Companies, rate limit per minute, expiry, last-used timestamp. | M | P1 |
+| FR-API-002 | **API Keys**, which Administrators manage: prefix plus hash storage, the full key shown once, per-key Capabilities, allowed Companies, rate limit per minute, expiry, last-used timestamp. Deviation from FreeITSM: no plaintext key table (ADR-0013). | M | P1 |
 | FR-API-003 | The API is documented with OpenAPI. | S | P1 |
 | FR-API-004 | Errors use `application/problem+json`. | M | P1 |
 

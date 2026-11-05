@@ -3,6 +3,7 @@
 
 mod access;
 mod analyst;
+mod api_key;
 mod audit;
 mod company;
 mod cost_centre;
@@ -10,26 +11,34 @@ mod department;
 mod repository;
 mod requester;
 mod role;
+mod security;
 mod session;
 mod team;
+mod totp;
 mod values;
 
 pub use access::CompanyAccess;
-pub use analyst::{Analyst, NewAnalyst};
+pub use analyst::{Analyst, NewAnalyst, TotpState};
+pub use api_key::{ApiKey, ApiKeySettings, KEY_PREFIX, PlainApiKey};
 pub use audit::{Audited, audit_record};
 pub use company::Company;
 pub use cost_centre::{CostCentre, CostCentreId};
 pub use department::Department;
 pub use repository::{
-    AnalystRepository, Authorization, AuthorizationRepository, CompanyRepository,
+    AnalystRepository, ApiKeyRepository, Authorization, AuthorizationRepository, CompanyRepository,
     CostCentreRepository, DepartmentRepository, ListQuery, PasswordHasher, RepoError,
-    RequesterRepository, RoleRepository, SessionRepository, SetupRepository, TeamRepository,
-    TokenGenerator,
+    RequesterRepository, Revocations, RoleRepository, SessionRepository, SetupRepository,
+    TeamRepository, TokenGenerator,
 };
 pub use requester::{NewRequester, Requester};
 pub use role::{Role, RoleId};
+pub use security::{
+    SecurityPolicy, SecurityPolicyProvider, SignInThrottle, TRUSTED_DEVICE_DAYS, TrustedDevice,
+    TrustedDeviceId, TrustedDeviceRepository,
+};
 pub use session::{Session, SessionId, SessionPolicy, SessionToken};
 pub use team::Team;
+pub use totp::{STEP_SECONDS, TotpSecret};
 pub use values::{
     CostCentreCode, DomainName, EmailAddress, Name, Password, PasswordHash, TicketCode, Username,
 };
@@ -71,4 +80,10 @@ pub enum IdentityError {
     /// The record is already in the requested state.
     #[error("{0}")]
     InvalidState(&'static str),
+    /// A two-factor code is wrong or was already used.
+    #[error("the two-factor code is wrong or was already used")]
+    InvalidTotpCode,
+    /// Two-factor sign-in is required by policy and cannot be turned off.
+    #[error("two-factor sign-in is required for every Analyst")]
+    TotpRequiredByPolicy,
 }

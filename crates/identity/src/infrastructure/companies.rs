@@ -237,7 +237,7 @@ impl SetupRepository for PgIdentityStore {
             return Err(RepoError::Conflict("setup".into()));
         }
         insert_company(&mut tx, company).await?;
-        super::people::insert_analyst(&mut tx, admin).await?;
+        super::people::insert_analyst(&mut tx, &self.keyring, admin).await?;
         audit(&mut tx, company_audit).await?;
         audit(&mut tx, admin_audit).await?;
         tx.commit().await.map_err(db_err)

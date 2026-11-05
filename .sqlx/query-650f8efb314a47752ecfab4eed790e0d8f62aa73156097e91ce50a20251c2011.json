@@ -1,0 +1,183 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT k.id, k.name, k.prefix, k.key_hash, k.capabilities, k.all_companies,\n                      ARRAY(SELECT c.tenant_id FROM api_key_companies c WHERE c.api_key_id = k.id) AS \"companies!\",\n                      k.rate_limit_per_minute, k.expires_at, k.last_used_at, k.revoked_at, k.created_by,\n                      k.created_at, k.updated_at\n               FROM api_keys k\n               WHERE ($1 OR k.revoked_at IS NULL)\n                 AND ($2::text IS NULL OR lower(k.name) LIKE $2 OR k.prefix LIKE $2)\n                 AND ($3::text IS NULL OR (lower(k.name), k.id) > ($3, $4))\n               ORDER BY lower(k.name), k.id\n               LIMIT $5",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "prefix",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "prefix"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "key_hash",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "key_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "capabilities",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "capabilities"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "all_companies",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "all_companies"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "companies!",
+        "type_info": "UuidArray",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 7,
+        "name": "rate_limit_per_minute",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "rate_limit_per_minute"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "expires_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "last_used_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "last_used_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "revoked_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "revoked_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "created_by",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "created_by"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "api_keys",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Text",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "650f8efb314a47752ecfab4eed790e0d8f62aa73156097e91ce50a20251c2011"
+}

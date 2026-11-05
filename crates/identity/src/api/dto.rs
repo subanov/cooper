@@ -113,6 +113,28 @@ pub struct SignInRequest {
     pub login: String,
     /// Password.
     pub password: String,
+    /// Two-factor code from the authenticator app, when the Analyst uses two-factor
+    /// sign-in. Without it the response is `401` with type `totp-required`.
+    pub totp_code: Option<String>,
+    /// Remember this browser for 30 days, so it skips the two-factor code.
+    #[serde(default)]
+    pub remember_device: bool,
+}
+
+/// A started two-factor enrollment.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct TotpEnrollmentDto {
+    /// The secret in base32, for manual entry into an authenticator app.
+    pub secret: String,
+    /// `otpauth://` URI to show as a QR code.
+    pub otpauth_uri: String,
+}
+
+/// A two-factor code.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct TotpCodeRequest {
+    /// Six-digit code from the authenticator app.
+    pub code: String,
 }
 
 /// Own password change.
@@ -150,6 +172,9 @@ pub struct SessionDto {
     pub all_companies: bool,
     /// The Companies the Analyst sees, when not all.
     pub company_ids: Vec<Uuid>,
+    /// Two-factor sign-in is required but not set up: only `/session` endpoints work
+    /// until it is.
+    pub totp_enrollment_required: bool,
 }
 
 impl SessionDto {
@@ -170,6 +195,7 @@ impl SessionDto {
             capabilities: p.capabilities().iter().map(ToString::to_string).collect(),
             all_companies,
             company_ids,
+            totp_enrollment_required: signed_in.totp_enrollment_required,
         }
     }
 }
@@ -323,6 +349,8 @@ pub struct AnalystDto {
     pub is_active: bool,
     /// Whether a password is set.
     pub has_password: bool,
+    /// Whether two-factor sign-in is on.
+    pub totp_enabled: bool,
     /// When deactivated.
     pub deactivated_at: Option<DateTime<Utc>>,
     /// Roles assigned directly.
@@ -345,6 +373,7 @@ impl From<Analyst> for AnalystDto {
             is_admin: a.is_admin(),
             is_active: a.is_active(),
             has_password: a.password_hash().is_some(),
+            totp_enabled: a.totp_enabled(),
             deactivated_at: a.deactivated_at(),
             role_ids: a.roles().iter().map(|r| r.as_uuid()).collect(),
             company_access: a.company_access().into(),
@@ -728,6 +757,111 @@ impl TryFrom<CostCentreRequest> for CostCentreInput {
             code: crate::domain::CostCentreCode::try_from(r.code)?,
             name: name(r.name)?,
             is_active: r.is_active,
+        })
+    }
+}
+
+// ----- API Keys ------------------------------------------------------------------------
+
+/// An API key (without its secret).
+#[derive(Debug, Serialize, ToSchema)]
+pub struct ApiKeyDto {
+    /// ID.
+    pub id: Uuid,
+    /// Name.
+    pub name: String,
+    /// Public prefix, to recognise the key (`cpr_<prefix>_…`).
+    pub prefix: String,
+    /// Capabilities the key grants.
+    pub capabilities: Vec<String>,
+    /// Companies the key may access.
+    pub company_access: CompanyAccessDto,
+    /// Requests per minute.
+    pub rate_limit_per_minute: u32,
+    /// When it stops working.
+    pub expires_at: Option<DateTime<Utc>>,
+    /// Last authenticated request (to the minute).
+    pub last_used_at: Option<DateTime<Utc>>,
+    /// When it was revoked.
+    pub revoked_at: Option<DateTime<Utc>>,
+    /// Who created it.
+    pub created_by: Option<Uuid>,
+    /// Created.
+    pub created_at: DateTime<Utc>,
+    /// Last changed.
+    pub updated_at: DateTime<Utc>,
+}
+
+impl From<crate::domain::ApiKey> for ApiKeyDto {
+    fn from(k: crate::domain::ApiKey) -> Self {
+        let s = k.settings();
+        Self {
+            id: k.id().as_uuid(),
+            name: s.name.to_string(),
+            prefix: k.prefix().to_owned(),
+            capabilities: s.capabilities.iter().map(ToString::to_string).collect(),
+            company_access: (&s.company_access).into(),
+            rate_limit_per_minute: s.rate_limit_per_minute,
+            expires_at: s.expires_at,
+            last_used_at: k.last_used_at(),
+            revoked_at: k.revoked_at(),
+            created_by: k.created_by().map(|a| a.as_uuid()),
+            created_at: k.created_at(),
+            updated_at: k.updated_at(),
+        }
+    }
+}
+
+/// A newly created API key. `key` is shown only in this response.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct IssuedApiKeyDto {
+    /// The stored key.
+    pub api_key: ApiKeyDto,
+    /// The full key. Store it now: it cannot be retrieved again.
+    pub key: String,
+}
+
+/// Create or replace an API key.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct ApiKeyRequest {
+    /// Name.
+    pub name: String,
+    /// Capabilities.
+    #[serde(default)]
+    pub capabilities: Vec<String>,
+    /// Companies the key may access.
+    pub company_access: CompanyAccessDto,
+    /// Requests per minute (1 to 10000, default 60).
+    #[serde(default = "default_rate_limit")]
+    pub rate_limit_per_minute: u32,
+    /// When the key stops working.
+    pub expires_at: Option<DateTime<Utc>>,
+}
+
+const fn default_rate_limit() -> u32 {
+    60
+}
+
+impl TryFrom<ApiKeyRequest> for crate::application::ApiKeyInput {
+    type Error = AppError;
+    fn try_from(r: ApiKeyRequest) -> Result<Self, AppError> {
+        let capabilities = r
+            .capabilities
+            .into_iter()
+            .map(|c| {
+                c.parse()
+                    .map_err(|e: cooper_kernel::ParseCapabilityError| AppError::Invalid {
+                        field: "capabilities",
+                        reason: e.to_string(),
+                    })
+            })
+            .collect::<Result<_, _>>()?;
+        Ok(Self {
+            name: name(r.name)?,
+            capabilities,
+            company_access: r.company_access.into(),
+            rate_limit_per_minute: r.rate_limit_per_minute,
+            expires_at: r.expires_at,
         })
     }
 }

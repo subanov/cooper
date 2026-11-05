@@ -8,19 +8,23 @@ use axum::http::{HeaderMap, StatusCode, header};
 use axum::response::{IntoResponse, Response};
 use axum::{Extension, Json};
 use cooper_http::Authenticated;
-use cooper_kernel::{AnalystId, DepartmentId, RequesterId, TeamId, TenantId};
+use cooper_http::client_ip::client_ip;
+use cooper_kernel::{AnalystId, ApiKeyId, DepartmentId, RequesterId, TeamId, TenantId};
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
 use uuid::Uuid;
 
 use super::dto::{
-    AnalystDto, AnalystRequest, ChangePasswordRequest, CompanyAccessDto, CompanyDto,
-    CompanyRequest, CostCentreDto, CostCentreRequest, DepartmentDto, DepartmentRequest, ListParams,
-    MembersDto, PageDto, RequesterDto, RequesterRequest, RoleDto, RoleIdsDto, RoleRequest,
-    SessionDto, SetPasswordRequest, SetupRequest, SetupStatusDto, SignInRequest, TeamDto,
-    TeamRequest, domains,
+    AnalystDto, AnalystRequest, ApiKeyDto, ApiKeyRequest, ChangePasswordRequest, CompanyAccessDto,
+    CompanyDto, CompanyRequest, CostCentreDto, CostCentreRequest, DepartmentDto, DepartmentRequest,
+    IssuedApiKeyDto, ListParams, MembersDto, PageDto, RequesterDto, RequesterRequest, RoleDto,
+    RoleIdsDto, RoleRequest, SessionDto, SetPasswordRequest, SetupRequest, SetupStatusDto,
+    SignInRequest, TeamDto, TeamRequest, TotpCodeRequest, TotpEnrollmentDto, domains,
 };
-use super::{ApiError, CurrentSession, IdentityApi, clear_session_cookie, set_session_cookie};
+use super::{
+    ApiError, CurrentSession, IdentityApi, TRUSTED_DEVICE_COOKIE, TotpEnrollmentRequired,
+    clear_session_cookie, cookie, set_session_cookie, set_trusted_device_cookie,
+};
 use crate::application::{AppError, FirstRunSetup, SignIn};
 use crate::domain::{CostCentreId, EmailAddress, Name, Password, RoleId, TicketCode, Username};
 
@@ -35,6 +39,13 @@ where
         .routes(routes!(setup_status, complete_setup))
         .routes(routes!(current_session, sign_in, sign_out))
         .routes(routes!(change_own_password))
+        .routes(routes!(begin_totp_enrollment))
+        .routes(routes!(confirm_totp_enrollment))
+        .routes(routes!(disable_totp))
+        .routes(routes!(reset_analyst_totp))
+        .routes(routes!(list_api_keys, create_api_key))
+        .routes(routes!(get_api_key, update_api_key))
+        .routes(routes!(revoke_api_key))
         .routes(routes!(list_capabilities))
         .routes(routes!(list_companies, create_company))
         .routes(routes!(get_company, update_company))
@@ -116,6 +127,7 @@ async fn complete_setup(
 async fn current_session(
     State(api): State<IdentityApi>,
     session: Option<Extension<CurrentSession>>,
+    enrollment: Option<Extension<TotpEnrollmentRequired>>,
     Authenticated(principal): Authenticated,
 ) -> ApiResult<Json<SessionDto>> {
     let Some(Extension(CurrentSession(session))) = session else {
@@ -128,8 +140,10 @@ async fn current_session(
     let signed_in = crate::application::SignedIn {
         session,
         token: None,
+        trusted_device_token: None,
         analyst,
         principal,
+        totp_enrollment_required: enrollment.is_some_and(|Extension(TotpEnrollmentRequired(r))| r),
     };
     Ok(Json(SessionDto::new(&signed_in)))
 }
@@ -147,12 +161,16 @@ async fn sign_in(
         .get(header::USER_AGENT)
         .and_then(|v| v.to_str().ok())
         .map(|v| v.chars().take(500).collect());
+    let peer = connect.map(|Extension(ConnectInfo(addr))| addr.ip());
     let signed_in = api
         .service
         .sign_in(SignIn {
             login: body.login,
             password: body.password,
-            ip_address: connect.map(|Extension(ConnectInfo(addr))| addr.ip().to_string()),
+            totp_code: body.totp_code,
+            remember_device: body.remember_device,
+            trusted_device: cookie(&headers, TRUSTED_DEVICE_COOKIE),
+            ip_address: client_ip(peer, &headers, &api.trusted_proxies),
             user_agent,
         })
         .await?;
@@ -163,9 +181,54 @@ async fn sign_in(
         .as_ref()
         .and_then(|t| set_session_cookie(t, max_age, api.secure_cookies))
     {
-        response.headers_mut().insert(header::SET_COOKIE, cookie);
+        response.headers_mut().append(header::SET_COOKIE, cookie);
+    }
+    if let Some(device) = signed_in
+        .trusted_device_token
+        .as_ref()
+        .and_then(|t| set_trusted_device_cookie(t, api.secure_cookies))
+    {
+        response.headers_mut().append(header::SET_COOKIE, device);
     }
     Ok(response)
+}
+
+/// Starts two-factor enrollment: returns a new secret to add to an authenticator app.
+#[utoipa::path(post, path = "/session/totp/enrollment", tag = "Setup and session",
+    responses((status = 200, body = TotpEnrollmentDto), (status = 409, description = "Already on")))]
+async fn begin_totp_enrollment(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<TotpEnrollmentDto>> {
+    let e = api.service.begin_totp_enrollment(&p).await?;
+    Ok(Json(TotpEnrollmentDto {
+        secret: e.secret_base32,
+        otpauth_uri: e.provisioning_uri,
+    }))
+}
+
+/// Confirms enrollment with a code; two-factor sign-in is on afterwards.
+#[utoipa::path(post, path = "/session/totp/enrollment/confirm", tag = "Setup and session", request_body = TotpCodeRequest,
+    responses((status = 204, description = "Two-factor sign-in is on"), (status = 401, description = "Wrong code")))]
+async fn confirm_totp_enrollment(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<TotpCodeRequest>,
+) -> ApiResult<StatusCode> {
+    api.service.confirm_totp_enrollment(&p, &body.code).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Turns two-factor sign-in off (needs a current code; not allowed when required).
+#[utoipa::path(delete, path = "/session/totp", tag = "Setup and session", request_body = TotpCodeRequest,
+    responses((status = 204, description = "Two-factor sign-in is off")))]
+async fn disable_totp(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<TotpCodeRequest>,
+) -> ApiResult<StatusCode> {
+    api.service.disable_own_totp(&p, &body.code).await?;
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// Signs out and removes the session cookie.
@@ -866,6 +929,101 @@ async fn update_cost_centre(
     Ok(Json(
         api.service
             .update_cost_centre(&p, CostCentreId::from_uuid(id), body.try_into()?)
+            .await?
+            .into(),
+    ))
+}
+
+/// Resets an Analyst's two-factor sign-in (lost phone). Ends their sessions.
+/// Administrators only.
+#[utoipa::path(post, path = "/analysts/{id}/totp/reset", tag = "Analysts", params(("id" = Uuid, Path)),
+    responses((status = 200, body = AnalystDto)))]
+async fn reset_analyst_totp(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<AnalystDto>> {
+    Ok(Json(
+        api.service
+            .reset_analyst_totp(&p, AnalystId::from_uuid(id))
+            .await?
+            .into(),
+    ))
+}
+
+// ----- API Keys -------------------------------------------------------------------------
+
+/// Lists API keys (Administrators only).
+#[utoipa::path(get, path = "/api-keys", tag = "API Keys", params(ListParams),
+    responses((status = 200, body = PageDto<ApiKeyDto>)))]
+async fn list_api_keys(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Query(q): Query<ListParams>,
+) -> ApiResult<Json<PageDto<ApiKeyDto>>> {
+    let page = api.service.list_api_keys(&p, &q.try_into()?).await?;
+    Ok(Json(PageDto::from_page(page, ApiKeyDto::from)))
+}
+
+/// Creates an API key. The full key is in this response only.
+#[utoipa::path(post, path = "/api-keys", tag = "API Keys", request_body = ApiKeyRequest,
+    responses((status = 201, body = IssuedApiKeyDto)))]
+async fn create_api_key(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<ApiKeyRequest>,
+) -> ApiResult<Response> {
+    let issued = api.service.create_api_key(&p, body.try_into()?).await?;
+    Ok(created(IssuedApiKeyDto {
+        key: issued.plain.expose().to_owned(),
+        api_key: issued.key.into(),
+    }))
+}
+
+/// Loads an API key.
+#[utoipa::path(get, path = "/api-keys/{id}", tag = "API Keys", params(("id" = Uuid, Path)),
+    responses((status = 200, body = ApiKeyDto)))]
+async fn get_api_key(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<ApiKeyDto>> {
+    Ok(Json(
+        api.service
+            .get_api_key(&p, ApiKeyId::from_uuid(id))
+            .await?
+            .into(),
+    ))
+}
+
+/// Replaces an API key's settings.
+#[utoipa::path(put, path = "/api-keys/{id}", tag = "API Keys", params(("id" = Uuid, Path)), request_body = ApiKeyRequest,
+    responses((status = 200, body = ApiKeyDto)))]
+async fn update_api_key(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<ApiKeyRequest>,
+) -> ApiResult<Json<ApiKeyDto>> {
+    Ok(Json(
+        api.service
+            .update_api_key(&p, ApiKeyId::from_uuid(id), body.try_into()?)
+            .await?
+            .into(),
+    ))
+}
+
+/// Revokes an API key permanently.
+#[utoipa::path(post, path = "/api-keys/{id}/revoke", tag = "API Keys", params(("id" = Uuid, Path)),
+    responses((status = 200, body = ApiKeyDto)))]
+async fn revoke_api_key(
+    State(api): State<IdentityApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<ApiKeyDto>> {
+    Ok(Json(
+        api.service
+            .revoke_api_key(&p, ApiKeyId::from_uuid(id))
             .await?
             .into(),
     ))

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO api_key_companies (api_key_id, tenant_id) SELECT $1, t FROM UNNEST($2::uuid[]) AS t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "17ce43bb85f7b60cd13882152533b9d1c7493d010682ef5984cd23e0dddf7708"
+}

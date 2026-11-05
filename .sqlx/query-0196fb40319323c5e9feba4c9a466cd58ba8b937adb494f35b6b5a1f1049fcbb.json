@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM api_key_usage WHERE window_start < $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0196fb40319323c5e9feba4c9a466cd58ba8b937adb494f35b6b5a1f1049fcbb"
+}

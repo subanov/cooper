@@ -8,7 +8,21 @@ use serde_json::{Value, json};
 use uuid::Uuid;
 
 use super::audit::Audited;
+use super::totp::TotpSecret;
 use super::{CompanyAccess, EmailAddress, IdentityError, Name, PasswordHash, RoleId, Username};
+
+/// Two-factor sign-in state of an Analyst (FR-IAM-003).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct TotpState {
+    /// The confirmed secret; two-factor sign-in is on when set.
+    pub secret: Option<TotpSecret>,
+    /// A secret waiting for its first code during enrollment.
+    pub pending: Option<TotpSecret>,
+    /// When two-factor sign-in was turned on.
+    pub enabled_at: Option<DateTime<Utc>>,
+    /// The last accepted time step; codes up to it are rejected (replay protection).
+    pub last_step: Option<i64>,
+}
 
 /// Input for a new Analyst.
 #[derive(Debug, Clone)]
@@ -36,6 +50,7 @@ pub struct Analyst {
     deactivated_at: Option<DateTime<Utc>>,
     roles: BTreeSet<RoleId>,
     company_access: CompanyAccess,
+    totp: TotpState,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -55,6 +70,7 @@ impl Analyst {
             deactivated_at: None,
             roles: BTreeSet::new(),
             company_access: CompanyAccess::None,
+            totp: TotpState::default(),
             created_at: now,
             updated_at: now,
         }
@@ -74,6 +90,7 @@ impl Analyst {
         deactivated_at: Option<DateTime<Utc>>,
         roles: BTreeSet<RoleId>,
         company_access: CompanyAccess,
+        totp: TotpState,
         created_at: DateTime<Utc>,
         updated_at: DateTime<Utc>,
     ) -> Self {
@@ -88,6 +105,7 @@ impl Analyst {
             deactivated_at,
             roles,
             company_access,
+            totp,
             created_at,
             updated_at,
         }
@@ -162,6 +180,73 @@ impl Analyst {
         self.deactivated_at = None;
         self.updated_at = now;
         Ok(())
+    }
+
+    /// Starts (or restarts) two-factor enrollment with a new secret. Two-factor
+    /// sign-in is only on after [`Analyst::confirm_totp`].
+    pub fn begin_totp_enrollment(&mut self, secret: TotpSecret, now: DateTime<Utc>) {
+        self.totp.pending = Some(secret);
+        self.updated_at = now;
+    }
+
+    /// Confirms enrollment with a code from the authenticator app.
+    ///
+    /// # Errors
+    ///
+    /// [`IdentityError::InvalidState`] without a pending enrollment, or
+    /// [`IdentityError::InvalidTotpCode`].
+    pub fn confirm_totp(&mut self, code: &str, now: DateTime<Utc>) -> Result<(), IdentityError> {
+        let pending = self
+            .totp
+            .pending
+            .clone()
+            .ok_or(IdentityError::InvalidState(
+                "start two-factor enrollment first",
+            ))?;
+        let step = pending
+            .verify(code, now.timestamp(), None)
+            .ok_or(IdentityError::InvalidTotpCode)?;
+        self.totp = TotpState {
+            secret: Some(pending),
+            pending: None,
+            enabled_at: Some(now),
+            last_step: Some(step),
+        };
+        self.updated_at = now;
+        Ok(())
+    }
+
+    /// Checks a sign-in code and remembers its step so it cannot be used again.
+    /// Returns `false` when two-factor sign-in is off or the code is wrong or reused.
+    pub fn verify_totp(&mut self, code: &str, now: DateTime<Utc>) -> bool {
+        let Some(secret) = &self.totp.secret else {
+            return false;
+        };
+        match secret.verify(code, now.timestamp(), self.totp.last_step) {
+            Some(step) => {
+                self.totp.last_step = Some(step);
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Turns two-factor sign-in off and drops any pending enrollment.
+    pub fn disable_totp(&mut self, now: DateTime<Utc>) {
+        self.totp = TotpState::default();
+        self.updated_at = now;
+    }
+
+    /// Whether two-factor sign-in is on.
+    #[must_use]
+    pub const fn totp_enabled(&self) -> bool {
+        self.totp.secret.is_some()
+    }
+
+    /// The two-factor state, for storage.
+    #[must_use]
+    pub const fn totp(&self) -> &TotpState {
+        &self.totp
     }
 
     /// Replaces the Roles assigned directly to this Analyst.
@@ -265,6 +350,7 @@ impl Audited for Analyst {
             ("password_changed_at", json!(self.password_changed_at)),
             ("roles", json!(self.roles)),
             ("company_access", json!(self.company_access)),
+            ("totp_enabled_at", json!(self.totp.enabled_at)),
         ]
     }
 }

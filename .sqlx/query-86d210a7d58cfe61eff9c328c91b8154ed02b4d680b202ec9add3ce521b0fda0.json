@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO api_key_usage (api_key_id, window_start, requests) VALUES ($1, $2, 1)\n             ON CONFLICT (api_key_id, window_start) DO UPDATE SET requests = api_key_usage.requests + 1\n             RETURNING requests",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "requests",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "api_key_usage",
+            "name": "requests"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "86d210a7d58cfe61eff9c328c91b8154ed02b4d680b202ec9add3ce521b0fda0"
+}

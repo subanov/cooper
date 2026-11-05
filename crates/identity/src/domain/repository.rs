@@ -7,16 +7,17 @@
 use std::collections::BTreeSet;
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use cooper_kernel::{
-    AnalystId, AuditRecord, Capability, DepartmentId, Limit, RequesterId, TeamId, TenantId,
-    TenantScope,
+    AnalystId, ApiKeyId, AuditRecord, Capability, DepartmentId, Limit, RequesterId, TeamId,
+    TenantId, TenantScope,
 };
 use thiserror::Error;
 use uuid::Uuid;
 
 use super::{
-    Analyst, Company, CompanyAccess, CostCentre, CostCentreId, Department, Password, PasswordHash,
-    Requester, Role, RoleId, Session, Team,
+    Analyst, ApiKey, Company, CompanyAccess, CostCentre, CostCentreId, Department, Password,
+    PasswordHash, Requester, Role, RoleId, Session, Team,
 };
 
 /// A repository operation failed.
@@ -89,14 +90,36 @@ pub trait AnalystRepository: Send + Sync {
     async fn count_active_admins(&self) -> Result<i64, RepoError>;
     /// Inserts an Analyst.
     async fn insert(&self, analyst: &Analyst, audit: &AuditRecord) -> Result<(), RepoError>;
-    /// Updates an Analyst. With `revoke_sessions`, every open session of the Analyst is
-    /// revoked in the same transaction (deactivation, password change).
+    /// Updates an Analyst, revoking sessions and trusted devices in the same transaction
+    /// as requested (deactivation, password change, two-factor reset).
     async fn update(
         &self,
         analyst: &Analyst,
         audit: &AuditRecord,
-        revoke_sessions: bool,
+        revoke: Revocations,
     ) -> Result<(), RepoError>;
+}
+
+/// What to revoke together with an Analyst update.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Revocations {
+    /// End every open session.
+    pub sessions: bool,
+    /// Forget every trusted device.
+    pub trusted_devices: bool,
+}
+
+impl Revocations {
+    /// Revoke nothing.
+    pub const NONE: Self = Self {
+        sessions: false,
+        trusted_devices: false,
+    };
+    /// Revoke sessions and trusted devices.
+    pub const ALL: Self = Self {
+        sessions: true,
+        trusted_devices: true,
+    };
 }
 
 /// Browser sessions.
@@ -243,6 +266,24 @@ pub trait SetupRepository: Send + Sync {
         admin: &Analyst,
         admin_audit: &AuditRecord,
     ) -> Result<(), RepoError>;
+}
+
+/// API Keys (FR-API-002).
+#[async_trait]
+pub trait ApiKeyRepository: Send + Sync {
+    /// Loads a key.
+    async fn get(&self, id: ApiKeyId) -> Result<Option<ApiKey>, RepoError>;
+    /// Finds a key by its public prefix.
+    async fn find_by_prefix(&self, prefix: &str) -> Result<Option<ApiKey>, RepoError>;
+    /// Lists keys by name.
+    async fn list(&self, query: &ListQuery) -> Result<Vec<ApiKey>, RepoError>;
+    /// Inserts a key.
+    async fn insert(&self, key: &ApiKey, audit: &AuditRecord) -> Result<(), RepoError>;
+    /// Updates a key.
+    async fn update(&self, key: &ApiKey, audit: &AuditRecord) -> Result<(), RepoError>;
+    /// Counts a request in the current minute and returns the count so far; also
+    /// refreshes `last_used_at` at most once a minute.
+    async fn record_use(&self, id: ApiKeyId, now: DateTime<Utc>) -> Result<u32, RepoError>;
 }
 
 /// Password hashing (Argon2id in production).

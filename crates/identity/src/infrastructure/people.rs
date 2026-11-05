@@ -8,11 +8,13 @@ use cooper_kernel::{AnalystId, AuditRecord, Capability, DepartmentId, TeamId, Te
 use cooper_platform::db::Tx;
 use uuid::Uuid;
 
+use cooper_platform::crypto::Keyring;
+
 use super::{PgIdentityStore, audit, db_err, like_pattern, stored};
 use crate::domain::{
     Analyst, AnalystRepository, Authorization, AuthorizationRepository, CompanyAccess, Department,
-    DepartmentRepository, EmailAddress, ListQuery, Name, PasswordHash, RepoError, Role, RoleId,
-    RoleRepository, Team, TeamRepository, Username,
+    DepartmentRepository, EmailAddress, ListQuery, Name, PasswordHash, RepoError, Revocations,
+    Role, RoleId, RoleRepository, Team, TeamRepository, TotpSecret, TotpState, Username,
 };
 
 /// Who Role assignments and Company access grants belong to.
@@ -131,13 +133,59 @@ struct AnalystRow {
     roles: Vec<Uuid>,
     all_companies: bool,
     companies: Vec<Uuid>,
+    totp_secret_encrypted: Option<String>,
+    totp_pending_encrypted: Option<String>,
+    totp_enabled_at: Option<DateTime<Utc>>,
+    totp_last_step: Option<i64>,
 }
 
-impl TryFrom<AnalystRow> for Analyst {
-    type Error = RepoError;
+fn totp_purpose(kind: &str, id: Uuid) -> String {
+    format!("analyst.{kind}:{id}")
+}
 
-    fn try_from(r: AnalystRow) -> Result<Self, RepoError> {
-        Ok(Self::restore(
+fn decrypt_secret(
+    keyring: &Keyring,
+    kind: &str,
+    id: Uuid,
+    stored: Option<String>,
+) -> Result<Option<TotpSecret>, RepoError> {
+    stored
+        .map(|v| {
+            keyring
+                .decrypt(&totp_purpose(kind, id), &v)
+                .map(TotpSecret::from_bytes)
+                .map_err(|e| {
+                    RepoError::Storage(format!("cannot decrypt two-factor secret of {id}: {e}"))
+                })
+        })
+        .transpose()
+}
+
+fn encrypt_secret(
+    keyring: &Keyring,
+    kind: &str,
+    id: Uuid,
+    secret: Option<&TotpSecret>,
+) -> Result<Option<String>, RepoError> {
+    secret
+        .map(|s| {
+            keyring
+                .encrypt(&totp_purpose(kind, id), s.expose())
+                .map_err(|e| RepoError::Storage(e.to_string()))
+        })
+        .transpose()
+}
+
+impl AnalystRow {
+    fn into_analyst(self, keyring: &Keyring) -> Result<Analyst, RepoError> {
+        let r = self;
+        let totp = TotpState {
+            secret: decrypt_secret(keyring, "totp", r.id, r.totp_secret_encrypted)?,
+            pending: decrypt_secret(keyring, "totp_pending", r.id, r.totp_pending_encrypted)?,
+            enabled_at: r.totp_enabled_at,
+            last_step: r.totp_last_step,
+        };
+        Ok(Analyst::restore(
             AnalystId::from_uuid(r.id),
             stored(Username::try_from(r.username))?,
             stored(EmailAddress::try_from(r.email))?,
@@ -148,6 +196,7 @@ impl TryFrom<AnalystRow> for Analyst {
             r.deactivated_at,
             role_ids(r.roles),
             access_from(r.all_companies, r.companies),
+            totp,
             r.created_at,
             r.updated_at,
         ))
@@ -155,11 +204,19 @@ impl TryFrom<AnalystRow> for Analyst {
 }
 
 /// Inserts an Analyst row with its Roles and access (used by first-run setup too).
-pub(crate) async fn insert_analyst(tx: &mut Tx, a: &Analyst) -> Result<(), RepoError> {
+pub(crate) async fn insert_analyst(
+    tx: &mut Tx,
+    keyring: &Keyring,
+    a: &Analyst,
+) -> Result<(), RepoError> {
+    let id = a.id().as_uuid();
+    let secret = encrypt_secret(keyring, "totp", id, a.totp().secret.as_ref())?;
+    let pending = encrypt_secret(keyring, "totp_pending", id, a.totp().pending.as_ref())?;
     sqlx::query!(
         "INSERT INTO analysts (id, username, email, full_name, is_admin, is_active, password_hash,
-                               password_changed_at, deactivated_at, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+                               password_changed_at, deactivated_at, created_at, updated_at,
+                               totp_secret_encrypted, totp_pending_encrypted, totp_enabled_at, totp_last_step)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
         a.id().as_uuid(),
         a.username().as_str(),
         a.email().as_str(),
@@ -171,6 +228,10 @@ pub(crate) async fn insert_analyst(tx: &mut Tx, a: &Analyst) -> Result<(), RepoE
         a.deactivated_at(),
         a.created_at(),
         a.updated_at(),
+        secret,
+        pending,
+        a.totp().enabled_at,
+        a.totp().last_step,
     )
     .execute(&mut **tx)
     .await
@@ -185,6 +246,7 @@ impl AnalystRepository for PgIdentityStore {
     async fn get(&self, id: AnalystId) -> Result<Option<Analyst>, RepoError> {
         sqlx::query_as!(AnalystRow, r#"SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,
                       a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,
+                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,
                       ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS "roles!",
                       EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS "all_companies!",
                       ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS "companies!: Vec<Uuid>"
@@ -192,7 +254,7 @@ impl AnalystRepository for PgIdentityStore {
             .fetch_optional(&self.pool)
             .await
             .map_err(db_err)?
-            .map(Analyst::try_from)
+            .map(|r| r.into_analyst(&self.keyring))
             .transpose()
     }
 
@@ -201,6 +263,7 @@ impl AnalystRepository for PgIdentityStore {
             AnalystRow,
             r#"SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,
                       a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,
+                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,
                       ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS "roles!",
                       EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS "all_companies!",
                       ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS "companies!: Vec<Uuid>"
@@ -210,7 +273,7 @@ impl AnalystRepository for PgIdentityStore {
         .fetch_optional(&self.pool)
         .await
         .map_err(db_err)?
-        .map(Analyst::try_from)
+        .map(|r| r.into_analyst(&self.keyring))
         .transpose()
     }
 
@@ -220,6 +283,7 @@ impl AnalystRepository for PgIdentityStore {
             AnalystRow,
             r#"SELECT a.id, a.username, a.email, a.full_name, a.is_admin, a.password_hash,
                       a.password_changed_at, a.deactivated_at, a.created_at, a.updated_at,
+                      a.totp_secret_encrypted, a.totp_pending_encrypted, a.totp_enabled_at, a.totp_last_step,
                       ARRAY(SELECT r.role_id FROM rbac_role_assignments r WHERE r.analyst_id = a.id) AS "roles!",
                       EXISTS (SELECT 1 FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NULL) AS "all_companies!",
                       ARRAY(SELECT g.tenant_id FROM company_access_grants g WHERE g.analyst_id = a.id AND g.tenant_id IS NOT NULL) AS "companies!: Vec<Uuid>"
@@ -238,7 +302,7 @@ impl AnalystRepository for PgIdentityStore {
         .await
         .map_err(db_err)?
         .into_iter()
-        .map(Analyst::try_from)
+        .map(|r| r.into_analyst(&self.keyring))
         .collect()
     }
 
@@ -253,7 +317,7 @@ impl AnalystRepository for PgIdentityStore {
 
     async fn insert(&self, analyst: &Analyst, record: &AuditRecord) -> Result<(), RepoError> {
         let mut tx = self.pool.begin().await.map_err(db_err)?;
-        insert_analyst(&mut tx, analyst).await?;
+        insert_analyst(&mut tx, &self.keyring, analyst).await?;
         audit(&mut tx, record).await?;
         tx.commit().await.map_err(db_err)
     }
@@ -262,12 +326,17 @@ impl AnalystRepository for PgIdentityStore {
         &self,
         a: &Analyst,
         record: &AuditRecord,
-        revoke_sessions: bool,
+        revoke: Revocations,
     ) -> Result<(), RepoError> {
+        let id = a.id().as_uuid();
+        let secret = encrypt_secret(&self.keyring, "totp", id, a.totp().secret.as_ref())?;
+        let pending = encrypt_secret(&self.keyring, "totp_pending", id, a.totp().pending.as_ref())?;
         let mut tx = self.pool.begin().await.map_err(db_err)?;
         let result = sqlx::query!(
             "UPDATE analysts SET username = $2, email = $3, full_name = $4, is_admin = $5, is_active = $6,
-                    password_hash = $7, password_changed_at = $8, deactivated_at = $9, updated_at = $10
+                    password_hash = $7, password_changed_at = $8, deactivated_at = $9, updated_at = $10,
+                    totp_secret_encrypted = $11, totp_pending_encrypted = $12, totp_enabled_at = $13,
+                    totp_last_step = $14
              WHERE id = $1",
             a.id().as_uuid(),
             a.username().as_str(),
@@ -279,6 +348,10 @@ impl AnalystRepository for PgIdentityStore {
             a.password_changed_at(),
             a.deactivated_at(),
             a.updated_at(),
+            secret,
+            pending,
+            a.totp().enabled_at,
+            a.totp().last_step,
         )
         .execute(&mut *tx)
         .await
@@ -289,11 +362,20 @@ impl AnalystRepository for PgIdentityStore {
         let subject = Subject::Analyst(a.id().as_uuid());
         write_roles(&mut tx, subject, a.roles(), a.updated_at()).await?;
         write_access(&mut tx, subject, a.company_access(), a.updated_at()).await?;
-        if revoke_sessions {
+        if revoke.sessions {
             sqlx::query!(
                 "UPDATE analyst_sessions SET revoked_at = $2 WHERE analyst_id = $1 AND revoked_at IS NULL",
-                a.id().as_uuid(),
+                id,
                 a.updated_at()
+            )
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?;
+        }
+        if revoke.trusted_devices {
+            sqlx::query!(
+                "DELETE FROM analyst_trusted_devices WHERE analyst_id = $1",
+                id
             )
             .execute(&mut *tx)
             .await

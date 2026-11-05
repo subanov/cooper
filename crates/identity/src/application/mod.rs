@@ -4,10 +4,12 @@
 //! read identity tables; they receive a [`Principal`] from the authentication
 //! middleware and may call this service.
 
+mod api_keys;
 mod auth;
 mod companies;
 mod people;
 mod requesters;
+mod two_factor;
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
@@ -19,16 +21,19 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::domain::{
-    AnalystRepository, AuthorizationRepository, CompanyRepository, CostCentreRepository,
-    DepartmentRepository, IdentityError, ListQuery, PasswordHasher, RepoError, RequesterRepository,
-    RoleRepository, SessionPolicy, SessionRepository, SetupRepository, TeamRepository,
-    TokenGenerator,
+    AnalystRepository, ApiKeyRepository, AuthorizationRepository, CompanyRepository,
+    CostCentreRepository, DepartmentRepository, IdentityError, ListQuery, PasswordHasher,
+    RepoError, RequesterRepository, RoleRepository, SecurityPolicyProvider, SessionPolicy,
+    SessionRepository, SetupRepository, SignInThrottle, TeamRepository, TokenGenerator,
+    TrustedDeviceRepository,
 };
 
+pub use api_keys::{ApiKeyInput, IssuedApiKey};
 pub use auth::{FirstRunSetup, SignIn, SignedIn};
 pub use companies::CompanyInput;
 pub use people::{AnalystInput, DepartmentInput, RoleInput, TeamInput};
 pub use requesters::{CostCentreInput, RequesterInput};
+pub use two_factor::TotpEnrollment;
 
 /// Capabilities the identity context checks (FR-IAM-010).
 pub mod capabilities {
@@ -59,6 +64,38 @@ pub mod capabilities {
     ];
 }
 
+/// System Settings the identity context reads (ADR-0012, ADR-0013).
+pub mod settings {
+    use cooper_kernel::{SettingDefinition, SettingKind};
+
+    /// Every Analyst must use two-factor sign-in (FR-IAM-003).
+    pub const REQUIRE_TOTP: SettingDefinition = SettingDefinition {
+        key: "security.require_totp",
+        description: "Require every Analyst to use two-factor sign-in (authenticator app).",
+        kind: SettingKind::Bool,
+        default: "false",
+    };
+
+    /// Failed sign-ins from one IP address that cause a temporary ban (FR-IAM-005).
+    pub const MAX_FAILED_SIGN_INS: SettingDefinition = SettingDefinition {
+        key: "security.max_failed_sign_ins",
+        description: "Failed sign-ins from one IP address within the ban period that cause a temporary ban.",
+        kind: SettingKind::Integer { min: 3, max: 100 },
+        default: "10",
+    };
+
+    /// Length of a temporary IP ban, in minutes (FR-IAM-005).
+    pub const SIGN_IN_BAN_MINUTES: SettingDefinition = SettingDefinition {
+        key: "security.sign_in_ban_minutes",
+        description: "Minutes an IP address stays banned; failures are also counted over this period.",
+        kind: SettingKind::Integer { min: 1, max: 1440 },
+        default: "15",
+    };
+
+    /// Every setting declared by the identity context.
+    pub const ALL: &[SettingDefinition] = &[REQUIRE_TOTP, MAX_FAILED_SIGN_INS, SIGN_IN_BAN_MINUTES];
+}
+
 /// A use case failed.
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum AppError {
@@ -83,6 +120,21 @@ pub enum AppError {
     /// First-run setup was already completed.
     #[error("setup has already been completed")]
     SetupCompleted,
+    /// The password was right, but a two-factor code is needed.
+    #[error("a two-factor code is required")]
+    TotpRequired,
+    /// The client IP is temporarily banned after repeated failed sign-ins.
+    #[error("too many failed sign-ins; try again later")]
+    TooManyAttempts {
+        /// When the ban ends.
+        retry_after: chrono::DateTime<chrono::Utc>,
+    },
+    /// An API key exceeded its requests per minute.
+    #[error("rate limit exceeded")]
+    RateLimited {
+        /// Seconds until the next minute starts.
+        retry_after_secs: u32,
+    },
     /// A request parameter is invalid (for example a cursor).
     #[error("{field} {reason}")]
     Invalid {
@@ -136,6 +188,7 @@ fn conflict_message(constraint: &str) -> String {
         "requesters_email_key" => "another Requester in this Company uses this email address",
         "requesters_username_key" => "another Requester in this Company uses this username",
         "cost_centres_code_key" => "another Cost Centre in this Company uses this code",
+        "api_keys_prefix_key" => "API key prefix collision; try again",
         "setup" => "setup has already been completed",
         _ => "the record conflicts with an existing one",
     }
@@ -183,6 +236,14 @@ pub struct IdentityPorts {
     pub cost_centres: Arc<dyn CostCentreRepository>,
     /// First-run setup.
     pub setup: Arc<dyn SetupRepository>,
+    /// Trusted devices.
+    pub trusted_devices: Arc<dyn TrustedDeviceRepository>,
+    /// Failed sign-ins and IP bans.
+    pub throttle: Arc<dyn SignInThrottle>,
+    /// API Keys.
+    pub api_keys: Arc<dyn ApiKeyRepository>,
+    /// Security settings.
+    pub policy: Arc<dyn SecurityPolicyProvider>,
     /// Password hashing.
     pub hasher: Arc<dyn PasswordHasher>,
     /// Random tokens.

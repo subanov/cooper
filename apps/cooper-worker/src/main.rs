@@ -8,8 +8,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Context as _;
+use cooper_identity::infrastructure::{IdentityHousekeeping, ReencryptIdentitySecrets};
 use cooper_kernel::{Clock, SystemClock};
 use cooper_platform::config::{self, ConfigError, DatabaseConfig};
+use cooper_platform::crypto::Keyring;
 use cooper_platform::db;
 use cooper_platform::jobs::{JobRunner, PruneJobRuns, RunOutcome};
 use cooper_platform::outbox::Dispatcher;
@@ -19,13 +21,14 @@ use tokio::sync::watch;
 use tokio::task::JoinSet;
 
 /// Everything `cooper-worker` reads at start-up (see `.env.example`).
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct WorkerConfig {
     database: DatabaseConfig,
     tick: Duration,
     outbox_batch_size: u16,
     job_run_retention_days: u16,
     system_log_retention_days: u16,
+    keyring: Keyring,
     log_format: LogFormat,
 }
 
@@ -43,6 +46,12 @@ impl WorkerConfig {
                 30_u16,
             )?,
             log_format: config::parse_or("COOPER_LOG_FORMAT", LogFormat::default())?,
+            keyring: Keyring::parse(&config::required("COOPER_ENCRYPTION_KEYS")?).map_err(|e| {
+                ConfigError::Invalid {
+                    name: "COOPER_ENCRYPTION_KEYS",
+                    reason: e.to_string(),
+                }
+            })?,
         })
     }
 }
@@ -71,6 +80,10 @@ async fn main() -> anyhow::Result<()> {
             .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days)))
             .with_job(Arc::new(PruneSystemLog::new(
                 config.system_log_retention_days,
+            )))
+            .with_job(Arc::new(IdentityHousekeeping))
+            .with_job(Arc::new(ReencryptIdentitySecrets::new(
+                config.keyring.clone(),
             ))),
     );
     runner

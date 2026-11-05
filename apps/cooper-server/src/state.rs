@@ -2,6 +2,9 @@
 
 use std::collections::BTreeSet;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
+
+use async_trait::async_trait;
 
 use axum::extract::FromRef;
 use cooper_administration::api::{AdministrationApi, ModuleGate};
@@ -9,30 +12,88 @@ use cooper_administration::application::{
     AdministrationService, capabilities as admin_capabilities, settings as admin_settings,
 };
 use cooper_administration::infrastructure::PgAdministrationStore;
+use cooper_http::client_ip::IpNetwork;
 use cooper_identity::api::IdentityApi;
-use cooper_identity::application::{IdentityService, capabilities as identity_capabilities};
-use cooper_identity::domain::{RepoError, SessionPolicy};
+use cooper_identity::application::{
+    IdentityService, capabilities as identity_capabilities, settings as identity_settings,
+};
+use cooper_identity::domain::{RepoError, SecurityPolicy, SecurityPolicyProvider, SessionPolicy};
 use cooper_identity::infrastructure::PgIdentityStore;
 use cooper_kernel::{Capability, Clock, Module, SettingDefinition, SystemClock};
+use cooper_platform::crypto::{CryptoError, Keyring};
 use sqlx::PgPool;
+use tokio::sync::RwLock;
 
-/// Settings for sign-in sessions.
-#[derive(Debug, Clone, Copy)]
-pub struct SessionSettings {
-    /// Idle timeout and absolute lifetime.
-    pub policy: SessionPolicy,
-    /// Whether the session cookie is marked `Secure` (HTTPS only).
+/// Security settings read at start-up.
+#[derive(Debug, Clone)]
+pub struct SecuritySettings {
+    /// Session idle timeout and absolute lifetime.
+    pub session_policy: SessionPolicy,
+    /// Whether cookies are marked `Secure` (HTTPS only).
     pub secure_cookies: bool,
+    /// Keys encrypting secrets at rest (`COOPER_ENCRYPTION_KEYS`).
+    pub keyring: Keyring,
+    /// Reverse proxies trusted for `X-Forwarded-For` (`COOPER_TRUSTED_PROXIES`).
+    pub trusted_proxies: Vec<IpNetwork>,
 }
 
-impl Default for SessionSettings {
-    fn default() -> Self {
-        Self {
-            policy: SessionPolicy::default(),
+impl SecuritySettings {
+    /// Defaults with a random, throw-away encryption key: for tests only.
+    ///
+    /// # Errors
+    ///
+    /// Fails if the OS has no randomness.
+    pub fn ephemeral() -> Result<Self, CryptoError> {
+        Ok(Self {
+            session_policy: SessionPolicy::default(),
             secure_cookies: true,
-        }
+            keyring: Keyring::ephemeral()?,
+            trusted_proxies: Vec::new(),
+        })
     }
 }
+
+/// The identity context's security policy, read from System Settings (cached briefly).
+struct SettingsSecurityPolicy {
+    admin: AdministrationService,
+    cache: RwLock<Option<(Instant, SecurityPolicy)>>,
+}
+
+#[async_trait]
+impl SecurityPolicyProvider for SettingsSecurityPolicy {
+    async fn policy(&self) -> SecurityPolicy {
+        if let Some((at, policy)) = *self.cache.read().await
+            && at.elapsed() < POLICY_CACHE_TTL
+        {
+            return policy;
+        }
+        let defaults = SecurityPolicy::default();
+        let get = |key: &'static str| {
+            let admin = self.admin.clone();
+            async move { admin.setting_value(key).await.ok().flatten() }
+        };
+        let policy = SecurityPolicy {
+            require_totp: get(identity_settings::REQUIRE_TOTP.key)
+                .await
+                .and_then(|v| v.as_bool())
+                .unwrap_or(defaults.require_totp),
+            max_failed_sign_ins: get(identity_settings::MAX_FAILED_SIGN_INS.key)
+                .await
+                .and_then(|v| v.as_u64())
+                .and_then(|v| u32::try_from(v).ok())
+                .unwrap_or(defaults.max_failed_sign_ins),
+            ban_duration: get(identity_settings::SIGN_IN_BAN_MINUTES.key)
+                .await
+                .and_then(|v| v.as_i64())
+                .map_or(defaults.ban_duration, chrono::Duration::minutes),
+        };
+        *self.cache.write().await = Some((Instant::now(), policy));
+        policy
+    }
+}
+
+/// How long the security policy is cached; setting changes apply within this time.
+const POLICY_CACHE_TTL: Duration = Duration::from_secs(5);
 
 /// State shared by all handlers through `axum::extract::State`. Cheap to clone.
 #[derive(Clone)]
@@ -61,7 +122,11 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
 /// Every System Setting declared by the contexts wired into this server.
 #[must_use]
 pub fn setting_catalogue() -> Vec<SettingDefinition> {
-    admin_settings::ALL.to_vec()
+    admin_settings::ALL
+        .iter()
+        .chain(identity_settings::ALL)
+        .copied()
+        .collect()
 }
 
 /// `/api/v1` path prefixes owned by switchable Modules (FR-GEN-005). Contexts add their
@@ -72,16 +137,16 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
 }
 
 impl AppState {
-    /// State using the system clock and default session settings.
+    /// State using the system clock and [`SecuritySettings::ephemeral`]: for tests.
     ///
     /// # Errors
     ///
-    /// Fails if the password hasher cannot be initialised (no OS randomness).
-    pub fn new(pool: PgPool) -> Result<Self, RepoError> {
-        Self::with_settings(pool, Arc::new(SystemClock), SessionSettings::default())
+    /// Fails if the OS has no randomness.
+    pub fn new(pool: PgPool) -> Result<Self, StateError> {
+        Self::with_settings(pool, Arc::new(SystemClock), SecuritySettings::ephemeral()?)
     }
 
-    /// State with an explicit clock and session settings.
+    /// State with an explicit clock and security settings.
     ///
     /// # Errors
     ///
@@ -89,21 +154,26 @@ impl AppState {
     pub fn with_settings(
         pool: PgPool,
         clock: Arc<dyn Clock>,
-        sessions: SessionSettings,
-    ) -> Result<Self, RepoError> {
-        let ports = PgIdentityStore::ports(pool.clone(), clock.clone())?;
-        let service = IdentityService::new(ports, capability_catalogue(), sessions.policy);
+        security: SecuritySettings,
+    ) -> Result<Self, StateError> {
         let admin = AdministrationService::new(
             Arc::new(PgAdministrationStore::new(pool.clone())),
             clock.clone(),
             &setting_catalogue(),
         );
+        let policy = Arc::new(SettingsSecurityPolicy {
+            admin: admin.clone(),
+            cache: RwLock::new(None),
+        });
+        let ports = PgIdentityStore::ports(pool.clone(), clock.clone(), security.keyring, policy)?;
+        let service = IdentityService::new(ports, capability_catalogue(), security.session_policy);
         Ok(Self {
             pool,
             clock,
             identity: IdentityApi {
                 service,
-                secure_cookies: sessions.secure_cookies,
+                secure_cookies: security.secure_cookies,
+                trusted_proxies: Arc::new(security.trusted_proxies),
             },
             administration: AdministrationApi {
                 gate: ModuleGate::new(admin.clone(), module_routes()),
@@ -111,6 +181,17 @@ impl AppState {
             },
         })
     }
+}
+
+/// Application state could not be built.
+#[derive(Debug, thiserror::Error)]
+pub enum StateError {
+    /// Identity infrastructure failed to start.
+    #[error(transparent)]
+    Identity(#[from] RepoError),
+    /// No randomness for the throw-away key.
+    #[error(transparent)]
+    Crypto(#[from] CryptoError),
 }
 
 impl FromRef<AppState> for AdministrationApi {

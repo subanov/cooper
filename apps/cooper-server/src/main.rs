@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
         );
     }
 
-    let state = AppState::with_settings(pool, Arc::new(SystemClock), config.sessions)
+    let state = AppState::with_settings(pool, Arc::new(SystemClock), config.security)
         .context("failed to initialise application state")?;
     let app = cooper_server::router(state, &config.http)
         .into_make_service_with_connect_info::<SocketAddr>();
