@@ -27,7 +27,12 @@ use cooper_service_desk::application::{
 };
 use cooper_service_desk::infrastructure::PgServiceDeskStore;
 
-use crate::adapters::{DeskSettings, IdentityDirectory};
+use cooper_notifications::api::NotificationsApi;
+use cooper_notifications::handlers::TicketNotifier;
+use cooper_notifications::{Notifications, PgNotificationStore};
+use cooper_platform::outbox::EventHandler;
+
+use crate::adapters::{DeskSettings, DeskTickets, IdentityDirectory};
 use sqlx::PgPool;
 use tokio::sync::RwLock;
 
@@ -115,6 +120,8 @@ pub struct AppState {
     pub administration: AdministrationApi,
     /// Service desk API state.
     pub service_desk: ServiceDeskApi,
+    /// Notifications API state.
+    pub notifications: NotificationsApi,
 }
 
 /// Every Capability declared by the contexts wired into this server. Roles may only use
@@ -193,6 +200,10 @@ impl AppState {
             }),
             clock: clock.clone(),
         });
+        let notifications = Notifications::new(
+            Arc::new(PgNotificationStore::new(pool.clone())),
+            clock.clone(),
+        );
         Ok(Self {
             pool,
             clock,
@@ -204,6 +215,9 @@ impl AppState {
             administration: AdministrationApi {
                 gate: ModuleGate::new(admin.clone(), module_routes()),
                 service: admin,
+            },
+            notifications: NotificationsApi {
+                service: notifications,
             },
             service_desk: ServiceDeskApi { service: desk },
         })
@@ -219,6 +233,29 @@ pub enum StateError {
     /// No randomness for the throw-away key.
     #[error(transparent)]
     Crypto(#[from] CryptoError),
+}
+
+impl AppState {
+    /// Handlers the worker registers with the outbox dispatcher: each context reacts to
+    /// other contexts' Domain Events here.
+    #[must_use]
+    pub fn event_handlers(&self) -> Vec<Arc<dyn EventHandler>> {
+        vec![Arc::new(TicketNotifier {
+            notifications: self.notifications.service.clone(),
+            tickets: Arc::new(DeskTickets {
+                desk: self.service_desk.service.clone(),
+            }),
+            people: Arc::new(IdentityDirectory {
+                identity: self.identity.service.clone(),
+            }),
+        })]
+    }
+}
+
+impl FromRef<AppState> for NotificationsApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.notifications.clone()
+    }
 }
 
 impl FromRef<AppState> for ServiceDeskApi {

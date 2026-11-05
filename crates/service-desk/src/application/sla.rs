@@ -143,6 +143,29 @@ impl ServiceDesk {
         Ok(rule)
     }
 
+    /// Analysts to notify for an SLA trigger on a target, per the active SLA Notification
+    /// Rules (FR-SLA-006).
+    ///
+    /// # Errors
+    ///
+    /// Storage failures.
+    pub async fn sla_recipients(
+        &self,
+        trigger: crate::domain::SlaTrigger,
+        target: crate::domain::SlaTarget,
+        assignee: Option<cooper_kernel::AnalystId>,
+        team_members: &std::collections::BTreeSet<cooper_kernel::AnalystId>,
+    ) -> Result<std::collections::BTreeSet<cooper_kernel::AnalystId>, AppError> {
+        Ok(self
+            .ports
+            .sla
+            .rules()
+            .await?
+            .iter()
+            .flat_map(|r| r.recipients(trigger, target, assignee, team_members))
+            .collect())
+    }
+
     /// A calendar by ID, or the default calendar for `None`.
     pub(super) async fn calendar(&self, id: Option<Uuid>) -> Result<Option<SlaCalendar>, AppError> {
         let calendars = self.ports.sla.calendars().await?;

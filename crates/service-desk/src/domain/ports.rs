@@ -177,8 +177,13 @@ pub trait TicketRepository: Send + Sync {
         visibility: &Visibility,
         query: &TicketListQuery,
     ) -> Result<Vec<Ticket>, RepoError>;
-    /// Adds a Note.
-    async fn add_note(&self, note: &Note, audit: &AuditRecord) -> Result<(), RepoError>;
+    /// Adds a Note with its audit record and events.
+    async fn add_note(
+        &self,
+        note: &Note,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
     /// Notes of a ticket, oldest first.
     async fn notes(&self, scope: &TenantScope, ticket: TicketId) -> Result<Vec<Note>, RepoError>;
     /// Adds a Time Entry.

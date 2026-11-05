@@ -49,6 +49,8 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Audit** | An append-only record of who changed what and when: Actor, timestamp, field, old value, new value. Every aggregate has an audit trail (ticket audit, change audit, …), stored in one platform table keyed by aggregate type and ID (ADR-0009). | `AuditRecord`, `audit_entries` | history log |
 | **Tenant Scope** | The set of Companies a request or job may see: specific Companies, or all. Every tenant query runs inside one; the database enforces it with Row-Level Security (ADR-0004). | `TenantScope` | tenant context, org filter |
 | **Domain Event** | A past-tense fact recorded by an aggregate (`TicketCreated`, `ChangeApproved`), with a stable dotted type (`ticket.created`). The way contexts react to each other. | `DomainEvent`, `EventEnvelope` | message, notification (Notification is the in-app bell) |
+| **Notification** | An entry in an Analyst's bell (in-app), about an assignment, a mention, a Requester reply or an SLA Warning or Breach. Kinds (fixed): `ticket_assigned`, `mentioned`, `reply_received`, `sla_warning`, `sla_breached`. | `Notification`, `notifications` | alert, message |
+| **Mention** | `@username` in a Note; the mentioned Analyst gets a Notification. | `mentions()` | tag |
 | **Outbox** | The table where Domain Events are stored in the same transaction as the change, then delivered at least once to Event Handlers by the worker (ADR-0005). | `outbox_events`, `EventHandler` | queue (generic) |
 
 ---

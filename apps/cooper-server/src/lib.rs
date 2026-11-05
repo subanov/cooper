@@ -35,6 +35,7 @@ pub use state::{
         (name = "Cost Centres", description = "Financial units per Company"),
         (name = "API Keys", description = "Credentials for integrations"),
         (name = "Tickets", description = "Tickets, Notes, Time Entries, views and search"),
+        (name = "Notifications", description = "The signed-in Analyst's bell"),
         (name = "SLA", description = "SLA Calendars and Notification Rules"),
         (name = "Ticket reference data", description = "Statuses, Priorities, Types, Origins, Resolution Codes and Categories"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
@@ -48,6 +49,7 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_identity::api::router())
         .merge(cooper_administration::api::router())
         .merge(cooper_service_desk::api::router())
+        .merge(cooper_notifications::api::router())
         .split_for_parts()
 }
 

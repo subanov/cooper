@@ -116,3 +116,54 @@ ticket_event!(
         due_at: DateTime<Utc>,
     }
 );
+
+ticket_event!(
+    /// A Note was added (FR-TKT-020). Carries the `@username` mentions in its text so
+    /// Notifications can tell the mentioned Analysts (FR-GEN-006).
+    TicketNoteAdded, "ticket.note_added" {
+        /// The Note.
+        note_id: Uuid,
+        /// Its author.
+        author_id: Option<AnalystId>,
+        /// Visible to the Requester.
+        is_public: bool,
+        /// Usernames mentioned with `@`.
+        mentions: Vec<String>,
+    }
+);
+
+/// `@username` mentions in a text: `@` at the start or after whitespace, followed by
+/// letters, digits, `.`, `_` or `-`. Unique, in order of appearance.
+#[must_use]
+pub fn mentions(text: &str) -> Vec<String> {
+    let mut found: Vec<String> = Vec::new();
+    let chars: Vec<char> = text.chars().collect();
+    for (i, c) in chars.iter().enumerate() {
+        if *c != '@' || (i > 0 && !chars[i - 1].is_whitespace()) {
+            continue;
+        }
+        let name: String = chars[i + 1..]
+            .iter()
+            .take_while(|c| c.is_alphanumeric() || matches!(c, '.' | '_' | '-'))
+            .collect();
+        let name = name.trim_end_matches('.').to_owned();
+        if !name.is_empty() && !found.iter().any(|f| f.eq_ignore_ascii_case(&name)) {
+            found.push(name);
+        }
+    }
+    found
+}
+
+#[cfg(test)]
+mod tests {
+    use super::mentions;
+
+    #[test]
+    fn finds_mentions_but_not_email_addresses() {
+        assert_eq!(
+            mentions("@jdoe can you check? cc @Ann.Lee. Mail bob@example.com @jdoe"),
+            ["jdoe", "Ann.Lee"]
+        );
+        assert!(mentions("no mentions @ all").is_empty());
+    }
+}

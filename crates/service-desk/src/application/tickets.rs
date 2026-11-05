@@ -15,8 +15,8 @@ use super::{AppError, ServiceDesk, capabilities, require};
 use crate::domain::{
     ListFilter, LookupKind, NewTicket, Note, NumberContext, NumberFormat, SortField,
     StatusTransition, Ticket, TicketAssigned, TicketClosed, TicketCreated, TicketDetails,
-    TicketError, TicketListQuery, TicketPriorityChanged, TicketReopened, TicketStatusChanged,
-    TimeEntry, Visibility, audit_record,
+    TicketError, TicketListQuery, TicketNoteAdded, TicketPriorityChanged, TicketReopened,
+    TicketStatusChanged, TimeEntry, Visibility, audit_record, mentions,
 };
 
 /// Built-in views (FR-TKT-040).
@@ -692,7 +692,19 @@ impl ServiceDesk {
         let now = self.ports.clock.now();
         let note = Note::write(&ticket, acting_analyst(principal), body, is_public, now)?;
         let audit = audit_record(None, &note, AuditAction::Created, principal.actor(), now);
-        self.ports.tickets.add_note(&note, &audit).await?;
+        let added = event(
+            &TicketNoteAdded {
+                ticket_id: id,
+                tenant_id: ticket.tenant_id(),
+                note_id: note.id(),
+                author_id: note.author_id(),
+                is_public,
+                mentions: mentions(note.body()),
+            },
+            principal.actor(),
+            now,
+        )?;
+        self.ports.tickets.add_note(&note, &audit, &[added]).await?;
         // A Note visible to the Requester is a response (FR-SLA-004).
         if is_public && acting_analyst(principal).is_some() {
             let before = ticket.clone();
