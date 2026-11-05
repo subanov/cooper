@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO sla_events (tenant_id, ticket_id, target, trigger, due_at, raised_at) VALUES ($1, $2, $3, $4, $5, $6)\n                 ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6cf87336a9cdb91da6791524a8d7d8b20c9a9bbc088707dbe7cc1b2e33b27375"
+}

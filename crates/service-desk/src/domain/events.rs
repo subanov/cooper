@@ -96,3 +96,23 @@ ticket_event!(
         to_priority_id: Uuid,
     }
 );
+
+ticket_event!(
+    /// An SLA target reached its warning point (FR-SLA-005). Raised once per target.
+    SlaWarningRaised, "ticket.sla_warning" {
+        /// Response or resolution.
+        target: crate::domain::SlaTarget,
+        /// When the target is due.
+        due_at: DateTime<Utc>,
+    }
+);
+
+ticket_event!(
+    /// An SLA target was missed (FR-SLA-005). Raised once per target.
+    SlaBreached, "ticket.sla_breached" {
+        /// Response or resolution.
+        target: crate::domain::SlaTarget,
+        /// When the target was due.
+        due_at: DateTime<Utc>,
+    }
+);

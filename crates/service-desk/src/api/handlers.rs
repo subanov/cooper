@@ -12,8 +12,8 @@ use uuid::Uuid;
 
 use super::dto::{
     AssignmentRequest, CategoryDto, CategoryRequest, LookupDto, LookupRequest, NoteDto,
-    NoteRequest, SnoozeRequest, StatusRequest, TicketDto, TicketListParams, TicketPage,
-    TicketRequest, TimeEntryDto, TimeEntryRequest, TimelineItemDto,
+    NoteRequest, SlaCalendarDto, SlaRuleDto, SnoozeRequest, StatusRequest, TicketDto,
+    TicketListParams, TicketPage, TicketRequest, TimeEntryDto, TimeEntryRequest, TimelineItemDto,
 };
 use super::{ApiError, ServiceDeskApi};
 use crate::application::CreateTicket;
@@ -121,6 +121,10 @@ where
         .routes(routes!(add_note))
         .routes(routes!(log_time, list_time_entries))
         .routes(routes!(timeline))
+        .routes(routes!(list_calendars, create_calendar))
+        .routes(routes!(update_calendar))
+        .routes(routes!(list_sla_rules, create_sla_rule))
+        .routes(routes!(update_sla_rule))
 }
 
 // ----- Categories ----------------------------------------------------------------------
@@ -181,7 +185,11 @@ async fn list_tickets(
 ) -> ApiResult<Json<TicketPage>> {
     let page = api.service.list_tickets(&p, q.try_into()?).await?;
     Ok(Json(TicketPage {
-        items: page.items.into_iter().map(TicketDto::from).collect(),
+        items: page
+            .items
+            .into_iter()
+            .map(|t| TicketDto::at(t, api.service.now()))
+            .collect(),
         next_cursor: page.next_cursor.map(|c| c.as_str().to_owned()),
     }))
 }
@@ -205,9 +213,8 @@ async fn create_ticket(
         team_id: body.team_id.map(TeamId::from_uuid),
         analyst_id: body.analyst_id.map(AnalystId::from_uuid),
     };
-    Ok(created(TicketDto::from(
-        api.service.create_ticket(&p, input).await?,
-    )))
+    let ticket = api.service.create_ticket(&p, input).await?;
+    Ok(created(TicketDto::at(ticket, api.service.now())))
 }
 
 /// Loads a ticket with its total time.
@@ -217,12 +224,10 @@ async fn get_ticket(
     Authenticated(p): Authenticated,
     Path(id): Path<Uuid>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(
-        api.service
-            .ticket(&p, TicketId::from_uuid(id))
-            .await?
-            .into(),
-    ))
+    Ok(Json(TicketDto::detail(
+        api.service.ticket(&p, TicketId::from_uuid(id)).await?,
+        api.service.now(),
+    )))
 }
 
 /// Finds a ticket by its Ticket Number.
@@ -232,9 +237,10 @@ async fn get_ticket_by_number(
     Authenticated(p): Authenticated,
     Path(number): Path<String>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(
-        api.service.ticket_by_number(&p, &number).await?.into(),
-    ))
+    Ok(Json(TicketDto::at(
+        api.service.ticket_by_number(&p, &number).await?,
+        api.service.now(),
+    )))
 }
 
 /// Replaces a ticket's details (Queue, Assignee and status have their own endpoints).
@@ -246,12 +252,12 @@ async fn edit_ticket(
     Json(body): Json<TicketRequest>,
 ) -> ApiResult<Json<TicketDto>> {
     let (details, given) = body.details()?;
-    Ok(Json(
+    Ok(Json(TicketDto::at(
         api.service
             .edit_ticket(&p, TicketId::from_uuid(id), details, given)
-            .await?
-            .into(),
-    ))
+            .await?,
+        api.service.now(),
+    )))
 }
 
 /// Soft-deletes a ticket (needs `tickets.delete`).
@@ -261,12 +267,12 @@ async fn delete_ticket(
     Authenticated(p): Authenticated,
     Path(id): Path<Uuid>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(
+    Ok(Json(TicketDto::at(
         api.service
             .delete_ticket(&p, TicketId::from_uuid(id))
-            .await?
-            .into(),
-    ))
+            .await?,
+        api.service.now(),
+    )))
 }
 
 /// Restores a soft-deleted ticket (Administrators).
@@ -276,12 +282,12 @@ async fn restore_ticket(
     Authenticated(p): Authenticated,
     Path(id): Path<Uuid>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(
+    Ok(Json(TicketDto::at(
         api.service
             .restore_ticket(&p, TicketId::from_uuid(id))
-            .await?
-            .into(),
-    ))
+            .await?,
+        api.service.now(),
+    )))
 }
 
 /// Moves a ticket to another status. Closing needs a Resolution Code; closing and
@@ -293,7 +299,7 @@ async fn change_status(
     Path(id): Path<Uuid>,
     Json(body): Json<StatusRequest>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(
+    Ok(Json(TicketDto::at(
         api.service
             .change_status(
                 &p,
@@ -302,9 +308,9 @@ async fn change_status(
                 body.resolution_code_id,
                 body.closure_category_id,
             )
-            .await?
-            .into(),
-    ))
+            .await?,
+        api.service.now(),
+    )))
 }
 
 /// Sets the Queue and Assignee (needs `tickets.assign`).
@@ -324,7 +330,7 @@ async fn assign_ticket(
             body.analyst_id.map(AnalystId::from_uuid),
         )
         .await?;
-    Ok(Json(ticket.into()))
+    Ok(Json(TicketDto::at(ticket, api.service.now())))
 }
 
 /// Snoozes a ticket until a time.
@@ -335,12 +341,12 @@ async fn snooze_ticket(
     Path(id): Path<Uuid>,
     Json(body): Json<SnoozeRequest>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(
+    Ok(Json(TicketDto::at(
         api.service
             .snooze(&p, TicketId::from_uuid(id), Some(body.until), &body.reason)
-            .await?
-            .into(),
-    ))
+            .await?,
+        api.service.now(),
+    )))
 }
 
 /// Ends a snooze.
@@ -350,12 +356,12 @@ async fn unsnooze_ticket(
     Authenticated(p): Authenticated,
     Path(id): Path<Uuid>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(
+    Ok(Json(TicketDto::at(
         api.service
             .snooze(&p, TicketId::from_uuid(id), None, "")
-            .await?
-            .into(),
-    ))
+            .await?,
+        api.service.now(),
+    )))
 }
 
 /// Adds a Note (internal unless `is_public`).
@@ -425,5 +431,97 @@ async fn timeline(
             .into_iter()
             .map(TimelineItemDto::from)
             .collect(),
+    ))
+}
+
+// ----- SLA ---------------------------------------------------------------------------------
+
+/// Lists SLA Calendars.
+#[utoipa::path(get, path = "/sla-calendars", tag = "SLA", responses((status = 200, body = Vec<SlaCalendarDto>)))]
+async fn list_calendars(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<Vec<SlaCalendarDto>>> {
+    Ok(Json(
+        api.service
+            .sla_calendars(&p)
+            .await?
+            .into_iter()
+            .map(SlaCalendarDto::from)
+            .collect(),
+    ))
+}
+
+/// Creates an SLA Calendar (needs `tickets.configure`).
+#[utoipa::path(post, path = "/sla-calendars", tag = "SLA", request_body = SlaCalendarDto, responses((status = 201, body = SlaCalendarDto)))]
+async fn create_calendar(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<SlaCalendarDto>,
+) -> ApiResult<Response> {
+    Ok(created(SlaCalendarDto::from(
+        api.service
+            .create_sla_calendar(&p, body.try_into()?)
+            .await?,
+    )))
+}
+
+/// Replaces an SLA Calendar. Open tickets keep their computed due times.
+#[utoipa::path(put, path = "/sla-calendars/{id}", tag = "SLA", params(("id" = Uuid, Path)), request_body = SlaCalendarDto, responses((status = 200, body = SlaCalendarDto)))]
+async fn update_calendar(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<SlaCalendarDto>,
+) -> ApiResult<Json<SlaCalendarDto>> {
+    Ok(Json(
+        api.service
+            .update_sla_calendar(&p, id, body.try_into()?)
+            .await?
+            .into(),
+    ))
+}
+
+/// Lists SLA Notification Rules (needs `tickets.configure`).
+#[utoipa::path(get, path = "/sla-notification-rules", tag = "SLA", responses((status = 200, body = Vec<SlaRuleDto>)))]
+async fn list_sla_rules(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<Vec<SlaRuleDto>>> {
+    Ok(Json(
+        api.service
+            .sla_rules(&p)
+            .await?
+            .into_iter()
+            .map(SlaRuleDto::from)
+            .collect(),
+    ))
+}
+
+/// Creates an SLA Notification Rule.
+#[utoipa::path(post, path = "/sla-notification-rules", tag = "SLA", request_body = SlaRuleDto, responses((status = 201, body = SlaRuleDto)))]
+async fn create_sla_rule(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<SlaRuleDto>,
+) -> ApiResult<Response> {
+    Ok(created(SlaRuleDto::from(
+        api.service.create_sla_rule(&p, body.try_into()?).await?,
+    )))
+}
+
+/// Replaces an SLA Notification Rule.
+#[utoipa::path(put, path = "/sla-notification-rules/{id}", tag = "SLA", params(("id" = Uuid, Path)), request_body = SlaRuleDto, responses((status = 200, body = SlaRuleDto)))]
+async fn update_sla_rule(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<SlaRuleDto>,
+) -> ApiResult<Json<SlaRuleDto>> {
+    Ok(Json(
+        api.service
+            .update_sla_rule(&p, id, body.try_into()?)
+            .await?
+            .into(),
     ))
 }

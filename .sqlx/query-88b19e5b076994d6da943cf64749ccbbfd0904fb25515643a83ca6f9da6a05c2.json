@@ -1,0 +1,61 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT t.id AS \"ticket_id!\", t.tenant_id AS \"tenant_id!\", d.target AS \"target!\", d.trigger AS \"trigger!\", d.due_at AS \"due_at!\"\n               FROM tickets t\n               CROSS JOIN LATERAL (VALUES\n                   ('response', 'warning', t.response_warning_at, t.response_due_at, t.responded_at IS NULL),\n                   ('response', 'breach', t.response_due_at, t.response_due_at, t.responded_at IS NULL),\n                   ('resolution', 'warning', t.resolution_warning_at, t.resolution_due_at, true),\n                   ('resolution', 'breach', t.resolution_due_at, t.resolution_due_at, true)\n               ) AS d(target, trigger, at, due_at, open)\n               WHERE t.closed_at IS NULL AND t.deleted_at IS NULL AND t.sla_paused_at IS NULL\n                 AND d.open AND d.at IS NOT NULL AND d.at <= $1\n                 AND NOT EXISTS (SELECT 1 FROM sla_events e WHERE e.ticket_id = t.id AND e.target = d.target AND e.trigger = d.trigger)\n               LIMIT 1000",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "ticket_id!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tickets",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tickets",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "target!",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "trigger!",
+        "type_info": "Text",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 4,
+        "name": "due_at!",
+        "type_info": "Timestamptz",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "88b19e5b076994d6da943cf64749ccbbfd0904fb25515643a83ca6f9da6a05c2"
+}

@@ -190,6 +190,11 @@ impl TicketSettingsProvider for DeskSettings {
                 .await
                 .and_then(|v| v.as_bool())
                 .unwrap_or(defaults.assignee_must_be_team_member),
+            sla_warning_percent: value(desk_settings::SLA_WARNING_PERCENT.key)
+                .await
+                .and_then(|v| v.as_u64())
+                .and_then(|v| u8::try_from(v).ok())
+                .unwrap_or(defaults.sla_warning_percent),
         }
     }
 }

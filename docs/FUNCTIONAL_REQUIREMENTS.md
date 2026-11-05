@@ -161,7 +161,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 |---|---|---|---|
 | FR-SLA-001 | Each ticket gets **Response** and **Resolution** due times from its Priority when it is created, and again when the Priority changes. | M | P1 |
 | FR-SLA-002 | SLA time counts only within the **SLA Calendar**'s working hours (per weekday, time zone) and skips **Holidays**. | M | P1 |
-| FR-SLA-003 | SLA time pauses while the ticket is in a status with `pauses_sla` and resumes when it leaves that status. Due times shift by the time spent paused. | M | P1 |
+| FR-SLA-003 | SLA time pauses while the ticket is in a status with `pauses_sla` and resumes when it leaves that status. Due times shift by the time spent paused. Cooper derives due times from creation time, targets and total paused working time (ADR-0015). | M | P1 |
 | FR-SLA-004 | The first Analyst reply (or note visible to the Requester) satisfies the Response target. Closure satisfies the Resolution target. | M | P1 |
 | FR-SLA-005 | A background job raises **SLA Warning** (configurable threshold) and **SLA Breach** events. Each event is raised at most once per ticket, target and trigger. | M | P1 |
 | FR-SLA-006 | **SLA Notification Rules** decide who is notified (assignee, team, specific Analysts) for warning or breach, for response, resolution or both. | S | P1 |

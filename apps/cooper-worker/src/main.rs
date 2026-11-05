@@ -17,6 +17,7 @@ use cooper_platform::jobs::{JobRunner, PruneJobRuns, RunOutcome};
 use cooper_platform::outbox::Dispatcher;
 use cooper_platform::system_log::{self, PruneSystemLog};
 use cooper_platform::telemetry::{self, LogFormat};
+use cooper_service_desk::infrastructure::SlaMonitor;
 use tokio::sync::watch;
 use tokio::task::JoinSet;
 
@@ -82,6 +83,7 @@ async fn main() -> anyhow::Result<()> {
                 config.system_log_retention_days,
             )))
             .with_job(Arc::new(IdentityHousekeeping))
+            .with_job(Arc::new(SlaMonitor))
             .with_job(Arc::new(ReencryptIdentitySecrets::new(
                 config.keyring.clone(),
             ))),

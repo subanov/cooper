@@ -40,6 +40,8 @@ pub const ROUTE_PREFIXES: &[&str] = &[
     "/ticket-origins",
     "/resolution-codes",
     "/ticket-categories",
+    "/sla-calendars",
+    "/sla-notification-rules",
 ];
 
 /// An application error rendered as problem+json.

@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO sla_calendars (id, name, time_zone, is_default, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, time_zone = EXCLUDED.time_zone,\n                 is_default = EXCLUDED.is_default, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d9da3c9fc1b1b06bd10a425f43e0bfd0c97b164153fed150100c6555cabcc0a5"
+}

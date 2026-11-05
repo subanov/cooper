@@ -14,9 +14,13 @@ use uuid::Uuid;
 
 use super::{PgServiceDeskStore, db_err, record};
 use crate::domain::{
-    Note, RepoError, SortField, Ticket, TicketDetails, TicketListQuery, TicketRepository,
-    TimeEntry, Visibility,
+    Note, RepoError, SlaTargets, SortField, Ticket, TicketDetails, TicketListQuery,
+    TicketRepository, TicketSla, TimeEntry, Visibility,
 };
+
+fn sla_minutes(m: Option<u32>) -> Option<i32> {
+    m.and_then(|m| i32::try_from(m).ok())
+}
 
 /// `(all, ids)` for the explicit tenant filter.
 fn scope_params(scope: &TenantScope) -> (bool, Vec<Uuid>) {
@@ -62,6 +66,16 @@ struct TicketRow {
     created_by_id: Option<Uuid>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
+    sla_calendar_id: Option<Uuid>,
+    response_minutes: Option<i32>,
+    resolution_minutes: Option<i32>,
+    response_due_at: Option<DateTime<Utc>>,
+    resolution_due_at: Option<DateTime<Utc>>,
+    response_warning_at: Option<DateTime<Utc>>,
+    resolution_warning_at: Option<DateTime<Utc>>,
+    responded_at: Option<DateTime<Utc>>,
+    sla_paused_at: Option<DateTime<Utc>>,
+    sla_paused_minutes: i64,
 }
 
 impl TryFrom<TicketRow> for Ticket {
@@ -101,6 +115,20 @@ impl TryFrom<TicketRow> for Ticket {
             r.snoozed_until,
             r.snooze_reason,
             r.deleted_at,
+            TicketSla {
+                targets: SlaTargets {
+                    calendar_id: r.sla_calendar_id,
+                    response_minutes: r.response_minutes.and_then(|m| u32::try_from(m).ok()),
+                    resolution_minutes: r.resolution_minutes.and_then(|m| u32::try_from(m).ok()),
+                },
+                response_due_at: r.response_due_at,
+                resolution_due_at: r.resolution_due_at,
+                response_warning_at: r.response_warning_at,
+                resolution_warning_at: r.resolution_warning_at,
+                responded_at: r.responded_at,
+                paused_at: r.sla_paused_at,
+                paused_minutes: r.sla_paused_minutes,
+            },
             created_by,
             r.created_at,
             r.updated_at,
@@ -111,7 +139,9 @@ impl TryFrom<TicketRow> for Ticket {
 const COLUMNS: &str = "t.id, t.tenant_id, t.ticket_number, t.subject, t.description, t.requester_id, t.department_id, \
      t.type_id, t.category_id, t.priority_id, t.status_id, t.origin_id, t.assigned_team_id, t.assigned_analyst_id, \
      t.sensitivity, t.first_time_fix, t.training_provided, t.resolution_code_id, t.closure_category_id, t.closed_at, \
-     t.snoozed_until, t.snooze_reason, t.deleted_at, t.created_by_kind, t.created_by_id, t.created_at, t.updated_at";
+     t.snoozed_until, t.snooze_reason, t.deleted_at, t.created_by_kind, t.created_by_id, t.created_at, t.updated_at, \
+     t.sla_calendar_id, t.response_minutes, t.resolution_minutes, t.response_due_at, t.resolution_due_at, \
+     t.response_warning_at, t.resolution_warning_at, t.responded_at, t.sla_paused_at, t.sla_paused_minutes";
 
 /// Appends the tenant, deletion and Confidential predicates (FR-GEN-002, FR-GEN-004,
 /// FR-TKT-014) to a query that already has a `WHERE`.
@@ -190,9 +220,11 @@ impl TicketRepository for PgServiceDeskStore {
                                   category_id, priority_id, status_id, origin_id, assigned_team_id, assigned_analyst_id,
                                   sensitivity, first_time_fix, training_provided, resolution_code_id, closure_category_id,
                                   closed_at, snoozed_until, snooze_reason, deleted_at, created_by_kind, created_by_id,
-                                  created_at, updated_at)
+                                  created_at, updated_at, sla_calendar_id, response_minutes, resolution_minutes,
+                                  response_due_at, resolution_due_at, response_warning_at, resolution_warning_at,
+                                  responded_at, sla_paused_at, sla_paused_minutes)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22,
-                     $23, $24, $25, $26, $27)",
+                     $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)",
             t.id().as_uuid(),
             t.tenant_id().as_uuid(),
             t.number(),
@@ -220,6 +252,16 @@ impl TicketRepository for PgServiceDeskStore {
             t.created_by().id(),
             t.created_at(),
             t.updated_at(),
+            t.sla().targets.calendar_id,
+            sla_minutes(t.sla().targets.response_minutes),
+            sla_minutes(t.sla().targets.resolution_minutes),
+            t.sla().response_due_at,
+            t.sla().resolution_due_at,
+            t.sla().response_warning_at,
+            t.sla().resolution_warning_at,
+            t.sla().responded_at,
+            t.sla().paused_at,
+            t.sla().paused_minutes,
         )
         .execute(&mut *tx)
         .await
@@ -243,7 +285,10 @@ impl TicketRepository for PgServiceDeskStore {
                     category_id = $8, priority_id = $9, status_id = $10, origin_id = $11, assigned_team_id = $12,
                     assigned_analyst_id = $13, sensitivity = $14, first_time_fix = $15, training_provided = $16,
                     resolution_code_id = $17, closure_category_id = $18, closed_at = $19, snoozed_until = $20,
-                    snooze_reason = $21, deleted_at = $22, updated_at = $23
+                    snooze_reason = $21, deleted_at = $22, updated_at = $23, sla_calendar_id = $24,
+                    response_minutes = $25, resolution_minutes = $26, response_due_at = $27, resolution_due_at = $28,
+                    response_warning_at = $29, resolution_warning_at = $30, responded_at = $31, sla_paused_at = $32,
+                    sla_paused_minutes = $33
              WHERE id = $1 AND tenant_id = $2",
             t.id().as_uuid(),
             t.tenant_id().as_uuid(),
@@ -268,6 +313,16 @@ impl TicketRepository for PgServiceDeskStore {
             t.snooze_reason(),
             t.deleted_at(),
             t.updated_at(),
+            t.sla().targets.calendar_id,
+            sla_minutes(t.sla().targets.response_minutes),
+            sla_minutes(t.sla().targets.resolution_minutes),
+            t.sla().response_due_at,
+            t.sla().resolution_due_at,
+            t.sla().response_warning_at,
+            t.sla().resolution_warning_at,
+            t.sla().responded_at,
+            t.sla().paused_at,
+            t.sla().paused_minutes,
         )
         .execute(&mut *tx)
         .await

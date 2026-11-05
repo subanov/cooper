@@ -1,6 +1,7 @@
 //! Service desk use cases.
 
 mod reference;
+mod sla;
 mod tickets;
 
 use std::sync::Arc;
@@ -9,7 +10,8 @@ use cooper_kernel::{Actor, Clock, Forbidden, Principal};
 use thiserror::Error;
 
 use crate::domain::{
-    Directory, ReferenceData, RepoError, TicketError, TicketRepository, TicketSettingsProvider,
+    Directory, ReferenceData, RepoError, SlaRepository, TicketError, TicketRepository,
+    TicketSettingsProvider,
 };
 
 pub use reference::LookupInput;
@@ -78,8 +80,17 @@ pub mod settings {
         default: "true",
     };
 
+    /// Share of an SLA target after which it is in warning (FR-SLA-005).
+    pub const SLA_WARNING_PERCENT: SettingDefinition = SettingDefinition {
+        key: "sla.warning_percent",
+        description: "An SLA target is in warning once this percentage of its working time has passed.",
+        kind: SettingKind::Integer { min: 1, max: 99 },
+        default: "80",
+    };
+
     /// Every setting declared by the service desk.
     pub const ALL: &[SettingDefinition] = &[
+        SLA_WARNING_PERCENT,
         NUMBER_FORMAT,
         REQUIRE_CLOSURE_CATEGORY,
         ASSIGNEE_MUST_BE_TEAM_MEMBER,
@@ -145,6 +156,8 @@ pub struct ServiceDeskPorts {
     pub tickets: Arc<dyn TicketRepository>,
     /// Reference data.
     pub reference: Arc<dyn ReferenceData>,
+    /// SLA configuration.
+    pub sla: Arc<dyn SlaRepository>,
     /// The identity context.
     pub directory: Arc<dyn Directory>,
     /// Settings.
@@ -164,6 +177,12 @@ impl ServiceDesk {
     #[must_use]
     pub const fn new(ports: ServiceDeskPorts) -> Self {
         Self { ports }
+    }
+
+    /// The current time, for presenting SLA state.
+    #[must_use]
+    pub fn now(&self) -> chrono::DateTime<chrono::Utc> {
+        self.ports.clock.now()
     }
 }
 

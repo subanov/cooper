@@ -247,6 +247,8 @@ pub struct TicketSettings {
     pub require_closure_category: bool,
     /// The Assignee must belong to the Queue.
     pub assignee_must_be_team_member: bool,
+    /// Share of an SLA target after which it is in warning.
+    pub sla_warning_percent: u8,
 }
 
 impl Default for TicketSettings {
@@ -255,6 +257,7 @@ impl Default for TicketSettings {
             number_format: super::NumberFormat::DEFAULT.to_owned(),
             require_closure_category: false,
             assignee_must_be_team_member: true,
+            sla_warning_percent: 80,
         }
     }
 }
@@ -264,4 +267,25 @@ impl Default for TicketSettings {
 pub trait TicketSettingsProvider: Send + Sync {
     /// The settings now in force.
     async fn settings(&self) -> TicketSettings;
+}
+
+/// SLA configuration.
+#[async_trait]
+pub trait SlaRepository: Send + Sync {
+    /// Every SLA Calendar.
+    async fn calendars(&self) -> Result<Vec<super::SlaCalendar>, RepoError>;
+    /// Stores a calendar; a new default takes the flag from the previous one.
+    async fn save_calendar(
+        &self,
+        calendar: &super::SlaCalendar,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Every SLA Notification Rule.
+    async fn rules(&self) -> Result<Vec<super::SlaNotificationRule>, RepoError>;
+    /// Stores a rule.
+    async fn save_rule(
+        &self,
+        rule: &super::SlaNotificationRule,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
 }

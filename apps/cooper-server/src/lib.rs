@@ -35,6 +35,7 @@ pub use state::{
         (name = "Cost Centres", description = "Financial units per Company"),
         (name = "API Keys", description = "Credentials for integrations"),
         (name = "Tickets", description = "Tickets, Notes, Time Entries, views and search"),
+        (name = "SLA", description = "SLA Calendars and Notification Rules"),
         (name = "Ticket reference data", description = "Statuses, Priorities, Types, Origins, Resolution Codes and Categories"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
     )

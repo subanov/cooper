@@ -4,20 +4,27 @@ mod events;
 mod lookups;
 mod number;
 mod ports;
+mod sla;
 mod ticket;
 
 pub use events::{
-    TicketAssigned, TicketClosed, TicketCreated, TicketPriorityChanged, TicketReopened,
-    TicketStatusChanged,
+    SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed, TicketCreated,
+    TicketPriorityChanged, TicketReopened, TicketStatusChanged,
 };
 pub use lookups::{Category, CategoryInput, Lookup, LookupFlags, LookupKind, MAX_CATEGORY_DEPTH};
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{
-    DepartmentInfo, Directory, ListFilter, ReferenceData, RepoError, SortField, TicketListQuery,
-    TicketRepository, TicketSettings, TicketSettingsProvider, TicketSummary, TicketView,
-    Visibility,
+    DepartmentInfo, Directory, ListFilter, ReferenceData, RepoError, SlaRepository, SortField,
+    TicketListQuery, TicketRepository, TicketSettings, TicketSettingsProvider, TicketSummary,
+    TicketView, Visibility,
 };
-pub use ticket::{NewTicket, Note, StatusTransition, Ticket, TicketDetails, TimeEntry};
+pub use sla::{
+    DayHours, RuleTarget, SlaCalendar, SlaCalendarInput, SlaNotificationRule, SlaRuleInput,
+    SlaTarget, SlaTrigger, TargetState, WorkingTime,
+};
+pub use ticket::{
+    NewTicket, Note, SlaTargets, StatusTransition, Ticket, TicketDetails, TicketSla, TimeEntry,
+};
 
 use chrono::{DateTime, Utc};
 use cooper_kernel::{Actor, AuditAction, AuditRecord, TenantId};

@@ -5,7 +5,7 @@
 
 use std::sync::Mutex;
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, SubsecRound as _, Utc};
 
 /// Provides the current time.
 pub trait Clock: Send + Sync {
@@ -18,8 +18,10 @@ pub trait Clock: Send + Sync {
 pub struct SystemClock;
 
 impl Clock for SystemClock {
+    /// Microsecond precision, like PostgreSQL `timestamptz`, so a value returned to a
+    /// client equals the value stored.
     fn now(&self) -> DateTime<Utc> {
-        Utc::now()
+        Utc::now().trunc_subsecs(6)
     }
 }
 

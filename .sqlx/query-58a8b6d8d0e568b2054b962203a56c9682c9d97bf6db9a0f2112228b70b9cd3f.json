@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE sla_calendars SET is_default = false, updated_at = $2 WHERE is_default AND id <> $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "58a8b6d8d0e568b2054b962203a56c9682c9d97bf6db9a0f2112228b70b9cd3f"
+}

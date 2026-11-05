@@ -45,6 +45,8 @@ pub struct LookupDto {
     pub resolution_minutes: Option<u32>,
     /// Type: `{TYPE}` token of Ticket Numbers.
     pub number_prefix: Option<String>,
+    /// Priority: SLA Calendar (`null`: the default calendar).
+    pub sla_calendar_id: Option<Uuid>,
     /// Display order.
     pub sort_order: i32,
     /// Active flag.
@@ -64,6 +66,7 @@ impl From<Lookup> for LookupDto {
             response_minutes: f.response_minutes,
             resolution_minutes: f.resolution_minutes,
             number_prefix: f.number_prefix,
+            sla_calendar_id: f.sla_calendar_id,
             sort_order: l.sort_order(),
             is_active: l.is_active(),
         }
@@ -91,6 +94,8 @@ pub struct LookupRequest {
     pub resolution_minutes: Option<u32>,
     /// Type: `{TYPE}` token of Ticket Numbers.
     pub number_prefix: Option<String>,
+    /// Priority: SLA Calendar (`null`: the default calendar).
+    pub sla_calendar_id: Option<Uuid>,
     /// Display order.
     #[serde(default)]
     pub sort_order: i32,
@@ -114,6 +119,7 @@ impl From<LookupRequest> for LookupInput {
                 response_minutes: r.response_minutes,
                 resolution_minutes: r.resolution_minutes,
                 number_prefix: r.number_prefix,
+                sla_calendar_id: r.sla_calendar_id,
             },
             sort_order: r.sort_order,
             is_active: r.is_active,
@@ -241,6 +247,8 @@ pub struct TicketDto {
     pub deleted_at: Option<DateTime<Utc>>,
     /// Total minutes of Time Entries (single-ticket responses only).
     pub total_minutes: Option<u64>,
+    /// SLA state and time remaining (FR-SLA-007).
+    pub sla: SlaDto,
     /// Created.
     pub created_at: DateTime<Utc>,
     /// Last changed.
@@ -275,15 +283,82 @@ impl From<Ticket> for TicketDto {
             snooze_reason: t.snooze_reason().map(str::to_owned),
             deleted_at: t.deleted_at(),
             total_minutes: None,
+            sla: SlaDto::default(),
             created_at: t.created_at(),
             updated_at: t.updated_at(),
         }
     }
 }
 
-impl From<TicketDetail> for TicketDto {
-    fn from(d: TicketDetail) -> Self {
-        let mut dto = Self::from(d.ticket);
+impl TicketDto {
+    /// The ticket with its SLA state at `now`.
+    #[must_use]
+    pub fn at(t: Ticket, now: DateTime<Utc>) -> Self {
+        let sla = SlaDto::of(&t, now);
+        let mut dto = Self::from(t);
+        dto.sla = sla;
+        dto
+    }
+}
+
+/// One SLA target.
+#[derive(Debug, Default, Serialize, ToSchema)]
+pub struct SlaTargetDto {
+    /// `none`, `on_track`, `warning`, `breached`, `paused`, `met` or `met_late`.
+    pub state: String,
+    /// When it is due.
+    pub due_at: Option<DateTime<Utc>>,
+    /// Seconds until due (negative when overdue); absent when met, paused or without a
+    /// target.
+    pub remaining_seconds: Option<i64>,
+}
+
+/// SLA state of a ticket.
+#[derive(Debug, Default, Serialize, ToSchema)]
+pub struct SlaDto {
+    /// Response target.
+    pub response: SlaTargetDto,
+    /// Resolution target.
+    pub resolution: SlaTargetDto,
+    /// When the clock was paused, if it is.
+    pub paused_at: Option<DateTime<Utc>>,
+    /// When the first response was recorded.
+    pub responded_at: Option<DateTime<Utc>>,
+}
+
+impl SlaDto {
+    fn of(t: &Ticket, now: DateTime<Utc>) -> Self {
+        use crate::domain::TargetState;
+        let (response, resolution) = t.sla_state(now);
+        let target = |state: TargetState, due: Option<DateTime<Utc>>| {
+            let running = matches!(
+                state,
+                TargetState::OnTrack | TargetState::Warning | TargetState::Breached
+            );
+            SlaTargetDto {
+                state: serde_json::to_value(state)
+                    .ok()
+                    .and_then(|v| v.as_str().map(str::to_owned))
+                    .unwrap_or_default(),
+                due_at: due,
+                remaining_seconds: due.filter(|_| running).map(|d| (d - now).num_seconds()),
+            }
+        };
+        let s = t.sla();
+        Self {
+            response: target(response, s.response_due_at),
+            resolution: target(resolution, s.resolution_due_at),
+            paused_at: s.paused_at,
+            responded_at: s.responded_at,
+        }
+    }
+}
+
+impl TicketDto {
+    /// A single ticket with its total time and SLA state at `now`.
+    #[must_use]
+    pub fn detail(d: TicketDetail, now: DateTime<Utc>) -> Self {
+        let mut dto = Self::at(d.ticket, now);
         dto.total_minutes = Some(d.total_minutes);
         dto
     }
@@ -631,6 +706,166 @@ impl TryFrom<TicketListParams> for crate::application::ListRequest {
             ascending,
             limit,
             cursor: p.cursor.map(cooper_kernel::Cursor::from_client),
+        })
+    }
+}
+
+/// An SLA Calendar.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct SlaCalendarDto {
+    /// ID (ignored in requests).
+    #[serde(default)]
+    pub id: Option<Uuid>,
+    /// Name.
+    pub name: String,
+    /// IANA time zone, for example `Europe/London`.
+    pub time_zone: String,
+    /// Working hours Monday to Sunday: seven entries, each `{start, end}` (`HH:MM`) or
+    /// `null` for a day off.
+    pub hours: Vec<Option<HoursDto>>,
+    /// Holidays (local dates).
+    #[serde(default)]
+    pub holidays: Vec<NaiveDate>,
+    /// Used for Priorities without their own calendar.
+    #[serde(default)]
+    pub is_default: bool,
+}
+
+/// Working hours of one day.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToSchema)]
+pub struct HoursDto {
+    /// Start, `HH:MM`.
+    #[schema(value_type = String)]
+    pub start: chrono::NaiveTime,
+    /// End, `HH:MM`.
+    #[schema(value_type = String)]
+    pub end: chrono::NaiveTime,
+}
+
+impl From<crate::domain::SlaCalendar> for SlaCalendarDto {
+    fn from(c: crate::domain::SlaCalendar) -> Self {
+        Self {
+            id: Some(c.id()),
+            name: c.name().to_owned(),
+            time_zone: c.time_zone().name().to_owned(),
+            hours: c
+                .hours()
+                .iter()
+                .map(|h| {
+                    h.map(|h| HoursDto {
+                        start: h.start,
+                        end: h.end,
+                    })
+                })
+                .collect(),
+            holidays: c.holidays().iter().copied().collect(),
+            is_default: c.is_default(),
+        }
+    }
+}
+
+impl TryFrom<SlaCalendarDto> for crate::domain::SlaCalendarInput {
+    type Error = AppError;
+    fn try_from(d: SlaCalendarDto) -> Result<Self, AppError> {
+        let time_zone = d
+            .time_zone
+            .parse()
+            .map_err(|_| TicketError::invalid("time_zone", "is not an IANA time zone"))?;
+        if d.hours.len() != 7 {
+            return Err(
+                TicketError::invalid("hours", "needs seven entries, Monday to Sunday").into(),
+            );
+        }
+        let mut hours = [None; 7];
+        for (slot, h) in hours.iter_mut().zip(d.hours) {
+            *slot = h.map(|h| crate::domain::DayHours {
+                start: h.start,
+                end: h.end,
+            });
+        }
+        Ok(Self {
+            name: d.name,
+            time_zone,
+            hours,
+            holidays: d.holidays.into_iter().collect(),
+            is_default: d.is_default,
+        })
+    }
+}
+
+/// An SLA Notification Rule.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct SlaRuleDto {
+    /// ID (ignored in requests).
+    #[serde(default)]
+    pub id: Option<Uuid>,
+    /// Name.
+    pub name: String,
+    /// `warning` or `breach`.
+    pub trigger: String,
+    /// `response`, `resolution` or `both`.
+    pub target: String,
+    /// Notify the Assignee.
+    #[serde(default)]
+    pub notify_assignee: bool,
+    /// Notify the Queue's members.
+    #[serde(default)]
+    pub notify_team: bool,
+    /// Also notify these Analysts.
+    #[serde(default)]
+    pub analyst_ids: Vec<Uuid>,
+    /// Active flag.
+    #[serde(default = "yes")]
+    pub is_active: bool,
+}
+
+impl From<crate::domain::SlaNotificationRule> for SlaRuleDto {
+    fn from(r: crate::domain::SlaNotificationRule) -> Self {
+        let i = r.rule();
+        Self {
+            id: Some(r.id()),
+            name: i.name.clone(),
+            trigger: i.trigger.as_str().to_owned(),
+            target: i.target.as_str().to_owned(),
+            notify_assignee: i.notify_assignee,
+            notify_team: i.notify_team,
+            analyst_ids: i.analyst_ids.iter().map(|a| a.as_uuid()).collect(),
+            is_active: i.is_active,
+        }
+    }
+}
+
+impl TryFrom<SlaRuleDto> for crate::domain::SlaRuleInput {
+    type Error = AppError;
+    fn try_from(d: SlaRuleDto) -> Result<Self, AppError> {
+        use crate::domain::{RuleTarget, SlaTrigger};
+        let trigger = match d.trigger.as_str() {
+            "warning" => SlaTrigger::Warning,
+            "breach" => SlaTrigger::Breach,
+            _ => return Err(TicketError::invalid("trigger", "must be warning or breach").into()),
+        };
+        let target = match d.target.as_str() {
+            "response" => RuleTarget::Response,
+            "resolution" => RuleTarget::Resolution,
+            "both" => RuleTarget::Both,
+            _ => {
+                return Err(
+                    TicketError::invalid("target", "must be response, resolution or both").into(),
+                );
+            }
+        };
+        Ok(Self {
+            name: d.name,
+            trigger,
+            target,
+            notify_assignee: d.notify_assignee,
+            notify_team: d.notify_team,
+            analyst_ids: d
+                .analyst_ids
+                .into_iter()
+                .map(AnalystId::from_uuid)
+                .collect(),
+            is_active: d.is_active,
         })
     }
 }
