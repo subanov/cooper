@@ -198,3 +198,77 @@ impl TicketSettingsProvider for DeskSettings {
         }
     }
 }
+
+/// The notifications context's view of tickets.
+pub struct DeskTickets {
+    pub desk: cooper_service_desk::application::ServiceDesk,
+}
+
+#[async_trait]
+impl cooper_notifications::handlers::TicketLookup for DeskTickets {
+    async fn ticket(
+        &self,
+        id: cooper_kernel::TicketId,
+    ) -> Result<Option<cooper_notifications::handlers::TicketFacts>, String> {
+        match self.desk.ticket(&admin(), id).await {
+            Ok(d) if d.ticket.deleted_at().is_none() => {
+                Ok(Some(cooper_notifications::handlers::TicketFacts {
+                    number: d.ticket.number().to_owned(),
+                    subject: d.ticket.details().subject.clone(),
+                    tenant_id: d.ticket.tenant_id(),
+                    assignee: d.ticket.assigned_analyst_id(),
+                    team: d.ticket.assigned_team_id(),
+                }))
+            }
+            Ok(_) | Err(cooper_service_desk::application::AppError::NotFound(_)) => Ok(None),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    async fn sla_recipients(
+        &self,
+        trigger: &str,
+        target: &str,
+        assignee: Option<AnalystId>,
+        team_members: &BTreeSet<AnalystId>,
+    ) -> Result<BTreeSet<AnalystId>, String> {
+        use cooper_service_desk::domain::{SlaTarget, SlaTrigger};
+        let trigger = if trigger == "breach" {
+            SlaTrigger::Breach
+        } else {
+            SlaTrigger::Warning
+        };
+        let target = if target == "response" {
+            SlaTarget::Response
+        } else {
+            SlaTarget::Resolution
+        };
+        self.desk
+            .sla_recipients(trigger, target, assignee, team_members)
+            .await
+            .map_err(|e| e.to_string())
+    }
+}
+
+#[async_trait]
+impl cooper_notifications::handlers::PeopleLookup for IdentityDirectory {
+    async fn team_members(&self, team: TeamId) -> Result<BTreeSet<AnalystId>, String> {
+        Ok(Directory::team_members(self, team)
+            .await
+            .map_err(|e| e.to_string())?
+            .unwrap_or_default())
+    }
+
+    async fn analysts_by_username(
+        &self,
+        usernames: &[String],
+    ) -> Result<BTreeSet<AnalystId>, String> {
+        Ok(self
+            .identity
+            .active_analysts_by_username(usernames)
+            .await
+            .map_err(|e| e.to_string())?
+            .into_iter()
+            .collect())
+    }
+}

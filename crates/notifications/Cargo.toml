@@ -1,0 +1,31 @@
+[package]
+name = "cooper-notifications"
+description = "Cooper notifications context: in-app Notifications (the bell) for assignments, mentions and SLA events."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+axum.workspace = true
+chrono.workspace = true
+cooper-http.workspace = true
+cooper-kernel.workspace = true
+cooper-platform.workspace = true
+http.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+utoipa.workspace = true
+utoipa-axum.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
+
+[lints]
+workspace = true

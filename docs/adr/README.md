@@ -22,3 +22,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0013](0013-two-factor-ip-bans-api-keys-and-encryption-at-rest.md) | Two-factor sign-in, IP bans, API keys and encryption of secrets at rest | Accepted |
 | [0014](0014-service-desk-core.md) | Service desk core: reference data, Ticket Numbers, lifecycle, visibility and search | Accepted |
 | [0015](0015-sla-clock.md) | SLA clock: calendars, derived due times, once-only warnings and breaches | Accepted |
+| [0016](0016-in-app-notifications.md) | In-app Notifications from Domain Events, delivered idempotently | Accepted |

@@ -480,7 +480,12 @@ impl TicketRepository for PgServiceDeskStore {
         rows.into_iter().map(Ticket::try_from).collect()
     }
 
-    async fn add_note(&self, n: &Note, audit: &AuditRecord) -> Result<(), RepoError> {
+    async fn add_note(
+        &self,
+        n: &Note,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError> {
         let mut tx = tenancy::begin(&self.pool, &TenantScope::single(n.tenant_id()))
             .await
             .map_err(db_err)?;
@@ -505,7 +510,7 @@ impl TicketRepository for PgServiceDeskStore {
         .execute(&mut *tx)
         .await
         .map_err(db_err)?;
-        record(&mut tx, audit, &[]).await?;
+        record(&mut tx, audit, events).await?;
         tx.commit().await.map_err(db_err)
     }
 

@@ -8,8 +8,8 @@ mod sla;
 mod ticket;
 
 pub use events::{
-    SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed, TicketCreated,
-    TicketPriorityChanged, TicketReopened, TicketStatusChanged,
+    SlaBreached, SlaWarningRaised, TicketAssigned, TicketClosed, TicketCreated, TicketNoteAdded,
+    TicketPriorityChanged, TicketReopened, TicketStatusChanged, mentions,
 };
 pub use lookups::{Category, CategoryInput, Lookup, LookupFlags, LookupKind, MAX_CATEGORY_DEPTH};
 pub use number::{NumberContext, NumberFormat};

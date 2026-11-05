@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE notifications SET read_at = $3 WHERE recipient_id = $1 AND read_at IS NULL AND ($2::uuid IS NULL OR id = $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "34c1b8bab57a967056461359fb816e927265717d62e7da5d6fddd725bd4a4698"
+}

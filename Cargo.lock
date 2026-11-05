@@ -517,6 +517,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "cooper-notifications"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "cooper-http",
+ "cooper-kernel",
+ "cooper-platform",
+ "http",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "utoipa",
+ "utoipa-axum",
+ "uuid",
+]
+
+[[package]]
 name = "cooper-platform"
 version = "0.1.0"
 dependencies = [
@@ -551,6 +573,7 @@ dependencies = [
  "cooper-http",
  "cooper-identity",
  "cooper-kernel",
+ "cooper-notifications",
  "cooper-platform",
  "cooper-service-desk",
  "http",
@@ -598,6 +621,7 @@ dependencies = [
  "cooper-identity",
  "cooper-kernel",
  "cooper-platform",
+ "cooper-server",
  "cooper-service-desk",
  "tokio",
  "tracing",

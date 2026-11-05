@@ -17,6 +17,7 @@ cooper-http = { path = "crates/http" }
 cooper-identity = { path = "crates/identity" }
 cooper-administration = { path = "crates/administration" }
 cooper-service-desk = { path = "crates/service-desk" }
+cooper-notifications = { path = "crates/notifications" }
 
 # Runtime and web
 tokio = { version = "1.54", features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }

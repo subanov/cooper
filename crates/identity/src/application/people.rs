@@ -119,6 +119,27 @@ impl IdentityService {
         })
     }
 
+    /// Active Analysts with these usernames (case-insensitive), for `@mentions`.
+    ///
+    /// # Errors
+    ///
+    /// Storage failures.
+    pub async fn active_analysts_by_username(
+        &self,
+        usernames: &[String],
+    ) -> Result<Vec<AnalystId>, AppError> {
+        let mut found = Vec::new();
+        for name in usernames.iter().take(50) {
+            if let Some(a) = self.ports.analysts.find_by_login(name).await?
+                && a.is_active()
+                && a.username().as_str().eq_ignore_ascii_case(name)
+            {
+                found.push(a.id());
+            }
+        }
+        Ok(found)
+    }
+
     /// Loads an Analyst.
     ///
     /// # Errors

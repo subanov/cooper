@@ -17,6 +17,7 @@ cooper-administration.workspace = true
 cooper-http.workspace = true
 cooper-identity.workspace = true
 cooper-kernel.workspace = true
+cooper-notifications.workspace = true
 cooper-platform.workspace = true
 cooper-service-desk.workspace = true
 http.workspace = true

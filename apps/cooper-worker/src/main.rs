@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Context as _;
+use cooper_identity::domain::SessionPolicy;
 use cooper_identity::infrastructure::{IdentityHousekeeping, ReencryptIdentitySecrets};
 use cooper_kernel::{Clock, SystemClock};
 use cooper_platform::config::{self, ConfigError, DatabaseConfig};
@@ -17,6 +18,7 @@ use cooper_platform::jobs::{JobRunner, PruneJobRuns, RunOutcome};
 use cooper_platform::outbox::Dispatcher;
 use cooper_platform::system_log::{self, PruneSystemLog};
 use cooper_platform::telemetry::{self, LogFormat};
+use cooper_server::{AppState, SecuritySettings};
 use cooper_service_desk::infrastructure::SlaMonitor;
 use tokio::sync::watch;
 use tokio::task::JoinSet;
@@ -92,8 +94,23 @@ async fn main() -> anyhow::Result<()> {
         .register_all()
         .await
         .context("failed to register jobs")?;
-    let dispatcher =
-        Arc::new(Dispatcher::new(pool, clock).with_batch_size(config.outbox_batch_size));
+    // The same wiring as cooper-server, so handlers use each context's application API.
+    let state = AppState::with_settings(
+        pool.clone(),
+        clock.clone(),
+        SecuritySettings {
+            session_policy: SessionPolicy::default(),
+            secure_cookies: true,
+            keyring: config.keyring.clone(),
+            trusted_proxies: Vec::new(),
+        },
+    )
+    .context("failed to initialise application services")?;
+    let dispatcher = state.event_handlers().into_iter().fold(
+        Dispatcher::new(pool, clock).with_batch_size(config.outbox_batch_size),
+        Dispatcher::with_handler,
+    );
+    let dispatcher = Arc::new(dispatcher);
 
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
     let mut tasks = JoinSet::new();
