@@ -2,13 +2,15 @@
 //! FR-IAM-002).
 
 use std::collections::BTreeSet;
+use std::net::IpAddr;
 
 use cooper_kernel::{Actor, AuditAction, Principal};
 
 use super::{AppError, IdentityService};
 use crate::domain::{
-    Analyst, Company, DomainName, EmailAddress, Name, NewAnalyst, Password, Session, SessionToken,
-    TicketCode, Username, audit_record,
+    Analyst, Company, DomainName, EmailAddress, IdentityError, Name, NewAnalyst, Password,
+    Revocations, SecurityPolicy, Session, SessionToken, TicketCode, TrustedDevice, Username,
+    audit_record,
 };
 
 /// Input for first-run setup.
@@ -31,14 +33,20 @@ pub struct FirstRunSetup {
 }
 
 /// Sign-in request.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SignIn {
     /// Username or email address.
     pub login: String,
     /// Password as typed.
     pub password: String,
-    /// Client IP address, for the session record.
-    pub ip_address: Option<String>,
+    /// Two-factor code, when the Analyst uses two-factor sign-in.
+    pub totp_code: Option<String>,
+    /// Remember this browser for 30 days after a successful two-factor sign-in.
+    pub remember_device: bool,
+    /// Token of a remembered browser, from its cookie.
+    pub trusted_device: Option<SessionToken>,
+    /// Client IP address, for IP bans and the session record.
+    pub ip_address: Option<IpAddr>,
     /// Client user agent, for the session record.
     pub user_agent: Option<String>,
 }
@@ -50,10 +58,15 @@ pub struct SignedIn {
     pub session: Session,
     /// The raw session token for the cookie. Only set right after sign-in.
     pub token: Option<SessionToken>,
+    /// Token for the trusted-device cookie, when the browser was just remembered.
+    pub trusted_device_token: Option<SessionToken>,
     /// The signed-in Analyst.
     pub analyst: Analyst,
     /// Their effective permissions and scope.
     pub principal: Principal,
+    /// Two-factor sign-in is required but not set up yet: until it is, only the session
+    /// and enrollment endpoints may be used.
+    pub totp_enrollment_required: bool,
 }
 
 impl IdentityService {
@@ -114,28 +127,79 @@ impl IdentityService {
         Ok(admin)
     }
 
-    /// Signs an Analyst in and starts a session.
+    /// Signs an Analyst in and starts a session (FR-IAM-002, FR-IAM-003, FR-IAM-005).
     ///
     /// # Errors
     ///
-    /// [`AppError::InvalidCredentials`] for an unknown login, wrong password or inactive
-    /// Analyst, without saying which.
+    /// - [`AppError::TooManyAttempts`] while the client IP is banned;
+    /// - [`AppError::InvalidCredentials`] for an unknown login, wrong password or inactive
+    ///   Analyst, without saying which;
+    /// - [`AppError::TotpRequired`] when the password is right but a two-factor code is
+    ///   needed, and [`IdentityError::InvalidTotpCode`] when the code is wrong.
     pub async fn sign_in(&self, request: SignIn) -> Result<SignedIn, AppError> {
-        let analyst = self
-            .ports
-            .analysts
-            .find_by_login(request.login.trim())
-            .await?;
+        let now = self.ports.clock.now();
+        let policy = self.ports.policy.policy().await;
+        if let Some(ip) = request.ip_address
+            && let Some(until) = self.ports.throttle.banned_until(ip, now).await?
+        {
+            return Err(AppError::TooManyAttempts { retry_after: until });
+        }
+        let login = request.login.trim();
+        let analyst = self.ports.analysts.find_by_login(login).await?;
         let hash = analyst.as_ref().and_then(Analyst::password_hash);
         let password_ok = self.ports.hasher.verify(&request.password, hash).await;
-        let analyst = match analyst {
+        let mut analyst = match analyst {
             Some(a) if password_ok && a.is_active() => a,
             _ => {
-                tracing::info!(login = %request.login.trim(), "failed sign-in");
-                return Err(AppError::InvalidCredentials);
+                return Err(self
+                    .failed_sign_in(&request, &policy, AppError::InvalidCredentials)
+                    .await);
             }
         };
-        let now = self.ports.clock.now();
+
+        let mut remember = false;
+        if analyst.totp_enabled() {
+            let trusted = match &request.trusted_device {
+                Some(token) => self
+                    .ports
+                    .trusted_devices
+                    .find_by_token_hash(&token.hash())
+                    .await?
+                    .is_some_and(|d| d.trusts(analyst.id(), now)),
+                None => false,
+            };
+            if !trusted {
+                let Some(code) = request
+                    .totp_code
+                    .as_deref()
+                    .filter(|c| !c.trim().is_empty())
+                else {
+                    return Err(AppError::TotpRequired);
+                };
+                let before = analyst.clone();
+                if !analyst.verify_totp(code, now) {
+                    let err = AppError::Rule(IdentityError::InvalidTotpCode);
+                    return Err(self.failed_sign_in(&request, &policy, err).await);
+                }
+                // Store the used step so the code cannot be replayed.
+                let audit = audit_record(
+                    Some(&before),
+                    &analyst,
+                    AuditAction::Updated,
+                    Actor::Analyst(analyst.id()),
+                    now,
+                );
+                self.ports
+                    .analysts
+                    .update(&analyst, &audit, Revocations::NONE)
+                    .await?;
+                remember = request.remember_device;
+            }
+        }
+        if let Some(ip) = request.ip_address {
+            self.ports.throttle.clear(ip).await?;
+        }
+
         let token = SessionToken::new(self.ports.tokens.token()?);
         let csrf = self.ports.tokens.token()?;
         let session = Session::start(
@@ -144,18 +208,57 @@ impl IdentityService {
             csrf,
             self.session_policy,
             now,
-            request.ip_address,
-            request.user_agent,
+            request.ip_address.map(|ip| ip.to_string()),
+            request.user_agent.clone(),
         );
         self.ports.sessions.insert(&session).await?;
+        let trusted_device_token = if remember {
+            let device_token = SessionToken::new(self.ports.tokens.token()?);
+            let device =
+                TrustedDevice::remember(analyst.id(), &device_token, request.user_agent, now);
+            self.ports.trusted_devices.insert(&device).await?;
+            Some(device_token)
+        } else {
+            None
+        };
         let principal = self.principal_for(&analyst).await?;
         tracing::info!(analyst_id = %analyst.id(), session_id = %session.id(), "signed in");
         Ok(SignedIn {
             session,
             token: Some(token),
+            trusted_device_token,
+            totp_enrollment_required: policy.require_totp && !analyst.totp_enabled(),
             analyst,
             principal,
         })
+    }
+
+    /// Records a failed sign-in for the client IP; turns `err` into
+    /// [`AppError::TooManyAttempts`] when this failure starts a ban.
+    async fn failed_sign_in(
+        &self,
+        request: &SignIn,
+        policy: &SecurityPolicy,
+        err: AppError,
+    ) -> AppError {
+        tracing::info!(login = %request.login.trim(), ip = ?request.ip_address, "failed sign-in");
+        let Some(ip) = request.ip_address else {
+            return err;
+        };
+        let now = self.ports.clock.now();
+        match self
+            .ports
+            .throttle
+            .record_failure(ip, request.login.trim(), now, policy)
+            .await
+        {
+            Ok(Some(until)) => {
+                tracing::warn!(%ip, "IP address banned after repeated failed sign-ins");
+                AppError::TooManyAttempts { retry_after: until }
+            }
+            Ok(None) => err,
+            Err(e) => AppError::from(e),
+        }
     }
 
     /// Authenticates a request by its session token.
@@ -184,9 +287,12 @@ impl IdentityService {
             self.ports.sessions.touch(&session).await?;
         }
         let principal = self.principal_for(&analyst).await?;
+        let policy = self.ports.policy.policy().await;
         Ok(SignedIn {
             session,
             token: None,
+            trusted_device_token: None,
+            totp_enrollment_required: policy.require_totp && !analyst.totp_enabled(),
             analyst,
             principal,
         })
@@ -243,7 +349,10 @@ impl IdentityService {
             principal.actor(),
             now,
         );
-        self.ports.analysts.update(&analyst, &audit, true).await?;
+        self.ports
+            .analysts
+            .update(&analyst, &audit, Revocations::ALL)
+            .await?;
         Ok(())
     }
 
@@ -291,8 +400,7 @@ mod tests {
             .sign_in(SignIn {
                 login: "ADMIN".into(),
                 password: "correct horse battery".into(),
-                ip_address: None,
-                user_agent: None,
+                ..SignIn::default()
             })
             .await
             .unwrap();
@@ -306,8 +414,7 @@ mod tests {
                 .sign_in(SignIn {
                     login: login.into(),
                     password: password.into(),
-                    ip_address: None,
-                    user_agent: None,
+                    ..SignIn::default()
                 })
                 .await
                 .unwrap_err();

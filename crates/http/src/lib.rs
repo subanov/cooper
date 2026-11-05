@@ -7,6 +7,7 @@
 //! - [`Authenticated`]: the signed-in [`cooper_kernel::Principal`] of a request.
 
 pub mod auth;
+pub mod client_ip;
 pub mod middleware;
 mod problem;
 

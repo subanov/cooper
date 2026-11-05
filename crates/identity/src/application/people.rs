@@ -18,7 +18,7 @@ use super::{
 };
 use crate::domain::{
     Analyst, CompanyAccess, Department, EmailAddress, IdentityError, Name, NewAnalyst, Password,
-    Role, RoleId, Team, Username, audit_record,
+    Revocations, Role, RoleId, Team, Username, audit_record,
 };
 
 /// Editable fields of an Analyst.
@@ -345,10 +345,12 @@ impl IdentityService {
             self.ports.clock.now(),
         );
         if audit.is_meaningful() || revoke_sessions {
-            self.ports
-                .analysts
-                .update(after, &audit, revoke_sessions)
-                .await?;
+            let revoke = if revoke_sessions {
+                Revocations::ALL
+            } else {
+                Revocations::NONE
+            };
+            self.ports.analysts.update(after, &audit, revoke).await?;
         }
         Ok(())
     }

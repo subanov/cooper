@@ -17,7 +17,7 @@ use utoipa::openapi::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 
 pub use state::{
-    AppState, SessionSettings, capability_catalogue, module_routes, setting_catalogue,
+    AppState, SecuritySettings, StateError, capability_catalogue, module_routes, setting_catalogue,
 };
 
 #[derive(utoipa::OpenApi)]
@@ -32,6 +32,7 @@ pub use state::{
         (name = "Roles", description = "RBAC Roles and Capabilities"),
         (name = "Requesters", description = "People who ask IT for help"),
         (name = "Cost Centres", description = "Financial units per Company"),
+        (name = "API Keys", description = "Credentials for integrations"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
     )
 )]

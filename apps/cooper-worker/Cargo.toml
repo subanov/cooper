@@ -8,6 +8,7 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
+cooper-identity.workspace = true
 anyhow.workspace = true
 cooper-kernel.workspace = true
 cooper-platform.workspace = true

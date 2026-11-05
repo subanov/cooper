@@ -9,7 +9,10 @@ use cooper_platform::config::{self, ConfigError, DatabaseConfig};
 use cooper_platform::telemetry::LogFormat;
 use http::HeaderValue;
 
-use crate::state::SessionSettings;
+use cooper_http::client_ip::IpNetwork;
+use cooper_platform::crypto::Keyring;
+
+use crate::state::SecuritySettings;
 
 /// Everything `cooper-server` reads at start-up.
 #[derive(Debug, Clone)]
@@ -22,9 +25,8 @@ pub struct ServerConfig {
     pub http: HttpConfig,
     /// Log format (`COOPER_LOG_FORMAT`).
     pub log_format: LogFormat,
-    /// Sign-in sessions (`COOPER_SESSION_IDLE_MINUTES`, `COOPER_SESSION_MAX_HOURS`,
-    /// `COOPER_SECURE_COOKIES`).
-    pub sessions: SessionSettings,
+    /// Sessions, cookies, encryption keys and trusted proxies.
+    pub security: SecuritySettings,
 }
 
 impl ServerConfig {
@@ -52,12 +54,12 @@ impl ServerConfig {
                 )?,
             },
             log_format: config::parse_or("COOPER_LOG_FORMAT", LogFormat::default())?,
-            sessions: sessions_from_env()?,
+            security: security_from_env()?,
         })
     }
 }
 
-fn sessions_from_env() -> Result<SessionSettings, ConfigError> {
+fn security_from_env() -> Result<SecuritySettings, ConfigError> {
     let defaults = SessionPolicy::default();
     let idle: i64 = config::parse_or(
         "COOPER_SESSION_IDLE_MINUTES",
@@ -73,12 +75,33 @@ fn sessions_from_env() -> Result<SessionSettings, ConfigError> {
             reason: "session lifetimes must be positive".into(),
         });
     }
-    Ok(SessionSettings {
-        policy: SessionPolicy {
+    let keyring = Keyring::parse(&config::required("COOPER_ENCRYPTION_KEYS")?).map_err(|e| {
+        ConfigError::Invalid {
+            name: "COOPER_ENCRYPTION_KEYS",
+            reason: e.to_string(),
+        }
+    })?;
+    let trusted_proxies = config::var("COOPER_TRUSTED_PROXIES")?
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(|s| {
+            s.parse::<IpNetwork>()
+                .map_err(|reason| ConfigError::Invalid {
+                    name: "COOPER_TRUSTED_PROXIES",
+                    reason,
+                })
+        })
+        .collect::<Result<_, _>>()?;
+    Ok(SecuritySettings {
+        session_policy: SessionPolicy {
             idle_timeout: chrono::Duration::minutes(idle),
             absolute_lifetime: chrono::Duration::hours(max),
         },
         secure_cookies: config::parse_or("COOPER_SECURE_COOKIES", true)?,
+        keyring,
+        trusted_proxies,
     })
 }
 

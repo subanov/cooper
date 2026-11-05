@@ -12,6 +12,9 @@ publish.workspace = true
 testing = []
 
 [dependencies]
+aes-gcm.workspace = true
+base64.workspace = true
+getrandom.workspace = true
 async-trait.workspace = true
 chrono.workspace = true
 cooper-kernel.workspace = true

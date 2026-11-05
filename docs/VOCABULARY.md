@@ -37,7 +37,10 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Directory Sync** | A scheduled import of Requesters and groups from an Auth Provider. Run status (fixed): `running`, `ok`, `stopped`, `failed`. | `DirectorySyncRun` | |
 | **Session** | A signed-in browser session of an Analyst: an `HttpOnly` cookie holding a random token (stored only as a hash) plus a CSRF token for unsafe requests. Expires when idle and after an absolute lifetime (ADR-0011). | `Session`, `analyst_sessions` | login (as a noun) |
 | **Principal** | The authenticated caller of a request: its Actor, Capabilities and Tenant Scope. Built by the identity context, checked by every context. | `Principal` | user context |
-| **API Key** | A credential for REST integrations, with per-key permissions, allowed companies, a rate limit and an expiry. | `ApiKey` | token (ambiguous) |
+| **API Key** | A credential for REST integrations (`cpr_<prefix>_<secret>`), with Capabilities, Company access, a rate limit per minute and an expiry. Stored as a hash; shown once. | `ApiKey`, `api_keys` | token (ambiguous) |
+| **Two-Factor Sign-In** | A six-digit code from an authenticator app (TOTP) asked for after the password. Administrators can require it. | `TotpSecret`, `Analyst::totp` | MFA (in UI copy), OTP |
+| **Trusted Device** | A browser remembered for 30 days after a two-factor sign-in, so it skips the code. | `TrustedDevice`, `analyst_trusted_devices` | remembered computer |
+| **IP Ban** | A temporary block of sign-ins from one IP address after repeated failures. | `ip_bans` | lockout (an account lockout is different) |
 | **Actor** | Whoever performed an action: an Analyst, a Requester, an API Key or **Automation** (system). Recorded in every audit entry. | `Actor` | user (ambiguous) |
 | **Sensitivity** | Confidentiality of a ticket or department (fixed): `normal`, `confidential`. Confidential items are visible only to authorised Analysts. | `Sensitivity` (kernel) | privacy level |
 | **Company Access** | Which Companies an Analyst or Team may see: all Companies, specific Companies, or none. An Analyst's Tenant Scope is the union of their own and their active Teams' access. | `CompanyAccess`, `company_access_grants` | tenant membership |

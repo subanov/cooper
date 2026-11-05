@@ -258,6 +258,8 @@ Building blocks every context uses (ADR-0004, ADR-0005, ADR-0009):
   them with an `EventHandler` registered in `cooper-worker`.
 - `cooper_platform::jobs::Job` for scheduled work, registered in `cooper-worker`.
 - `cooper_http::Problem` for every API error.
+- `cooper_platform::crypto::Keyring` for every secret stored at rest (bind each value to
+  a purpose such as `<table>.<column>:<id>`; ADR-0013).
 - Register a context's Capabilities, `SettingDefinition`s and Module route prefixes in
   `apps/cooper-server/src/state.rs` (`capability_catalogue`, `setting_catalogue`,
   `module_routes`); log with `tracing` (warnings and errors reach the System Log).

@@ -5,7 +5,7 @@
 use axum::Router;
 use axum::body::Body;
 use cooper_http::HttpConfig;
-use cooper_server::{AppState, SessionSettings, router};
+use cooper_server::{AppState, SecuritySettings, router};
 use http::{Method, Request, StatusCode, header};
 use http_body_util::BodyExt as _;
 use serde_json::{Value, json};
@@ -19,6 +19,10 @@ pub struct Client {
     pub app: Router,
     pub cookie: Option<String>,
     pub csrf: Option<String>,
+    /// TCP peer address, as `ConnectInfo` would give it.
+    pub peer: Option<std::net::SocketAddr>,
+    /// Extra request headers.
+    pub headers: Vec<(String, String)>,
 }
 
 pub struct Reply {
@@ -32,9 +36,9 @@ impl Client {
         let state = AppState::with_settings(
             pool.clone(),
             std::sync::Arc::new(cooper_kernel::SystemClock),
-            SessionSettings {
+            SecuritySettings {
                 secure_cookies: false,
-                ..SessionSettings::default()
+                ..SecuritySettings::ephemeral().unwrap()
             },
         )
         .unwrap();
@@ -42,6 +46,8 @@ impl Client {
             app: router(state, &HttpConfig::default()),
             cookie: None,
             csrf: None,
+            peer: None,
+            headers: Vec::new(),
         }
     }
 
@@ -53,6 +59,9 @@ impl Client {
         if let Some(csrf) = &self.csrf {
             req = req.header("x-csrf-token", csrf);
         }
+        for (name, value) in &self.headers {
+            req = req.header(name.as_str(), value.as_str());
+        }
         let req = match body {
             Some(b) => req
                 .header(header::CONTENT_TYPE, "application/json")
@@ -60,6 +69,11 @@ impl Client {
                 .unwrap(),
             None => req.body(Body::empty()).unwrap(),
         };
+        let mut req = req;
+        if let Some(peer) = self.peer {
+            req.extensions_mut()
+                .insert(axum::extract::ConnectInfo(peer));
+        }
         let response = self.app.clone().oneshot(req).await.unwrap();
         let status = response.status();
         let headers = response.headers().clone();
@@ -101,9 +115,9 @@ impl Client {
         assert!(set_cookie.contains("HttpOnly") && set_cookie.contains("SameSite=Lax"));
         let cookie = set_cookie.split(';').next().unwrap().to_owned();
         Self {
-            app: self.app.clone(),
             cookie: Some(cookie),
             csrf: Some(reply.body["csrf_token"].as_str().unwrap().to_owned()),
+            ..self.clone()
         }
     }
 }

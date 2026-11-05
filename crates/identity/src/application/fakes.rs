@@ -1,14 +1,15 @@
 //! In-memory fakes of the identity ports, for application tests.
 
 use std::collections::{BTreeSet, HashMap};
+use std::net::IpAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 
 use async_trait::async_trait;
-use chrono::TimeZone;
+use chrono::{DateTime, TimeZone, Utc};
 use cooper_kernel::{
-    AnalystId, AuditRecord, Capability, DepartmentId, FixedClock, RequesterId, TeamId, TenantId,
-    TenantScope,
+    AnalystId, ApiKeyId, AuditRecord, Capability, DepartmentId, FixedClock, RequesterId, TeamId,
+    TenantId, TenantScope,
 };
 
 use super::{FirstRunSetup, IdentityPorts, IdentityService, SignIn, SignedIn, capabilities};
@@ -19,6 +20,10 @@ use crate::domain::{
     RepoError, Requester, RequesterRepository, Role, RoleId, RoleRepository, Session,
     SessionPolicy, SessionRepository, SetupRepository, Team, TeamRepository, TicketCode,
     TokenGenerator, Username,
+};
+use crate::domain::{
+    ApiKey, ApiKeyRepository, Revocations, SecurityPolicy, SecurityPolicyProvider, SignInThrottle,
+    TrustedDevice, TrustedDeviceRepository,
 };
 
 #[derive(Default)]
@@ -32,6 +37,12 @@ pub(crate) struct State {
     pub requesters: HashMap<RequesterId, Requester>,
     pub cost_centres: HashMap<CostCentreId, CostCentre>,
     pub audits: Vec<AuditRecord>,
+    pub devices: HashMap<Vec<u8>, TrustedDevice>,
+    pub failures: Vec<(IpAddr, DateTime<Utc>)>,
+    pub bans: HashMap<IpAddr, DateTime<Utc>>,
+    pub api_keys: HashMap<ApiKeyId, ApiKey>,
+    pub usage: HashMap<(ApiKeyId, i64), u32>,
+    pub policy: SecurityPolicy,
 }
 
 #[derive(Clone)]
@@ -81,6 +92,10 @@ impl Fakes {
             requesters: me.clone(),
             cost_centres: me.clone(),
             setup: me.clone(),
+            trusted_devices: me.clone(),
+            throttle: me.clone(),
+            api_keys: me.clone(),
+            policy: me.clone(),
             hasher: me.clone(),
             tokens: me,
             clock: self.clock.clone(),
@@ -97,11 +112,18 @@ impl Fakes {
         svc.sign_in(SignIn {
             login: "admin".into(),
             password: "correct horse battery".into(),
-            ip_address: None,
-            user_agent: None,
+            ..SignIn::default()
         })
         .await
         .unwrap()
+    }
+
+    pub fn set_policy(&self, policy: SecurityPolicy) {
+        self.state().policy = policy;
+    }
+
+    pub fn reset_api_key_usage(&self) {
+        self.state().usage.clear();
     }
 
     pub fn default_company_id(&self) -> TenantId {
@@ -222,12 +244,15 @@ impl AnalystRepository for Fakes {
         &self,
         analyst: &Analyst,
         audit: &AuditRecord,
-        revoke_sessions: bool,
+        revoke: Revocations,
     ) -> Result<(), RepoError> {
         let now = self.clock.now();
         let mut state = self.state();
         state.analysts.insert(analyst.id(), analyst.clone());
-        if revoke_sessions {
+        if revoke.trusted_devices {
+            state.devices.retain(|_, d| d.analyst_id() != analyst.id());
+        }
+        if revoke.sessions {
             for s in state
                 .sessions
                 .values_mut()
@@ -527,9 +552,110 @@ impl PasswordHasher for Fakes {
 
 impl TokenGenerator for Fakes {
     fn token(&self) -> Result<String, RepoError> {
+        let n = u128::from(self.counter.fetch_add(1, Ordering::Relaxed));
+        // Hex like the real generator; distinct prefixes for every token.
         Ok(format!(
-            "token-{}",
-            self.counter.fetch_add(1, Ordering::Relaxed)
+            "{:08x}{:056x}",
+            n.wrapping_mul(0x9e37_79b9) & 0xffff_ffff,
+            n
         ))
+    }
+}
+
+#[async_trait]
+impl TrustedDeviceRepository for Fakes {
+    async fn insert(&self, device: &TrustedDevice) -> Result<(), RepoError> {
+        self.state()
+            .devices
+            .insert(device.token_hash().to_vec(), device.clone());
+        Ok(())
+    }
+    async fn find_by_token_hash(&self, hash: &[u8]) -> Result<Option<TrustedDevice>, RepoError> {
+        Ok(self.state().devices.get(hash).cloned())
+    }
+}
+
+#[async_trait]
+impl SignInThrottle for Fakes {
+    async fn banned_until(
+        &self,
+        ip: IpAddr,
+        now: DateTime<Utc>,
+    ) -> Result<Option<DateTime<Utc>>, RepoError> {
+        Ok(self
+            .state()
+            .bans
+            .get(&ip)
+            .copied()
+            .filter(|until| *until > now))
+    }
+    async fn record_failure(
+        &self,
+        ip: IpAddr,
+        _login: &str,
+        now: DateTime<Utc>,
+        policy: &SecurityPolicy,
+    ) -> Result<Option<DateTime<Utc>>, RepoError> {
+        let mut state = self.state();
+        state.failures.push((ip, now));
+        let since = now - policy.ban_duration;
+        let count = state
+            .failures
+            .iter()
+            .filter(|(i, at)| *i == ip && *at > since)
+            .count();
+        if count as u32 >= policy.max_failed_sign_ins {
+            let until = now + policy.ban_duration;
+            state.bans.insert(ip, until);
+            state.failures.retain(|(i, _)| *i != ip);
+            return Ok(Some(until));
+        }
+        Ok(None)
+    }
+    async fn clear(&self, ip: IpAddr) -> Result<(), RepoError> {
+        self.state().failures.retain(|(i, _)| *i != ip);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl ApiKeyRepository for Fakes {
+    async fn get(&self, id: ApiKeyId) -> Result<Option<ApiKey>, RepoError> {
+        Ok(self.state().api_keys.get(&id).cloned())
+    }
+    async fn find_by_prefix(&self, prefix: &str) -> Result<Option<ApiKey>, RepoError> {
+        Ok(self
+            .state()
+            .api_keys
+            .values()
+            .find(|k| k.prefix() == prefix)
+            .cloned())
+    }
+    async fn list(&self, query: &ListQuery) -> Result<Vec<ApiKey>, RepoError> {
+        let items = self.state().api_keys.values().cloned().collect();
+        Ok(sorted(items, query, |k| {
+            (k.settings().name.as_str().to_lowercase(), k.id().as_uuid())
+        }))
+    }
+    async fn insert(&self, key: &ApiKey, audit: &AuditRecord) -> Result<(), RepoError> {
+        self.state().api_keys.insert(key.id(), key.clone());
+        self.audit(audit);
+        Ok(())
+    }
+    async fn update(&self, key: &ApiKey, audit: &AuditRecord) -> Result<(), RepoError> {
+        ApiKeyRepository::insert(self, key, audit).await
+    }
+    async fn record_use(&self, id: ApiKeyId, now: DateTime<Utc>) -> Result<u32, RepoError> {
+        let mut state = self.state();
+        let count = state.usage.entry((id, now.timestamp() / 60)).or_insert(0);
+        *count += 1;
+        Ok(*count)
+    }
+}
+
+#[async_trait]
+impl SecurityPolicyProvider for Fakes {
+    async fn policy(&self) -> SecurityPolicy {
+        self.state().policy
     }
 }

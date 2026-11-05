@@ -3,6 +3,7 @@
 //! Everything bounded contexts need to talk to PostgreSQL consistently:
 //!
 //! - [`config`]: typed environment-variable parsing (12-factor, read once at start-up).
+//! - [`crypto`]: versioned AES-256-GCM encryption of secrets at rest (ADR-0013).
 //! - [`db`]: connection pool, embedded migrations and migration status.
 //! - [`tenancy`]: transactions scoped to a set of Companies, enforced by Row-Level
 //!   Security (ADR-0004).
@@ -17,6 +18,7 @@
 
 pub mod audit;
 pub mod config;
+pub mod crypto;
 pub mod db;
 pub mod jobs;
 pub mod outbox;

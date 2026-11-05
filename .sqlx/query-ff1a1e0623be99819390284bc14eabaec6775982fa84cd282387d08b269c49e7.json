@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ip_bans (ip_address, banned_until, created_at) VALUES ($1::text::inet, $2, $3)\n                 ON CONFLICT (ip_address) DO UPDATE SET banned_until = EXCLUDED.banned_until, created_at = EXCLUDED.created_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ff1a1e0623be99819390284bc14eabaec6775982fa84cd282387d08b269c49e7"
+}

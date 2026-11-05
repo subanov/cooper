@@ -14,15 +14,22 @@ use cooper_identity::application::{
 use cooper_identity::domain::{
     CostCentreCode, DomainName, EmailAddress, Name, Password, SessionPolicy, TicketCode, Username,
 };
-use cooper_identity::infrastructure::PgIdentityStore;
+use cooper_identity::infrastructure::{FixedSecurityPolicy, PgIdentityStore};
 use cooper_kernel::{Capability, SystemClock, TenantId, TenantScope};
+use cooper_platform::crypto::Keyring;
 use cooper_platform::testing;
 use sqlx::PgPool;
 
 const TABLES: &[&str] = &["tenants", "tenant_domains", "requesters", "cost_centres"];
 
 fn service(pool: &PgPool) -> IdentityService {
-    let ports = PgIdentityStore::ports(pool.clone(), Arc::new(SystemClock)).unwrap();
+    let ports = PgIdentityStore::ports(
+        pool.clone(),
+        Arc::new(SystemClock),
+        Keyring::ephemeral().unwrap(),
+        Arc::new(FixedSecurityPolicy::default()),
+    )
+    .unwrap();
     let catalogue: BTreeSet<Capability> = capabilities::ALL
         .iter()
         .map(|c| c.parse().unwrap())
@@ -48,8 +55,8 @@ async fn seed(pool: &PgPool) -> (TenantId, TenantId) {
         .sign_in(SignIn {
             login: "admin".into(),
             password: "correct horse battery".into(),
-            ip_address: Some("127.0.0.1".into()),
-            user_agent: None,
+            ip_address: Some("127.0.0.1".parse().unwrap()),
+            ..SignIn::default()
         })
         .await
         .unwrap()

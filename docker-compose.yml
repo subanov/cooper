@@ -70,6 +70,9 @@ services:
       # The application connects as the non-superuser role so Row-Level Security applies.
       COOPER_DATABASE_URL: postgres://cooper_app:cooper_app@postgres:5432/cooper
       COOPER_LOG_FORMAT: ${COOPER_LOG_FORMAT:-json}
+      # Development key only (public). Production sets its own (ADR-0013).
+      COOPER_ENCRYPTION_KEYS: ${COOPER_ENCRYPTION_KEYS:-1:Y29vcGVyLWRldi1rZXktbmV2ZXItaW4tcHJvZC0wMDE=}
+      COOPER_SECURE_COOKIES: ${COOPER_SECURE_COOKIES:-false}
       RUST_LOG: ${RUST_LOG:-info,sqlx=warn}
     ports:
       - "${COOPER_PORT:-8080}:8080"
