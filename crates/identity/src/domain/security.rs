@@ -115,6 +115,8 @@ pub struct SecurityPolicy {
     pub max_failed_sign_ins: u32,
     /// Length of the window and of the ban.
     pub ban_duration: Duration,
+    /// People at a Company's Sender Domain may create a Portal Account themselves.
+    pub portal_self_registration: bool,
 }
 
 impl Default for SecurityPolicy {
@@ -123,6 +125,7 @@ impl Default for SecurityPolicy {
             require_totp: false,
             max_failed_sign_ins: 10,
             ban_duration: Duration::minutes(15),
+            portal_self_registration: false,
         }
     }
 }

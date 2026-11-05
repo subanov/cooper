@@ -27,3 +27,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0018](0018-email-intake.md) | Email intake: Mailboxes, threading, matching and loop protection | Accepted |
 | [0019](0019-email-templates.md) | Email Templates sent from ticket events, most specific match wins | Accepted |
 | [0020](0020-microsoft-graph-and-gmail-mailboxes.md) | Microsoft Graph and Gmail Mailboxes on the shared intake pipeline | Accepted |
+| [0021](0021-portal-accounts.md) | Portal Accounts per email address, set-password links and Portal sessions | Accepted |

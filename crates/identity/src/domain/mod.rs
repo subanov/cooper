@@ -8,6 +8,7 @@ mod audit;
 mod company;
 mod cost_centre;
 mod department;
+mod portal;
 mod repository;
 mod requester;
 mod role;
@@ -24,6 +25,10 @@ pub use audit::{Audited, audit_record};
 pub use company::Company;
 pub use cost_centre::{CostCentre, CostCentreId};
 pub use department::Department;
+pub use portal::{
+    NewPortalSession, PortalAccount, PortalAccountId, PortalLink, PortalLinkEmail,
+    PortalLinkPurpose, PortalRepository, PortalSession, PortalSessionId,
+};
 pub use repository::{
     AnalystRepository, ApiKeyRepository, Authorization, AuthorizationRepository, CompanyRepository,
     CostCentreRepository, DepartmentRepository, ListQuery, PasswordHasher, PasswordResetRepository,

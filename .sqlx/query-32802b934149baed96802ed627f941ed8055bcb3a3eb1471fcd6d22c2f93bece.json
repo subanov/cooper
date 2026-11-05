@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM requester_sessions WHERE expires_at < $1 OR revoked_at < $1 - interval '1 day' OR idle_expires_at < $1 - interval '1 day'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "32802b934149baed96802ed627f941ed8055bcb3a3eb1471fcd6d22c2f93bece"
+}

@@ -172,7 +172,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
-| FR-PRT-001 | Requesters sign in to the Portal (local password, SSO, or Self-Registration with email confirmation). | M | P1 |
+| FR-PRT-001 | Requesters sign in to the Portal (local password, SSO, or Self-Registration with email confirmation). Deviation from FreeITSM: one Portal Account per email address acts for every active Requester with that address (switchable in the session); passwords are only ever set through an emailed one-time link (Portal Invitation, reset or Self-Registration), so an address is confirmed before it can sign in; Self-Registration is off by default and limited to Sender Domains (never Freemail Domains). SSO follows with FR-IAM-012 (P2). See ADR-0021. | M | P1 |
 | FR-PRT-002 | Requesters raise tickets by choosing from the **Portal Catalogue** (portal-visible Categories and Forms) and filling in any *ask requester* Ticket Fields. | M | P1 |
 | FR-PRT-003 | Requesters see their own tickets (open and closed), read the public timeline (replies and public notes), reply and attach files. | M | P1 |
 | FR-PRT-004 | Managers see tickets of Requesters covered by their Manager Grants. | S | P2 |

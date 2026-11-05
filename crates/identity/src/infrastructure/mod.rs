@@ -5,6 +5,7 @@ mod api_keys;
 mod companies;
 mod housekeeping;
 mod people;
+mod portal;
 mod protection;
 mod requesters;
 mod security;
@@ -65,7 +66,8 @@ impl PgIdentityStore {
             trusted_devices: store.clone(),
             throttle: store.clone(),
             api_keys: store.clone(),
-            resets: store,
+            resets: store.clone(),
+            portal: store,
             reset_mailer,
             policy,
             hasher: Arc::new(Argon2Hasher::new()?),
@@ -139,6 +141,17 @@ impl crate::domain::ResetMailer for LoggingResetMailer {
         expires_at: chrono::DateTime<chrono::Utc>,
     ) -> Result<(), RepoError> {
         tracing::warn!(%expires_at, "password reset requested but no mailer is configured");
+        Ok(())
+    }
+
+    async fn send_portal_link(
+        &self,
+        email: &crate::domain::PortalLinkEmail,
+    ) -> Result<(), RepoError> {
+        tracing::warn!(
+            purpose = email.purpose.as_str(),
+            "Portal link requested but no mailer is configured"
+        );
         Ok(())
     }
 }
