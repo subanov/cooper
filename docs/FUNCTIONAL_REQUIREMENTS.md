@@ -391,7 +391,7 @@ These are not functional requirements, but they constrain the design:
 - **Availability:** stateless `cooper-server` instances that can scale horizontally. Background
   jobs are coordinated through PostgreSQL (advisory locks / `SKIP LOCKED`).
 - **Security:** OWASP ASVS L2 baseline, tenant isolation tests, secrets encrypted at rest.
-- **Data:** PostgreSQL 16+, forward-only migrations, point-in-time recovery supported.
+- **Data:** PostgreSQL 18, forward-only migrations, point-in-time recovery supported.
 - **Accessibility:** UI targets WCAG 2.1 AA.
 
 ## Appendix B — Open questions

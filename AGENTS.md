@@ -39,7 +39,7 @@ See §1.1.
 | Language           | Rust (stable, edition 2024)                                     |
 | Async runtime      | `tokio`                                                         |
 | Web framework      | `axum` (with `tower` / `tower-http` middleware)                 |
-| Database           | PostgreSQL (16+)                                                |
+| Database           | PostgreSQL (18)                                                 |
 | DB access          | `sqlx` (compile-time checked queries, migrations)               |
 | Serialization      | `serde`                                                         |
 | Errors             | `thiserror` in libraries, `anyhow` only in binaries/tests       |
