@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
-for (const path of ["/", "/portal"]) {
+for (const path of ["/sign-in", "/reset-password", "/portal"]) {
   test(`${path} loads under the CSP and passes axe-core`, async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (message) => {

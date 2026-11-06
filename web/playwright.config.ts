@@ -13,6 +13,8 @@ export default defineConfig({
   use: {
     baseURL: process.env.COOPER_E2E_URL ?? "http://localhost:8080",
     trace: "retain-on-failure",
+    // No colour transitions while axe-core measures contrast.
+    reducedMotion: "reduce",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

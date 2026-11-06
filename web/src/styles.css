@@ -41,6 +41,8 @@
       --color-secondary-foreground: oklch(0.96 0.005 265);
       --color-primary: oklch(0.68 0.16 264);
       --color-primary-foreground: oklch(0.17 0.02 265);
+      --color-destructive: oklch(0.72 0.17 25);
+      --color-destructive-foreground: oklch(0.17 0.02 265);
     }
   }
   :root.dark {
@@ -56,11 +58,28 @@
     --color-secondary-foreground: oklch(0.96 0.005 265);
     --color-primary: oklch(0.68 0.16 264);
     --color-primary-foreground: oklch(0.17 0.02 265);
+    --color-destructive: oklch(0.72 0.17 25);
+    --color-destructive-foreground: oklch(0.17 0.02 265);
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
   *:focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+/* Density (Analyst preference): compact shrinks every rem-based size a little. */
+html[data-density="compact"] {
+  font-size: 14px;
+}
+
+/* Respect reduced motion: no transitions or animations (WCAG 2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
   }
 }
