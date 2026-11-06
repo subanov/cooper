@@ -11,7 +11,7 @@ use cooper_kernel::Principal;
 use cooper_platform::attachments::{FilesystemBlobStore, clean_file_name};
 use cooper_platform::jobs::{Job, JobContext, JobError, Schedule};
 use futures::TryStreamExt;
-use mail_parser::{MessageParser, MimeHeaders};
+use mail_parser::MessageParser;
 use sha2::{Digest, Sha256};
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tokio::net::TcpStream;
@@ -305,9 +305,10 @@ pub struct InboundAttachment {
 #[must_use]
 pub fn parse_email(raw: &[u8]) -> Option<(InboundEmail, Vec<InboundAttachment>)> {
     let m = MessageParser::default().parse(raw)?;
-    let addresses = |list: Option<&mail_parser::Address<'_>>| -> Vec<String> {
+    // Every mailbox of the list, groups flattened.
+    let addresses = |list: Option<mail_parser::AddressList<'_>>| -> Vec<String> {
         list.map(|a| {
-            a.iter()
+            a.mailboxes()
                 .filter_map(|x| x.address().map(str::to_lowercase))
                 .collect()
         })
@@ -318,15 +319,14 @@ pub fn parse_email(raw: &[u8]) -> Option<(InboundEmail, Vec<InboundAttachment>)>
         .message_id()
         .map(|id| format!("<{}>", id.trim_matches(['<', '>'])))
         .unwrap_or_else(|| format!("<{}@cooper.generated>", hex::encode(Sha256::digest(raw))));
-    let ids = |v: &mail_parser::HeaderValue<'_>| -> Vec<String> {
-        match v {
-            mail_parser::HeaderValue::Text(t) => vec![format!("<{}>", t.trim_matches(['<', '>']))],
-            mail_parser::HeaderValue::TextList(l) => l
-                .iter()
+    // Message identifiers (mail-parser drops the angle brackets; Cooper stores them).
+    let ids = |list: Option<mail_parser::TextList<'_>>| -> Vec<String> {
+        list.map(|l| {
+            l.iter()
                 .map(|t| format!("<{}>", t.trim_matches(['<', '>'])))
-                .collect(),
-            _ => Vec::new(),
-        }
+                .collect()
+        })
+        .unwrap_or_default()
     };
     let text = m
         .body_text(0)
@@ -343,8 +343,10 @@ pub fn parse_email(raw: &[u8]) -> Option<(InboundEmail, Vec<InboundAttachment>)>
     ]
     .iter()
     .filter_map(|name| {
-        m.header_raw(*name)
-            .map(|v| ((*name).to_owned(), v.trim().to_owned()))
+        m.headers().get(*name).map(|h| {
+            let value = String::from_utf8_lossy(h.raw_value());
+            ((*name).to_owned(), value.trim().to_owned())
+        })
     })
     .collect();
     let email = InboundEmail {
@@ -369,7 +371,7 @@ pub fn parse_email(raw: &[u8]) -> Option<(InboundEmail, Vec<InboundAttachment>)>
         .attachments()
         .map(|a| InboundAttachment {
             file_name: clean_file_name(a.attachment_name().unwrap_or("attachment")),
-            content: a.contents().to_vec(),
+            content: a.decoded().into_owned(),
         })
         .collect();
     Some((email, attachments))
@@ -590,6 +592,26 @@ Auto-Submitted: no\r\nMIME-Version: 1.0\r\nContent-Type: multipart/mixed; bounda
                 .iter()
                 .any(|(n, v)| n == "auto-submitted" && v == "no")
         );
+    }
+
+    #[test]
+    fn flattens_address_groups_and_decodes_attachments() {
+        let raw = b"From: =?UTF-8?Q?Ren=C3=A9e?= <renee@acme.example>\r\n\
+To: Desk <desk@acme.example>, IT team: Pat <pat@acme.example>, lee@acme.example;\r\n\
+Cc: Boss <BOSS@acme.example>\r\nSubject: Logs\r\nMessage-ID: <m1@acme.example>\r\n\
+MIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary=b\r\n\r\n--b\r\nContent-Type: text/plain\r\n\r\nSee attached\r\n\
+--b\r\nContent-Type: application/octet-stream\r\nContent-Transfer-Encoding: base64\r\n\
+Content-Disposition: attachment; filename=\"app.log\"\r\n\r\nZXJyb3IgNDIK\r\n--b--\r\n";
+        let (e, files) = parse_email(raw).unwrap();
+        assert_eq!(e.from_name.as_deref(), Some("Renée"));
+        assert_eq!(
+            e.to,
+            ["desk@acme.example", "pat@acme.example", "lee@acme.example"]
+        );
+        assert_eq!(e.cc, ["boss@acme.example"]);
+        assert!(e.in_reply_to.is_none() && e.references.is_empty());
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].content, b"error 42\n");
     }
 
     #[test]

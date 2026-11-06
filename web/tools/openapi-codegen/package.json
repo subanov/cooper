@@ -1,0 +1,11 @@
+{
+  "name": "@cooper/openapi-codegen",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Generates src/api/schema.d.ts from openapi.json. openapi-typescript needs the TypeScript compiler API, which TypeScript 7 does not provide yet, so it gets its own TypeScript 6 here; the app itself uses TypeScript 7.",
+  "type": "module",
+  "devDependencies": {
+    "openapi-typescript": "7.13.0",
+    "typescript": "6.0.3"
+  }
+}
