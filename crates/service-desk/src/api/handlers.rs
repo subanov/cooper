@@ -694,11 +694,26 @@ async fn upload_attachment(
     State(api): State<ServiceDeskApi>,
     Authenticated(p): Authenticated,
     Path(id): Path<Uuid>,
-    mut form: axum::extract::Multipart,
+    form: axum::extract::Multipart,
 ) -> ApiResult<Response> {
-    use cooper_platform::attachments::{BlobError, clean_file_name};
     let ticket = TicketId::from_uuid(id);
     let limit = api.service.attachment_limit(&p, ticket).await?;
+    let file = match receive_file(&api, limit, form).await? {
+        Ok(file) => file,
+        Err(response) => return Ok(response),
+    };
+    let info = api.service.attach(&p, ticket, file).await?;
+    Ok(created(super::dto::AttachmentDto::from(info)))
+}
+
+/// Streams the multipart field `file` into the blob store, up to `limit` bytes. The
+/// inner `Err` is a ready response (too large, storage failure).
+pub(super) async fn receive_file(
+    api: &ServiceDeskApi,
+    limit: u64,
+    mut form: axum::extract::Multipart,
+) -> ApiResult<Result<crate::application::StoredFile, Response>> {
+    use cooper_platform::attachments::{BlobError, clean_file_name};
     let bad = |m: &str| ApiError::from(TicketError::invalid("file", m.to_owned()));
     while let Some(mut field) = form
         .next_field()
@@ -718,7 +733,7 @@ async fn upload_attachment(
         };
         let mut writer = match api.blobs.writer(limit).await {
             Ok(w) => w,
-            Err(e) => return Ok(internal(e)),
+            Err(e) => return Ok(Err(internal(e))),
         };
         while let Some(chunk) = field
             .chunk()
@@ -726,27 +741,19 @@ async fn upload_attachment(
             .map_err(|_| bad("upload was interrupted or is too large"))?
         {
             if let Err(e) = writer.write(&chunk).await {
-                return Ok(internal(e));
+                return Ok(Err(internal(e)));
             }
         }
         let stored = match writer.finish().await {
             Ok(s) => s,
-            Err(e) => return Ok(internal(e)),
+            Err(e) => return Ok(Err(internal(e))),
         };
-        let info = api
-            .service
-            .attach(
-                &p,
-                ticket,
-                crate::application::StoredFile {
-                    file_name,
-                    media_type: stored.media_type.to_owned(),
-                    size_bytes: stored.size,
-                    sha256: stored.sha256,
-                },
-            )
-            .await?;
-        return Ok(created(super::dto::AttachmentDto::from(info)));
+        return Ok(Ok(crate::application::StoredFile {
+            file_name,
+            media_type: stored.media_type.to_owned(),
+            size_bytes: stored.size,
+            sha256: stored.sha256,
+        }));
     }
     Err(bad("is missing"))
 }
@@ -784,7 +791,6 @@ async fn download_attachment(
     Authenticated(p): Authenticated,
     Path((id, attachment)): Path<(Uuid, Uuid)>,
 ) -> ApiResult<Response> {
-    use axum::http::{HeaderValue, header};
     let info = api
         .service
         .attachments(&p, TicketId::from_uuid(id))
@@ -794,6 +800,15 @@ async fn download_attachment(
         .ok_or(ApiError(crate::application::AppError::NotFound(
             "Attachment",
         )))?;
+    serve_file(&api, &info).await
+}
+
+/// The content of an attachment as a download (`nosniff`, `attachment` disposition).
+pub(super) async fn serve_file(
+    api: &ServiceDeskApi,
+    info: &crate::domain::AttachmentInfo,
+) -> ApiResult<Response> {
+    use axum::http::{HeaderValue, header};
     let bytes = api.blobs.read(&info.sha256).await.map_err(|e| {
         tracing::error!(error = %e, attachment = %info.id, "attachment content missing");
         ApiError(crate::application::AppError::Internal)

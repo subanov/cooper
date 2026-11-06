@@ -183,6 +183,64 @@ impl TicketEmail {
     }
 }
 
+/// A reply a Requester writes on the Self-Service Portal (FR-PRT-003).
+#[derive(Debug, Clone)]
+pub struct PortalReplyDraft {
+    /// The signed-in Requester.
+    pub requester_id: cooper_kernel::RequesterId,
+    /// The Requester's email address.
+    pub from: String,
+    /// Text.
+    pub body: String,
+    /// The service desk's From address (the reply is addressed to it).
+    pub service_desk: String,
+    /// Message-ID of the newest message on the ticket.
+    pub in_reply_to: Option<String>,
+}
+
+impl TicketEmail {
+    /// Records a Portal reply as an inbound message, so it threads, notifies and reopens
+    /// exactly like an emailed reply (FR-PRT-003).
+    ///
+    /// # Errors
+    ///
+    /// Deleted ticket or a body that is empty or longer than 100000 characters.
+    pub fn portal_reply(
+        ticket: &Ticket,
+        draft: PortalReplyDraft,
+        now: DateTime<Utc>,
+    ) -> Result<Self, TicketError> {
+        if ticket.deleted_at().is_some() {
+            return Err(TicketError::Deleted);
+        }
+        let body = draft.body.trim();
+        if body.is_empty() || body.chars().count() > 100_000 {
+            return Err(TicketError::invalid(
+                "body",
+                "must be 1 to 100000 characters",
+            ));
+        }
+        let id = Uuid::now_v7();
+        Ok(Self {
+            id,
+            tenant_id: ticket.tenant_id(),
+            ticket_id: ticket.id(),
+            direction: Direction::Inbound,
+            message_id: format!("<portal-{id}@{}>", domain_of(&draft.service_desk)),
+            from: draft.from,
+            to: vec![draft.service_desk],
+            cc: Vec::new(),
+            subject: sdref_subject(ticket.number(), &ticket.details().subject),
+            text_body: body.to_owned(),
+            author_id: None,
+            occurred_at: now,
+            mailbox_id: None,
+            requester_id: Some(draft.requester_id),
+            in_reply_to: draft.in_reply_to,
+        })
+    }
+}
+
 impl Audited for TicketEmail {
     fn audit_type(&self) -> &'static str {
         "ticket_email"
@@ -437,6 +495,42 @@ mod tests {
         assert_eq!(text, "Hi Sam, about D-1: done. Dee");
         assert!(ReplyTemplate::create("Bad", "Hi {requester_nmae}", Utc::now()).is_err());
         assert!(ReplyTemplate::create("JSON ok", "Use {\"a\": 1} as the body", Utc::now()).is_ok());
+    }
+
+    #[test]
+    fn portal_replies_are_inbound_threaded_messages() {
+        let ticket = Ticket::open(
+            crate::domain::NewTicket {
+                tenant_id: TenantId::new(),
+                number: "ACME-000007".into(),
+                details: crate::domain::TicketDetails {
+                    subject: "VPN down".into(),
+                    priority_id: Uuid::now_v7(),
+                    ..Default::default()
+                },
+                status_id: Uuid::now_v7(),
+                created_by: cooper_kernel::Actor::Automation,
+            },
+            Utc::now(),
+        )
+        .unwrap();
+        let requester = cooper_kernel::RequesterId::new();
+        let draft = |body: &str| PortalReplyDraft {
+            requester_id: requester,
+            from: "sam@acme.example".into(),
+            body: body.into(),
+            service_desk: "Service Desk <desk@acme.example>".into(),
+            in_reply_to: Some("<prev@acme.example>".into()),
+        };
+        let reply =
+            TicketEmail::portal_reply(&ticket, draft("  Still broken  "), Utc::now()).unwrap();
+        assert_eq!(reply.direction, Direction::Inbound);
+        assert_eq!(reply.text_body, "Still broken");
+        assert_eq!(reply.subject, "[SDREF:ACME-000007] VPN down");
+        assert_eq!(reply.requester_id, Some(requester));
+        assert!(reply.message_id.starts_with("<portal-"));
+        assert!(reply.message_id.ends_with("@acme.example>"));
+        assert!(TicketEmail::portal_reply(&ticket, draft("   "), Utc::now()).is_err());
     }
 
     #[test]

@@ -4,7 +4,10 @@ mod dto;
 mod handlers;
 mod portal;
 
-pub use portal::{CatalogueEntryDto, PortalTicketDto, PortalTicketRequest};
+pub use portal::{
+    CatalogueEntryDto, PortalReplyRequest, PortalTicketDto, PortalTicketPage, PortalTicketRequest,
+    PortalTimelineEntryDto,
+};
 
 use axum::extract::FromRef;
 use axum::response::{IntoResponse, Response};

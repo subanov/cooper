@@ -20,7 +20,7 @@ use crate::domain::{
 
 pub use content::{ReplyInput, StoredFile};
 pub use intake::IntakeOutcome;
-pub use portal::PortalTicketInput;
+pub use portal::{PortalTicket, PortalTicketInput, PortalTimelineEntry};
 pub use reference::LookupInput;
 pub use tickets::{
     CreateTicket, ListRequest, TicketDetail, TicketView as View, TimelineEntry, ViewName,

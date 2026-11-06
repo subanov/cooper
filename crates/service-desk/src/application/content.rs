@@ -300,6 +300,17 @@ impl ServiceDesk {
     ) -> Result<AttachmentInfo, AppError> {
         require(principal, capabilities::UPDATE)?;
         let ticket = self.load(principal, id, false).await?;
+        self.record_attachment(principal, &ticket, file).await
+    }
+
+    /// Stores an attachment record once the caller's access was checked.
+    pub(super) async fn record_attachment(
+        &self,
+        principal: &Principal,
+        ticket: &crate::domain::Ticket,
+        file: StoredFile,
+    ) -> Result<AttachmentInfo, AppError> {
+        let id = ticket.id();
         let now = self.ports.clock.now();
         let info = AttachmentInfo {
             id: Uuid::now_v7(),

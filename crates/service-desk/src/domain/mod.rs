@@ -13,8 +13,8 @@ mod ticket;
 
 pub use catalogue::{portal_catalogue, portal_ticket_type};
 pub use email::{
-    Direction, PLACEHOLDERS, Placeholders, ReplyDraft, ReplyTemplate, TicketEmail, parse_sdref,
-    sdref_subject,
+    Direction, PLACEHOLDERS, Placeholders, PortalReplyDraft, ReplyDraft, ReplyTemplate,
+    TicketEmail, parse_sdref, sdref_subject,
 };
 pub use email_template::{EmailTemplate, EmailTemplateEvent, EmailTemplateInput, select_template};
 pub use events::{
