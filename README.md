@@ -57,6 +57,23 @@ curl -X POST http://localhost:8080/api/v1/setup -H 'content-type: application/js
   "email": "admin@example.com", "full_name": "Administrator", "password": "change me please"}'
 ```
 
+### Web UI
+
+The Analyst console (`/`) and the Self-Service Portal (`/portal`) are one React SPA in
+[`web/`](web) ([ADR-0010](docs/adr/0010-typescript-react-spa-for-analyst-console-and-portal.md)).
+It needs Node (version in `web/.node-version`) and [pnpm](https://pnpm.io) 12.
+
+```bash
+just web-install        # pnpm install --frozen-lockfile in web/
+just web-dev            # Vite on http://localhost:5173, proxying /api to cooper-server
+just web-build          # build web/dist; cooper-server serves it on http://localhost:8080
+just web-check          # typecheck, Biome, generated API client check, Vitest
+just web-api            # after changing the Rust API: regenerate web/openapi.json and types
+```
+
+Release builds (and the Docker image) embed `web/dist` into `cooper-server`; debug builds
+read it from disk. Without a build, the API works and non-API paths answer `404`.
+
 `docker compose up -d` also starts Mailpit (captures outbound mail, UI on
 <http://localhost:8025>) and GreenMail (IMAP/SMTP test server).
 
@@ -72,7 +89,7 @@ the worker with `/usr/local/bin/cooper-worker`) and `migrate` (`sqlx migrate run
 role). Probe `GET /health/live` and `GET /health/ready`. Tagged releases (`v*`) publish both
 images to GitHub Container Registry.
 
-Run the checks before you push (or `just check`):
+Run the checks before you push (`just check`, and `just web-check` when `web/` changed):
 
 ```bash
 cargo fmt --all

@@ -11,9 +11,21 @@
 #   migrate  sqlx-cli + /migrations, to apply migrations as the owner role.
 #
 # Builds use the committed .sqlx/ data (SQLX_OFFLINE), so no database is needed.
-# Keep the Rust version in step with rust-toolchain.toml.
+# Keep the Rust version in step with rust-toolchain.toml and Node with web/.node-version.
+# The web UI (web/) is built first and embedded into cooper-server (ADR-0010).
 
 ARG RUST_VERSION=1.99.1
+ARG NODE_VERSION=26
+
+# --- web: build the SPA with the locked dependencies ---------------------------------------
+FROM node:${NODE_VERSION}-bookworm-slim AS web
+ARG PNPM_VERSION=12.18.0
+RUN npm install -g pnpm@${PNPM_VERSION}
+WORKDIR /web
+COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY web/ ./
+RUN pnpm build
 
 # --- cargo-chef: cache dependency compilation separately from our code ---------------------
 FROM rust:${RUST_VERSION}-bookworm AS chef
@@ -30,6 +42,7 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --locked --recipe-path recipe.json \
     -p cooper-server -p cooper-worker
 COPY . .
+COPY --from=web /web/dist ./web/dist
 RUN cargo build --release --locked -p cooper-server -p cooper-worker
 
 # --- migrate: applies ./migrations; run it as the owner role (DATABASE_URL) ----------------

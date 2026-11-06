@@ -62,3 +62,30 @@ worker:
 # Licence, advisory and source checks.
 deny:
     cargo deny check
+
+# --- Web UI (ADR-0010): web/ is a pnpm project; Node version in web/.node-version ----------
+
+# Install web dependencies exactly as locked.
+web-install:
+    pnpm --dir web install --frozen-lockfile
+
+# Vite dev server on http://localhost:5173, proxying /api to `just server`.
+web-dev:
+    pnpm --dir web dev
+
+# Regenerate web/openapi.json and the TypeScript API types from the Rust API.
+web-api:
+    cargo run -q -p cooper-server -- openapi > web/openapi.json
+    pnpm --dir web api:generate
+
+# Typecheck, Biome, generated-client check and Vitest.
+web-check:
+    pnpm --dir web check
+
+# Build web/dist, which cooper-server serves (embedded in release builds).
+web-build:
+    pnpm --dir web build
+
+# End-to-end tests with axe-core against a running server that serves web/dist.
+web-e2e:
+    pnpm --dir web e2e

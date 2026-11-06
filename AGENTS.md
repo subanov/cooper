@@ -242,7 +242,18 @@ cargo fmt --all && cargo clippy --workspace --all-targets --all-features -- -D w
 cargo sqlx prepare --workspace -- --all-targets --all-features   # refresh .sqlx/ before committing
 scripts/check-migrations.sh origin/main  # merged migrations must not change
 cargo deny check && cargo machete        # advisories, licences, unused dependencies
+just web-install                         # web/: pnpm install --frozen-lockfile (Node in web/.node-version)
+just web-dev                             # Vite dev server :5173, proxies /api to cooper-server
+just web-check                           # typecheck, Biome, API client up to date, Vitest
+just web-build                           # build web/dist (served by cooper-server, embedded in release)
+just web-api                             # regenerate web/openapi.json + web/src/api after API changes
 ```
+
+When an API change alters the OpenAPI description, run `just web-api` and commit
+`web/openapi.json` and `web/src/api/schema.d.ts`; the `committed_openapi_document_is_current`
+test fails otherwise. New npm packages must be at least 7 days old (pnpm
+`minimumReleaseAge`), and install scripts are denied unless listed in
+`web/pnpm-workspace.yaml`.
 
 `just check` runs the same checks as CI (see the `justfile`).
 
