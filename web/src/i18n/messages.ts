@@ -94,8 +94,41 @@ export const en = {
   "totp.wrong": "That code is wrong. Check the time on your device and try again.",
 
   "portal.title": "Self-Service Portal",
-  "portal.signedInAs": "Signed in as {name} ({company})",
-  "portal.notSignedIn": "Sign in to raise and follow your tickets.",
+  "portal.email": "Email address",
+  "portal.actingFor": "Company: {company}",
+  "portal.switchCompany": "Act for Company",
+  "portal.switchFailed": "Could not switch the Company. Try again.",
+  "portalNav.home": "Home",
+  "portalNav.tickets": "My tickets",
+  "portalHome.welcome": "Welcome, {name}",
+  "portalHome.intro": "Raise and follow your tickets with {company}.",
+  "portalHome.tickets": "See my tickets",
+
+  "portalSignIn.title": "Sign in",
+  "portalSignIn.invalid": "The email address or password is wrong.",
+  "portalSignIn.forgot": "Forgot your password, or never set one?",
+  "portalSignIn.register": "New here? Register with your work email.",
+  "portalSignIn.analyst": "IT staff? Sign in to the Analyst console.",
+  "portalReset.title": "Get a password link",
+  "portalReset.intro":
+    "Enter your email address. If the service desk knows it, we will send you a link to set your password.",
+  "portalReset.sent":
+    "If the address is known, an email with a link is on its way. The link works for 60 minutes.",
+  "portalPassword.title": "Set your password",
+  "portalPassword.done": "Your password is set. Sign in with it now.",
+  "portalPassword.invalid":
+    "This link is invalid, was already used or has expired. Ask for a new one from the sign-in page.",
+  "portalPassword.short": "Use at least 12 characters.",
+  "portalRegister.title": "Register",
+  "portalRegister.intro":
+    "Use your work email address. We will send you a link to confirm it and set your password.",
+  "portalRegister.name": "Your name",
+  "portalRegister.email": "Work email address",
+  "portalRegister.submit": "Send the confirmation link",
+  "portalRegister.sent": "Check your email: the link to confirm your address works for 24 hours.",
+  "portalRegister.off": "Registration is turned off. Contact your service desk for access.",
+  "portalRegister.domain":
+    "This address does not belong to a Company we support. Use your work email address.",
 
   "common.loading": "Loading…",
   "common.error": "Something went wrong. Try again.",

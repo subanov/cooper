@@ -17,7 +17,7 @@ import {
 } from "@/features/preferences/preferences";
 import { useText } from "@/i18n/useText";
 
-/** The signed-in Analyst's menu: theme, density and sign-out. */
+/** The account menu of the Analyst console and the Portal: theme, density and sign-out. */
 export function UserMenu({ name, onSignOut }: { name: string; onSignOut: () => void }) {
   const t = useText();
   const { theme, density } = usePreferences();

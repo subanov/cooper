@@ -34,3 +34,16 @@ export const portalSessionQuery = queryOptions({
     return data;
   },
 });
+
+/** What the Portal sign-in screen offers (Self-Registration on or off). */
+export const portalSignInOptionsQuery = queryOptions({
+  queryKey: ["portal", "sign-in-options"],
+  queryFn: async (): Promise<Schemas["PortalSignInOptionsDto"]> => {
+    const { data, response } = await api.GET("/api/v1/portal/sign-in-options");
+    if (!data) {
+      throw new Error(`Portal sign-in options request failed: ${response.status}`);
+    }
+    return data;
+  },
+  staleTime: 5 * 60_000,
+});

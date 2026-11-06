@@ -1972,6 +1972,26 @@
         }
       }
     },
+    "/api/v1/portal/sign-in-options": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "What the Portal sign-in screen offers (Self-Registration on or off). Needs no session.",
+        "operationId": "portal_sign_in_options",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalSignInOptionsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/portal/tickets": {
       "get": {
         "tags": [
@@ -7594,6 +7614,19 @@
               "$ref": "#/components/schemas/PortalRequesterDto"
             },
             "description": "Every Requester the account can act as (switch with `PUT /portal/session/requester`)."
+          }
+        }
+      },
+      "PortalSignInOptionsDto": {
+        "type": "object",
+        "description": "What the Portal sign-in screen offers.",
+        "required": [
+          "self_registration"
+        ],
+        "properties": {
+          "self_registration": {
+            "type": "boolean",
+            "description": "Whether people at a Company's Sender Domain may register themselves."
           }
         }
       },

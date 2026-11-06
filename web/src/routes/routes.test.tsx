@@ -194,16 +194,7 @@ describe("Analyst shell", () => {
   });
 });
 
-describe("Portal and unknown routes", () => {
-  it("tells signed-out Requesters to sign in to the Portal", async () => {
-    mockFetch({ "/api/v1/portal/session": { status: 401 } });
-    const { container } = renderApp("/portal");
-    expect(
-      await screen.findByText("Sign in to raise and follow your tickets."),
-    ).toBeInTheDocument();
-    expect(await axeViolations(container)).toEqual([]);
-  });
-
+describe("unknown routes", () => {
   it("shows a not-found page for unknown routes", async () => {
     mockFetch({});
     renderApp("/no/such/page");

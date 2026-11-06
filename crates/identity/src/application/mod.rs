@@ -34,7 +34,9 @@ pub use api_keys::{ApiKeyInput, IssuedApiKey};
 pub use auth::{FirstRunSetup, SignIn, SignedIn};
 pub use companies::CompanyInput;
 pub use people::{AnalystInput, DepartmentInput, RoleInput, TeamInput};
-pub use portal::{PortalIdentity, PortalRegistration, PortalSignIn, PortalSignedIn};
+pub use portal::{
+    PortalIdentity, PortalRegistration, PortalSignIn, PortalSignInOptions, PortalSignedIn,
+};
 pub use requesters::{CostCentreInput, RequesterInput};
 pub use two_factor::TotpEnrollment;
 

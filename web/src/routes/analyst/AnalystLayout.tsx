@@ -1,15 +1,16 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { modulesQuery } from "@/features/navigation/modules";
 import { NAV_ITEMS, visibleNavItems } from "@/features/navigation/navigation";
 import { signOut } from "@/features/session/actions";
 import { analystSessionQuery } from "@/features/session/queries";
 import { useText } from "@/i18n/useText";
+import { UserMenu } from "../UserMenu";
+import { useFocusOnNavigate } from "../useFocusOnNavigate";
 import { CommandPalette } from "./CommandPalette";
 import { ShortcutsDialog } from "./ShortcutsDialog";
-import { UserMenu } from "./UserMenu";
 import { useShortcuts } from "./useShortcuts";
 
 /**
@@ -24,7 +25,6 @@ export function AnalystLayout() {
   const modules = useQuery(modulesQuery);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const items = useMemo(
     () => (session.data ? visibleNavItems(session.data, modules.data) : NAV_ITEMS.slice(0, 1)),
@@ -48,16 +48,7 @@ export function AnalystLayout() {
     },
   });
 
-  // Move focus to the new page's heading after client-side navigation, so screen
-  // reader and keyboard users land on the content (not on the first load).
-  const shownPath = useRef(pathname);
-  useEffect(() => {
-    if (shownPath.current === pathname) {
-      return;
-    }
-    shownPath.current = pathname;
-    document.querySelector<HTMLElement>("#main h1")?.focus();
-  }, [pathname]);
+  useFocusOnNavigate();
 
   return (
     <div className="flex min-h-dvh flex-col">

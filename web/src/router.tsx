@@ -6,7 +6,7 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
-import { analystSessionQuery } from "./features/session/queries";
+import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
 import { Home } from "./routes/analyst/Home";
@@ -14,7 +14,11 @@ import { ResetPasswordPage } from "./routes/auth/ResetPassword";
 import { SignInPage } from "./routes/auth/SignIn";
 import { TwoFactorSetupPage } from "./routes/auth/TwoFactorSetup";
 import { NotFound } from "./routes/NotFound";
-import { PortalHome } from "./routes/PortalHome";
+import { PortalHome } from "./routes/portal/PortalHome";
+import { PortalLayout } from "./routes/portal/PortalLayout";
+import { PortalResetPage, PortalSetPasswordPage } from "./routes/portal/PortalPassword";
+import { PortalRegisterPage } from "./routes/portal/PortalRegister";
+import { PortalSignInPage } from "./routes/portal/PortalSignIn";
 
 /** What every route can use: the query cache, for loading data before rendering. */
 export interface RouterContext {
@@ -94,10 +98,64 @@ const administrationRoute = createRoute({
   component: () => <ComingSoon section="nav.administration" />,
 });
 
+const portalSignInRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/portal/sign-in",
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
+    typeof search.redirect === "string" ? { redirect: search.redirect } : {},
+  component: function PortalSignInRoute() {
+    const { redirect: target } = portalSignInRoute.useSearch();
+    return <PortalSignInPage redirect={target} />;
+  },
+});
+
+const portalResetRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/portal/reset-password",
+  component: PortalResetPage,
+});
+
+/** The link in Portal Invitation, reset and Self-Registration emails. */
+const portalSetPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/portal/set-password",
+  validateSearch: (search: Record<string, unknown>): { token?: string } =>
+    typeof search.token === "string" ? { token: search.token } : {},
+  component: function PortalSetPasswordRoute() {
+    const { token } = portalSetPasswordRoute.useSearch();
+    return <PortalSetPasswordPage token={token} />;
+  },
+});
+
+const portalRegisterRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/portal/register",
+  component: PortalRegisterPage,
+});
+
+/** Signed-in Portal screens (Requesters, FR-PRT-001). */
 const portalRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal",
+  beforeLoad: async ({ context, location }) => {
+    const session = await context.queryClient.ensureQueryData(portalSessionQuery);
+    if (!session) {
+      throw redirect({ to: "/portal/sign-in", search: { redirect: location.href } });
+    }
+  },
+  component: PortalLayout,
+});
+
+const portalHomeRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "/",
   component: PortalHome,
+});
+
+const portalTicketsRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "/tickets",
+  component: () => <ComingSoon section="portalNav.tickets" />,
 });
 
 export const routeTree = rootRoute.addChildren([
@@ -105,7 +163,11 @@ export const routeTree = rootRoute.addChildren([
   resetRoute,
   twoFactorRoute,
   analystRoute.addChildren([homeRoute, ticketsRoute, administrationRoute]),
-  portalRoute,
+  portalSignInRoute,
+  portalResetRoute,
+  portalSetPasswordRoute,
+  portalRegisterRoute,
+  portalRoute.addChildren([portalHomeRoute, portalTicketsRoute]),
 ]);
 
 /** Server state: no global client store (ADR-0010). */

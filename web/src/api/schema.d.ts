@@ -770,6 +770,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/portal/sign-in-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What the Portal sign-in screen offers (Self-Registration on or off). Needs no session. */
+        get: operations["portal_sign_in_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portal/tickets": {
         parameters: {
             query?: never;
@@ -3034,6 +3051,11 @@ export interface components {
             /** @description Every Requester the account can act as (switch with `PUT /portal/session/requester`). */
             requesters: components["schemas"]["PortalRequesterDto"][];
         };
+        /** @description What the Portal sign-in screen offers. */
+        PortalSignInOptionsDto: {
+            /** @description Whether people at a Company's Sender Domain may register themselves. */
+            self_registration: boolean;
+        };
         /** @description Portal sign-in. */
         PortalSignInRequest: {
             /** @description Email address. */
@@ -5215,6 +5237,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    portal_sign_in_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalSignInOptionsDto"];
+                };
             };
         };
     };

@@ -36,6 +36,13 @@ pub struct PortalRegistration {
     pub email: EmailAddress,
 }
 
+/// What the Portal sign-in screen offers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PortalSignInOptions {
+    /// Whether people may register themselves (`portal.self_registration`).
+    pub self_registration: bool,
+}
+
 /// One Requester a Portal Account can act as.
 #[derive(Debug, Clone)]
 pub struct PortalIdentity {
@@ -177,6 +184,13 @@ impl IdentityService {
         let name = first.requester.full_name().as_str().to_owned();
         self.send_portal_link(PortalLinkPurpose::Reset, &email, &name, None)
             .await
+    }
+
+    /// What the Portal sign-in screen offers. Public: needs no session.
+    pub async fn portal_sign_in_options(&self) -> PortalSignInOptions {
+        PortalSignInOptions {
+            self_registration: self.ports.policy.policy().await.portal_self_registration,
+        }
     }
 
     /// Self-Registration (when `portal.self_registration` is on): emails a link that
