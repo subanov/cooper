@@ -512,3 +512,262 @@ async fn requesters_raise_tickets_from_the_portal_catalogue(pool: PgPool) {
         StatusCode::UNAUTHORIZED
     );
 }
+
+async fn key_id(admin: &Client, path: &str, key: &str) -> String {
+    admin
+        .get(&format!("/api/v1/{path}"))
+        .await
+        .body
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["key"] == key)
+        .unwrap()["id"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
+fn multipart(name: &str, content: &[u8]) -> (String, Vec<u8>) {
+    let boundary = "portalboundary7";
+    let mut body = format!(
+        "--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"{name}\"\r\nContent-Type: text/plain\r\n\r\n"
+    )
+    .into_bytes();
+    body.extend_from_slice(content);
+    body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
+    (format!("multipart/form-data; boundary={boundary}"), body)
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn requesters_follow_reply_and_attach_on_their_own_tickets(pool: PgPool) {
+    let (anon, admin) = setup(&pool).await;
+    let default = admin.get("/api/v1/companies").await.body["items"][0]["id"].clone();
+    let sam = create_requester(&admin, &default, "sam@default.example").await;
+    let lee = create_requester(&admin, &default, "lee@default.example").await;
+    let sam_portal = portal_for(&pool, &anon, &admin, &sam).await;
+    let lee_portal = portal_for(&pool, &anon, &admin, &lee).await;
+
+    let raised = sam_portal
+        .post(
+            "/api/v1/portal/tickets",
+            json!({ "subject": "VPN drops", "description": "Every hour" }),
+        )
+        .await;
+    assert_eq!(raised.status, StatusCode::CREATED, "{:?}", raised.body);
+    assert_eq!(raised.body["is_open"], true);
+    assert!(!raised.body["status"].as_str().unwrap().is_empty());
+    let id = raised.body["id"].as_str().unwrap().to_owned();
+    let other = admin
+        .post(
+            "/api/v1/tickets",
+            json!({ "company_id": default, "subject": "Lee's laptop", "requester_id": lee["id"] }),
+        )
+        .await;
+    assert_eq!(other.status, StatusCode::CREATED, "{:?}", other.body);
+    let other_id = other.body["id"].as_str().unwrap().to_owned();
+
+    // My tickets: only the Requester's own, and nobody else's by ID.
+    let mine = sam_portal.get("/api/v1/portal/tickets").await;
+    assert_eq!(mine.status, StatusCode::OK, "{:?}", mine.body);
+    let items = mine.body["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["id"], id.as_str());
+    assert_eq!(
+        sam_portal
+            .get("/api/v1/portal/tickets?open=false")
+            .await
+            .body["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        0
+    );
+    for path in ["", "/timeline", "/attachments"] {
+        assert_eq!(
+            sam_portal
+                .get(&format!("/api/v1/portal/tickets/{other_id}{path}"))
+                .await
+                .status,
+            StatusCode::NOT_FOUND,
+            "{path}"
+        );
+    }
+    assert_eq!(
+        lee_portal
+            .post(
+                &format!("/api/v1/portal/tickets/{id}/replies"),
+                json!({ "body": "me too" })
+            )
+            .await
+            .status,
+        StatusCode::NOT_FOUND
+    );
+
+    // The public timeline shows public Notes and replies, never internal Notes.
+    for (body, public) in [
+        ("Internal: check the firewall", false),
+        ("We are on it", true),
+    ] {
+        let reply = admin
+            .post(
+                &format!("/api/v1/tickets/{id}/notes"),
+                json!({ "body": body, "is_public": public }),
+            )
+            .await;
+        assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
+    }
+    let reply = admin
+        .post(
+            &format!("/api/v1/tickets/{id}/replies"),
+            json!({ "body": "Please restart the client" }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
+    let reply = sam_portal
+        .post(
+            &format!("/api/v1/portal/tickets/{id}/replies"),
+            json!({ "body": "   " }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::UNPROCESSABLE_ENTITY);
+    let reply = sam_portal
+        .post(
+            &format!("/api/v1/portal/tickets/{id}/replies"),
+            json!({ "body": "Restarted, still drops" }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
+    let timeline = sam_portal
+        .get(&format!("/api/v1/portal/tickets/{id}/timeline"))
+        .await
+        .body;
+    let entries: Vec<(String, bool, String)> = timeline
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| {
+            (
+                e["kind"].as_str().unwrap().to_owned(),
+                e["from_requester"].as_bool().unwrap(),
+                e["body"].as_str().unwrap().to_owned(),
+            )
+        })
+        .collect();
+    assert_eq!(entries.len(), 3, "{entries:?}");
+    assert_eq!(entries[0], ("note".into(), false, "We are on it".into()));
+    assert_eq!(entries[1].0, "message");
+    assert!(!entries[1].1 && entries[1].2.starts_with("Please restart the client"));
+    assert_eq!(
+        entries[2],
+        ("message".into(), true, "Restarted, still drops".into())
+    );
+    let emails = admin
+        .get(&format!("/api/v1/tickets/{id}/emails"))
+        .await
+        .body;
+    assert!(
+        emails
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|e| e["direction"] == "inbound" && e["from"] == "sam@default.example"),
+        "{emails:?}"
+    );
+
+    // A reply on a closed ticket reopens it.
+    let closed = key_id(&admin, "ticket-statuses", "closed").await;
+    let fixed = key_id(&admin, "resolution-codes", "fixed_remotely").await;
+    let c = admin
+        .post(
+            &format!("/api/v1/tickets/{id}/status"),
+            json!({ "status_id": closed, "resolution_code_id": fixed }),
+        )
+        .await;
+    assert_eq!(c.status, StatusCode::OK, "{:?}", c.body);
+    let mine = sam_portal
+        .get("/api/v1/portal/tickets?open=false")
+        .await
+        .body;
+    assert_eq!(mine["items"][0]["is_open"], false);
+    let reply = sam_portal
+        .post(
+            &format!("/api/v1/portal/tickets/{id}/replies"),
+            json!({ "body": "It is back" }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED);
+    let ticket = admin.get(&format!("/api/v1/tickets/{id}")).await.body;
+    assert!(ticket["closed_at"].is_null(), "{ticket:?}");
+
+    // Attachments: the Requester sees their own uploads, not files Analysts attach.
+    let (ct, body) = multipart("screenshot.txt", b"the error text");
+    let (status, _, uploaded) = sam_portal
+        .send_raw(
+            Method::POST,
+            &format!("/api/v1/portal/tickets/{id}/attachments"),
+            &ct,
+            body,
+        )
+        .await;
+    assert_eq!(
+        status,
+        StatusCode::CREATED,
+        "{}",
+        String::from_utf8_lossy(&uploaded)
+    );
+    let uploaded: Value = serde_json::from_slice(&uploaded).unwrap();
+    let (ct, body) = multipart("internal.txt", b"analyst notes");
+    let (status, _, internal) = admin
+        .send_raw(
+            Method::POST,
+            &format!("/api/v1/tickets/{id}/attachments"),
+            &ct,
+            body,
+        )
+        .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let internal: Value = serde_json::from_slice(&internal).unwrap();
+    let list = sam_portal
+        .get(&format!("/api/v1/portal/tickets/{id}/attachments"))
+        .await
+        .body;
+    assert_eq!(list.as_array().unwrap().len(), 1);
+    assert_eq!(list[0]["file_name"], "screenshot.txt");
+    let (status, headers, content) = sam_portal
+        .send_raw(
+            Method::GET,
+            &format!(
+                "/api/v1/portal/tickets/{id}/attachments/{}",
+                uploaded["id"].as_str().unwrap()
+            ),
+            "text/plain",
+            Vec::new(),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(content, b"the error text");
+    assert_eq!(headers["x-content-type-options"], "nosniff");
+    let (status, _, _) = sam_portal
+        .send_raw(
+            Method::GET,
+            &format!(
+                "/api/v1/portal/tickets/{id}/attachments/{}",
+                internal["id"].as_str().unwrap()
+            ),
+            "text/plain",
+            Vec::new(),
+        )
+        .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(
+        admin
+            .get(&format!("/api/v1/tickets/{id}/attachments"))
+            .await
+            .body
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+}
