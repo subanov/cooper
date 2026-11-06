@@ -31,3 +31,26 @@ updates:
       day: monday
     commit-message:
       prefix: "chore(deps)"
+
+  # web/ (ADR-0010). The cooldown matches pnpm's minimumReleaseAge (7 days).
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
+    groups:
+      web-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore(deps)"

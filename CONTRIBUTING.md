@@ -20,6 +20,38 @@ cargo test --workspace                   # or: just test
 `docker compose up -d` also starts Mailpit (outbound mail capture, UI on
 <http://localhost:8025>) and GreenMail (IMAP/SMTP test server for mailbox intake).
 
+### Web UI (`web/`)
+
+The Analyst console and the Portal are a React SPA ([ADR-0010](docs/adr/0010-typescript-react-spa-for-analyst-console-and-portal.md)).
+You need Node (version in `web/.node-version`) and pnpm 12 (`npm install -g pnpm@12`).
+Browser tests run in the official Playwright container, so you only need Docker for them,
+and screenshots match CI.
+
+```bash
+just web-install      # pnpm install --frozen-lockfile
+just web-dev          # http://localhost:5173, proxies /api to `just server`
+just web-check        # typecheck, Biome, API client up to date, Vitest (+ axe-core)
+just web-build        # web/dist, served by cooper-server on :8080
+just web-e2e          # Playwright + axe-core against a running server (see below)
+just web-visual       # Storybook screenshots in light and dark themes
+```
+
+For `just web-e2e`, start `just server` with `COOPER_BIND_ADDR=0.0.0.0:8080` after
+`just web-build`. From WSL or Docker Desktop also set
+`COOPER_E2E_URL=http://host.docker.internal:8080`.
+
+Rules for `web/`:
+
+- **API types are generated.** After changing the Rust API, run `just web-api` and commit
+  `web/openapi.json` and `web/src/api/schema.d.ts`. The Rust test
+  `committed_openapi_document_is_current` and `pnpm api:check` fail otherwise.
+- **Visual changes need new baselines.** When a component's look changes on purpose, run
+  `just web-visual-update`, look at the new images in `web/visual/__screenshots__/` and
+  commit them.
+- **Dependencies.** pnpm only installs versions that are at least 7 days old, and blocks
+  install scripts unless `web/pnpm-workspace.yaml` allows them. Explain every new runtime
+  dependency in the PR. CI runs `pnpm audit` (high and critical advisories fail the build).
+
 ## Workflow
 
 1. Pick an issue. Each feature issue lists its requirement IDs (`FR-*`) and dependencies.
@@ -29,7 +61,8 @@ cargo test --workspace                   # or: just test
 5. Database changes: add a **new** migration (`cargo sqlx migrate add <description>`).
    Never edit a merged migration; CI rejects it.
 6. Run `just check` (fmt, clippy, tests, `.sqlx` freshness, migration guard). After
-   changing a query, run `just prepare` and commit `.sqlx/`.
+   changing a query, run `just prepare` and commit `.sqlx/`. When `web/` changed, also run
+   `just web-check` (and `just web-visual` for component changes).
 7. Open a pull request using the template. Reference requirement IDs and `Closes #N`.
 
 ## Commits

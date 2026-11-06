@@ -86,6 +86,17 @@ web-check:
 web-build:
     pnpm --dir web build
 
-# End-to-end tests with axe-core against a running server that serves web/dist.
+# End-to-end tests with axe-core (Playwright container) against a running server that
+# serves web/dist. From WSL or Docker Desktop: COOPER_E2E_URL=http://host.docker.internal:8080
 web-e2e:
     pnpm --dir web e2e
+
+# Storybook screenshot tests (Playwright container, so rendering matches CI).
+web-visual:
+    pnpm --dir web build-storybook --quiet
+    pnpm --dir web visual
+
+# Refresh the screenshot baselines after an intended visual change; commit them.
+web-visual-update:
+    pnpm --dir web build-storybook --quiet
+    pnpm --dir web visual:update
