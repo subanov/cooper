@@ -13,3 +13,8 @@ deploy/
 Dockerfile
 .dockerignore
 docker-compose.yml
+web/node_modules/
+web/dist/
+web/storybook-static/
+web/test-results/
+web/playwright-report/

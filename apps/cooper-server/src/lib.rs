@@ -1,7 +1,8 @@
 //! Cooper HTTP server.
 //!
-//! Wires the bounded contexts' routers under `/api/v1`, adds health endpoints and the
-//! OpenAPI document, and wraps everything in the standard middleware stack. The binary
+//! Wires the bounded contexts' routers under `/api/v1`, adds health endpoints, the
+//! OpenAPI document and the web UI (ADR-0010), and wraps everything in the standard
+//! middleware stack. The binary
 //! (`main.rs`) only reads configuration and starts serving; [`router`] is public so tests
 //! can drive the full stack with `tower::ServiceExt::oneshot`.
 
@@ -9,6 +10,7 @@ mod adapters;
 pub mod config;
 mod health;
 mod state;
+mod web;
 
 use axum::routing::get;
 use axum::{Json, Router};
@@ -83,7 +85,7 @@ pub fn router(state: AppState, http: &HttpConfig) -> Router {
     let app = Router::new()
         .merge(health::routes())
         .nest("/api/v1", api)
-        .fallback(cooper_http::middleware::not_found)
+        .fallback(web::fallback)
         .with_state(state);
     cooper_http::middleware::apply(app, http)
 }

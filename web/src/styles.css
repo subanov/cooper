@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Dark mode follows the operating system, or `.dark` on <html> when the user chooses. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens (shadcn/ui naming). Components use these, never raw colours. */
+@theme {
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.21 0.02 265);
+  --color-muted: oklch(0.97 0.005 265);
+  --color-muted-foreground: oklch(0.5 0.02 265);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.21 0.02 265);
+  --color-border: oklch(0.92 0.01 265);
+  --color-input: oklch(0.92 0.01 265);
+  --color-ring: oklch(0.55 0.2 264);
+  --color-primary: oklch(0.49 0.22 264);
+  --color-primary-foreground: oklch(0.98 0 0);
+  --color-secondary: oklch(0.96 0.01 265);
+  --color-secondary-foreground: oklch(0.21 0.02 265);
+  --color-destructive: oklch(0.55 0.22 27);
+  --color-destructive-foreground: oklch(0.98 0 0);
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+@layer base {
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+      --color-background: oklch(0.17 0.02 265);
+      --color-foreground: oklch(0.96 0.005 265);
+      --color-muted: oklch(0.24 0.02 265);
+      --color-muted-foreground: oklch(0.72 0.02 265);
+      --color-card: oklch(0.2 0.02 265);
+      --color-card-foreground: oklch(0.96 0.005 265);
+      --color-border: oklch(0.32 0.02 265);
+      --color-input: oklch(0.32 0.02 265);
+      --color-secondary: oklch(0.26 0.02 265);
+      --color-secondary-foreground: oklch(0.96 0.005 265);
+      --color-primary: oklch(0.68 0.16 264);
+      --color-primary-foreground: oklch(0.17 0.02 265);
+    }
+  }
+  :root.dark {
+    --color-background: oklch(0.17 0.02 265);
+    --color-foreground: oklch(0.96 0.005 265);
+    --color-muted: oklch(0.24 0.02 265);
+    --color-muted-foreground: oklch(0.72 0.02 265);
+    --color-card: oklch(0.2 0.02 265);
+    --color-card-foreground: oklch(0.96 0.005 265);
+    --color-border: oklch(0.32 0.02 265);
+    --color-input: oklch(0.32 0.02 265);
+    --color-secondary: oklch(0.26 0.02 265);
+    --color-secondary-foreground: oklch(0.96 0.005 265);
+    --color-primary: oklch(0.68 0.16 264);
+    --color-primary-foreground: oklch(0.17 0.02 265);
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}

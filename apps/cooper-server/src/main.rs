@@ -1,5 +1,8 @@
 //! `cooper-server` binary: reads configuration, connects to PostgreSQL and serves HTTP
 //! until SIGINT/SIGTERM.
+//!
+//! `cooper-server openapi` prints the OpenAPI document instead (no configuration or
+//! database needed); `web/` generates its API client from it.
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -12,6 +15,12 @@ use cooper_server::config::ServerConfig;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    if std::env::args().nth(1).as_deref() == Some("openapi") {
+        let mut out = std::io::stdout().lock();
+        serde_json::to_writer_pretty(&mut out, &cooper_server::openapi())?;
+        std::io::Write::write_all(&mut out, b"\n")?;
+        return Ok(());
+    }
     let config = ServerConfig::from_env().context("invalid configuration")?;
     let (system_log, system_log_writer) = system_log::channel("server");
     telemetry::init(config.log_format, Some(system_log)).context("failed to initialise logging")?;

@@ -78,6 +78,8 @@ lettre = { version = "0.11", default-features = false, features = ["builder", "h
 # OpenAPI
 utoipa = { version = "6", features = ["chrono", "uuid"] }
 utoipa-axum = "0.3"
+# Embeds the built web/ SPA into cooper-server (ADR-0010).
+rust-embed = { version = "8.13", default-features = false }
 
 # Observability
 tracing = "0.1"
