@@ -23,6 +23,7 @@ ARG PNPM_VERSION=12.18.0
 RUN npm install -g pnpm@${PNPM_VERSION}
 WORKDIR /web
 COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
+COPY web/tools/openapi-codegen/package.json ./tools/openapi-codegen/
 RUN pnpm install --frozen-lockfile
 COPY web/ ./
 RUN pnpm build
