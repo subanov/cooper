@@ -285,6 +285,9 @@ async fn one_portal_account_switches_between_companies_and_reset_ends_sessions(p
 #[sqlx::test(migrations = "../../migrations")]
 async fn self_registration_confirms_the_address_before_creating_the_requester(pool: PgPool) {
     let (anon, admin) = setup(&pool).await;
+    let options = anon.get("/api/v1/portal/sign-in-options").await;
+    assert_eq!(options.status, StatusCode::OK);
+    assert_eq!(options.body["self_registration"], json!(false));
     let register = |email: &str| json!({ "full_name": "Nia New", "email": email });
     let reply = anon
         .post(
@@ -303,6 +306,8 @@ async fn self_registration_confirms_the_address_before_creating_the_requester(po
     assert_eq!(reply.status, StatusCode::OK, "{:?}", reply.body);
     // A fresh server, so the cached security policy is reloaded.
     let anon = Client::anonymous(&pool);
+    let options = anon.get("/api/v1/portal/sign-in-options").await;
+    assert_eq!(options.body["self_registration"], json!(true));
     let reply = anon
         .post("/api/v1/portal/registration", register("nia@gmail.com"))
         .await;

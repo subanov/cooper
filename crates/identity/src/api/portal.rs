@@ -49,6 +49,7 @@ where
         .routes(routes!(request_portal_reset))
         .routes(routes!(set_portal_password))
         .routes(routes!(register_for_portal))
+        .routes(routes!(portal_sign_in_options))
         .routes(routes!(invite_to_portal))
 }
 
@@ -302,6 +303,23 @@ async fn register_for_portal(
         })
         .await?;
     Ok(StatusCode::ACCEPTED)
+}
+
+/// What the Portal sign-in screen offers.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PortalSignInOptionsDto {
+    /// Whether people at a Company's Sender Domain may register themselves.
+    pub self_registration: bool,
+}
+
+/// What the Portal sign-in screen offers (Self-Registration on or off). Needs no session.
+#[utoipa::path(get, path = "/portal/sign-in-options", tag = "Portal",
+    responses((status = 200, body = PortalSignInOptionsDto)))]
+async fn portal_sign_in_options(State(api): State<IdentityApi>) -> Json<PortalSignInOptionsDto> {
+    let options = api.service.portal_sign_in_options().await;
+    Json(PortalSignInOptionsDto {
+        self_registration: options.self_registration,
+    })
 }
 
 /// Sends the Requester a Portal Invitation: a link to set a Portal password, valid 7 days.
