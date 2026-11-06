@@ -1,5 +1,6 @@
-//! Portal sign-in (FR-PRT-001, ADR-0021): Portal Invitations, set-password links, Portal
-//! sessions separate from Analyst sessions, switching Requesters and Self-Registration.
+//! The Self-Service Portal: sign-in (FR-PRT-001, ADR-0021) with Portal Invitations,
+//! set-password links, separate Portal sessions, switching Requesters and
+//! Self-Registration; and raising tickets from the Portal Catalogue (FR-PRT-002).
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)] // test code
 
@@ -355,5 +356,159 @@ async fn self_registration_confirms_the_address_before_creating_the_requester(po
             .await
             .status,
         StatusCode::NOT_FOUND
+    );
+}
+
+/// Invites a Requester, sets the Portal password and signs in.
+async fn portal_for(pool: &PgPool, anon: &Client, admin: &Client, requester: &Value) -> Client {
+    let email = requester["email"].as_str().unwrap().to_owned();
+    let reply = admin
+        .post(
+            &format!(
+                "/api/v1/requesters/{}/portal-invitation",
+                requester["id"].as_str().unwrap()
+            ),
+            json!({}),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::ACCEPTED, "{:?}", reply.body);
+    let token = link_token(pool, "portal_invitation", &email).await;
+    let reply = anon
+        .post(
+            "/api/v1/portal/password",
+            json!({ "token": token, "password": PORTAL_PASSWORD }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::NO_CONTENT);
+    portal_sign_in(anon, &email).await
+}
+
+async fn category(admin: &Client, body: Value) -> Value {
+    let reply = admin.post("/api/v1/ticket-categories", body).await;
+    assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
+    reply.body
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn requesters_raise_tickets_from_the_portal_catalogue(pool: PgPool) {
+    let (anon, admin) = setup(&pool).await;
+    let default = admin.get("/api/v1/companies").await.body["items"][0]["id"].clone();
+    let sam = create_requester(&admin, &default, "sam@default.example").await;
+    let portal = portal_for(&pool, &anon, &admin, &sam).await;
+
+    // An empty Catalogue still lets Requesters raise a ticket.
+    assert_eq!(portal.get("/api/v1/portal/catalogue").await.body, json!([]));
+    let reply = portal
+        .post(
+            "/api/v1/portal/tickets",
+            json!({ "subject": "Printer jammed", "description": "Second floor" }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
+
+    let types = admin.get("/api/v1/ticket-types").await.body;
+    let service_request = types
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|t| t["key"] == "service_request")
+        .unwrap()["id"]
+        .clone();
+    let hardware = category(
+        &admin,
+        json!({ "name": "Hardware", "portal_visible": true, "sort_order": 2 }),
+    )
+    .await;
+    let laptop = category(
+        &admin,
+        json!({ "name": "Laptop", "parent_id": hardware["id"], "portal_visible": true,
+                "type_ids": [service_request] }),
+    )
+    .await;
+    let internal = category(&admin, json!({ "name": "Internal only" })).await;
+    category(
+        &admin,
+        json!({ "name": "Hidden child", "parent_id": internal["id"], "portal_visible": true }),
+    )
+    .await;
+    category(
+        &admin,
+        json!({ "name": "Access", "portal_visible": true, "sort_order": 1 }),
+    )
+    .await;
+
+    let catalogue = portal.get("/api/v1/portal/catalogue").await;
+    assert_eq!(catalogue.status, StatusCode::OK);
+    let names: Vec<&str> = catalogue
+        .body
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(names, ["Access", "Hardware", "Laptop"]);
+    assert_eq!(
+        anon.get("/api/v1/portal/catalogue").await.status,
+        StatusCode::UNAUTHORIZED
+    );
+
+    let reply = portal
+        .post(
+            "/api/v1/portal/tickets",
+            json!({ "subject": "No category" }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::UNPROCESSABLE_ENTITY);
+    let reply = portal
+        .post(
+            "/api/v1/portal/tickets",
+            json!({ "subject": "Sneaky", "category_id": internal["id"] }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::UNPROCESSABLE_ENTITY);
+    let reply = portal
+        .post(
+            "/api/v1/portal/tickets",
+            json!({ "subject": "Laptop will not start", "description": "Since the update",
+                    "category_id": laptop["id"] }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
+    assert!(reply.body["number"].as_str().unwrap().contains("DEF"));
+
+    let ticket = admin
+        .get(&format!(
+            "/api/v1/tickets/{}",
+            reply.body["id"].as_str().unwrap()
+        ))
+        .await
+        .body;
+    assert_eq!(ticket["requester_id"], sam["id"]);
+    assert_eq!(ticket["company_id"], default);
+    assert_eq!(ticket["category_id"], laptop["id"]);
+    assert_eq!(ticket["type_id"], service_request);
+    assert_eq!(ticket["analyst_id"], Value::Null);
+    let origins = admin.get("/api/v1/ticket-origins").await.body;
+    let portal_origin = origins
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|o| o["key"] == "portal")
+        .unwrap()["id"]
+        .clone();
+    assert_eq!(ticket["origin_id"], portal_origin);
+    let actor: String = sqlx::query_scalar(
+        "SELECT DISTINCT actor_kind FROM audit_entries WHERE aggregate_type = 'ticket' AND aggregate_id = $1::text::uuid",
+    )
+    .bind(reply.body["id"].as_str().unwrap())
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(actor, "requester");
+
+    // The Portal session never reaches the Analyst ticket API.
+    assert_eq!(
+        portal.get("/api/v1/tickets").await.status,
+        StatusCode::UNAUTHORIZED
     );
 }

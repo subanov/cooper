@@ -1,5 +1,6 @@
 //! Service desk domain. Pure Rust: no I/O.
 
+mod catalogue;
 mod email;
 mod email_template;
 mod events;
@@ -10,6 +11,7 @@ mod ports;
 mod sla;
 mod ticket;
 
+pub use catalogue::{portal_catalogue, portal_ticket_type};
 pub use email::{
     Direction, PLACEHOLDERS, Placeholders, ReplyDraft, ReplyTemplate, TicketEmail, parse_sdref,
     sdref_subject,
