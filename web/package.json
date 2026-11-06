@@ -18,12 +18,15 @@
     "format": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test",
+    "e2e": "scripts/playwright.sh e2e",
     "api:generate": "openapi-typescript openapi.json -o src/api/schema.d.ts",
     "api:check": "openapi-typescript openapi.json -o src/api/schema.d.ts --check",
     "check": "pnpm typecheck && pnpm lint && pnpm api:check && pnpm test",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "visual": "scripts/playwright.sh visual",
+    "visual:update": "scripts/playwright.sh visual --update-snapshots",
+    "audit": "pnpm audit --audit-level high --prod"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.5.0",

@@ -151,3 +151,104 @@ jobs:
           push: false
           cache-from: type=gha,scope=migrate
           cache-to: type=gha,scope=migrate,mode=max
+
+  # --- Web UI (web/, ADR-0010) ---------------------------------------------------------------
+
+  web:
+    name: Web (typecheck, lint, unit, visual)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: web/.node-version
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Install (frozen lockfile, install scripts denied)
+        run: pnpm install --frozen-lockfile
+      - name: Audit runtime dependencies
+        run: pnpm run audit
+      - name: Typecheck, Biome, generated API client, Vitest
+        run: pnpm check
+      - name: Build
+        run: pnpm build
+      - name: Build Storybook
+        run: pnpm build-storybook --quiet
+      - name: Visual regression (Storybook screenshots + axe-core)
+        run: pnpm visual
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-dist
+          path: web/dist
+          retention-days: 3
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-visual-report
+          path: |
+            web/test-results
+            web/playwright-report
+          retention-days: 7
+
+  web-e2e:
+    name: Web end-to-end (Playwright + axe-core)
+    needs: web
+    runs-on: ubuntu-latest
+    env:
+      SQLX_OFFLINE: "true"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: web/.node-version
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: Install web dependencies
+        run: pnpm --dir web install --frozen-lockfile
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-dist
+          path: web/dist
+      - name: Start PostgreSQL (with the app role)
+        run: |
+          cp .env.example .env
+          docker compose up -d --wait postgres
+      - name: Install sqlx-cli
+        run: |
+          if ! sqlx --version 2>/dev/null | grep -q "$SQLX_CLI_VERSION"; then
+            cargo install sqlx-cli --version "$SQLX_CLI_VERSION" --locked \
+              --no-default-features --features rustls,postgres
+          fi
+      - name: Apply migrations
+        run: set -a && . ./.env && set +a && cargo sqlx migrate run
+      - name: Build cooper-server
+        run: cargo build -p cooper-server --locked
+      - name: Start cooper-server (serves web/dist from disk)
+        run: |
+          set -a && . ./.env && set +a
+          COOPER_BIND_ADDR=127.0.0.1:8080 nohup target/debug/cooper-server > server.log 2>&1 &
+          for i in $(seq 1 60); do curl -fs http://127.0.0.1:8080/health/ready && exit 0; sleep 1; done
+          cat server.log; exit 1
+      - name: Playwright end-to-end tests
+        run: pnpm --dir web e2e
+        env:
+          COOPER_E2E_URL: http://127.0.0.1:8080
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-e2e-report
+          path: |
+            server.log
+            web/test-results
+            web/playwright-report
+          retention-days: 7
