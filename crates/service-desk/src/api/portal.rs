@@ -28,6 +28,7 @@ where
     ServiceDeskApi: axum::extract::FromRef<S>,
 {
     OpenApiRouter::new()
+        .routes(routes!(managed_tickets))
         .routes(routes!(portal_ticket_fields))
         .routes(routes!(portal_catalogue))
         .routes(routes!(my_tickets, raise_portal_ticket))
@@ -245,6 +246,33 @@ async fn my_tickets(
     let page = api
         .service
         .portal_tickets(&p, q.open, limit, cursor.as_ref())
+        .await?;
+    Ok(Json(PortalTicketPage {
+        items: page.items.into_iter().map(Into::into).collect(),
+        next_cursor: page.next_cursor.map(|c| c.as_str().to_owned()),
+    }))
+}
+
+/// Tickets of the Requesters the signed-in Requester covers as a Manager (FR-PRT-004),
+/// newest first. Empty unless Managers are switched on. Open them with
+/// `GET /portal/tickets/{id}`; replies and attachments stay with each Requester.
+#[utoipa::path(get, path = "/portal/managed-tickets", tag = "Portal", params(PortalTicketParams),
+    responses((status = 200, body = PortalTicketPage), (status = 401, description = "Not signed in to the Portal")))]
+async fn managed_tickets(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Query(q): Query<PortalTicketParams>,
+) -> ApiResult<Json<PortalTicketPage>> {
+    let limit = match q.limit {
+        None => Limit::DEFAULT,
+        Some(n) => {
+            Limit::new(n).map_err(|_| TicketError::invalid("limit", "must be between 1 and 200"))?
+        }
+    };
+    let cursor = q.cursor.map(Cursor::from_client);
+    let page = api
+        .service
+        .portal_managed_tickets(&p, q.open, limit, cursor.as_ref())
         .await?;
     Ok(Json(PortalTicketPage {
         items: page.items.into_iter().map(Into::into).collect(),

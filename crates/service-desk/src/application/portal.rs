@@ -186,6 +186,65 @@ fn requester_visibility() -> Visibility {
 }
 
 impl ServiceDesk {
+    /// Loads a ticket the signed-in Requester may read: their own, or one of a Requester
+    /// they cover as a Manager (FR-PRT-004). Anything else is "not found".
+    async fn readable_ticket(
+        &self,
+        principal: &Principal,
+        id: TicketId,
+    ) -> Result<Ticket, AppError> {
+        if let Ok(t) = self.own_ticket(principal, id).await {
+            return Ok(t);
+        }
+        let (_, tenant) = portal_requester(principal)?;
+        let managed = self.ports.directory.managed_scope(principal).await?;
+        self.ports
+            .tickets
+            .get(principal.scope(), &requester_visibility(), id)
+            .await?
+            .filter(|t| {
+                t.tenant_id() == tenant
+                    && t.details()
+                        .requester_id
+                        .is_some_and(|r| managed.requester_ids.contains(&r))
+                    && (managed.include_confidential
+                        || t.details().sensitivity == Sensitivity::Normal)
+            })
+            .ok_or(AppError::NotFound("Ticket"))
+    }
+
+    /// Tickets of the Requesters the signed-in Requester covers as a Manager, newest
+    /// first (FR-PRT-004). Empty unless Managers are switched on. Read-only: replies and
+    /// attachments stay with each Requester's own tickets.
+    ///
+    /// # Errors
+    ///
+    /// Not a Portal principal or an invalid cursor.
+    pub async fn portal_managed_tickets(
+        &self,
+        principal: &Principal,
+        open: Option<bool>,
+        limit: Limit,
+        cursor: Option<&Cursor>,
+    ) -> Result<Page<PortalTicket>, AppError> {
+        let (_, tenant) = portal_requester(principal)?;
+        let managed = self.ports.directory.managed_scope(principal).await?;
+        if managed.requester_ids.is_empty() {
+            return Ok(Page {
+                items: Vec::new(),
+                next_cursor: None,
+            });
+        }
+        let mut filter = ListFilter {
+            requester_ids: managed.requester_ids,
+            open,
+            sensitivity: (!managed.include_confidential).then_some(Sensitivity::Normal),
+            ..ListFilter::default()
+        };
+        filter.tenant_ids.insert(tenant);
+        self.portal_page(principal, filter, limit, cursor).await
+    }
+
     /// Loads a ticket of the signed-in Requester; any other ticket is "not found".
     async fn own_ticket(&self, principal: &Principal, id: TicketId) -> Result<Ticket, AppError> {
         let (requester, tenant) = portal_requester(principal)?;
@@ -228,6 +287,16 @@ impl ServiceDesk {
             ..ListFilter::default()
         };
         filter.tenant_ids.insert(tenant);
+        self.portal_page(principal, filter, limit, cursor).await
+    }
+
+    async fn portal_page(
+        &self,
+        principal: &Principal,
+        filter: ListFilter,
+        limit: Limit,
+        cursor: Option<&Cursor>,
+    ) -> Result<Page<PortalTicket>, AppError> {
         let query = TicketListQuery {
             filter,
             sort: SortField::CreatedAt,
@@ -268,7 +337,7 @@ impl ServiceDesk {
         principal: &Principal,
         id: TicketId,
     ) -> Result<PortalTicket, AppError> {
-        let ticket = self.own_ticket(principal, id).await?;
+        let ticket = self.readable_ticket(principal, id).await?;
         let status_name = self
             .status_names()
             .await?
@@ -291,7 +360,7 @@ impl ServiceDesk {
         principal: &Principal,
         id: TicketId,
     ) -> Result<Vec<PortalTimelineEntry>, AppError> {
-        self.own_ticket(principal, id).await?;
+        self.readable_ticket(principal, id).await?;
         let scope = principal.scope();
         let mut entries: Vec<PortalTimelineEntry> = self
             .ports

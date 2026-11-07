@@ -77,6 +77,8 @@ pub struct ListFilter {
     pub unassigned: bool,
     /// Only this Requester.
     pub requester_id: Option<RequesterId>,
+    /// Any of these Requesters (Portal managers, FR-PRT-004); ignored when empty.
+    pub requester_ids: BTreeSet<RequesterId>,
     /// Only this Department.
     pub department_id: Option<DepartmentId>,
     /// Only this Category.
@@ -289,6 +291,12 @@ pub trait Directory: Send + Sync {
         name: &str,
         email: &str,
     ) -> Result<RequesterId, RepoError>;
+    /// The Requesters whose tickets a Portal principal may read as a Manager
+    /// (FR-PRT-004). Empty unless Managers are switched on.
+    async fn managed_scope(
+        &self,
+        principal: &cooper_kernel::Principal,
+    ) -> Result<ManagedTickets, RepoError>;
 }
 
 /// Service desk settings Administrators control.
@@ -635,4 +643,13 @@ pub trait TicketRelations: Send + Sync {
         values: &std::collections::BTreeMap<Uuid, Option<serde_json::Value>>,
         audit: &AuditRecord,
     ) -> Result<(), RepoError>;
+}
+
+/// What a Portal Manager may read (FR-PRT-004).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ManagedTickets {
+    /// The covered Requesters.
+    pub requester_ids: BTreeSet<RequesterId>,
+    /// Whether their Confidential tickets are included.
+    pub include_confidential: bool,
 }

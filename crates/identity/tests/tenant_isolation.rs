@@ -12,15 +12,24 @@ use cooper_identity::application::{
     capabilities,
 };
 use cooper_identity::domain::{
-    CostCentreCode, DomainName, EmailAddress, Name, Password, SessionPolicy, TicketCode, Username,
+    CostCentreCode, DomainName, EmailAddress, GrantKind, Name, Password, SessionPolicy, TicketCode,
+    Username,
 };
-use cooper_identity::infrastructure::{FixedSecurityPolicy, LoggingResetMailer, PgIdentityStore};
+use cooper_identity::infrastructure::{
+    FixedIdentitySettings, FixedSecurityPolicy, LoggingResetMailer, PgIdentityStore,
+};
 use cooper_kernel::{Capability, SystemClock, TenantId, TenantScope};
 use cooper_platform::crypto::Keyring;
 use cooper_platform::testing;
 use sqlx::PgPool;
 
-const TABLES: &[&str] = &["tenants", "tenant_domains", "requesters", "cost_centres"];
+const TABLES: &[&str] = &[
+    "tenants",
+    "tenant_domains",
+    "requesters",
+    "cost_centres",
+    "manager_grants",
+];
 
 fn service(pool: &PgPool) -> IdentityService {
     let ports = PgIdentityStore::ports(
@@ -29,6 +38,7 @@ fn service(pool: &PgPool) -> IdentityService {
         Keyring::ephemeral().unwrap(),
         Arc::new(FixedSecurityPolicy::default()),
         Arc::new(LoggingResetMailer),
+        Arc::new(FixedIdentitySettings::default()),
     )
     .unwrap();
     let catalogue: BTreeSet<Capability> = capabilities::ALL
@@ -93,20 +103,24 @@ async fn seed(pool: &PgPool) -> (TenantId, TenantId) {
             )
             .await
             .unwrap();
-        svc.create_requester(
-            &admin,
-            tenant,
-            RequesterInput {
-                full_name: Name::try_from(format!("{name} person")).unwrap(),
-                email: EmailAddress::try_from(format!("person@{name}.example")).unwrap(),
-                username: None,
-                phone: None,
-                manager_id: None,
-                cost_centre_id: Some(cc.id()),
-            },
-        )
-        .await
-        .unwrap();
+        let person = svc
+            .create_requester(
+                &admin,
+                tenant,
+                RequesterInput {
+                    full_name: Name::try_from(format!("{name} person")).unwrap(),
+                    email: EmailAddress::try_from(format!("person@{name}.example")).unwrap(),
+                    username: None,
+                    phone: None,
+                    manager_id: None,
+                    cost_centre_id: Some(cc.id()),
+                },
+            )
+            .await
+            .unwrap();
+        svc.add_manager_grant(&admin, person.id(), GrantKind::Reports, false)
+            .await
+            .unwrap();
     }
     (alpha, beta)
 }

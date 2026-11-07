@@ -162,7 +162,11 @@ fn current(session: Option<Extension<CurrentPortalSession>>) -> ApiResult<Portal
         .ok_or_else(|| AppError::Unauthenticated.into())
 }
 
-fn set_cookie(token: &SessionToken, max_age_secs: i64, secure: bool) -> Option<HeaderValue> {
+pub(super) fn set_cookie(
+    token: &SessionToken,
+    max_age_secs: i64,
+    secure: bool,
+) -> Option<HeaderValue> {
     let secure = if secure { "; Secure" } else { "" };
     HeaderValue::from_str(&format!(
         "{PORTAL_SESSION_COOKIE}={}; Path={PORTAL_COOKIE_PATH}; HttpOnly; SameSite=Lax; Max-Age={max_age_secs}{secure}",

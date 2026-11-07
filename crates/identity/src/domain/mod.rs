@@ -8,12 +8,14 @@ mod audit;
 mod company;
 mod cost_centre;
 mod department;
+mod groups;
 mod portal;
 mod repository;
 mod requester;
 mod role;
 mod security;
 mod session;
+mod sso;
 mod team;
 mod totp;
 mod values;
@@ -25,15 +27,20 @@ pub use audit::{Audited, audit_record};
 pub use company::Company;
 pub use cost_centre::{CostCentre, CostCentreId};
 pub use department::Department;
+pub use groups::{
+    DirectoryReach, GrantKind, ManagerGrant, ManagerSettings, Member, Membership, RequesterSummary,
+    UserGroup, managed_requesters,
+};
 pub use portal::{
     NewPortalSession, PortalAccount, PortalAccountId, PortalLink, PortalLinkEmail,
     PortalLinkPurpose, PortalRepository, PortalSession, PortalSessionId,
 };
 pub use repository::{
     AnalystRepository, ApiKeyRepository, Authorization, AuthorizationRepository, CompanyRepository,
-    CostCentreRepository, DepartmentRepository, ListQuery, PasswordHasher, PasswordResetRepository,
-    RepoError, RequesterRepository, ResetMailer, Revocations, RoleRepository, SessionRepository,
-    SetupRepository, TeamRepository, TokenGenerator,
+    CostCentreRepository, DepartmentRepository, GroupRepository, IdentitySettings, ListQuery,
+    OidcClient, PasswordHasher, PasswordResetRepository, RepoError, RequesterRepository,
+    ResetMailer, Revocations, RoleRepository, SecretChange, SessionRepository, SetupRepository,
+    SsoRepository, TeamRepository, TokenGenerator,
 };
 pub use requester::{NewRequester, Requester};
 pub use role::{Role, RoleId};
@@ -42,6 +49,10 @@ pub use security::{
     TrustedDeviceId, TrustedDeviceRepository,
 };
 pub use session::{Session, SessionId, SessionPolicy, SessionToken};
+pub use sso::{
+    IdClaims, SsoAudience, SsoIdentity, SsoLogin, SsoProvider, SsoProviderInput, check_claims,
+    safe_return_to,
+};
 pub use team::Team;
 pub use totp::{STEP_SECONDS, TotpSecret};
 pub use values::{
@@ -91,4 +102,15 @@ pub enum IdentityError {
     /// Two-factor sign-in is required by policy and cannot be turned off.
     #[error("two-factor sign-in is required for every Analyst")]
     TotpRequiredByPolicy,
+}
+
+impl IdentityError {
+    /// An [`IdentityError::Invalid`].
+    #[must_use]
+    pub fn invalid(field: &'static str, reason: impl Into<String>) -> Self {
+        Self::Invalid {
+            field,
+            reason: reason.into(),
+        }
+    }
 }

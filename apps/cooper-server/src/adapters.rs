@@ -229,6 +229,21 @@ impl Directory for IdentityDirectory {
         Ok(r.id())
     }
 
+    async fn managed_scope(
+        &self,
+        principal: &cooper_kernel::Principal,
+    ) -> Result<cooper_service_desk::domain::ManagedTickets, RepoError> {
+        let scope = self
+            .identity
+            .managed_scope(principal)
+            .await
+            .map_err(|e| RepoError::Storage(e.to_string()))?;
+        Ok(cooper_service_desk::domain::ManagedTickets {
+            requester_ids: scope.requester_ids,
+            include_confidential: scope.include_confidential,
+        })
+    }
+
     async fn ticket_code(
         &self,
         scope: &TenantScope,

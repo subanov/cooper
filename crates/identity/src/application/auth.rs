@@ -389,7 +389,7 @@ impl IdentityService {
     }
 
     /// Builds the principal for an active Analyst.
-    async fn principal_for(&self, analyst: &Analyst) -> Result<Principal, AppError> {
+    pub(super) async fn principal_for(&self, analyst: &Analyst) -> Result<Principal, AppError> {
         let authorization = self.ports.authorization.load(analyst.id()).await?;
         Ok(Principal::new(
             Actor::Analyst(analyst.id()),

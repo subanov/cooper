@@ -111,6 +111,46 @@ impl SecurityPolicyProvider for SettingsSecurityPolicy {
     }
 }
 
+/// Manager rules and the public address, read from System Settings (ADR-0025).
+struct SettingsIdentity {
+    admin: AdministrationService,
+}
+
+#[async_trait]
+impl cooper_identity::domain::IdentitySettings for SettingsIdentity {
+    async fn managers(&self) -> cooper_identity::domain::ManagerSettings {
+        let get = |key: &'static str| {
+            let admin = self.admin.clone();
+            async move { admin.setting_value(key).await.ok().flatten() }
+        };
+        let flag = |v: Option<serde_json::Value>, default: bool| {
+            v.and_then(|v| v.as_bool()).unwrap_or(default)
+        };
+        cooper_identity::domain::ManagerSettings {
+            enabled: flag(get(identity_settings::MANAGERS_ENABLED.key).await, false),
+            directory: get(identity_settings::MANAGERS_DIRECTORY.key)
+                .await
+                .and_then(|v| v.as_str().and_then(|s| s.parse().ok()))
+                .unwrap_or_default(),
+            include_leavers: flag(get(identity_settings::MANAGERS_LEAVERS.key).await, true),
+            include_confidential: flag(
+                get(identity_settings::MANAGERS_CONFIDENTIAL.key).await,
+                false,
+            ),
+        }
+    }
+
+    async fn base_url(&self) -> String {
+        self.admin
+            .setting_value(cooper_administration::application::settings::BASE_URL.key)
+            .await
+            .ok()
+            .flatten()
+            .and_then(|v| v.as_str().map(str::to_owned))
+            .unwrap_or_else(|| "http://localhost:8080".to_owned())
+    }
+}
+
 /// How long the security policy is cached; setting changes apply within this time.
 const POLICY_CACHE_TTL: Duration = Duration::from_secs(5);
 
@@ -212,6 +252,9 @@ impl AppState {
             security.keyring,
             policy,
             reset_mailer,
+            Arc::new(SettingsIdentity {
+                admin: admin.clone(),
+            }),
         )?;
         let service = IdentityService::new(ports, capability_catalogue(), security.session_policy);
         let desk = ServiceDesk::new(ServiceDeskPorts {

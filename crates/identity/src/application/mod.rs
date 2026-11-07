@@ -7,10 +7,12 @@
 mod api_keys;
 mod auth;
 mod companies;
+mod groups;
 mod people;
 mod portal;
 mod requesters;
 mod reset;
+mod sso;
 mod two_factor;
 
 use std::collections::BTreeSet;
@@ -24,20 +26,23 @@ use uuid::Uuid;
 
 use crate::domain::{
     AnalystRepository, ApiKeyRepository, AuthorizationRepository, CompanyRepository,
-    CostCentreRepository, DepartmentRepository, IdentityError, ListQuery, PasswordHasher,
-    PasswordResetRepository, PortalRepository, RepoError, RequesterRepository, ResetMailer,
-    RoleRepository, SecurityPolicyProvider, SessionPolicy, SessionRepository, SetupRepository,
-    SignInThrottle, TeamRepository, TokenGenerator, TrustedDeviceRepository,
+    CostCentreRepository, DepartmentRepository, GroupRepository, IdentityError, IdentitySettings,
+    ListQuery, OidcClient, PasswordHasher, PasswordResetRepository, PortalRepository, RepoError,
+    RequesterRepository, ResetMailer, RoleRepository, SecurityPolicyProvider, SessionPolicy,
+    SessionRepository, SetupRepository, SignInThrottle, SsoRepository, TeamRepository,
+    TokenGenerator, TrustedDeviceRepository,
 };
 
 pub use api_keys::{ApiKeyInput, IssuedApiKey};
 pub use auth::{FirstRunSetup, SignIn, SignedIn};
 pub use companies::CompanyInput;
+pub use groups::ManagedScope;
 pub use people::{AnalystInput, DepartmentInput, RoleInput, TeamInput};
 pub use portal::{
     PortalIdentity, PortalRegistration, PortalSignIn, PortalSignInOptions, PortalSignedIn,
 };
 pub use requesters::{CostCentreInput, RequesterInput};
+pub use sso::{SSO_CALLBACK_PATH, SsoSignedIn};
 pub use two_factor::TotpEnrollment;
 
 /// Capabilities the identity context checks (FR-IAM-010).
@@ -56,6 +61,8 @@ pub mod capabilities {
     pub const REQUESTERS_READ: &str = "requesters.read";
     /// Create and change Requesters and Cost Centres.
     pub const REQUESTERS_MANAGE: &str = "requesters.manage";
+    /// Create and change User Groups and their members (FR-IAM-016).
+    pub const GROUPS_MANAGE: &str = "groups.manage";
 
     /// Every Capability declared by the identity context.
     pub const ALL: &[&str] = &[
@@ -66,6 +73,7 @@ pub mod capabilities {
         ROLES_MANAGE,
         REQUESTERS_READ,
         REQUESTERS_MANAGE,
+        GROUPS_MANAGE,
     ];
 }
 
@@ -105,12 +113,49 @@ pub mod settings {
         default: "false",
     };
 
+    /// Managers see other Requesters' tickets on the Portal (FR-PRT-004). Off until
+    /// switched on.
+    pub const MANAGERS_ENABLED: SettingDefinition = SettingDefinition {
+        key: "portal.managers_enabled",
+        description: "Let Requesters who are Managers read the tickets of the Requesters they cover on the Portal.",
+        kind: SettingKind::Bool,
+        default: "false",
+    };
+
+    /// How far a Requester's Manager (from the directory) reaches.
+    pub const MANAGERS_DIRECTORY: SettingDefinition = SettingDefinition {
+        key: "portal.managers_directory",
+        description: "Whether a Requester's Manager sees their tickets: off, direct (direct reports) or all (the whole chain below).",
+        kind: SettingKind::Choice(&["off", "direct", "all"]),
+        default: "\"direct\"",
+    };
+
+    /// Managers keep seeing tickets of deactivated Requesters.
+    pub const MANAGERS_LEAVERS: SettingDefinition = SettingDefinition {
+        key: "portal.managers_leavers",
+        description: "Managers keep seeing the tickets of Requesters who have been deactivated.",
+        kind: SettingKind::Bool,
+        default: "true",
+    };
+
+    /// Managers see Confidential tickets of the Requesters they cover.
+    pub const MANAGERS_CONFIDENTIAL: SettingDefinition = SettingDefinition {
+        key: "portal.managers_confidential",
+        description: "Managers also see Confidential tickets of the Requesters they cover.",
+        kind: SettingKind::Bool,
+        default: "false",
+    };
+
     /// Every setting declared by the identity context.
     pub const ALL: &[SettingDefinition] = &[
         REQUIRE_TOTP,
         MAX_FAILED_SIGN_INS,
         SIGN_IN_BAN_MINUTES,
         PORTAL_SELF_REGISTRATION,
+        MANAGERS_ENABLED,
+        MANAGERS_DIRECTORY,
+        MANAGERS_LEAVERS,
+        MANAGERS_CONFIDENTIAL,
     ];
 }
 
@@ -161,6 +206,9 @@ pub enum AppError {
         /// Why.
         reason: String,
     },
+    /// Single sign-on failed; the reason is logged, never shown.
+    #[error("single sign-on failed")]
+    SsoFailed,
     /// Unexpected failure; details are logged, not returned.
     #[error("internal error")]
     Internal,
@@ -266,6 +314,14 @@ pub struct IdentityPorts {
     pub resets: Arc<dyn PasswordResetRepository>,
     /// Portal Accounts, sessions and links.
     pub portal: Arc<dyn PortalRepository>,
+    /// User Groups and Manager Grants.
+    pub groups: Arc<dyn GroupRepository>,
+    /// SSO providers, sign-ins and links.
+    pub sso: Arc<dyn SsoRepository>,
+    /// OpenID Connect over HTTP.
+    pub oidc: Arc<dyn OidcClient>,
+    /// Manager settings and the public address.
+    pub settings: Arc<dyn IdentitySettings>,
     /// Password reset and Portal link emails.
     pub reset_mailer: Arc<dyn ResetMailer>,
     /// Password hashing.

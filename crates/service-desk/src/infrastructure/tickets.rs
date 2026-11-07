@@ -459,6 +459,16 @@ impl TicketRepository for PgServiceDeskStore {
         if let Some(r) = f.requester_id {
             q.push(" AND t.requester_id = ").push_bind(r.as_uuid());
         }
+        if !f.requester_ids.is_empty() {
+            q.push(" AND t.requester_id = ANY(")
+                .push_bind(
+                    f.requester_ids
+                        .iter()
+                        .map(|r| r.as_uuid())
+                        .collect::<Vec<_>>(),
+                )
+                .push(")");
+        }
         if let Some(d) = f.department_id {
             q.push(" AND t.department_id = ").push_bind(d.as_uuid());
         }

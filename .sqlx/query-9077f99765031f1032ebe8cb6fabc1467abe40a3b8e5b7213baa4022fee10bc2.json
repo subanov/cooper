@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT client_secret_enc FROM sso_providers WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "client_secret_enc",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "sso_providers",
+            "name": "client_secret_enc"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "9077f99765031f1032ebe8cb6fabc1467abe40a3b8e5b7213baa4022fee10bc2"
+}
