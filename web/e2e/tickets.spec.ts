@@ -15,10 +15,17 @@ test("an Analyst triages a ticket from the list by keyboard", async ({ page }) =
   });
   expect(session.status()).toBe(200);
   const { csrf_token: csrf, analyst } = await session.json();
+  const companies = await (await page.request.get("/api/v1/companies")).json();
+  const companyId: string = companies.items[0].id;
   const subject = `E2E printer jam ${Date.now()}`;
   const created = await page.request.post("/api/v1/tickets", {
     headers: { "X-CSRF-Token": csrf },
-    data: { subject, description: "Paper stuck in tray 2.", analyst_id: analyst.id },
+    data: {
+      subject,
+      description: "Paper stuck in tray 2.",
+      company_id: companyId,
+      analyst_id: analyst.id,
+    },
   });
   expect(created.status(), await created.text()).toBe(201);
 
