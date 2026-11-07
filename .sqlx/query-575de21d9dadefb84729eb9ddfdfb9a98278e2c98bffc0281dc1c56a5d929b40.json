@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_merges (id, tenant_id, source_ticket_id, target_ticket_id, moved, link_id, source_status_id,\n                                        source_closed_at, source_resolution_code_id, source_closure_category_id,\n                                        merged_by_kind, merged_by_id, merged_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Jsonb",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "575de21d9dadefb84729eb9ddfdfb9a98278e2c98bffc0281dc1c56a5d929b40"
+}

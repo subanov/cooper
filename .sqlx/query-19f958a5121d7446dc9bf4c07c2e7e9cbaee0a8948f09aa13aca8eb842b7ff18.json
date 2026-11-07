@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE ticket_merges SET undone_by_kind = $2, undone_by_id = $3, undone_at = $4 WHERE id = $1 AND undone_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "19f958a5121d7446dc9bf4c07c2e7e9cbaee0a8948f09aa13aca8eb842b7ff18"
+}

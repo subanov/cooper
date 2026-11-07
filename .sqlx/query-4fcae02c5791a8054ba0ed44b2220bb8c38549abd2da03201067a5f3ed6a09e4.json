@@ -1,0 +1,210 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, source_ticket_id, target_ticket_id, moved, link_id, source_status_id, source_closed_at,\n                    source_resolution_code_id, source_closure_category_id, merged_by_kind, merged_by_id, merged_at,\n                    undone_by_kind, undone_by_id, undone_at\n             FROM ticket_merges WHERE (source_ticket_id = $1 OR target_ticket_id = $1) AND ($2 OR tenant_id = ANY($3))\n             ORDER BY merged_at DESC, id DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "source_ticket_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "source_ticket_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "target_ticket_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "target_ticket_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "moved",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "moved"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "link_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "link_id"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "source_status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "source_status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "source_closed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "source_closed_at"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "source_resolution_code_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "source_resolution_code_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "source_closure_category_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "source_closure_category_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "merged_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "merged_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "merged_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "merged_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "merged_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "merged_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "undone_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "undone_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "undone_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "undone_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "undone_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ticket_merges",
+            "name": "undone_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "4fcae02c5791a8054ba0ed44b2220bb8c38549abd2da03201067a5f3ed6a09e4"
+}

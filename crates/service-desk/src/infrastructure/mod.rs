@@ -10,6 +10,7 @@ mod mailboxes;
 #[cfg(any(feature = "graph", feature = "google"))]
 mod oauth;
 mod reference;
+mod relations;
 mod sla;
 mod template_mailer;
 mod tickets;
@@ -23,6 +24,7 @@ pub use imap::{
     parse_email,
 };
 pub use mailboxes::{PgMailboxStore, ReencryptMailboxSecrets};
+pub use relations::{PRESENCE_TOPIC, PrunePresence, prune_presence};
 pub use sla::SlaMonitor;
 pub use template_mailer::EmailTemplateMailer;
 

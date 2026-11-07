@@ -224,7 +224,7 @@ describe("ticket detail and keyboard triage (FR-TKT-024)", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Assign to me" })).toBeDisabled(),
     );
-    const put = calls.find((c) => c.method === "PUT");
+    const put = calls.find((c) => c.method === "PUT" && c.path.endsWith("/assignment"));
     expect(put?.body).toEqual({ analyst_id: "a1", team_id: "t1" });
     expect(put?.headers.get("X-CSRF-Token")).toBe("csrf-1");
   });

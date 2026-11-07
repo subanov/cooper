@@ -1,22 +1,23 @@
 //! Ticket use cases (FR-TKT-001 to -014, -020, -023, -024, -040, -041, FR-GEN-003,
 //! FR-GEN-004).
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::str::FromStr;
 
 use chrono::{DateTime, Duration, NaiveDate, Utc};
 use cooper_kernel::{
     Actor, AnalystId, AuditAction, AuditRecord, Cursor, DomainEvent, EventEnvelope, Limit, Page,
-    Principal, Sensitivity, TeamId, TenantId, TicketId,
+    Principal, Sensitivity, TeamId, TenantId, TenantScope, TicketId,
 };
 use uuid::Uuid;
 
 use super::{AppError, ServiceDesk, capabilities, require};
 use crate::domain::{
-    ListFilter, LookupKind, NewTicket, Note, NumberContext, NumberFormat, SortField,
+    Channel, FieldCheck, ListFilter, LookupKind, NewTicket, Note, RuleSubject, SortField,
     StatusTransition, Ticket, TicketAssigned, TicketClosed, TicketCreated, TicketDetails,
     TicketError, TicketListQuery, TicketNoteAdded, TicketPriorityChanged, TicketReopened,
-    TicketStatusChanged, TimeEntry, Visibility, audit_record, mentions,
+    TicketStatusChanged, TimeEntry, Visibility, audit_record, choose_type, mentions,
+    missing_required, parse_values,
 };
 
 /// Built-in views (FR-TKT-040).
@@ -75,6 +76,13 @@ pub struct CreateTicket {
     pub team_id: Option<TeamId>,
     /// Assignee.
     pub analyst_id: Option<AnalystId>,
+    /// How the ticket arrived, for Ticket Type Rules (FR-TKT-011) and which Ticket
+    /// Fields must be filled in (FR-TKT-029).
+    pub channel: Channel,
+    /// The Mailbox an emailed ticket arrived at.
+    pub mailbox_id: Option<Uuid>,
+    /// Ticket Field values by key.
+    pub fields: BTreeMap<String, serde_json::Value>,
 }
 
 /// A ticket list request.
@@ -132,7 +140,7 @@ impl TimelineEntry {
     }
 }
 
-fn event<E: DomainEvent>(
+pub(super) fn event<E: DomainEvent>(
     e: &E,
     actor: Actor,
     now: DateTime<Utc>,
@@ -143,7 +151,7 @@ fn event<E: DomainEvent>(
     })
 }
 
-fn acting_analyst(principal: &Principal) -> Option<AnalystId> {
+pub(super) fn acting_analyst(principal: &Principal) -> Option<AnalystId> {
     match principal.actor() {
         Actor::Analyst(id) => Some(id),
         _ => None,
@@ -291,6 +299,60 @@ impl ServiceDesk {
         Ok(())
     }
 
+    /// The Ticket Type the Ticket Type Rules choose (FR-TKT-011). Never fails: a broken
+    /// rule or lookup means "no type", logged, and the ticket is created anyway.
+    async fn type_from_rules(
+        &self,
+        tenant: TenantId,
+        details: &TicketDetails,
+        channel: Channel,
+        mailbox_id: Option<Uuid>,
+    ) -> Option<Uuid> {
+        let rules = match self.ports.reference.type_rules().await {
+            Ok(rules) if !rules.is_empty() => rules,
+            Ok(_) => return None,
+            Err(error) => {
+                tracing::warn!(%error, "cannot read Ticket Type Rules; no type chosen");
+                return None;
+            }
+        };
+        let types: Vec<Uuid> = match self.ports.reference.lookups(LookupKind::Type).await {
+            Ok(types) => types
+                .iter()
+                .filter(|t| t.is_active())
+                .map(|t| t.id())
+                .collect(),
+            Err(error) => {
+                tracing::warn!(%error, "cannot read Ticket Types; no type chosen");
+                return None;
+            }
+        };
+        let email = match details.requester_id {
+            Some(r) => self
+                .ports
+                .directory
+                .requester_contact(&TenantScope::single(tenant), r)
+                .await
+                .ok()
+                .flatten()
+                .map(|c| c.email),
+            None => None,
+        };
+        choose_type(
+            &rules,
+            &RuleSubject {
+                channel,
+                mailbox_id,
+                origin_id: details.origin_id,
+                department_id: details.department_id,
+                tenant_id: tenant,
+                subject: &details.subject,
+                requester_email: email.as_deref(),
+            },
+            &types,
+        )
+    }
+
     /// Creates a ticket (FR-TKT-001, FR-TKT-002).
     ///
     /// # Errors
@@ -316,40 +378,44 @@ impl ServiceDesk {
         input: CreateTicket,
     ) -> Result<Ticket, AppError> {
         let tenant = input.tenant_id;
-        let company_code = self
-            .ports
-            .directory
-            .ticket_code(principal.scope(), tenant)
-            .await?
-            .ok_or(AppError::NotFound("Company"))?;
-        let details = self
+        let mut details = self
             .prepare_details(principal, tenant, input.details, input.sensitivity_given)
             .await?;
+        if details.type_id.is_none() {
+            details.type_id = self
+                .type_from_rules(tenant, &details, input.channel, input.mailbox_id)
+                .await;
+        }
+        let fields = self.ports.reference.ticket_fields().await?;
+        let values: BTreeMap<Uuid, serde_json::Value> = parse_values(
+            &fields,
+            details.type_id,
+            &input.fields,
+            input.channel == Channel::Portal,
+        )?
+        .into_iter()
+        .filter_map(|(id, v)| v.map(|v| (id, v)))
+        .collect();
+        let check = match input.channel {
+            Channel::Analyst => Some(FieldCheck::AnalystCreate),
+            Channel::Portal => Some(FieldCheck::PortalCreate),
+            // Nobody can be asked when a ticket arrives by email.
+            Channel::Email => None,
+        };
+        if let Some(check) = check {
+            let missing = missing_required(&fields, details.type_id, &values, check);
+            if !missing.is_empty() {
+                return Err(TicketError::FieldsRequired(missing).into());
+            }
+        }
         let members = self.team_members(input.team_id).await?;
         self.check_analyst(input.analyst_id).await?;
         let settings = self.ports.settings.settings().await;
-        let format = NumberFormat::parse(&settings.number_format).unwrap_or_else(|err| {
-            tracing::warn!(error = %err, "invalid tickets.number_format; using the default");
-            NumberFormat::default()
-        });
-        let type_prefix = match details.type_id {
-            Some(id) => self
-                .lookup(LookupKind::Type, id)
-                .await?
-                .flags()
-                .number_prefix
-                .clone(),
-            None => None,
-        };
         let status = self.default_lookup(LookupKind::Status).await?;
         let now = self.ports.clock.now();
-        let sequence = self.ports.tickets.next_sequence(tenant).await?;
-        let number = format.render(NumberContext {
-            company_code: &company_code,
-            type_prefix: type_prefix.as_deref(),
-            now,
-            sequence,
-        });
+        let number = self
+            .next_number(principal, tenant, details.type_id, now)
+            .await?;
         let mut ticket = Ticket::open(
             NewTicket {
                 tenant_id: tenant,
@@ -387,7 +453,10 @@ impl ServiceDesk {
             events.push(event(&assigned_event(&ticket, None), actor, now)?);
         }
         let audit = audit_record(None, &ticket, AuditAction::Created, actor, now);
-        self.ports.tickets.insert(&ticket, &audit, &events).await?;
+        self.ports
+            .tickets
+            .insert(&ticket, &values, &audit, &events)
+            .await?;
         tracing::info!(ticket = ticket.number(), "ticket created");
         Ok(ticket)
     }
@@ -563,6 +632,9 @@ impl ServiceDesk {
             )
             .into());
         }
+        if status.flags().is_closed && ticket.closed_at().is_none() {
+            self.check_fields_for_close(principal, &ticket).await?;
+        }
         let settings = self.ports.settings.settings().await;
         let before = ticket.clone();
         let now = self.ports.clock.now();
@@ -615,6 +687,34 @@ impl ServiceDesk {
         };
         self.save(principal, &before, &ticket, &events).await?;
         Ok(ticket)
+    }
+
+    /// Fails unless every Ticket Field *required on close* has a value (FR-TKT-008).
+    pub(super) async fn check_fields_for_close(
+        &self,
+        principal: &Principal,
+        ticket: &Ticket,
+    ) -> Result<(), AppError> {
+        let fields = self.ports.reference.ticket_fields().await?;
+        if !fields.iter().any(|f| f.input().required_on_close) {
+            return Ok(());
+        }
+        let values = self
+            .ports
+            .relations
+            .field_values(principal.scope(), ticket.id())
+            .await?;
+        let missing = missing_required(
+            &fields,
+            ticket.details().type_id,
+            &values,
+            FieldCheck::Close,
+        );
+        if missing.is_empty() {
+            Ok(())
+        } else {
+            Err(TicketError::FieldsRequired(missing).into())
+        }
     }
 
     /// Assigns a ticket to a Queue and/or Assignee (FR-TKT-010).
@@ -671,7 +771,7 @@ impl ServiceDesk {
         let before = ticket.clone();
         let now = self.ports.clock.now();
         match until {
-            Some(until) => ticket.snooze(until, reason, now)?,
+            Some(until) => ticket.snooze(until, reason, acting_analyst(principal), now)?,
             None => ticket.unsnooze(now),
         }
         self.save(principal, &before, &ticket, &[]).await?;
@@ -962,7 +1062,7 @@ pub fn sort_value(t: &Ticket, sort: SortField) -> String {
     }
 }
 
-fn assigned_event(ticket: &Ticket, previous: Option<AnalystId>) -> TicketAssigned {
+pub(super) fn assigned_event(ticket: &Ticket, previous: Option<AnalystId>) -> TicketAssigned {
     TicketAssigned {
         ticket_id: ticket.id(),
         tenant_id: ticket.tenant_id(),

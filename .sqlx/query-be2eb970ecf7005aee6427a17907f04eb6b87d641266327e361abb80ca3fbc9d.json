@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM ticket_presence WHERE last_seen < $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "be2eb970ecf7005aee6427a17907f04eb6b87d641266327e361abb80ca3fbc9d"
+}

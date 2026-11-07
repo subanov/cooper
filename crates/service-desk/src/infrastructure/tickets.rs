@@ -8,6 +8,7 @@ use cooper_kernel::{
     Actor, AnalystId, AuditAction, AuditChange, AuditRecord, DepartmentId, EventEnvelope,
     RequesterId, Sensitivity, TeamId, TenantId, TenantScope, TicketId,
 };
+use cooper_platform::db::Tx;
 use cooper_platform::tenancy;
 use sqlx::{Postgres, QueryBuilder};
 use uuid::Uuid;
@@ -17,6 +18,12 @@ use crate::domain::{
     Note, RepoError, SlaTargets, SortField, Ticket, TicketDetails, TicketListQuery,
     TicketRepository, TicketSla, TimeEntry, Visibility,
 };
+
+fn fields_as_updates(
+    fields: &BTreeMap<Uuid, serde_json::Value>,
+) -> BTreeMap<Uuid, Option<serde_json::Value>> {
+    fields.iter().map(|(k, v)| (*k, Some(v.clone()))).collect()
+}
 
 fn sla_minutes(m: Option<u32>) -> Option<i32> {
     m.and_then(|m| i32::try_from(m).ok())
@@ -76,6 +83,9 @@ struct TicketRow {
     responded_at: Option<DateTime<Utc>>,
     sla_paused_at: Option<DateTime<Utc>>,
     sla_paused_minutes: i64,
+    snoozed_by_id: Option<Uuid>,
+    snoozed_at: Option<DateTime<Utc>>,
+    merged_into_id: Option<Uuid>,
 }
 
 impl TryFrom<TicketRow> for Ticket {
@@ -132,6 +142,11 @@ impl TryFrom<TicketRow> for Ticket {
             created_by,
             r.created_at,
             r.updated_at,
+        )
+        .with_lineage(
+            r.snoozed_by_id.map(AnalystId::from_uuid),
+            r.snoozed_at,
+            r.merged_into_id.map(TicketId::from_uuid),
         ))
     }
 }
@@ -141,7 +156,8 @@ const COLUMNS: &str = "t.id, t.tenant_id, t.ticket_number, t.subject, t.descript
      t.sensitivity, t.first_time_fix, t.training_provided, t.resolution_code_id, t.closure_category_id, t.closed_at, \
      t.snoozed_until, t.snooze_reason, t.deleted_at, t.created_by_kind, t.created_by_id, t.created_at, t.updated_at, \
      t.sla_calendar_id, t.response_minutes, t.resolution_minutes, t.response_due_at, t.resolution_due_at, \
-     t.response_warning_at, t.resolution_warning_at, t.responded_at, t.sla_paused_at, t.sla_paused_minutes";
+     t.response_warning_at, t.resolution_warning_at, t.responded_at, t.sla_paused_at, t.sla_paused_minutes, \
+     t.snoozed_by_id, t.snoozed_at, t.merged_into_id";
 
 /// Appends the tenant, deletion and Confidential predicates (FR-GEN-002, FR-GEN-004,
 /// FR-TKT-014) to a query that already has a `WHERE`.
@@ -173,7 +189,13 @@ async fn fetch_one(
     let mut tx = tenancy::begin(&store.pool, scope).await.map_err(db_err)?;
     let mut q = QueryBuilder::<Postgres>::new(format!("SELECT {COLUMNS} FROM tickets t WHERE "));
     match number {
-        Some(n) => q.push("t.ticket_number = ").push_bind(n.to_owned()),
+        // Current number, or one from the Ticket Number History (FR-TKT-003).
+        Some(n) => q
+            .push("(t.ticket_number = ")
+            .push_bind(n.to_owned())
+            .push(" OR t.id = (SELECT h.ticket_id FROM ticket_number_history h WHERE h.ticket_number = ")
+            .push_bind(n.to_owned())
+            .push("))"),
         None => q.push(format!("t.{column} = ")).push_bind(value),
     };
     push_visibility(&mut q, scope, v);
@@ -186,45 +208,19 @@ async fn fetch_one(
     row.map(Ticket::try_from).transpose()
 }
 
-#[async_trait]
-impl TicketRepository for PgServiceDeskStore {
-    async fn next_sequence(&self, tenant: TenantId) -> Result<u64, RepoError> {
-        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(tenant))
-            .await
-            .map_err(db_err)?;
-        let value = sqlx::query_scalar!(
-            r#"INSERT INTO ticket_number_counters (tenant_id, next_value) VALUES ($1, 2)
-               ON CONFLICT (tenant_id) DO UPDATE SET next_value = ticket_number_counters.next_value + 1
-               RETURNING next_value - 1 AS "value!""#,
-            tenant.as_uuid()
-        )
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(db_err)?;
-        tx.commit().await.map_err(db_err)?;
-        u64::try_from(value).map_err(|_| RepoError::Storage("negative ticket sequence".into()))
-    }
-
-    async fn insert(
-        &self,
-        t: &Ticket,
-        audit: &AuditRecord,
-        events: &[EventEnvelope],
-    ) -> Result<(), RepoError> {
-        let d = t.details();
-        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(t.tenant_id()))
-            .await
-            .map_err(db_err)?;
-        sqlx::query!(
+/// Inserts the ticket row in `tx`.
+pub(super) async fn insert_row(tx: &mut Tx, t: &Ticket) -> Result<(), RepoError> {
+    let d = t.details();
+    sqlx::query!(
             "INSERT INTO tickets (id, tenant_id, ticket_number, subject, description, requester_id, department_id, type_id,
                                   category_id, priority_id, status_id, origin_id, assigned_team_id, assigned_analyst_id,
                                   sensitivity, first_time_fix, training_provided, resolution_code_id, closure_category_id,
                                   closed_at, snoozed_until, snooze_reason, deleted_at, created_by_kind, created_by_id,
                                   created_at, updated_at, sla_calendar_id, response_minutes, resolution_minutes,
                                   response_due_at, resolution_due_at, response_warning_at, resolution_warning_at,
-                                  responded_at, sla_paused_at, sla_paused_minutes)
+                                  responded_at, sla_paused_at, sla_paused_minutes, snoozed_by_id, snoozed_at, merged_into_id)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22,
-                     $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37)",
+                     $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40)",
             t.id().as_uuid(),
             t.tenant_id().as_uuid(),
             t.number(),
@@ -262,26 +258,20 @@ impl TicketRepository for PgServiceDeskStore {
             t.sla().responded_at,
             t.sla().paused_at,
             t.sla().paused_minutes,
+            t.snoozed_by().map(|a| a.as_uuid()),
+            t.snoozed_at(),
+            t.merged_into().map(|m| m.as_uuid()),
         )
-        .execute(&mut *tx)
+        .execute(&mut **tx)
         .await
         .map_err(db_err)?;
-        record(&mut tx, audit, events).await?;
-        ticket_changed(&mut tx, t.tenant_id(), t.id()).await?;
-        tx.commit().await.map_err(db_err)
-    }
+    Ok(())
+}
 
-    async fn update(
-        &self,
-        t: &Ticket,
-        audit: &AuditRecord,
-        events: &[EventEnvelope],
-    ) -> Result<(), RepoError> {
-        let d = t.details();
-        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(t.tenant_id()))
-            .await
-            .map_err(db_err)?;
-        let result = sqlx::query!(
+/// Updates the ticket row in `tx`.
+pub(super) async fn update_row(tx: &mut Tx, t: &Ticket) -> Result<(), RepoError> {
+    let d = t.details();
+    let result = sqlx::query!(
             "UPDATE tickets SET subject = $3, description = $4, requester_id = $5, department_id = $6, type_id = $7,
                     category_id = $8, priority_id = $9, status_id = $10, origin_id = $11, assigned_team_id = $12,
                     assigned_analyst_id = $13, sensitivity = $14, first_time_fix = $15, training_provided = $16,
@@ -289,7 +279,8 @@ impl TicketRepository for PgServiceDeskStore {
                     snooze_reason = $21, deleted_at = $22, updated_at = $23, sla_calendar_id = $24,
                     response_minutes = $25, resolution_minutes = $26, response_due_at = $27, resolution_due_at = $28,
                     response_warning_at = $29, resolution_warning_at = $30, responded_at = $31, sla_paused_at = $32,
-                    sla_paused_minutes = $33
+                    sla_paused_minutes = $33, ticket_number = $34, snoozed_by_id = $35, snoozed_at = $36,
+                    merged_into_id = $37
              WHERE id = $1 AND tenant_id = $2",
             t.id().as_uuid(),
             t.tenant_id().as_uuid(),
@@ -324,13 +315,66 @@ impl TicketRepository for PgServiceDeskStore {
             t.sla().responded_at,
             t.sla().paused_at,
             t.sla().paused_minutes,
+            t.number(),
+            t.snoozed_by().map(|a| a.as_uuid()),
+            t.snoozed_at(),
+            t.merged_into().map(|m| m.as_uuid()),
         )
-        .execute(&mut *tx)
+        .execute(&mut **tx)
         .await
         .map_err(db_err)?;
-        if result.rows_affected() == 0 {
-            return Err(RepoError::NotFound);
-        }
+    if result.rows_affected() == 0 {
+        return Err(RepoError::NotFound);
+    }
+    Ok(())
+}
+
+#[async_trait]
+impl TicketRepository for PgServiceDeskStore {
+    async fn next_sequence(&self, tenant: TenantId) -> Result<u64, RepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(tenant))
+            .await
+            .map_err(db_err)?;
+        let value = sqlx::query_scalar!(
+            r#"INSERT INTO ticket_number_counters (tenant_id, next_value) VALUES ($1, 2)
+               ON CONFLICT (tenant_id) DO UPDATE SET next_value = ticket_number_counters.next_value + 1
+               RETURNING next_value - 1 AS "value!""#,
+            tenant.as_uuid()
+        )
+        .fetch_one(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        u64::try_from(value).map_err(|_| RepoError::Storage("negative ticket sequence".into()))
+    }
+
+    async fn insert(
+        &self,
+        t: &Ticket,
+        fields: &BTreeMap<Uuid, serde_json::Value>,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(t.tenant_id()))
+            .await
+            .map_err(db_err)?;
+        insert_row(&mut tx, t).await?;
+        super::relations::write_field_values(&mut tx, t, &fields_as_updates(fields)).await?;
+        record(&mut tx, audit, events).await?;
+        ticket_changed(&mut tx, t.tenant_id(), t.id()).await?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn update(
+        &self,
+        t: &Ticket,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(t.tenant_id()))
+            .await
+            .map_err(db_err)?;
+        update_row(&mut tx, t).await?;
         record(&mut tx, audit, events).await?;
         ticket_changed(&mut tx, t.tenant_id(), t.id()).await?;
         tx.commit().await.map_err(db_err)
@@ -444,8 +488,17 @@ impl TicketRepository for PgServiceDeskStore {
         }
         if let Some(text) = f.search.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
             // Number prefix, ticket text, or the text of a Note (FR-TKT-041).
+            let prefix = format!(
+                "{}%",
+                text.replace('\\', "\\\\")
+                    .replace('%', "\\%")
+                    .replace('_', "\\_")
+            );
             q.push(" AND (t.ticket_number ILIKE ")
-                .push_bind(format!("{}%", text.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_")))
+                .push_bind(prefix.clone())
+                .push(" OR EXISTS (SELECT 1 FROM ticket_number_history h WHERE h.ticket_id = t.id AND h.ticket_number ILIKE ")
+                .push_bind(prefix)
+                .push(")")
                 .push(" OR t.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
                 .push_bind(text.to_owned())
                 .push(")) OR EXISTS (SELECT 1 FROM ticket_emails e WHERE e.ticket_id = t.id AND e.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")

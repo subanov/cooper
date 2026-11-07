@@ -8,7 +8,10 @@ use cooper_kernel::AuditRecord;
 use uuid::Uuid;
 
 use super::{PgServiceDeskStore, db_err, record};
-use crate::domain::{Category, Lookup, LookupFlags, LookupKind, ReferenceData, RepoError};
+use crate::domain::{
+    Category, Lookup, LookupFlags, LookupKind, ReferenceData, RepoError, TicketField,
+    TicketFieldInput, TicketTypeRule, TicketTypeRuleInput,
+};
 
 struct LookupRow {
     id: Uuid,
@@ -235,6 +238,160 @@ impl ReferenceData for PgServiceDeskStore {
         .execute(&mut *tx)
         .await
         .map_err(db_err)?;
+        record(&mut tx, audit, &[]).await?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn ticket_fields(&self) -> Result<Vec<TicketField>, RepoError> {
+        let rows = sqlx::query!(
+            "SELECT id, key, label, field_type, options, help_text, type_ids, required_on_create, required_on_close,
+                    ask_requester, sort_order, is_active, created_at, updated_at
+             FROM ticket_fields ORDER BY sort_order, label, id"
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(db_err)?;
+        rows.into_iter()
+            .map(|r| {
+                let corrupt =
+                    |e: String| RepoError::Storage(format!("invalid ticket field {}: {e}", r.id));
+                Ok(TicketField::restore(
+                    r.id,
+                    TicketFieldInput {
+                        key: r.key,
+                        label: r.label,
+                        field_type: r
+                            .field_type
+                            .parse()
+                            .map_err(|e: crate::domain::TicketError| corrupt(e.to_string()))?,
+                        options: serde_json::from_value(r.options)
+                            .map_err(|e| corrupt(e.to_string()))?,
+                        help_text: r.help_text,
+                        type_ids: r.type_ids,
+                        required_on_create: r.required_on_create,
+                        required_on_close: r.required_on_close,
+                        ask_requester: r.ask_requester,
+                        sort_order: r.sort_order,
+                        is_active: r.is_active,
+                    },
+                    r.created_at,
+                    r.updated_at,
+                ))
+            })
+            .collect()
+    }
+
+    async fn save_ticket_field(
+        &self,
+        field: &TicketField,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        let i = field.input();
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        sqlx::query!(
+            "INSERT INTO ticket_fields (id, key, label, field_type, options, help_text, type_ids, required_on_create,
+                                        required_on_close, ask_requester, sort_order, is_active, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+             ON CONFLICT (id) DO UPDATE SET label = EXCLUDED.label, options = EXCLUDED.options,
+                 help_text = EXCLUDED.help_text, type_ids = EXCLUDED.type_ids,
+                 required_on_create = EXCLUDED.required_on_create, required_on_close = EXCLUDED.required_on_close,
+                 ask_requester = EXCLUDED.ask_requester, sort_order = EXCLUDED.sort_order,
+                 is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+            field.id(),
+            i.key,
+            i.label,
+            i.field_type.as_str(),
+            serde_json::json!(i.options),
+            i.help_text,
+            &i.type_ids,
+            i.required_on_create,
+            i.required_on_close,
+            i.ask_requester,
+            i.sort_order,
+            i.is_active,
+            field.created_at(),
+            field.updated_at(),
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        record(&mut tx, audit, &[]).await?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn type_rules(&self) -> Result<Vec<TicketTypeRule>, RepoError> {
+        let rows = sqlx::query!(
+            "SELECT id, name, ticket_type_id, conditions, sort_order, is_active, created_at, updated_at
+             FROM ticket_type_rules ORDER BY sort_order, id"
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(db_err)?;
+        rows.into_iter()
+            .map(|r| {
+                Ok(TicketTypeRule::restore(
+                    r.id,
+                    TicketTypeRuleInput {
+                        name: r.name,
+                        ticket_type_id: r.ticket_type_id,
+                        conditions: serde_json::from_value(r.conditions).map_err(|e| {
+                            RepoError::Storage(format!("invalid type rule {}: {e}", r.id))
+                        })?,
+                        sort_order: r.sort_order,
+                        is_active: r.is_active,
+                    },
+                    r.created_at,
+                    r.updated_at,
+                ))
+            })
+            .collect()
+    }
+
+    async fn save_type_rule(
+        &self,
+        rule: &TicketTypeRule,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        let i = rule.input();
+        let conditions =
+            serde_json::to_value(&i.conditions).map_err(|e| RepoError::Storage(e.to_string()))?;
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        sqlx::query!(
+            "INSERT INTO ticket_type_rules (id, name, ticket_type_id, conditions, sort_order, is_active, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, ticket_type_id = EXCLUDED.ticket_type_id,
+                 conditions = EXCLUDED.conditions, sort_order = EXCLUDED.sort_order,
+                 is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+            rule.id(),
+            i.name,
+            i.ticket_type_id,
+            conditions,
+            i.sort_order,
+            i.is_active,
+            rule.created_at(),
+            rule.updated_at(),
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        record(&mut tx, audit, &[]).await?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn delete_type_rule(
+        &self,
+        rule: &TicketTypeRule,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        let n = sqlx::query!("DELETE FROM ticket_type_rules WHERE id = $1", rule.id())
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?
+            .rows_affected();
+        if n == 0 {
+            return Err(RepoError::NotFound);
+        }
         record(&mut tx, audit, &[]).await?;
         tx.commit().await.map_err(db_err)
     }

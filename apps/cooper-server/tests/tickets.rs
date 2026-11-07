@@ -512,7 +512,7 @@ async fn built_in_views_and_paging(pool: PgPool) {
     w.admin
         .put(
             &format!("/api/v1/tickets/{}/snooze", snoozed["id"].as_str().unwrap()),
-            json!({ "until": "2099-01-01T00:00:00Z", "reason": "parts" }),
+            json!({ "until": chrono::Utc::now() + chrono::Duration::days(30), "reason": "parts" }),
         )
         .await;
 

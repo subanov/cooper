@@ -776,3 +776,59 @@ async fn requesters_follow_reply_and_attach_on_their_own_tickets(pool: PgPool) {
         2
     );
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn the_portal_asks_only_ticket_fields_meant_for_requesters(pool: PgPool) {
+    let (anon, admin) = setup(&pool).await;
+    let default = admin.get("/api/v1/companies").await.body["items"][0]["id"].clone();
+    for body in [
+        json!({ "key": "device", "label": "Device", "field_type": "dropdown",
+                "options": ["Laptop", "Desktop"], "ask_requester": true, "required_on_create": true }),
+        json!({ "key": "asset_tag", "label": "Asset tag", "field_type": "text", "required_on_create": true }),
+    ] {
+        let r = admin.post("/api/v1/ticket-fields", body).await;
+        assert_eq!(r.status, StatusCode::CREATED, "{:?}", r.body);
+    }
+    let sam = create_requester(&admin, &default, "sam@default.example").await;
+    let portal = portal_for(&pool, &anon, &admin, &sam).await;
+
+    let asked = portal.get("/api/v1/portal/ticket-fields").await.body;
+    assert_eq!(asked.as_array().unwrap().len(), 1);
+    assert_eq!(asked[0]["key"], "device");
+
+    let missing = portal
+        .post("/api/v1/portal/tickets", json!({ "subject": "Broken" }))
+        .await;
+    assert_eq!(missing.status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(
+        missing.body["fields"],
+        json!(["device"]),
+        "only asked fields are required here"
+    );
+    let not_asked = portal
+        .post(
+            "/api/v1/portal/tickets",
+            json!({ "subject": "Broken", "fields": { "device": "Laptop", "asset_tag": "A1" } }),
+        )
+        .await;
+    assert_eq!(
+        not_asked.status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "Requesters cannot set internal fields"
+    );
+    let raised = portal
+        .post(
+            "/api/v1/portal/tickets",
+            json!({ "subject": "Broken", "fields": { "device": "Laptop" } }),
+        )
+        .await;
+    assert_eq!(raised.status, StatusCode::CREATED, "{:?}", raised.body);
+    let fields = admin
+        .get(&format!(
+            "/api/v1/tickets/{}/fields",
+            raised.body["id"].as_str().unwrap()
+        ))
+        .await
+        .body;
+    assert!(fields.to_string().contains("\"Laptop\""));
+}

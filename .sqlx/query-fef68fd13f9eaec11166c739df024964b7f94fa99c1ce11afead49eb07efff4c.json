@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH RECURSIVE up (id, depth) AS (\n                   SELECT source_ticket_id, 1 FROM ticket_links WHERE kind = 'parent' AND target_ticket_id = $1\n                   UNION\n                   SELECT l.source_ticket_id, up.depth + 1 FROM ticket_links l JOIN up ON l.target_ticket_id = up.id\n                   WHERE l.kind = 'parent' AND up.depth < 100\n               )\n               SELECT id AS \"id!\" FROM up ORDER BY depth",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!",
+        "type_info": "Uuid",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "fef68fd13f9eaec11166c739df024964b7f94fa99c1ce11afead49eb07efff4c"
+}

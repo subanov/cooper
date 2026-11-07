@@ -28,10 +28,12 @@ pub struct PortalTicketInput {
     pub subject: String,
     /// Description.
     pub description: String,
+    /// Values of Ticket Fields asked of the Requester, by key (FR-TKT-029).
+    pub fields: std::collections::BTreeMap<String, serde_json::Value>,
 }
 
 /// The Requester and Company of a Portal principal.
-fn portal_requester(principal: &Principal) -> Result<(RequesterId, TenantId), AppError> {
+pub(super) fn portal_requester(principal: &Principal) -> Result<(RequesterId, TenantId), AppError> {
     let Actor::Requester(requester) = principal.actor() else {
         return Err(cooper_kernel::Forbidden("requester".into()).into());
     };
@@ -121,6 +123,9 @@ impl ServiceDesk {
                     sensitivity_given: false,
                     team_id: None,
                     analyst_id: None,
+                    channel: crate::domain::Channel::Portal,
+                    mailbox_id: None,
+                    fields: input.fields,
                 },
             )
             .await?;

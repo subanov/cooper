@@ -98,6 +98,56 @@ ticket_event!(
 );
 
 ticket_event!(
+    /// The ticket got a new Ticket Number; the old one still resolves (FR-TKT-003).
+    TicketRenumbered, "ticket.renumbered" {
+        /// The previous number.
+        old_number: String,
+        /// The new number.
+        new_number: String,
+    }
+);
+
+ticket_event!(
+    /// The ticket was merged into another (FR-TKT-026); it is closed and points there.
+    TicketMerged, "ticket.merged" {
+        /// The survivor.
+        target_ticket_id: TicketId,
+        /// The merge record.
+        merge_id: Uuid,
+    }
+);
+
+ticket_event!(
+    /// A merge of the ticket was undone (FR-TKT-026).
+    TicketMergeUndone, "ticket.merge_undone" {
+        /// The ticket it had been merged into.
+        target_ticket_id: TicketId,
+        /// The merge record.
+        merge_id: Uuid,
+    }
+);
+
+ticket_event!(
+    /// Emails or Notes of the ticket moved to a new ticket (FR-TKT-027).
+    TicketSplit, "ticket.split" {
+        /// The ticket the split created.
+        new_ticket_id: TicketId,
+        /// The split record.
+        split_id: Uuid,
+    }
+);
+
+ticket_event!(
+    /// A split was undone; the new ticket was deleted (FR-TKT-027).
+    TicketSplitUndone, "ticket.split_undone" {
+        /// The ticket the split had created.
+        new_ticket_id: TicketId,
+        /// The split record.
+        split_id: Uuid,
+    }
+);
+
+ticket_event!(
     /// An SLA target reached its warning point (FR-SLA-005). Raised once per target.
     SlaWarningRaised, "ticket.sla_warning" {
         /// Response or resolution.

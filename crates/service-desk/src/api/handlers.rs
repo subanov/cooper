@@ -224,6 +224,9 @@ async fn create_ticket(
         sensitivity_given,
         team_id: body.team_id.map(TeamId::from_uuid),
         analyst_id: body.analyst_id.map(AnalystId::from_uuid),
+        channel: crate::domain::Channel::Analyst,
+        mailbox_id: None,
+        fields: body.fields,
     };
     let ticket = api.service.create_ticket(&p, input).await?;
     Ok(created(TicketDto::at(ticket, api.service.now())))

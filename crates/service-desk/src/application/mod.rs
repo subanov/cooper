@@ -1,10 +1,12 @@
 //! Service desk use cases.
 
+mod configuration;
 mod content;
 mod email_templates;
 mod intake;
 mod portal;
 mod reference;
+mod relations;
 mod sla;
 mod tickets;
 
@@ -15,13 +17,15 @@ use thiserror::Error;
 
 use crate::domain::{
     ContentRepository, Directory, MailboxRepository, ReferenceData, RepoError, SlaRepository,
-    TicketError, TicketRepository, TicketSettingsProvider,
+    TicketError, TicketRelations, TicketRepository, TicketSettingsProvider,
 };
 
+pub use configuration::FieldValue;
 pub use content::{ReplyInput, StoredFile};
 pub use intake::IntakeOutcome;
 pub use portal::{PortalTicket, PortalTicketInput, PortalTimelineEntry};
 pub use reference::LookupInput;
+pub use relations::{BulkAction, BulkOutcome, LinkView, SplitInput, Viewer};
 pub use tickets::{
     CreateTicket, ListRequest, TicketDetail, TicketView as View, TimelineEntry, ViewName,
 };
@@ -42,9 +46,11 @@ pub mod capabilities {
     pub const DELETE: &str = "tickets.delete";
     /// See every Confidential ticket.
     pub const VIEW_CONFIDENTIAL: &str = "tickets.view_confidential";
-    /// Configure Ticket Statuses, Priorities, Types, Origins, Resolution Codes and
-    /// Categories.
+    /// Configure Ticket Statuses, Priorities, Types, Origins, Resolution Codes,
+    /// Categories, Ticket Fields and Ticket Type Rules, and renumber tickets.
     pub const CONFIGURE: &str = "tickets.configure";
+    /// Merge and split tickets, and undo merges and splits (FR-TKT-026, FR-TKT-027).
+    pub const MERGE: &str = "tickets.merge";
 
     /// Every Capability declared by the service desk.
     pub const ALL: &[&str] = &[
@@ -56,6 +62,7 @@ pub mod capabilities {
         DELETE,
         VIEW_CONFIDENTIAL,
         CONFIGURE,
+        MERGE,
     ];
 }
 
@@ -144,6 +151,14 @@ impl From<RepoError> for AppError {
                 "tickets_ticket_number_key" => {
                     "the Ticket Number is already used; check the number format".into()
                 }
+                "ticket_links_pair_key" | "ticket_links_related_key" => {
+                    "the tickets are already linked this way".into()
+                }
+                "ticket_links_one_parent_key" => "the child ticket already has a parent".into(),
+                "ticket_links_one_master_key" => {
+                    "the ticket is already a duplicate of another ticket".into()
+                }
+                "ticket_merges_undone" | "ticket_splits_undone" => "it was already undone".into(),
                 _ => "the record conflicts with an existing one".into(),
             }),
             RepoError::MissingReference(constraint) => Self::Rule(TicketError::invalid(
@@ -178,6 +193,8 @@ pub struct ServiceDeskPorts {
     pub content: Arc<dyn ContentRepository>,
     /// Mailboxes.
     pub mailboxes: Arc<dyn MailboxRepository>,
+    /// Links, merges, splits, number history, presence and field values.
+    pub relations: Arc<dyn TicketRelations>,
     /// The identity context.
     pub directory: Arc<dyn Directory>,
     /// Settings.

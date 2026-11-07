@@ -64,6 +64,17 @@ describe("Live Updates (FR-GEN-010)", () => {
     ]);
   });
 
+  it("refreshes who is on a ticket when presence changes", () => {
+    const queryClient = seeded();
+    queryClient.setQueryData(["tickets", "presence", "t1"], []);
+    applyLiveEvent(
+      queryClient,
+      "invalidate",
+      JSON.stringify({ topic: "ticket_presence", id: "t1" }),
+    );
+    expect(stale(queryClient)).toEqual([["tickets", "presence", "t1"]]);
+  });
+
   it("refetches every ticket query on resync and ignores what it does not know", () => {
     const queryClient = seeded();
     applyLiveEvent(queryClient, "invalidate", "not json");

@@ -4,12 +4,16 @@ mod catalogue;
 mod email;
 mod email_template;
 mod events;
+mod fields;
+mod links;
 mod lookups;
 mod mailbox;
+mod merge;
 mod number;
 mod ports;
 mod sla;
 mod ticket;
+mod type_rules;
 
 pub use catalogue::{portal_catalogue, portal_ticket_type};
 pub use email::{
@@ -19,20 +23,30 @@ pub use email::{
 pub use email_template::{EmailTemplate, EmailTemplateEvent, EmailTemplateInput, select_template};
 pub use events::{
     MailboxPollFailed, ReplyEmail, SlaBreached, SlaWarningRaised, TicketAssigned,
-    TicketAutomaticEmailSent, TicketClosed, TicketCreated, TicketEmailReceived, TicketNoteAdded,
-    TicketPriorityChanged, TicketReopened, TicketReplySent, TicketStatusChanged, mentions,
+    TicketAutomaticEmailSent, TicketClosed, TicketCreated, TicketEmailReceived, TicketMergeUndone,
+    TicketMerged, TicketNoteAdded, TicketPriorityChanged, TicketRenumbered, TicketReopened,
+    TicketReplySent, TicketSplit as TicketSplitEvent, TicketSplitUndone, TicketStatusChanged,
+    mentions,
 };
+pub use fields::{
+    FieldCheck, FieldType, TicketField, TicketFieldInput, missing_required, parse_values,
+};
+pub use links::{LinkKind, LinkRelation, TicketLink, check_no_cycle};
 pub use lookups::{Category, CategoryInput, Lookup, LookupFlags, LookupKind, MAX_CATEGORY_DEPTH};
 pub use mailbox::{
     AfterImport, AfterReject, FAILURES_BEFORE_ALERT, ImapSettings, InboundEmail, Mailbox,
     MailboxHealth, MailboxSettings, OAuthCredentials, Provider, Security, WhitelistEntry,
 };
+pub use merge::{
+    MovedRows, PRESENCE_STALE_SECONDS, SourceState, TicketMerge, TicketPresence, TicketSplit,
+    Undone,
+};
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{
     AnalystProfile, AttachmentInfo, ContentRepository, DepartmentInfo, Directory, ListFilter,
-    MailboxRepository, ReferenceData, RepoError, RequesterContact, SlaRepository, SortField,
-    TicketListQuery, TicketRepository, TicketSettings, TicketSettingsProvider, TicketSummary,
-    TicketView, Visibility,
+    MailboxRepository, ReferenceData, RepoError, RequesterContact, RetiredNumber, SlaRepository,
+    SortField, TicketListQuery, TicketRelations, TicketRepository, TicketSettings,
+    TicketSettingsProvider, TicketSummary, TicketView, Visibility,
 };
 pub use sla::{
     DayHours, RuleTarget, SlaCalendar, SlaCalendarInput, SlaNotificationRule, SlaRuleInput,
@@ -40,6 +54,10 @@ pub use sla::{
 };
 pub use ticket::{
     NewTicket, Note, SlaTargets, StatusTransition, Ticket, TicketDetails, TicketSla, TimeEntry,
+};
+pub use type_rules::{
+    Channel, RuleSubject, TicketTypeRule, TicketTypeRuleConditions, TicketTypeRuleInput,
+    choose_type,
 };
 
 use chrono::{DateTime, Utc};
@@ -77,6 +95,9 @@ pub enum TicketError {
     /// The record is not in a state that allows the change.
     #[error("{0}")]
     InvalidState(&'static str),
+    /// Ticket Fields that must have a value first (FR-TKT-008, FR-TKT-029).
+    #[error("these Ticket Fields need a value: {}", .0.join(", "))]
+    FieldsRequired(Vec<String>),
 }
 
 impl TicketError {

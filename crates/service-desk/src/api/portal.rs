@@ -28,6 +28,7 @@ where
     ServiceDeskApi: axum::extract::FromRef<S>,
 {
     OpenApiRouter::new()
+        .routes(routes!(portal_ticket_fields))
         .routes(routes!(portal_catalogue))
         .routes(routes!(my_tickets, raise_portal_ticket))
         .routes(routes!(my_ticket))
@@ -71,6 +72,11 @@ pub struct PortalTicketRequest {
     /// Description.
     #[serde(default)]
     pub description: String,
+    /// Answers to the Ticket Fields the Portal asks (`GET /portal/ticket-fields`), by
+    /// key (FR-TKT-029).
+    #[serde(default)]
+    #[schema(value_type = Object)]
+    pub fields: std::collections::BTreeMap<String, serde_json::Value>,
 }
 
 /// A ticket as the Requester sees it.
@@ -213,6 +219,7 @@ async fn raise_portal_ticket(
                 category_id: body.category_id,
                 subject: body.subject,
                 description: body.description,
+                fields: body.fields,
             },
         )
         .await?;
@@ -361,4 +368,22 @@ async fn download_my_attachment(
         .find(|a| a.id == attachment)
         .ok_or(ApiError(AppError::NotFound("Attachment")))?;
     serve_file(&api, &info).await
+}
+
+/// The Ticket Fields to ask on the new ticket form (FR-TKT-029). Send answers in
+/// `fields` by key; fields marked `required_on_create` must be answered.
+#[utoipa::path(get, path = "/portal/ticket-fields", tag = "Portal",
+    responses((status = 200, body = [super::relations::TicketFieldDto]), (status = 401, description = "Not signed in to the Portal")))]
+async fn portal_ticket_fields(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<Vec<super::relations::TicketFieldDto>>> {
+    Ok(Json(
+        api.service
+            .portal_ticket_fields(&p)
+            .await?
+            .into_iter()
+            .map(super::relations::TicketFieldDto::from)
+            .collect(),
+    ))
 }
