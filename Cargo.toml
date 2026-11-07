@@ -18,6 +18,7 @@ cooper-identity = { path = "crates/identity" }
 cooper-administration = { path = "crates/administration" }
 cooper-service-desk = { path = "crates/service-desk" }
 cooper-notifications = { path = "crates/notifications" }
+cooper-change-management = { path = "crates/change-management" }
 cooper-problem-management = { path = "crates/problem-management" }
 
 # Runtime and web

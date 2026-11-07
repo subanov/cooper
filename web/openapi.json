@@ -770,6 +770,1659 @@
         }
       }
     },
+    "/api/v1/change-calendar": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Changes scheduled in a period, with conflicts (FR-CHG-012).",
+        "operationId": "change_calendar",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "path",
+            "description": "Start (inclusive).",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "path",
+            "description": "End (exclusive; at most 366 days after `from`).",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeCalendarDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-categories": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "list_change_categories",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "create_change_category",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-categories/{id}": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "update_change_category",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-impacts": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "list_change_impacts",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "create_change_impact",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-impacts/{id}": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "update_change_impact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-priorities": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "list_change_priorities",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "create_change_priority",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-priorities/{id}": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "update_change_priority",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-risk-levels": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Risk Levels by score (FR-CHG-005).",
+        "operationId": "list_change_risk_levels",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeRiskLevelDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Replaces the Risk Levels; together they must cover scores 1–25 exactly once (needs\n`changes.configure`).",
+        "operationId": "replace_change_risk_levels",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ChangeRiskLevelDto"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeRiskLevelDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-statuses": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "list_change_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "create_change_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "update_change_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-templates": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Change Templates; Analysts see those usable by one of their Teams.",
+        "operationId": "list_change_templates",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeTemplateDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Creates a Change Template (needs `changes.configure`).",
+        "operationId": "create_change_template",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeTemplateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-templates/{id}": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Changes a Change Template; new content makes a new version, Changes keep the version\nthey were created from (needs `changes.configure`).",
+        "operationId": "update_change_template",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeTemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeTemplateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-types": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "list_change_types",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "create_change_type",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change-types/{id}": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "operationId": "update_change_type",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Changes in your Companies, newest activity first (needs `changes.read`).",
+        "operationId": "list_changes",
+        "parameters": [
+          {
+            "name": "stage",
+            "in": "path",
+            "description": "Comma-separated stages (`draft,awaiting`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "assigned_to_id",
+            "in": "path",
+            "description": "Assigned To.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "awaiting_my_vote",
+            "in": "path",
+            "description": "Waiting for my vote (Approver or CAB member of the open round).",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "description": "Linked to this ticket.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "problem_id",
+            "in": "path",
+            "description": "Linked to this Problem.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "path",
+            "description": "Number or title text.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Creates a Change in Draft (needs `changes.create`).",
+        "operationId": "create_change",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "One Change.",
+        "operationId": "get_change",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Edits a Change. A material edit while awaiting approval or approved returns it to\nAwaiting Approval with a new Approval Round (needs `changes.update`).",
+        "operationId": "edit_change",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/attachments": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Files attached to a Change.",
+        "operationId": "list_change_attachments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeAttachmentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Uploads a file (multipart field `file`); the media type is detected from the content\n(needs `changes.update`).",
+        "operationId": "upload_change_attachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "A `file` field",
+          "content": {
+            "multipart/form-data": {}
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeAttachmentDto"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Too large"
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/attachments/{attachment_id}/content": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Downloads an attached file (always as a download, never rendered inline).",
+        "operationId": "download_change_attachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "attachment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file"
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/cab": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "The CAB of a Change.",
+        "operationId": "get_change_cab",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeCabMemberDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Replaces the CAB while the Change is in Draft (needs `changes.update`).",
+        "operationId": "set_change_cab",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ChangeCabMemberDto"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeCabMemberDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/checklist": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "The implementation checklist.",
+        "operationId": "list_change_checklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeChecklistItemDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Adds a checklist item (needs `changes.update`).",
+        "operationId": "add_change_checklist_item",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeChecklistItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeChecklistItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/checklist/{item_id}": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Changes or ticks a checklist item (needs `changes.update`).",
+        "operationId": "update_change_checklist_item",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeChecklistItemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeChecklistItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Removes a checklist item (needs `changes.update`).",
+        "operationId": "delete_change_checklist_item",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/changes/{id}/comments": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Comments, oldest first.",
+        "operationId": "list_change_comments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeCommentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Adds a comment (needs `changes.update`).",
+        "operationId": "add_change_comment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeCommentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeCommentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/links": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Linked tickets, Problems and Changes (FR-CHG-008).",
+        "operationId": "list_change_links",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeLinkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Links a ticket, Problem or Change of the same Company (needs `changes.update`).",
+        "operationId": "link_change",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/links/{kind}/{target_id}": {
+      "delete": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Removes a link (needs `changes.update`).",
+        "operationId": "unlink_change",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/changes/{id}/pir": {
+      "put": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Records the Post-Implementation Review of a finished Change (needs `changes.update`).",
+        "operationId": "record_change_pir",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePirDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/revisions/{field}": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Revisions of one long text field (`description`, `reason_for_change`,\n`risk_evaluation`, `test_plan`, `rollback_plan`), oldest first (FR-CHG-009).",
+        "operationId": "list_change_revisions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "field",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeTextRevisionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/revisions/{field}/compare": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Line comparison of two revisions of a field.",
+        "operationId": "compare_change_revisions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "field",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "path",
+            "description": "Older revision.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "to",
+            "in": "path",
+            "description": "Newer revision.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeDiffLineDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/status": {
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Moves a Change to another status, following the stage order (needs `changes.update`).",
+        "operationId": "move_change",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/changes/{id}/votes": {
+      "get": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Votes of an Approval Round.",
+        "operationId": "list_change_votes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "round",
+            "in": "path",
+            "description": "Approval Round (default: the current one).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeVoteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Changes"
+        ],
+        "summary": "Votes in the current Approval Round as Approver or CAB member; the last deciding\nvote approves or rejects the Change (needs `changes.approve`).",
+        "operationId": "vote_on_change",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeVoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/companies": {
       "get": {
         "tags": [
@@ -1461,7 +3114,7 @@
           "Live updates"
         ],
         "summary": "Live Updates for the signed-in Analyst (Server-Sent Events, ADR-0022).",
-        "description": "Events: `ready` once changes are being received (refetch on every `ready` after the\nfirst: changes may have been missed while disconnected); `invalidate` with\n`{\"topic\":\"ticket\"|\"ticket_presence\",\"id\":\"…\"}` when a ticket the Analyst may see\n(or who has it open) changed; `resync`\nwhen everything should be read again. Events never contain record data.\n\nNeeds the Analyst session cookie; API keys and Portal sessions are refused.",
+        "description": "Events: `ready` once changes are being received (refetch on every `ready` after the\nfirst: changes may have been missed while disconnected); `invalidate` with\n`{\"topic\":\"ticket\"|\"ticket_presence\"|\"change\",\"id\":\"…\"}` when a ticket the Analyst\nmay see (or who has it open) or a Change they may read changed; `resync`\nwhen everything should be read again. Events never contain record data.\n\nNeeds the Analyst session cookie; API keys and Portal sessions are refused.",
         "operationId": "live_updates",
         "responses": {
           "200": {
@@ -7901,6 +9554,678 @@
           }
         }
       },
+      "ChangeAttachmentDto": {
+        "type": "object",
+        "description": "A file attached to a Change.",
+        "required": [
+          "id",
+          "file_name",
+          "media_type",
+          "size_bytes",
+          "created_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "file_name": {
+            "type": "string",
+            "description": "File name."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "media_type": {
+            "type": "string",
+            "description": "Detected media type."
+          },
+          "size_bytes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Size in bytes.",
+            "minimum": 0
+          }
+        }
+      },
+      "ChangeCabMemberDto": {
+        "type": "object",
+        "description": "A CAB member.",
+        "required": [
+          "analyst_id"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Analyst."
+          },
+          "is_required": {
+            "type": "boolean",
+            "description": "Their vote counts towards the outcome (optional members only advise)."
+          }
+        }
+      },
+      "ChangeCalendarDto": {
+        "type": "object",
+        "description": "The Change Calendar.",
+        "required": [
+          "changes",
+          "overlaps"
+        ],
+        "properties": {
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChangeDto"
+            },
+            "description": "Changes with a Work or Outage Window in the period."
+          },
+          "overlaps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChangeOverlapDto"
+            },
+            "description": "Conflicts (overlapping windows of open Changes)."
+          }
+        }
+      },
+      "ChangeChecklistItemDto": {
+        "type": "object",
+        "description": "A checklist item.",
+        "required": [
+          "id",
+          "text",
+          "is_done",
+          "sort_order"
+        ],
+        "properties": {
+          "done_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When."
+          },
+          "done_by_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Who ticked it."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_done": {
+            "type": "boolean",
+            "description": "Done."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text."
+          }
+        }
+      },
+      "ChangeChecklistItemRequest": {
+        "type": "object",
+        "description": "Adds or changes a checklist item.",
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "is_done": {
+            "type": "boolean",
+            "description": "Done."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text."
+          }
+        }
+      },
+      "ChangeCommentDto": {
+        "type": "object",
+        "description": "A comment.",
+        "required": [
+          "id",
+          "body",
+          "created_at"
+        ],
+        "properties": {
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Author."
+          },
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          }
+        }
+      },
+      "ChangeCommentRequest": {
+        "type": "object",
+        "description": "Adds a comment.",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Text."
+          }
+        }
+      },
+      "ChangeDiffLineDto": {
+        "type": "object",
+        "description": "One line of a comparison.",
+        "required": [
+          "kind",
+          "text"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`same`, `added` or `removed`."
+          },
+          "text": {
+            "type": "string",
+            "description": "The line."
+          }
+        }
+      },
+      "ChangeDto": {
+        "type": "object",
+        "description": "A Change (FR-CHG-001).",
+        "required": [
+          "id",
+          "number",
+          "company_id",
+          "title",
+          "type_id",
+          "status_id",
+          "stage",
+          "priority_id",
+          "impact_id",
+          "description",
+          "reason_for_change",
+          "risk_evaluation",
+          "test_plan",
+          "rollback_plan",
+          "cab_required",
+          "approval_round",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "approval_round": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Current Approval Round (0 before the first submission)."
+          },
+          "approved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the current round approved it."
+          },
+          "approver_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Approver (when no CAB is required)."
+          },
+          "assigned_to_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned To."
+          },
+          "cab_approval_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`all` or `majority`."
+          },
+          "cab_required": {
+            "type": "boolean",
+            "description": "CAB approval required."
+          },
+          "category_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Category."
+          },
+          "closed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Closed."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "impact_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Impact."
+          },
+          "number": {
+            "type": "string",
+            "description": "Change Number (`CHG-00001`)."
+          },
+          "outage_end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Outage Window end."
+          },
+          "outage_start": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Outage Window start."
+          },
+          "pir": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ChangePirDto",
+                "description": "Post-Implementation Review."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "priority_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Priority."
+          },
+          "reason_for_change": {
+            "type": "string",
+            "description": "Reason for Change."
+          },
+          "requested_by_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Requested By (an Analyst)."
+          },
+          "risk_evaluation": {
+            "type": "string",
+            "description": "Risk Evaluation."
+          },
+          "risk_impact_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Impact score (1–5).",
+            "minimum": 0
+          },
+          "risk_level": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Risk Level name."
+          },
+          "risk_likelihood": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Likelihood (1–5).",
+            "minimum": 0
+          },
+          "risk_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Risk score (likelihood × impact).",
+            "minimum": 0
+          },
+          "rollback_plan": {
+            "type": "string",
+            "description": "Rollback Plan."
+          },
+          "stage": {
+            "type": "string",
+            "description": "Stage of the status."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Status."
+          },
+          "template_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Template it was created from."
+          },
+          "template_version": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Template version it was created from."
+          },
+          "test_plan": {
+            "type": "string",
+            "description": "Test Plan."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "type_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Change Type."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "work_end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Work Window end."
+          },
+          "work_start": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Work Window start."
+          }
+        }
+      },
+      "ChangeLinkDto": {
+        "type": "object",
+        "description": "A linked ticket, Problem or Change.",
+        "required": [
+          "kind",
+          "target_id",
+          "number",
+          "linked_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket`, `problem` or `change`."
+          },
+          "linked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was linked."
+          },
+          "number": {
+            "type": "string",
+            "description": "Its number (Ticket Number, Problem Number or Change Number)."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The linked record."
+          }
+        }
+      },
+      "ChangeLinkRequest": {
+        "type": "object",
+        "description": "Links a record.",
+        "required": [
+          "kind",
+          "target_id"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket`, `problem` or `change`."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The record (in the same Company)."
+          }
+        }
+      },
+      "ChangeLookupDto": {
+        "type": "object",
+        "description": "A Change Type, Status, Priority, Impact or Category.",
+        "required": [
+          "id",
+          "name",
+          "is_closed",
+          "is_standard",
+          "is_default",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "approval_route": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Approval route (Types): `review` or `emergency`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Closing status (Statuses)."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Default for new Changes."
+          },
+          "is_standard": {
+            "type": "boolean",
+            "description": "Standard Change: pre-approved, skips approval (Types)."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stable key of seeded rows."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          },
+          "stage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stage (Statuses): `draft`, `awaiting`, `approved`, `implementing`, `done`, `stopped`."
+          }
+        }
+      },
+      "ChangeLookupRequest": {
+        "type": "object",
+        "description": "Creates or changes a Change Type, Status, Priority, Impact or Category.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "approval_route": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Approval route (Types): `review` (default) or `emergency`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Closing status (Statuses)."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Make it the default."
+          },
+          "is_standard": {
+            "type": "boolean",
+            "description": "Standard Change (Types)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          },
+          "stage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stage (Statuses; fixed once created)."
+          }
+        }
+      },
+      "ChangeOverlapDto": {
+        "type": "object",
+        "description": "Two Changes whose windows overlap.",
+        "required": [
+          "change_id",
+          "other_change_id"
+        ],
+        "properties": {
+          "change_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "One Change."
+          },
+          "other_change_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The other."
+          }
+        }
+      },
+      "ChangePage": {
+        "type": "object",
+        "description": "A page of Changes.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChangeDto"
+            },
+            "description": "Changes, newest activity first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
       "ChangePasswordRequest": {
         "type": "object",
         "description": "Own password change.",
@@ -7916,6 +10241,536 @@
           "new_password": {
             "type": "string",
             "description": "The new password (at least 12 characters)."
+          }
+        }
+      },
+      "ChangePirDto": {
+        "type": "object",
+        "description": "A Post-Implementation Review (FR-CHG-011).",
+        "required": [
+          "successful"
+        ],
+        "properties": {
+          "actual_end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When work actually ended."
+          },
+          "actual_start": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When work actually started."
+          },
+          "follow_up": {
+            "type": "string",
+            "description": "Follow-up actions."
+          },
+          "lessons_learned": {
+            "type": "string",
+            "description": "Lessons Learned."
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was recorded (output)."
+          },
+          "successful": {
+            "type": "boolean",
+            "description": "The Change achieved its goal."
+          }
+        }
+      },
+      "ChangeRequest": {
+        "type": "object",
+        "description": "Creates or edits a Change. Absent Type, Priority and Impact take the defaults (or the\ntemplate's values).",
+        "properties": {
+          "approver_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Approver (when no CAB is required)."
+          },
+          "assigned_to_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned To."
+          },
+          "cab_approval_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`all` (default) or `majority`."
+          },
+          "cab_required": {
+            "type": "boolean",
+            "description": "CAB approval required."
+          },
+          "category_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Category."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "impact_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Impact."
+          },
+          "outage_end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Outage Window end."
+          },
+          "outage_start": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Outage Window start."
+          },
+          "priority_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Priority."
+          },
+          "reason_for_change": {
+            "type": "string",
+            "description": "Reason for Change."
+          },
+          "requested_by_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Requested By (an Analyst)."
+          },
+          "risk_evaluation": {
+            "type": "string",
+            "description": "Risk Evaluation."
+          },
+          "risk_impact_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Impact score (1–5).",
+            "minimum": 0
+          },
+          "risk_likelihood": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Likelihood (1–5).",
+            "minimum": 0
+          },
+          "rollback_plan": {
+            "type": "string",
+            "description": "Rollback Plan."
+          },
+          "template_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Change Template to pre-fill empty fields from (create only)."
+          },
+          "test_plan": {
+            "type": "string",
+            "description": "Test Plan."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Change Type."
+          },
+          "work_end": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Work Window end."
+          },
+          "work_start": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Work Window start."
+          }
+        }
+      },
+      "ChangeRiskLevelDto": {
+        "type": "object",
+        "description": "A Risk Level: a named band of risk scores (likelihood × impact, 1–25).",
+        "required": [
+          "name",
+          "min_score",
+          "max_score"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID (output; ignored on input)."
+          },
+          "max_score": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Highest score (inclusive).",
+            "minimum": 0
+          },
+          "min_score": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Lowest score (inclusive).",
+            "minimum": 0
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "ChangeStatusRequest": {
+        "type": "object",
+        "description": "A status move.",
+        "required": [
+          "status_id"
+        ],
+        "properties": {
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The status."
+          }
+        }
+      },
+      "ChangeTemplateContentDto": {
+        "type": "object",
+        "description": "The fields a Change Template pre-fills.",
+        "properties": {
+          "cab_approval_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`all` or `majority`."
+          },
+          "cab_required": {
+            "type": "boolean",
+            "description": "CAB approval required."
+          },
+          "category_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Category."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "impact_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Impact."
+          },
+          "priority_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Priority."
+          },
+          "reason_for_change": {
+            "type": "string",
+            "description": "Reason for Change."
+          },
+          "risk_evaluation": {
+            "type": "string",
+            "description": "Risk Evaluation."
+          },
+          "risk_impact_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Impact score (1–5).",
+            "minimum": 0
+          },
+          "risk_likelihood": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Likelihood (1–5).",
+            "minimum": 0
+          },
+          "rollback_plan": {
+            "type": "string",
+            "description": "Rollback Plan."
+          },
+          "test_plan": {
+            "type": "string",
+            "description": "Test Plan."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Change Type."
+          }
+        }
+      },
+      "ChangeTemplateDto": {
+        "type": "object",
+        "description": "A Change Template (FR-CHG-010).",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "team_ids",
+          "version",
+          "content",
+          "is_active",
+          "updated_at"
+        ],
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/ChangeTemplateContentDto",
+            "description": "Content of the current version."
+          },
+          "description": {
+            "type": "string",
+            "description": "What it is for."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "team_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Teams that may use it (empty: everyone)."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Current version (grows when the content changes)."
+          }
+        }
+      },
+      "ChangeTemplateRequest": {
+        "type": "object",
+        "description": "Creates or changes a Change Template.",
+        "required": [
+          "name",
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/ChangeTemplateContentDto",
+            "description": "Content."
+          },
+          "description": {
+            "type": "string",
+            "description": "What it is for."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "team_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Teams that may use it (empty: everyone)."
+          }
+        }
+      },
+      "ChangeTextRevisionDto": {
+        "type": "object",
+        "description": "A saved version of a long text field.",
+        "required": [
+          "id",
+          "field",
+          "body",
+          "author",
+          "created_at"
+        ],
+        "properties": {
+          "author": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": "string",
+            "description": "Field."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          }
+        }
+      },
+      "ChangeVoteDto": {
+        "type": "object",
+        "description": "A vote.",
+        "required": [
+          "id",
+          "round_no",
+          "analyst_id",
+          "decision",
+          "comment",
+          "voted_at"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Analyst."
+          },
+          "comment": {
+            "type": "string",
+            "description": "Comment."
+          },
+          "decision": {
+            "type": "string",
+            "description": "`approve` or `reject`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "round_no": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Approval Round."
+          },
+          "voted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          }
+        }
+      },
+      "ChangeVoteRequest": {
+        "type": "object",
+        "description": "Casts a vote.",
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "comment": {
+            "type": "string",
+            "description": "Comment (required to reject)."
+          },
+          "decision": {
+            "type": "string",
+            "description": "`approve` or `reject`."
           }
         }
       },
@@ -9158,6 +12013,14 @@
             "type": "string",
             "description": "Longer text."
           },
+          "change_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Linked Change."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -9170,7 +12033,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached` or `reply_received`."
+            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled` or `change_completed`."
           },
           "read_at": {
             "type": [
@@ -12881,6 +15744,10 @@
     {
       "name": "Problems",
       "description": "Problems, Known Errors and their incident tickets"
+    },
+    {
+      "name": "Changes",
+      "description": "Changes, CAB approval, the Change Calendar and Change Templates"
     },
     {
       "name": "Administration",

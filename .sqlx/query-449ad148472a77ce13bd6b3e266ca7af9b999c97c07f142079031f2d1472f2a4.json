@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE change_types SET is_default = false WHERE is_default AND id <> $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "449ad148472a77ce13bd6b3e266ca7af9b999c97c07f142079031f2d1472f2a4"
+}

@@ -1,0 +1,134 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, key, name, approval_route, is_standard, is_default, sort_order, is_active, created_at, updated_at FROM change_types",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "approval_route",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "approval_route"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_standard",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "is_standard"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "is_default",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "is_default"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "sort_order",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "sort_order"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "change_types",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "60a8581885152d9cca1b4178697c668c6c11f992c57aef25b15d9428ee8e6e68"
+}

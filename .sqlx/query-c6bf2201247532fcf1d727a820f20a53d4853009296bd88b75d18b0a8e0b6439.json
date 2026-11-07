@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO change_types (id, key, name, approval_route, is_standard, is_default, sort_order, is_active, created_at, updated_at)\n                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n                     ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, approval_route = EXCLUDED.approval_route,\n                         is_standard = EXCLUDED.is_standard, is_default = EXCLUDED.is_default, sort_order = EXCLUDED.sort_order,\n                         is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Int4",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c6bf2201247532fcf1d727a820f20a53d4853009296bd88b75d18b0a8e0b6439"
+}

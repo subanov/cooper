@@ -1,0 +1,66 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, author_id, body, created_at FROM change_comments WHERE change_id = $1 AND ($2 OR tenant_id = ANY($3)) ORDER BY created_at, id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "change_comments",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "author_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "change_comments",
+            "name": "author_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "body",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "change_comments",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "change_comments",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "e92ac4742ad52ca2b2be801e937a39a5b6620552e00526a8d6485b9010b544e5"
+}

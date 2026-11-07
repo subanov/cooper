@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO change_risk_levels (id, name, min_score, max_score, sort_order, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, now(), now())",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d0bdeb00c6bd722fb02d16b190bc60c3f191f639c65d3d2a523422e85a4a8ed5"
+}

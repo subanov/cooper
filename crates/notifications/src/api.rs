@@ -63,7 +63,9 @@ impl IntoResponse for ApiError {
 pub struct NotificationDto {
     /// ID.
     pub id: Uuid,
-    /// `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached` or `reply_received`.
+    /// `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
+    /// `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
+    /// `change_scheduled` or `change_completed`.
     pub kind: String,
     /// Short text.
     pub title: String,
@@ -71,6 +73,8 @@ pub struct NotificationDto {
     pub body: String,
     /// Linked ticket.
     pub ticket_id: Option<Uuid>,
+    /// Linked Change.
+    pub change_id: Option<Uuid>,
     /// Created.
     pub created_at: DateTime<Utc>,
     /// When it was read.
@@ -85,6 +89,7 @@ impl From<Notification> for NotificationDto {
             title: n.title,
             body: n.body,
             ticket_id: n.ticket_id.map(|t| t.as_uuid()),
+            change_id: n.change_id,
             created_at: n.created_at,
             read_at: n.read_at,
         }

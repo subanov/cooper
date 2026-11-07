@@ -407,3 +407,42 @@ async fn presence_changes_are_announced_to_analysts_who_can_see_the_ticket(pool:
         .await;
     assert_eq!(theirs_live.invalidated().await, their_marker);
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn changes_are_announced_to_analysts_who_may_read_them(pool: PgPool) {
+    let w = World::new(&pool).await;
+    let other = w.company("Other Ltd", "OTH", "other.example").await;
+    let reader_caps = [DESK_CAPS, &["changes.read"]].concat();
+    let (_, reader) = w.analyst("reader", &reader_caps, &[&w.company]).await;
+    let (_, desk_only) = w.analyst("desk", DESK_CAPS, &[&w.company]).await;
+    let (_, outsider) = w.analyst("outsider", &reader_caps, &[&other]).await;
+    let mut reader_live = Stream::open(&reader).await;
+    let mut desk_live = Stream::open(&desk_only).await;
+    let mut outsider_live = Stream::open(&outsider).await;
+
+    let change = w
+        .admin
+        .post(
+            "/api/v1/changes",
+            json!({ "company_id": w.company, "title": "Patch servers" }),
+        )
+        .await;
+    assert_eq!(change.status, StatusCode::CREATED, "{:?}", change.body);
+    let (name, data) = reader_live.next().await.unwrap();
+    assert_eq!(name, "invalidate");
+    assert_eq!(data, json!({ "topic": "change", "id": change.body["id"] }));
+
+    // The next ticket event proves the Change was not announced to the others.
+    let ticket = w
+        .ticket(&w.admin, &w.company, json!({ "subject": "After" }))
+        .await;
+    assert_eq!(desk_live.invalidated().await, ticket, "no changes.read");
+    let other_ticket = w
+        .ticket(&w.admin, &other, json!({ "subject": "Other" }))
+        .await;
+    assert_eq!(
+        outsider_live.invalidated().await,
+        other_ticket,
+        "another Company's Change is not announced"
+    );
+}

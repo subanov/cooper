@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE change_statuses SET is_default = false WHERE is_default AND id <> $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "208e1e3dad050f677663950300b043d469289c6759174ea1d44e60c31c0a8149"
+}
