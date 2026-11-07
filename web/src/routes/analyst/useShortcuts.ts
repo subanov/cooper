@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 
 /** Whether the key press happened while typing in a field. */
-function typing(target: EventTarget | null): boolean {
+export function typing(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;
   }
@@ -46,6 +46,32 @@ export function useShortcuts(handlers: ShortcutHandlers): void {
         return;
       }
       pendingG = event.key === "g" ? Date.now() : 0;
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+}
+
+/**
+ * Single-key shortcuts of one screen (for example `j`/`k` in the ticket list). Ignored
+ * while typing in a field, with a modifier held, or while a dialog or menu is open.
+ */
+export function useKeys(keys: Record<string, () => void>): void {
+  const ref = useRef(keys);
+  ref.current = keys;
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.metaKey || event.ctrlKey || event.altKey || typing(event.target)) {
+        return;
+      }
+      if (document.querySelector('[role="dialog"], [role="menu"]')) {
+        return;
+      }
+      const handler = ref.current[event.key];
+      if (handler) {
+        event.preventDefault();
+        handler();
+      }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);

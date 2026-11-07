@@ -7,9 +7,12 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
+import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
 import { Home } from "./routes/analyst/Home";
+import { TicketDetail } from "./routes/analyst/tickets/TicketDetail";
+import { TicketsPage } from "./routes/analyst/tickets/TicketsPage";
 import { ResetPasswordPage } from "./routes/auth/ResetPassword";
 import { SignInPage } from "./routes/auth/SignIn";
 import { TwoFactorSetupPage } from "./routes/auth/TwoFactorSetup";
@@ -86,10 +89,22 @@ const analystRoute = createRoute({
 
 const homeRoute = createRoute({ getParentRoute: () => analystRoute, path: "/", component: Home });
 
+/** The ticket list; view, search and sort are in the URL (FR-TKT-040). */
 const ticketsRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/tickets",
-  component: () => <ComingSoon section="nav.tickets" />,
+  validateSearch: parseTicketSearch,
+  component: TicketsPage,
+});
+
+/** A ticket opened beside the list (split pane). */
+const ticketRoute = createRoute({
+  getParentRoute: () => ticketsRoute,
+  path: "$ticketId",
+  component: function TicketRoute() {
+    const { ticketId } = ticketRoute.useParams();
+    return <TicketDetail key={ticketId} ticketId={ticketId} />;
+  },
 });
 
 const administrationRoute = createRoute({
@@ -162,7 +177,11 @@ export const routeTree = rootRoute.addChildren([
   signInRoute,
   resetRoute,
   twoFactorRoute,
-  analystRoute.addChildren([homeRoute, ticketsRoute, administrationRoute]),
+  analystRoute.addChildren([
+    homeRoute,
+    ticketsRoute.addChildren([ticketRoute]),
+    administrationRoute,
+  ]),
   portalSignInRoute,
   portalResetRoute,
   portalSetPasswordRoute,

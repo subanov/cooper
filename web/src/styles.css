@@ -20,6 +20,8 @@
   --color-secondary-foreground: oklch(0.21 0.02 265);
   --color-destructive: oklch(0.55 0.22 27);
   --color-destructive-foreground: oklch(0.98 0 0);
+  --color-success: oklch(0.45 0.13 150);
+  --color-warning: oklch(0.48 0.12 70);
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
@@ -43,6 +45,8 @@
       --color-primary-foreground: oklch(0.17 0.02 265);
       --color-destructive: oklch(0.72 0.17 25);
       --color-destructive-foreground: oklch(0.17 0.02 265);
+      --color-success: oklch(0.78 0.15 150);
+      --color-warning: oklch(0.82 0.14 80);
     }
   }
   :root.dark {
@@ -60,6 +64,8 @@
     --color-primary-foreground: oklch(0.17 0.02 265);
     --color-destructive: oklch(0.72 0.17 25);
     --color-destructive-foreground: oklch(0.17 0.02 265);
+    --color-success: oklch(0.78 0.15 150);
+    --color-warning: oklch(0.82 0.14 80);
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;

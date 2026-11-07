@@ -345,6 +345,8 @@ pub struct ListRequest {
     pub include_inactive: bool,
     /// Restrict to one Company.
     pub tenant_id: Option<cooper_kernel::TenantId>,
+    /// Only these records, when not empty (Requesters only; at most 200).
+    pub ids: Vec<Uuid>,
     /// Page size.
     pub limit: Limit,
     /// Cursor from a previous page.
@@ -368,6 +370,7 @@ impl ListRequest {
             search,
             include_inactive: self.include_inactive,
             tenant_id: self.tenant_id,
+            ids: self.ids.clone(),
             limit: self.limit,
             after,
         })
