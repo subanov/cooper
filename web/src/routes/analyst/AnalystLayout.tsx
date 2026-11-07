@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useLiveUpdates } from "@/features/live/useLiveUpdates";
 import { modulesQuery } from "@/features/navigation/modules";
 import { NAV_ITEMS, visibleNavItems } from "@/features/navigation/navigation";
 import { signOut } from "@/features/session/actions";
@@ -49,6 +50,7 @@ export function AnalystLayout() {
   });
 
   useFocusOnNavigate();
+  useLiveUpdates(Boolean(session.data));
 
   return (
     <div className="flex min-h-dvh flex-col">

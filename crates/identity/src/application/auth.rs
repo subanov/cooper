@@ -277,20 +277,7 @@ impl IdentityService {
     /// the Analyst is inactive.
     pub async fn authenticate(&self, token: &SessionToken) -> Result<SignedIn, AppError> {
         let now = self.ports.clock.now();
-        let mut session = self
-            .ports
-            .sessions
-            .find_by_token_hash(&token.hash())
-            .await?
-            .filter(|s| s.is_valid(now))
-            .ok_or(AppError::Unauthenticated)?;
-        let analyst = self
-            .ports
-            .analysts
-            .get(session.analyst_id())
-            .await?
-            .filter(Analyst::is_active)
-            .ok_or(AppError::Unauthenticated)?;
+        let (mut session, analyst) = self.active_session(token, now).await?;
         if session.touch(self.session_policy, now) {
             self.ports.sessions.touch(&session).await?;
         }
@@ -304,6 +291,43 @@ impl IdentityService {
             analyst,
             principal,
         })
+    }
+
+    /// Re-checks a session for a long-lived connection (Live Updates, ADR-0022) and
+    /// returns the Analyst's current Principal, reflecting changed Roles and Company
+    /// access. Unlike [`IdentityService::authenticate`] it does not extend the idle
+    /// timeout: an open stream is not activity.
+    ///
+    /// # Errors
+    ///
+    /// [`AppError::Unauthenticated`] if the session is unknown, expired or revoked, or
+    /// the Analyst is inactive.
+    pub async fn revalidate(&self, token: &SessionToken) -> Result<Principal, AppError> {
+        let (_, analyst) = self.active_session(token, self.ports.clock.now()).await?;
+        self.principal_for(&analyst).await
+    }
+
+    /// The valid session behind `token` and its active Analyst.
+    async fn active_session(
+        &self,
+        token: &SessionToken,
+        now: chrono::DateTime<chrono::Utc>,
+    ) -> Result<(Session, Analyst), AppError> {
+        let session = self
+            .ports
+            .sessions
+            .find_by_token_hash(&token.hash())
+            .await?
+            .filter(|s| s.is_valid(now))
+            .ok_or(AppError::Unauthenticated)?;
+        let analyst = self
+            .ports
+            .analysts
+            .get(session.analyst_id())
+            .await?
+            .filter(Analyst::is_active)
+            .ok_or(AppError::Unauthenticated)?;
+        Ok((session, analyst))
     }
 
     /// Ends a session.
@@ -450,6 +474,34 @@ mod tests {
         svc.sign_out(&again.session).await.unwrap();
         assert_eq!(
             svc.authenticate(&token).await.unwrap_err(),
+            AppError::Unauthenticated
+        );
+    }
+
+    #[tokio::test]
+    async fn revalidating_a_live_stream_does_not_extend_the_idle_timeout() {
+        let fakes = Fakes::new();
+        let svc = fakes.service();
+        svc.complete_setup(setup_input()).await.unwrap();
+        let signed_in = fakes.sign_in_admin(&svc).await;
+        let token = signed_in.token.clone().unwrap();
+
+        fakes.clock.advance(Duration::hours(5));
+        let principal = svc.revalidate(&token).await.unwrap();
+        assert_eq!(principal, signed_in.principal);
+
+        fakes.clock.advance(Duration::hours(5));
+        assert_eq!(
+            svc.revalidate(&token).await.unwrap_err(),
+            AppError::Unauthenticated,
+            "idle for 10 hours although the stream re-checked after 5"
+        );
+
+        let again = fakes.sign_in_admin(&svc).await;
+        let token = again.token.clone().unwrap();
+        svc.sign_out(&again.session).await.unwrap();
+        assert_eq!(
+            svc.revalidate(&token).await.unwrap_err(),
             AppError::Unauthenticated
         );
     }

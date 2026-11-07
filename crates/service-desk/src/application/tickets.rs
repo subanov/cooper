@@ -418,6 +418,33 @@ impl ServiceDesk {
         })
     }
 
+    /// Whether the caller may be told that ticket `id` changed (Live Updates, ADR-0022):
+    /// `tickets.read`, Company access and the Confidential rule, exactly as for reading
+    /// it. Soft-deleted tickets count, so a delete reaches those who had it on screen.
+    ///
+    /// # Errors
+    ///
+    /// Storage failures. A ticket the caller may not see is `Ok(false)`.
+    pub async fn can_see_ticket(
+        &self,
+        principal: &Principal,
+        id: TicketId,
+    ) -> Result<bool, AppError> {
+        if !principal.can(capabilities::READ) {
+            return Ok(false);
+        }
+        let visibility = Visibility {
+            include_deleted: true,
+            ..self.visibility(principal, false).await?
+        };
+        Ok(self
+            .ports
+            .tickets
+            .get(principal.scope(), &visibility, id)
+            .await?
+            .is_some())
+    }
+
     /// Finds a ticket by its number (FR-TKT-041).
     ///
     /// # Errors

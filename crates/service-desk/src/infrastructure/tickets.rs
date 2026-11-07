@@ -12,7 +12,7 @@ use cooper_platform::tenancy;
 use sqlx::{Postgres, QueryBuilder};
 use uuid::Uuid;
 
-use super::{PgServiceDeskStore, db_err, record};
+use super::{PgServiceDeskStore, db_err, record, ticket_changed};
 use crate::domain::{
     Note, RepoError, SlaTargets, SortField, Ticket, TicketDetails, TicketListQuery,
     TicketRepository, TicketSla, TimeEntry, Visibility,
@@ -267,6 +267,7 @@ impl TicketRepository for PgServiceDeskStore {
         .await
         .map_err(db_err)?;
         record(&mut tx, audit, events).await?;
+        ticket_changed(&mut tx, t.tenant_id(), t.id()).await?;
         tx.commit().await.map_err(db_err)
     }
 
@@ -331,6 +332,7 @@ impl TicketRepository for PgServiceDeskStore {
             return Err(RepoError::NotFound);
         }
         record(&mut tx, audit, events).await?;
+        ticket_changed(&mut tx, t.tenant_id(), t.id()).await?;
         tx.commit().await.map_err(db_err)
     }
 
@@ -513,6 +515,7 @@ impl TicketRepository for PgServiceDeskStore {
         .await
         .map_err(db_err)?;
         record(&mut tx, audit, events).await?;
+        ticket_changed(&mut tx, n.tenant_id(), n.ticket_id()).await?;
         tx.commit().await.map_err(db_err)
     }
 
@@ -566,6 +569,7 @@ impl TicketRepository for PgServiceDeskStore {
         .await
         .map_err(db_err)?;
         record(&mut tx, audit, &[]).await?;
+        ticket_changed(&mut tx, e.tenant_id(), e.ticket_id()).await?;
         tx.commit().await.map_err(db_err)
     }
 

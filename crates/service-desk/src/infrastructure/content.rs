@@ -5,7 +5,7 @@ use cooper_kernel::{AnalystId, AuditRecord, EventEnvelope, TenantId, TenantScope
 use cooper_platform::attachments::{self, Attachment};
 use cooper_platform::tenancy;
 
-use super::{PgServiceDeskStore, db_err, record};
+use super::{PgServiceDeskStore, db_err, record, ticket_changed};
 use crate::domain::{
     AttachmentInfo, ContentRepository, Direction, EmailTemplate, EmailTemplateEvent,
     EmailTemplateInput, ReplyTemplate, RepoError, TicketEmail,
@@ -55,6 +55,7 @@ impl ContentRepository for PgServiceDeskStore {
         .await
         .map_err(db_err)?;
         record(&mut tx, audit, events).await?;
+        ticket_changed(&mut tx, e.tenant_id, e.ticket_id).await?;
         tx.commit().await.map_err(db_err)
     }
 
@@ -276,6 +277,7 @@ impl ContentRepository for PgServiceDeskStore {
         .await
         .map_err(db_err)?;
         record(&mut tx, audit, &[]).await?;
+        ticket_changed(&mut tx, a.tenant_id, a.ticket_id).await?;
         tx.commit().await.map_err(db_err)
     }
 
