@@ -429,6 +429,7 @@ impl RequesterRepository for Fakes {
             .requesters
             .values()
             .filter(|r| scope.allows(r.tenant_id()))
+            .filter(|r| query.ids.is_empty() || query.ids.contains(&r.id().as_uuid()))
             .cloned()
             .collect();
         Ok(sorted(items, query, |r| {

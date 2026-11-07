@@ -46,6 +46,8 @@ pub struct ListQuery {
     pub include_inactive: bool,
     /// Restrict to one Company (tenant-scoped records only).
     pub tenant_id: Option<TenantId>,
+    /// Only these records, when not empty (Requesters only).
+    pub ids: Vec<Uuid>,
     /// Page size. Repositories fetch `limit + 1` rows.
     pub limit: Limit,
     /// Continue after this `(lower(name), id)` sort key.

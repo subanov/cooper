@@ -3880,6 +3880,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */
@@ -4116,6 +4118,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */
@@ -4346,6 +4350,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */
@@ -4487,6 +4493,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */
@@ -4586,6 +4594,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */
@@ -5596,6 +5606,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */
@@ -5831,6 +5843,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */
@@ -6416,6 +6430,8 @@ export interface operations {
                 include_inactive?: boolean;
                 /** @description Restrict to one Company (Requesters and Cost Centres). */
                 company_id?: string;
+                /** @description Only these records: UUIDs separated by commas, at most 200 (Requesters only). */
+                id?: string;
                 /** @description Page size, 1 to 200 (default 50). */
                 limit?: number;
                 /** @description Cursor from a previous page. */

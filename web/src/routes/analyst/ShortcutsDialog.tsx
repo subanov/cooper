@@ -31,6 +31,12 @@ export function ShortcutsDialog({
       ["g", i.shortcut],
       t("shortcuts.goTo", { section: t(i.label) }),
     ]),
+    [["j"], t("shortcuts.nextTicket")],
+    [["k"], t("shortcuts.previousTicket")],
+    [["/"], t("shortcuts.search")],
+    [["a"], t("shortcuts.assignToMe")],
+    [["r"], t("shortcuts.reply")],
+    [["n"], t("shortcuts.note")],
     [["?"], t("shortcuts.help")],
   ];
   return (

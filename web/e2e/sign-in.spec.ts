@@ -1,28 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { ensureAdmin, LOGIN, PASSWORD } from "./admin";
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
-// A fresh database (CI) gets this Administrator through first-run setup. Locally, set
-// COOPER_E2E_LOGIN and COOPER_E2E_PASSWORD to an existing Analyst.
-const LOGIN = process.env.COOPER_E2E_LOGIN ?? "e2e-admin";
-const PASSWORD = process.env.COOPER_E2E_PASSWORD ?? "e2e correct horse battery";
 
 test.beforeAll(async ({ request }) => {
-  const status = await request.get("/api/v1/setup");
-  if ((await status.json()).required) {
-    const setup = await request.post("/api/v1/setup", {
-      data: {
-        company_name: "E2E Company",
-        ticket_code: "E2E",
-        sender_domains: [],
-        username: LOGIN,
-        email: "e2e-admin@example.com",
-        full_name: "Eve Admin",
-        password: PASSWORD,
-      },
-    });
-    expect(setup.status()).toBe(201);
-  }
+  await ensureAdmin(request);
 });
 
 test("an Analyst signs in, navigates by keyboard and signs out", async ({ page }) => {

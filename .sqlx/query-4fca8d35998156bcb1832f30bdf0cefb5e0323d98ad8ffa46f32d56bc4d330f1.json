@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,\n                    deactivated_at, created_at, updated_at\n             FROM requesters\n             WHERE ($1 OR tenant_id = ANY($2))\n               AND ($3::uuid IS NULL OR tenant_id = $3)\n               AND ($4 OR is_active)\n               AND ($5::text IS NULL OR lower(full_name) LIKE $5 OR lower(email) LIKE $5 OR lower(username) LIKE $5)\n               AND ($6::text IS NULL OR (lower(full_name), id) > ($6, $7))\n             ORDER BY lower(full_name), id\n             LIMIT $8",
+  "query": "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,\n                    deactivated_at, created_at, updated_at\n             FROM requesters\n             WHERE ($1 OR tenant_id = ANY($2))\n               AND ($3::uuid IS NULL OR tenant_id = $3)\n               AND ($4 OR is_active)\n               AND ($5::text IS NULL OR lower(full_name) LIKE $5 OR lower(email) LIKE $5 OR lower(username) LIKE $5)\n               AND ($6::text IS NULL OR (lower(full_name), id) > ($6, $7))\n               AND (cardinality($9::uuid[]) = 0 OR id = ANY($9))\n             ORDER BY lower(full_name), id\n             LIMIT $8",
   "describe": {
     "columns": [
       {
@@ -134,7 +134,8 @@
         "Text",
         "Text",
         "Uuid",
-        "Int8"
+        "Int8",
+        "UuidArray"
       ]
     },
     "nullable": [
@@ -151,5 +152,5 @@
       false
     ]
   },
-  "hash": "95b94fe0dd700da7c67782d3362f915bbe18ade55fc8c1bdc02942884e673c7a"
+  "hash": "4fca8d35998156bcb1832f30bdf0cefb5e0323d98ad8ffa46f32d56bc4d330f1"
 }

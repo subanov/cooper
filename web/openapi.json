@@ -46,6 +46,15 @@
             }
           },
           {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "Page size, 1 to 200 (default 50).",
@@ -424,6 +433,15 @@
             }
           },
           {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "Page size, 1 to 200 (default 50).",
@@ -789,6 +807,15 @@
             }
           },
           {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "Page size, 1 to 200 (default 50).",
@@ -1019,6 +1046,15 @@
             }
           },
           {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "Page size, 1 to 200 (default 50).",
@@ -1184,6 +1220,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -2451,6 +2496,15 @@
             }
           },
           {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "description": "Page size, 1 to 200 (default 50).",
@@ -2795,6 +2849,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -3547,6 +3610,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Only these records: UUIDs separated by commas, at most 200 (Requesters only).",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           },
           {

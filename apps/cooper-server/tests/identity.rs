@@ -246,6 +246,26 @@ async fn requesters_are_isolated_by_company_access(pool: PgPool) {
         ))
         .await;
     assert_eq!(hidden.status, StatusCode::NOT_FOUND);
+    // Looking Requesters up by ID (ticket lists) still respects Company access.
+    let both = format!(
+        "/api/v1/requesters?id={},{}",
+        mine.body["id"].as_str().unwrap(),
+        theirs.body["id"].as_str().unwrap()
+    );
+    let by_id = scoped.get(&both).await;
+    assert_eq!(by_id.body["items"].as_array().unwrap().len(), 1);
+    assert_eq!(by_id.body["items"][0]["id"], mine.body["id"]);
+    assert_eq!(
+        admin.get(&both).await.body["items"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    assert_eq!(
+        admin.get("/api/v1/requesters?id=nope").await.status,
+        StatusCode::UNPROCESSABLE_ENTITY
+    );
     let companies = scoped.get("/api/v1/companies").await;
     assert_eq!(companies.body["items"].as_array().unwrap().len(), 1);
     assert_eq!(

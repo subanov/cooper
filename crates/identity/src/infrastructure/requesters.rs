@@ -93,6 +93,7 @@ impl RequesterRepository for PgIdentityStore {
                AND ($4 OR is_active)
                AND ($5::text IS NULL OR lower(full_name) LIKE $5 OR lower(email) LIKE $5 OR lower(username) LIKE $5)
                AND ($6::text IS NULL OR (lower(full_name), id) > ($6, $7))
+               AND (cardinality($9::uuid[]) = 0 OR id = ANY($9))
              ORDER BY lower(full_name), id
              LIMIT $8",
             all,
@@ -103,6 +104,7 @@ impl RequesterRepository for PgIdentityStore {
             after_name,
             after_id,
             query.limit.fetch_size(),
+            &query.ids,
         )
         .fetch_all(&mut *tx)
         .await

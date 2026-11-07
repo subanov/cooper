@@ -46,6 +46,8 @@ pub struct ListParams {
     pub include_inactive: bool,
     /// Restrict to one Company (Requesters and Cost Centres).
     pub company_id: Option<Uuid>,
+    /// Only these records: UUIDs separated by commas, at most 200 (Requesters only).
+    pub id: Option<String>,
     /// Page size, 1 to 200 (default 50).
     pub limit: Option<u32>,
     /// Cursor from a previous page.
@@ -63,10 +65,30 @@ impl TryFrom<ListParams> for ListRequest {
                 reason: "must be between 1 and 200".into(),
             })?,
         };
+        let ids =
+            p.id.as_deref()
+                .unwrap_or_default()
+                .split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(|s| {
+                    s.parse::<Uuid>().map_err(|_| AppError::Invalid {
+                        field: "id",
+                        reason: "must be UUIDs separated by commas".into(),
+                    })
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+        if ids.len() > 200 {
+            return Err(AppError::Invalid {
+                field: "id",
+                reason: "at most 200 IDs".into(),
+            });
+        }
         Ok(Self {
             search: p.q,
             include_inactive: p.include_inactive,
             tenant_id: p.company_id.map(cooper_kernel::TenantId::from_uuid),
+            ids,
             limit,
             cursor: p.cursor.map(cooper_kernel::Cursor::from_client),
         })
