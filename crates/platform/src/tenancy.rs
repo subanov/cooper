@@ -17,6 +17,14 @@ use crate::db::Tx;
 ///
 /// Fails if the transaction cannot be started.
 pub async fn begin(pool: &PgPool, scope: &TenantScope) -> Result<Tx, sqlx::Error> {
+    if let TenantScope::Tenants(ids) = scope
+        && ids.len() == 1
+        && let Some(tenant) = ids.first()
+    {
+        // Correlates logs and traces with the Company (ADR-0023). Only spans that
+        // declare `tenant` (the HTTP request span) keep it.
+        tracing::Span::current().record("tenant", tracing::field::display(tenant));
+    }
     let mut tx = pool.begin().await?;
     apply_scope(&mut tx, scope).await?;
     Ok(tx)

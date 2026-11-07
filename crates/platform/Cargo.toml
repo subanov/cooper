@@ -10,12 +10,21 @@ publish.workspace = true
 [features]
 # Helpers for tests in other crates (tenant isolation harness).
 testing = []
+## Export traces over OTLP/HTTP when OTEL_EXPORTER_OTLP_ENDPOINT is set (ADR-0023).
+otlp = ["dep:opentelemetry", "dep:opentelemetry_sdk", "dep:opentelemetry-otlp", "dep:tracing-opentelemetry", "dep:tokio-rustls"]
 
 [dependencies]
 aes-gcm.workspace = true
 base64.workspace = true
 getrandom.workspace = true
 hex.workspace = true
+metrics.workspace = true
+metrics-exporter-prometheus.workspace = true
+opentelemetry = { workspace = true, optional = true }
+opentelemetry_sdk = { workspace = true, optional = true }
+opentelemetry-otlp = { workspace = true, optional = true }
+tracing-opentelemetry = { workspace = true, optional = true }
+tokio-rustls = { workspace = true, optional = true }
 async-trait.workspace = true
 chrono.workspace = true
 cooper-kernel.workspace = true

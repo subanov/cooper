@@ -130,6 +130,19 @@ impl DatabaseConfig {
             max_connections,
         })
     }
+
+    /// The owner role for applying migrations: `DATABASE_URL` only (the application
+    /// role in `COOPER_DATABASE_URL` cannot change the schema), with a small pool.
+    ///
+    /// # Errors
+    ///
+    /// Fails if `DATABASE_URL` is not set.
+    pub fn owner_from_env() -> Result<Self, ConfigError> {
+        Ok(Self {
+            url: Secret::new(required("DATABASE_URL")?),
+            max_connections: 2,
+        })
+    }
 }
 
 #[cfg(test)]
