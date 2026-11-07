@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT analyst_id FROM task_collaborators WHERE task_id = $1 AND ($2 OR tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "analyst_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "task_collaborators",
+            "name": "analyst_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4d97c3dabc8cfe104673130a9af2661ceb5716af7ec97f93176e73645bd36259"
+}

@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO task_collaborators (tenant_id, task_id, analyst_id) VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cb3a5df9a63fb733ea3f2ded92ef6763a2f7823aa9dce822044c54b8b7eb1a86"
+}

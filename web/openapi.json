@@ -7298,6 +7298,1201 @@
         }
       }
     },
+    "/api/v1/task-priorities": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "list_task_priorities",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "create_task_priority",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task-priorities/{id}": {
+      "put": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "update_task_priority",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task-statuses": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "list_task_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "create_task_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "update_task_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Tasks in your Companies, newest activity first (needs `tasks.read`).",
+        "operationId": "list_tasks",
+        "parameters": [
+          {
+            "name": "open",
+            "in": "path",
+            "description": "Open (`true`) or closed (`false`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "status_id",
+            "in": "path",
+            "description": "Status.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assignee",
+            "in": "path",
+            "description": "Assigned Analyst (`me` is accepted).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "team_id",
+            "in": "path",
+            "description": "Assigned Team.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "collaborator",
+            "in": "path",
+            "description": "Collaborator (`me` is accepted).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "tag",
+            "in": "path",
+            "description": "Tag.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "parent_task_id",
+            "in": "path",
+            "description": "Subtasks of this Task.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "top_level",
+            "in": "path",
+            "description": "Top-level Tasks only.",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "due_by",
+            "in": "path",
+            "description": "Due on or before.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "description": "Linked to this ticket.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "change_id",
+            "in": "path",
+            "description": "Linked to this Change.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "path",
+            "description": "Title text.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200; per column on the Board).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Creates a Task or Subtask (needs `tasks.create`).",
+        "operationId": "create_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/board": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "The Board (FR-TSK-005): a column per active status, top-level Tasks in Board order.",
+        "operationId": "task_board",
+        "parameters": [
+          {
+            "name": "open",
+            "in": "path",
+            "description": "Open (`true`) or closed (`false`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "status_id",
+            "in": "path",
+            "description": "Status.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assignee",
+            "in": "path",
+            "description": "Assigned Analyst (`me` is accepted).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "team_id",
+            "in": "path",
+            "description": "Assigned Team.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "collaborator",
+            "in": "path",
+            "description": "Collaborator (`me` is accepted).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "tag",
+            "in": "path",
+            "description": "Tag.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "parent_task_id",
+            "in": "path",
+            "description": "Subtasks of this Task.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "top_level",
+            "in": "path",
+            "description": "Top-level Tasks only.",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "due_by",
+            "in": "path",
+            "description": "Due on or before.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "description": "Linked to this ticket.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "change_id",
+            "in": "path",
+            "description": "Linked to this Change.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "path",
+            "description": "Title text.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200; per column on the Board).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskBoardColumnDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "One Task.",
+        "operationId": "get_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Edits a Task (needs `tasks.update`); assigning an Analyst notifies them.",
+        "operationId": "edit_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/collaborators": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Collaborators of a Task.",
+        "operationId": "get_task_collaborators",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCollaboratorsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Replaces the collaborators (needs `tasks.update`).",
+        "operationId": "set_task_collaborators",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCollaboratorsDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCollaboratorsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/comments": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Comments, oldest first.",
+        "operationId": "list_task_comments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskCommentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Adds a comment (needs `tasks.update`).",
+        "operationId": "add_task_comment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCommentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCommentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/history": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "The audit trail of a Task (FR-TSK-003).",
+        "operationId": "task_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/links": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Linked tickets and Changes you may see (FR-TSK-004).",
+        "operationId": "list_task_links",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskLinkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Links a ticket or Change of the same Company (needs `tasks.update`).",
+        "operationId": "link_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/links/{kind}/{target_id}": {
+      "delete": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Removes a link (needs `tasks.update`).",
+        "operationId": "unlink_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/recurrence": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "The Task's Recurrence, if any.",
+        "operationId": "get_task_recurrence",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TaskRecurrenceDto"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Starts, replaces or stops a Task's Recurrence (needs `tasks.update`; FR-TSK-006).",
+        "operationId": "set_task_recurrence",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskRecurrenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/TaskRecurrenceDto"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/status": {
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Moves a Task to a status and place on the Board (needs `tasks.update`). Completing\na Task that repeats on completion creates its next occurrence.",
+        "operationId": "move_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskMoveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/time-entries": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Time entries, by day.",
+        "operationId": "list_task_time",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskTimeEntryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Records your time on a Task (needs `tasks.update`).",
+        "operationId": "add_task_time",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskTimeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTimeEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/time-entries/{entry_id}": {
+      "delete": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Removes a time entry: your own, or anyone's with `tasks.configure`.",
+        "operationId": "delete_task_time",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
     "/api/v1/teams": {
       "get": {
         "tags": [
@@ -9303,6 +10498,40 @@
         "responses": {
           "204": {
             "description": "Left"
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/related": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Problems, Changes, Tasks and Knowledge Articles linked to a ticket you may see, each\nas far as its Module is on and you may read it (FR-TKT-030).",
+        "operationId": "ticket_related_records",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelatedRecordsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such ticket, or not visible"
           }
         }
       }
@@ -13396,7 +14625,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed` or `article_review_due`."
+            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed`, `article_review_due` or `task_assigned`."
           },
           "read_at": {
             "type": [
@@ -13405,6 +14634,14 @@
             ],
             "format": "date-time",
             "description": "When it was read."
+          },
+          "task_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Linked Task."
           },
           "ticket_id": {
             "type": [
@@ -15123,6 +16360,77 @@
           }
         }
       },
+      "RelatedRecordDto": {
+        "type": "object",
+        "description": "A record linked to a ticket.",
+        "required": [
+          "id",
+          "title",
+          "is_closed"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Resolved, closed, done or archived."
+          },
+          "number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its number (Problem or Change Number), if it has one."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          }
+        }
+      },
+      "RelatedRecordsDto": {
+        "type": "object",
+        "description": "Records linked to a ticket, by kind.",
+        "required": [
+          "problems",
+          "changes",
+          "tasks",
+          "articles"
+        ],
+        "properties": {
+          "articles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedRecordDto"
+            },
+            "description": "Knowledge Articles (FR-KNW-008)."
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedRecordDto"
+            },
+            "description": "Changes (FR-CHG-008)."
+          },
+          "problems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedRecordDto"
+            },
+            "description": "Problems (FR-PRB-003)."
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedRecordDto"
+            },
+            "description": "Tasks (FR-TSK-004)."
+          }
+        }
+      },
       "RenderedTemplateDto": {
         "type": "object",
         "description": "A rendered Reply Template.",
@@ -16053,6 +17361,694 @@
             "type": "string",
             "format": "uuid",
             "description": "One of the session's `requesters`."
+          }
+        }
+      },
+      "TaskBoardColumnDto": {
+        "type": "object",
+        "description": "A Board column.",
+        "required": [
+          "status",
+          "tasks",
+          "has_more"
+        ],
+        "properties": {
+          "has_more": {
+            "type": "boolean",
+            "description": "More Tasks than `limit` are in this column."
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaskLookupDto",
+            "description": "The status."
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskDto"
+            },
+            "description": "Its top-level Tasks in Board order."
+          }
+        }
+      },
+      "TaskCollaboratorsDto": {
+        "type": "object",
+        "description": "Collaborators.",
+        "required": [
+          "analyst_ids"
+        ],
+        "properties": {
+          "analyst_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The Analysts."
+          }
+        }
+      },
+      "TaskCommentDto": {
+        "type": "object",
+        "description": "A comment.",
+        "required": [
+          "id",
+          "body",
+          "created_at"
+        ],
+        "properties": {
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Author."
+          },
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          }
+        }
+      },
+      "TaskCommentRequest": {
+        "type": "object",
+        "description": "Adds a comment.",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Text."
+          }
+        }
+      },
+      "TaskDto": {
+        "type": "object",
+        "description": "A Task (FR-TSK-001).",
+        "required": [
+          "id",
+          "company_id",
+          "title",
+          "description",
+          "status_id",
+          "is_closed",
+          "priority_id",
+          "tags",
+          "board_position",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "assigned_analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned Analyst."
+          },
+          "assigned_team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned Team."
+          },
+          "board_position": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Place in its Board column."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Completed or cancelled."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Deadline."
+          },
+          "estimate_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Estimate in minutes."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Whether the status is closed."
+          },
+          "parent_task_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Parent (for a Subtask)."
+          },
+          "previous_occurrence_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The occurrence it followed."
+          },
+          "priority_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Priority."
+          },
+          "recurrence_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Repeat series."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Planned start."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Status."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "TaskHistoryDto": {
+        "type": "object",
+        "description": "One change in a Task's history.",
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created` or `updated`."
+          },
+          "actor": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "TaskLinkDto": {
+        "type": "object",
+        "description": "A linked ticket or Change.",
+        "required": [
+          "kind",
+          "target_id",
+          "number",
+          "linked_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `change`."
+          },
+          "linked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was linked."
+          },
+          "number": {
+            "type": "string",
+            "description": "Its number."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The record."
+          }
+        }
+      },
+      "TaskLinkRequest": {
+        "type": "object",
+        "description": "Links a record.",
+        "required": [
+          "kind",
+          "target_id"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `change`."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The record (same Company)."
+          }
+        }
+      },
+      "TaskLookupDto": {
+        "type": "object",
+        "description": "A Task Status or Priority.",
+        "required": [
+          "id",
+          "name",
+          "is_closed",
+          "is_done",
+          "is_default",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Statuses: finished."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Default."
+          },
+          "is_done": {
+            "type": "boolean",
+            "description": "Statuses: finished by completing (repeats on completion)."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stable key of seeded rows."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order (Board columns follow it)."
+          }
+        }
+      },
+      "TaskLookupRequest": {
+        "type": "object",
+        "description": "Creates or changes a Task Status or Priority.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Statuses: closed."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Default."
+          },
+          "is_done": {
+            "type": "boolean",
+            "description": "Statuses: done (closed by completing)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "TaskMoveRequest": {
+        "type": "object",
+        "description": "A move on the Board.",
+        "required": [
+          "status_id"
+        ],
+        "properties": {
+          "index": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Place in the column, 0-based (absent: keep the position).",
+            "minimum": 0
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The status (column)."
+          }
+        }
+      },
+      "TaskPage": {
+        "type": "object",
+        "description": "A page of Tasks.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskDto"
+            },
+            "description": "Tasks, newest activity first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "TaskRecurrenceDto": {
+        "type": "object",
+        "description": "A Task's repeat series.",
+        "required": [
+          "id",
+          "rule",
+          "occurrences_created",
+          "is_active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Series ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "next_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Fixed schedule: the next date."
+          },
+          "occurrences_created": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Occurrences made so far.",
+            "minimum": 0
+          },
+          "rule": {
+            "type": "object",
+            "description": "The rule: `frequency` (`daily`, `weekly` with `weekdays`, `monthly` with `on` =\n`day_of_month` (`day`) or `nth_weekday` (`nth`, `weekday`), `yearly` with `month`\nand `day`), `interval`, `mode` (`on_completion` or `fixed`), and `ends` (`never`,\n`on_date` with `date`, `after_count` with `count`)."
+          }
+        }
+      },
+      "TaskRecurrenceRequest": {
+        "type": "object",
+        "description": "Sets or stops a Recurrence.",
+        "required": [
+          "rule"
+        ],
+        "properties": {
+          "rule": {
+            "type": "object",
+            "description": "The rule (see the response), or null to stop repeating."
+          }
+        }
+      },
+      "TaskRequest": {
+        "type": "object",
+        "description": "Creates or edits a Task.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "assigned_analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned Analyst."
+          },
+          "assigned_team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned Team."
+          },
+          "collaborator_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Collaborators (create only; use the collaborators endpoint afterwards)."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only; a Subtask takes its parent's)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Deadline."
+          },
+          "estimate_minutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Estimate in minutes."
+          },
+          "parent_task_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Parent, to create a Subtask (create only)."
+          },
+          "priority_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Priority (default when absent)."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Planned start."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Status (create only; default when absent)."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          }
+        }
+      },
+      "TaskTimeEntryDto": {
+        "type": "object",
+        "description": "Time spent.",
+        "required": [
+          "id",
+          "analyst_id",
+          "work_date",
+          "minutes",
+          "note"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Who."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "How long."
+          },
+          "note": {
+            "type": "string",
+            "description": "What."
+          },
+          "work_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Which day."
+          }
+        }
+      },
+      "TaskTimeRequest": {
+        "type": "object",
+        "description": "Records time.",
+        "required": [
+          "minutes"
+        ],
+        "properties": {
+          "minutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Minutes, 1–1440."
+          },
+          "note": {
+            "type": "string",
+            "description": "What was done."
+          },
+          "work_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Which day (default today)."
           }
         }
       },
@@ -17167,6 +19163,10 @@
     {
       "name": "Knowledge",
       "description": "Knowledge Articles, versions, Folders and access lists"
+    },
+    {
+      "name": "Tasks",
+      "description": "Tasks, Subtasks, the Board and Recurrence"
     },
     {
       "name": "Administration",

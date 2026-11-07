@@ -1,0 +1,297 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT t.id, t.tenant_id, t.title, t.description, t.status_id, s.is_closed, t.priority_id, t.start_date, t.due_date,\n                      t.estimate_minutes, t.assigned_analyst_id, t.assigned_team_id, t.parent_task_id, t.tags, t.board_position,\n                      t.recurrence_id, t.previous_occurrence_id, t.created_by_kind, t.created_by_id, t.created_at, t.updated_at,\n                      t.completed_at\n               FROM tasks t JOIN task_statuses s ON s.id = t.status_id\n               WHERE ($1 OR t.tenant_id = ANY($2))\n                 AND ($3::boolean IS NULL OR s.is_closed = NOT $3)\n                 AND ($4::uuid IS NULL OR t.status_id = $4)\n                 AND ($5::uuid IS NULL OR t.assigned_analyst_id = $5)\n                 AND ($6::uuid IS NULL OR t.assigned_team_id = $6)\n                 AND ($7::uuid IS NULL OR EXISTS (SELECT 1 FROM task_collaborators c WHERE c.task_id = t.id AND c.analyst_id = $7))\n                 AND ($8::text IS NULL OR $8 = ANY(t.tags))\n                 AND ($9::uuid IS NULL OR t.parent_task_id = $9)\n                 AND (NOT $10 OR t.parent_task_id IS NULL)\n                 AND ($11::date IS NULL OR t.due_date <= $11)\n                 AND ($12::text IS NULL OR EXISTS (SELECT 1 FROM task_links l WHERE l.task_id = t.id AND l.kind = $12 AND l.target_id = $13))\n                 AND ($14::text IS NULL OR t.title ILIKE $14)\n                 AND ($15 OR $16::timestamptz IS NULL OR (t.updated_at, t.id) < ($16, $17::uuid))\n               ORDER BY CASE WHEN $15 THEN t.board_position END, CASE WHEN $15 THEN t.id END,\n                        t.updated_at DESC, t.id DESC\n               LIMIT $18",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "is_closed",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "task_statuses",
+            "name": "is_closed"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "priority_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "priority_id"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "start_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "start_date"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "due_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "due_date"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "estimate_minutes",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "estimate_minutes"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "assigned_analyst_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "assigned_analyst_id"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "assigned_team_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "assigned_team_id"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "parent_task_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "parent_task_id"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "tags",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "tags"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "board_position",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "board_position"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "recurrence_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "recurrence_id"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "previous_occurrence_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "previous_occurrence_id"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "completed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "tasks",
+            "name": "completed_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Bool",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Bool",
+        "Date",
+        "Text",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "1035ec2d4040387bc8068fbb5aef8d27bbad22f4b8f757121b8e77d623ba0c0e"
+}

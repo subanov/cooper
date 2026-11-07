@@ -173,11 +173,11 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Task** | A unit of work with status, priority, start and due date, and an assignee (Analyst, Team, Supplier or Contact). Can link to a ticket, change, contract or project. Supports **Subtasks** (`parent_task_id`). | `Task`, `tasks` | to-do, job |
-| **Task Status / Priority** | Configurable lookups. Status seed: **To Do** (default), **In Progress**, **Blocked**, **Done** (closed), **Cancelled** (closed). Priority seed: **Low**, **Medium** (default), **High**, **Urgent**. | `TaskStatus`, `TaskPriority` | |
-| **Board** | Kanban view of Tasks by status (`board_position`). | — | |
-| **Recurrence** | A repeat rule for a Task (daily, weekly, monthly, yearly). Repeats **on completion** or on a **fixed schedule**. | `TaskRecurrence` | |
-| **Collaborator** | An extra Analyst involved in a Task. | `TaskCollaborator` | watcher |
-| **Tag** | A free label on Tasks. | `TaskTag` | |
+| **Task Status / Priority** | Configurable lookups. Status seed: **To Do** (default), **In Progress**, **Blocked**, **Done** (closed, done), **Cancelled** (closed). A *done* status completes the Task (and repeats it); other closed statuses abandon it. Priority seed: **Low**, **Medium** (default), **High**, **Urgent**. | `Lookup` (`LookupKind::{Status, Priority}`), `task_statuses`, `task_priorities` | |
+| **Board** | Kanban view of top-level Tasks: a column per active status, cards by `board_position`. | `/tasks/board` | |
+| **Recurrence** | A repeat rule for a Task (daily, weekly, monthly, yearly) and its series of occurrences, each a real Task. Repeats **on completion** or on a **fixed schedule**, until an end condition. | `RecurrenceRule`, `Recurrence`, `task_recurrences` | template |
+| **Collaborator** | An extra Analyst involved in a Task. | `task_collaborators` | watcher |
+| **Tag** | A free, lower-case label on Tasks. | `TaskDetails::tags` | |
 | **Procedure** | A Knowledge article attached to a Task, frozen as a snapshot. | `TaskProcedure` | |
 | **Project** | An IT project built on Tasks. Method: Simple, Staged (PRINCE2-style) or Agile. Has stages, stage gates, milestones, a RAID log, a decision log, a budget and benefits. | `Project` | programme |
 | **Stage / Stage Gate** | A project phase and the go/no-go decision at its end. | `ProjectStage` | |

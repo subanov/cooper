@@ -727,12 +727,14 @@ dependencies = [
  "cooper-platform",
  "cooper-problem-management",
  "cooper-service-desk",
+ "cooper-tasks",
  "futures",
  "http",
  "http-body-util",
  "lettre",
  "ring",
  "rust-embed",
+ "serde",
  "serde_json",
  "sha2 0.11.1",
  "sqlx",
@@ -779,6 +781,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "cooper-tasks"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "cooper-http",
+ "cooper-kernel",
+ "cooper-platform",
+ "proptest",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.21",
+ "tracing",
+ "utoipa",
+ "utoipa-axum",
+ "uuid",
+]
+
+[[package]]
 name = "cooper-worker"
 version = "0.1.0"
 dependencies = [
@@ -790,6 +813,7 @@ dependencies = [
  "cooper-platform",
  "cooper-server",
  "cooper-service-desk",
+ "cooper-tasks",
  "tokio",
  "tracing",
  "uuid",

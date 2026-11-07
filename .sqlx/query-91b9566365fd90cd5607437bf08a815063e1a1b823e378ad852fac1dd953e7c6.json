@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tasks SET title = $2, description = $3, status_id = $4, priority_id = $5, start_date = $6, due_date = $7,\n                estimate_minutes = $8, assigned_analyst_id = $9, assigned_team_id = $10, tags = $11, board_position = $12,\n                recurrence_id = $13, updated_at = $14, completed_at = $15\n         WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Date",
+        "Date",
+        "Int4",
+        "Uuid",
+        "Uuid",
+        "TextArray",
+        "Int8",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "91b9566365fd90cd5607437bf08a815063e1a1b823e378ad852fac1dd953e7c6"
+}

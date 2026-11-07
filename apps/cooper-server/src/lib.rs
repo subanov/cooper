@@ -10,6 +10,7 @@ mod adapters;
 pub mod config;
 mod health;
 pub mod live;
+mod related;
 mod state;
 mod web;
 
@@ -45,6 +46,7 @@ pub use state::{
         (name = "Problems", description = "Problems, Known Errors and their incident tickets"),
         (name = "Changes", description = "Changes, CAB approval, the Change Calendar and Change Templates"),
         (name = "Knowledge", description = "Knowledge Articles, versions, Folders and access lists"),
+        (name = "Tasks", description = "Tasks, Subtasks, the Board and Recurrence"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
         (name = "Live updates", description = "Server-Sent Events telling the web UI which data changed (ADR-0022)"),
     )
@@ -61,7 +63,9 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_problem_management::api::router())
         .merge(cooper_change_management::api::router())
         .merge(cooper_knowledge::api::router())
+        .merge(cooper_tasks::api::router())
         .merge(live::router())
+        .merge(related::router())
         .split_for_parts()
 }
 

@@ -2574,6 +2574,284 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/task-priorities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_task_priorities"];
+        put?: never;
+        post: operations["create_task_priority"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/task-priorities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_task_priority"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/task-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_task_statuses"];
+        put?: never;
+        post: operations["create_task_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/task-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_task_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tasks in your Companies, newest activity first (needs `tasks.read`). */
+        get: operations["list_tasks"];
+        put?: never;
+        /** Creates a Task or Subtask (needs `tasks.create`). */
+        post: operations["create_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Board (FR-TSK-005): a column per active status, top-level Tasks in Board order. */
+        get: operations["task_board"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Task. */
+        get: operations["get_task"];
+        /** Edits a Task (needs `tasks.update`); assigning an Analyst notifies them. */
+        put: operations["edit_task"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/collaborators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Collaborators of a Task. */
+        get: operations["get_task_collaborators"];
+        /** Replaces the collaborators (needs `tasks.update`). */
+        put: operations["set_task_collaborators"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comments, oldest first. */
+        get: operations["list_task_comments"];
+        put?: never;
+        /** Adds a comment (needs `tasks.update`). */
+        post: operations["add_task_comment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The audit trail of a Task (FR-TSK-003). */
+        get: operations["task_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Linked tickets and Changes you may see (FR-TSK-004). */
+        get: operations["list_task_links"];
+        put?: never;
+        /** Links a ticket or Change of the same Company (needs `tasks.update`). */
+        post: operations["link_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/links/{kind}/{target_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a link (needs `tasks.update`). */
+        delete: operations["unlink_task"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/recurrence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Task's Recurrence, if any. */
+        get: operations["get_task_recurrence"];
+        /** Starts, replaces or stops a Task's Recurrence (needs `tasks.update`; FR-TSK-006). */
+        put: operations["set_task_recurrence"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Moves a Task to a status and place on the Board (needs `tasks.update`). Completing
+         *     a Task that repeats on completion creates its next occurrence.
+         */
+        post: operations["move_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/time-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Time entries, by day. */
+        get: operations["list_task_time"];
+        put?: never;
+        /** Records your time on a Task (needs `tasks.update`). */
+        post: operations["add_task_time"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/time-entries/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a time entry: your own, or anyone's with `tasks.configure`. */
+        delete: operations["delete_task_time"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teams": {
         parameters: {
             query?: never;
@@ -3223,6 +3501,26 @@ export interface paths {
         post?: never;
         /** The signed-in Analyst closed the ticket. */
         delete: operations["leave"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/related": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Problems, Changes, Tasks and Knowledge Articles linked to a ticket you may see, each
+         *     as far as its Module is on and you may read it (FR-TKT-030).
+         */
+        get: operations["ticket_related_records"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -5275,7 +5573,7 @@ export interface components {
             /**
              * @description `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
              *     `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-             *     `change_scheduled`, `change_completed` or `article_review_due`.
+             *     `change_scheduled`, `change_completed`, `article_review_due` or `task_assigned`.
              */
             kind: string;
             /**
@@ -5283,6 +5581,11 @@ export interface components {
              * @description When it was read.
              */
             read_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Linked Task.
+             */
+            task_id?: string | null;
             /**
              * Format: uuid
              * @description Linked ticket.
@@ -6113,6 +6416,31 @@ export interface components {
             /** @description Subject. */
             subject: string;
         };
+        /** @description A record linked to a ticket. */
+        RelatedRecordDto: {
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Resolved, closed, done or archived. */
+            is_closed: boolean;
+            /** @description Its number (Problem or Change Number), if it has one. */
+            number?: string | null;
+            /** @description Title. */
+            title: string;
+        };
+        /** @description Records linked to a ticket, by kind. */
+        RelatedRecordsDto: {
+            /** @description Knowledge Articles (FR-KNW-008). */
+            articles: components["schemas"]["RelatedRecordDto"][];
+            /** @description Changes (FR-CHG-008). */
+            changes: components["schemas"]["RelatedRecordDto"][];
+            /** @description Problems (FR-PRB-003). */
+            problems: components["schemas"]["RelatedRecordDto"][];
+            /** @description Tasks (FR-TSK-004). */
+            tasks: components["schemas"]["RelatedRecordDto"][];
+        };
         /** @description A rendered Reply Template. */
         RenderedTemplateDto: {
             /** @description The text with placeholders filled in. */
@@ -6545,6 +6873,373 @@ export interface components {
              * @description One of the session's `requesters`.
              */
             requester_id: string;
+        };
+        /** @description A Board column. */
+        TaskBoardColumnDto: {
+            /** @description More Tasks than `limit` are in this column. */
+            has_more: boolean;
+            /** @description The status. */
+            status: components["schemas"]["TaskLookupDto"];
+            /** @description Its top-level Tasks in Board order. */
+            tasks: components["schemas"]["TaskDto"][];
+        };
+        /** @description Collaborators. */
+        TaskCollaboratorsDto: {
+            /** @description The Analysts. */
+            analyst_ids: string[];
+        };
+        /** @description A comment. */
+        TaskCommentDto: {
+            /**
+             * Format: uuid
+             * @description Author.
+             */
+            author_id?: string | null;
+            /** @description Text. */
+            body: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+        };
+        /** @description Adds a comment. */
+        TaskCommentRequest: {
+            /** @description Text. */
+            body: string;
+        };
+        /** @description A Task (FR-TSK-001). */
+        TaskDto: {
+            /**
+             * Format: uuid
+             * @description Assigned Analyst.
+             */
+            assigned_analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Assigned Team.
+             */
+            assigned_team_id?: string | null;
+            /**
+             * Format: int64
+             * @description Place in its Board column.
+             */
+            board_position: number;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Completed or cancelled.
+             */
+            completed_at?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: date
+             * @description Deadline.
+             */
+            due_date?: string | null;
+            /**
+             * Format: int32
+             * @description Estimate in minutes.
+             */
+            estimate_minutes?: number | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Whether the status is closed. */
+            is_closed: boolean;
+            /**
+             * Format: uuid
+             * @description Parent (for a Subtask).
+             */
+            parent_task_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The occurrence it followed.
+             */
+            previous_occurrence_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Priority.
+             */
+            priority_id: string;
+            /**
+             * Format: uuid
+             * @description Repeat series.
+             */
+            recurrence_id?: string | null;
+            /**
+             * Format: date
+             * @description Planned start.
+             */
+            start_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Status.
+             */
+            status_id: string;
+            /** @description Tags. */
+            tags: string[];
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description One change in a Task's history. */
+        TaskHistoryDto: {
+            /** @description `created` or `updated`. */
+            action: string;
+            /** @description Who (`{kind, id}`). */
+            actor: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /** @description Field. */
+            field?: string | null;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /** @description A linked ticket or Change. */
+        TaskLinkDto: {
+            /** @description `ticket` or `change`. */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When it was linked.
+             */
+            linked_at: string;
+            /** @description Its number. */
+            number: string;
+            /**
+             * Format: uuid
+             * @description The record.
+             */
+            target_id: string;
+        };
+        /** @description Links a record. */
+        TaskLinkRequest: {
+            /** @description `ticket` or `change`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description The record (same Company).
+             */
+            target_id: string;
+        };
+        /** @description A Task Status or Priority. */
+        TaskLookupDto: {
+            /** @description `#rrggbb`. */
+            colour?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Statuses: finished. */
+            is_closed: boolean;
+            /** @description Default. */
+            is_default: boolean;
+            /** @description Statuses: finished by completing (repeats on completion). */
+            is_done: boolean;
+            /** @description Stable key of seeded rows. */
+            key?: string | null;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order (Board columns follow it).
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes a Task Status or Priority. */
+        TaskLookupRequest: {
+            /** @description `#rrggbb`. */
+            colour?: string | null;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Statuses: closed. */
+            is_closed?: boolean;
+            /** @description Default. */
+            is_default?: boolean;
+            /** @description Statuses: done (closed by completing). */
+            is_done?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description A move on the Board. */
+        TaskMoveRequest: {
+            /** @description Place in the column, 0-based (absent: keep the position). */
+            index?: number | null;
+            /**
+             * Format: uuid
+             * @description The status (column).
+             */
+            status_id: string;
+        };
+        /** @description A page of Tasks. */
+        TaskPage: {
+            /** @description Tasks, newest activity first. */
+            items: components["schemas"]["TaskDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description A Task's repeat series. */
+        TaskRecurrenceDto: {
+            /**
+             * Format: uuid
+             * @description Series ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /**
+             * Format: date
+             * @description Fixed schedule: the next date.
+             */
+            next_date?: string | null;
+            /**
+             * Format: int32
+             * @description Occurrences made so far.
+             */
+            occurrences_created: number;
+            /**
+             * @description The rule: `frequency` (`daily`, `weekly` with `weekdays`, `monthly` with `on` =
+             *     `day_of_month` (`day`) or `nth_weekday` (`nth`, `weekday`), `yearly` with `month`
+             *     and `day`), `interval`, `mode` (`on_completion` or `fixed`), and `ends` (`never`,
+             *     `on_date` with `date`, `after_count` with `count`).
+             */
+            rule: Record<string, never>;
+        };
+        /** @description Sets or stops a Recurrence. */
+        TaskRecurrenceRequest: {
+            /** @description The rule (see the response), or null to stop repeating. */
+            rule: Record<string, never>;
+        };
+        /** @description Creates or edits a Task. */
+        TaskRequest: {
+            /**
+             * Format: uuid
+             * @description Assigned Analyst.
+             */
+            assigned_analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Assigned Team.
+             */
+            assigned_team_id?: string | null;
+            /** @description Collaborators (create only; use the collaborators endpoint afterwards). */
+            collaborator_ids?: string[];
+            /**
+             * Format: uuid
+             * @description Company (create only; a Subtask takes its parent's).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /**
+             * Format: date
+             * @description Deadline.
+             */
+            due_date?: string | null;
+            /**
+             * Format: int32
+             * @description Estimate in minutes.
+             */
+            estimate_minutes?: number | null;
+            /**
+             * Format: uuid
+             * @description Parent, to create a Subtask (create only).
+             */
+            parent_task_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Priority (default when absent).
+             */
+            priority_id?: string | null;
+            /**
+             * Format: date
+             * @description Planned start.
+             */
+            start_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Status (create only; default when absent).
+             */
+            status_id?: string | null;
+            /** @description Tags. */
+            tags?: string[];
+            /** @description Title. */
+            title: string;
+        };
+        /** @description Time spent. */
+        TaskTimeEntryDto: {
+            /**
+             * Format: uuid
+             * @description Who.
+             */
+            analyst_id: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: int32
+             * @description How long.
+             */
+            minutes: number;
+            /** @description What. */
+            note: string;
+            /**
+             * Format: date
+             * @description Which day.
+             */
+            work_date: string;
+        };
+        /** @description Records time. */
+        TaskTimeRequest: {
+            /**
+             * Format: int32
+             * @description Minutes, 1–1440.
+             */
+            minutes: number;
+            /** @description What was done. */
+            note?: string;
+            /**
+             * Format: date
+             * @description Which day (default today).
+             */
+            work_date?: string | null;
         };
         /** @description A Team. */
         TeamDto: {
@@ -11998,6 +12693,622 @@ export interface operations {
             };
         };
     };
+    list_task_priorities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLookupDto"][];
+                };
+            };
+        };
+    };
+    create_task_priority: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLookupDto"];
+                };
+            };
+        };
+    };
+    update_task_priority: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLookupDto"];
+                };
+            };
+        };
+    };
+    list_task_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLookupDto"][];
+                };
+            };
+        };
+    };
+    create_task_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLookupDto"];
+                };
+            };
+        };
+    };
+    update_task_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLookupDto"];
+                };
+            };
+        };
+    };
+    list_tasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Open (`true`) or closed (`false`). */
+                open: boolean | null;
+                /** @description Status. */
+                status_id: string | null;
+                /** @description Assigned Analyst (`me` is accepted). */
+                assignee: string | null;
+                /** @description Assigned Team. */
+                team_id: string | null;
+                /** @description Collaborator (`me` is accepted). */
+                collaborator: string | null;
+                /** @description Tag. */
+                tag: string | null;
+                /** @description Subtasks of this Task. */
+                parent_task_id: string | null;
+                /** @description Top-level Tasks only. */
+                top_level: boolean | null;
+                /** @description Due on or before. */
+                due_by: string | null;
+                /** @description Linked to this ticket. */
+                ticket_id: string | null;
+                /** @description Linked to this Change. */
+                change_id: string | null;
+                /** @description Title text. */
+                q: string | null;
+                /** @description Page size (1 to 200; per column on the Board). */
+                limit: number | null;
+                /** @description Cursor. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskPage"];
+                };
+            };
+        };
+    };
+    create_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDto"];
+                };
+            };
+        };
+    };
+    task_board: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Open (`true`) or closed (`false`). */
+                open: boolean | null;
+                /** @description Status. */
+                status_id: string | null;
+                /** @description Assigned Analyst (`me` is accepted). */
+                assignee: string | null;
+                /** @description Assigned Team. */
+                team_id: string | null;
+                /** @description Collaborator (`me` is accepted). */
+                collaborator: string | null;
+                /** @description Tag. */
+                tag: string | null;
+                /** @description Subtasks of this Task. */
+                parent_task_id: string | null;
+                /** @description Top-level Tasks only. */
+                top_level: boolean | null;
+                /** @description Due on or before. */
+                due_by: string | null;
+                /** @description Linked to this ticket. */
+                ticket_id: string | null;
+                /** @description Linked to this Change. */
+                change_id: string | null;
+                /** @description Title text. */
+                q: string | null;
+                /** @description Page size (1 to 200; per column on the Board). */
+                limit: number | null;
+                /** @description Cursor. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskBoardColumnDto"][];
+                };
+            };
+        };
+    };
+    get_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDto"];
+                };
+            };
+        };
+    };
+    edit_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDto"];
+                };
+            };
+        };
+    };
+    get_task_collaborators: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskCollaboratorsDto"];
+                };
+            };
+        };
+    };
+    set_task_collaborators: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCollaboratorsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskCollaboratorsDto"];
+                };
+            };
+        };
+    };
+    list_task_comments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskCommentDto"][];
+                };
+            };
+        };
+    };
+    add_task_comment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCommentRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskCommentDto"];
+                };
+            };
+        };
+    };
+    task_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskHistoryDto"][];
+                };
+            };
+        };
+    };
+    list_task_links: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLinkDto"][];
+                };
+            };
+        };
+    };
+    link_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskLinkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskLinkDto"];
+                };
+            };
+        };
+    };
+    unlink_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                kind: string;
+                target_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_task_recurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRecurrenceDto"] | null;
+                };
+            };
+        };
+    };
+    set_task_recurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskRecurrenceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskRecurrenceDto"] | null;
+                };
+            };
+        };
+    };
+    move_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskMoveRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskDto"];
+                };
+            };
+        };
+    };
+    list_task_time: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTimeEntryDto"][];
+                };
+            };
+        };
+    };
+    add_task_time: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskTimeRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskTimeEntryDto"];
+                };
+            };
+        };
+    };
+    delete_task_time: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_teams: {
         parameters: {
             query?: {
@@ -13283,6 +14594,34 @@ export interface operations {
         responses: {
             /** @description Left */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ticket_related_records: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelatedRecordsDto"];
+                };
+            };
+            /** @description No such ticket, or not visible */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
