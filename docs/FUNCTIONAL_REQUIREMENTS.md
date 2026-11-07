@@ -185,12 +185,12 @@ come from [VOCABULARY.md](VOCABULARY.md).
 
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
-| FR-PRB-001 | Analysts create a **Problem** (Problem Number, title, description, status, priority, assigned Analyst). | M | P2 |
+| FR-PRB-001 | Analysts create a **Problem** (Problem Number, title, description, status, priority, assigned Analyst). Problem Numbers are `PRB-00001`, … across the instance (ADR-0026). | M | P2 |
 | FR-PRB-002 | Problem Statuses and Priorities are configurable. | M | P2 |
 | FR-PRB-003 | One or more incident tickets can be linked to a Problem. The link is visible from both sides. | M | P2 |
-| FR-PRB-004 | Analysts record a **Root Cause** and a **Workaround**, and can flag the Problem as a **Known Error**. | M | P2 |
+| FR-PRB-004 | Analysts record a **Root Cause** and a **Workaround**, and can flag the Problem as a **Known Error**. A Known Error needs a Root Cause or a Workaround. | M | P2 |
 | FR-PRB-005 | A Known Error's Workaround can be published as a Knowledge Article. | S | P2 |
-| FR-PRB-006 | When a Problem is resolved, linked tickets can be bulk-updated or notified. | C | P2 |
+| FR-PRB-006 | When a Problem is resolved, linked tickets can be bulk-updated or notified. Cooper offers closing them (with a Resolution Code) or adding a Note (public Notes reach the Requester on the Portal); each ticket passes the usual service desk checks and reports its outcome (ADR-0026). | C | P2 |
 | FR-PRB-007 | Problems have notes and a full audit trail. | M | P2 |
 
 ## 9. Change Management (CHG)

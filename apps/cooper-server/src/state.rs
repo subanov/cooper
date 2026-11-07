@@ -169,6 +169,8 @@ pub struct AppState {
     pub service_desk: ServiceDeskApi,
     /// Notifications API state.
     pub notifications: NotificationsApi,
+    /// Problem Management API state.
+    pub problems: cooper_problem_management::api::ProblemsApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -181,6 +183,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .iter()
         .chain(admin_capabilities::ALL)
         .chain(desk_capabilities::ALL)
+        .chain(cooper_problem_management::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -205,6 +208,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
         .iter()
         .map(|p| (*p, Module::Tickets))
         .chain([("/portal", Module::Portal)])
+        .chain(
+            cooper_problem_management::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Problems)),
+        )
         .collect()
 }
 
@@ -276,6 +284,19 @@ impl AppState {
             Arc::new(PgNotificationStore::new(pool.clone())),
             clock.clone(),
         );
+        let problems = cooper_problem_management::api::ProblemsApi {
+            service: cooper_problem_management::application::ProblemService::new(
+                cooper_problem_management::application::ProblemPorts {
+                    problems: Arc::new(
+                        cooper_problem_management::infrastructure::PgProblemStore::new(
+                            pool.clone(),
+                        ),
+                    ),
+                    tickets: Arc::new(DeskTickets { desk: desk.clone() }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         Ok(Self {
             live: cooper_platform::live::LiveFeed::new(pool.clone()),
             pool,
@@ -292,6 +313,7 @@ impl AppState {
             notifications: NotificationsApi {
                 service: notifications,
             },
+            problems,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs: cooper_platform::attachments::FilesystemBlobStore::new(security.blob_dir),
@@ -375,6 +397,12 @@ impl AppState {
     }
 }
 
+impl FromRef<AppState> for cooper_problem_management::api::ProblemsApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.problems.clone()
+    }
+}
+
 impl FromRef<AppState> for NotificationsApi {
     fn from_ref(state: &AppState) -> Self {
         state.notifications.clone()
@@ -410,6 +438,7 @@ mod tests {
             identity_capabilities::ALL.len()
                 + admin_capabilities::ALL.len()
                 + desk_capabilities::ALL.len()
+                + cooper_problem_management::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

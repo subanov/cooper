@@ -1,0 +1,210 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, problem_number, title, description, status_id, priority_id, assigned_analyst_id, root_cause,\n                    workaround, is_known_error, created_by_kind, created_by_id, created_at, updated_at, closed_at\n             FROM problems WHERE id = $1 AND ($2 OR tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "problem_number",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "problem_number"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "priority_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "priority_id"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "assigned_analyst_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "assigned_analyst_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "root_cause",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "root_cause"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "workaround",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "workaround"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "is_known_error",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "is_known_error"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "closed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "problems",
+            "name": "closed_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "f2b6ec9dd79dafa94c32eb0a66ac871c0eac99c402492e0811e3e7a78f57338f"
+}

@@ -537,3 +537,66 @@ impl cooper_identity::domain::ResetMailer for OutboxResetMailer {
         .await
     }
 }
+
+#[async_trait]
+impl cooper_problem_management::domain::Tickets for DeskTickets {
+    async fn ticket(
+        &self,
+        principal: &cooper_kernel::Principal,
+        id: cooper_kernel::TicketId,
+    ) -> Result<
+        Option<cooper_problem_management::domain::TicketSummary>,
+        cooper_problem_management::domain::RepoError,
+    > {
+        use cooper_service_desk::application::AppError;
+        match self.desk.ticket(principal, id).await {
+            Ok(d) => Ok(Some(cooper_problem_management::domain::TicketSummary {
+                id,
+                tenant_id: d.ticket.tenant_id(),
+                number: d.ticket.number().to_owned(),
+                subject: d.ticket.details().subject.clone(),
+                is_closed: d.ticket.closed_at().is_some(),
+            })),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(cooper_problem_management::domain::RepoError::Storage(
+                e.to_string(),
+            )),
+        }
+    }
+
+    async fn apply(
+        &self,
+        principal: &cooper_kernel::Principal,
+        id: cooper_kernel::TicketId,
+        action: &cooper_problem_management::domain::TicketAction,
+    ) -> Result<(), String> {
+        use cooper_problem_management::domain::TicketAction;
+        use cooper_service_desk::application::BulkAction;
+        match action {
+            TicketAction::Close { resolution_code_id } => {
+                let outcome = self
+                    .desk
+                    .bulk(
+                        principal,
+                        vec![id],
+                        BulkAction::Close {
+                            resolution_code_id: *resolution_code_id,
+                            closure_category_id: None,
+                        },
+                    )
+                    .await
+                    .map_err(|e| e.to_string())?;
+                match outcome.into_iter().next().map(|o| o.result) {
+                    Some(Ok(())) | None => Ok(()),
+                    Some(Err(e)) => Err(e.to_string()),
+                }
+            }
+            TicketAction::Note { body, public } => self
+                .desk
+                .add_note(principal, id, body, *public)
+                .await
+                .map(drop)
+                .map_err(|e| e.to_string()),
+        }
+    }
+}

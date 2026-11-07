@@ -42,6 +42,7 @@ pub use state::{
         (name = "Mailboxes", description = "Email intake: Mailboxes, Whitelist and Rejected Emails"),
         (name = "SLA", description = "SLA Calendars and Notification Rules"),
         (name = "Ticket reference data", description = "Statuses, Priorities, Types, Origins, Resolution Codes and Categories"),
+        (name = "Problems", description = "Problems, Known Errors and their incident tickets"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
         (name = "Live updates", description = "Server-Sent Events telling the web UI which data changed (ADR-0022)"),
     )
@@ -55,6 +56,7 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_administration::api::router())
         .merge(cooper_service_desk::api::router())
         .merge(cooper_notifications::api::router())
+        .merge(cooper_problem_management::api::router())
         .merge(live::router())
         .split_for_parts()
 }
@@ -91,4 +93,36 @@ pub fn router(state: AppState, http: &HttpConfig) -> Router {
         .fallback(web::fallback)
         .with_state(state);
     cooper_http::middleware::apply(app, http)
+}
+
+#[cfg(test)]
+mod openapi_tests {
+    use std::collections::BTreeMap;
+
+    /// Contexts are merged into one document: two handlers with the same function name
+    /// in different crates would share an `operationId`, and the generated web client
+    /// would type one endpoint with the other's response.
+    #[test]
+    fn operation_ids_are_unique_across_contexts() {
+        let doc = super::openapi();
+        let mut seen: BTreeMap<String, String> = BTreeMap::new();
+        for (path, item) in &doc.paths.paths {
+            let ops = [
+                &item.get,
+                &item.put,
+                &item.post,
+                &item.delete,
+                &item.patch,
+                &item.head,
+                &item.options,
+            ];
+            for op in ops.into_iter().flatten() {
+                if let Some(id) = &op.operation_id
+                    && let Some(other) = seen.insert(id.clone(), path.clone())
+                {
+                    panic!("operationId {id} is used by {other} and {path}");
+                }
+            }
+        }
+    }
 }
