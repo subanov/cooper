@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO knowledge_articles (id, tenant_id, folder_id, title, body, body_text, tags, audience, author_id, owner_id,\n                                             is_published, is_archived, archived_at, is_restricted, inherit_permissions,\n                                             next_review_date, version, view_count, source_problem_id, created_by_kind,\n                                             created_by_id, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 0, $18, $19, $20, $21, $22)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Bool",
+        "Timestamptz",
+        "Bool",
+        "Bool",
+        "Date",
+        "Int4",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f4472d0c5f3c8b132873215d7ac7132d745b0210c275025dfbd4cd5acabf8364"
+}

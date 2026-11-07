@@ -19,6 +19,7 @@ cooper-administration = { path = "crates/administration" }
 cooper-service-desk = { path = "crates/service-desk" }
 cooper-notifications = { path = "crates/notifications" }
 cooper-change-management = { path = "crates/change-management" }
+cooper-knowledge = { path = "crates/knowledge" }
 cooper-problem-management = { path = "crates/problem-management" }
 
 # Runtime and web
@@ -54,6 +55,7 @@ sqlx = { version = "0.9", default-features = false, features = [
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "2.0"
+ammonia = "4.2"
 anyhow = "1.0"
 uuid = { version = "1.29", features = ["serde", "v5", "v7"] }
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde", "std"] }

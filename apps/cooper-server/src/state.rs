@@ -173,6 +173,8 @@ pub struct AppState {
     pub problems: cooper_problem_management::api::ProblemsApi,
     /// Change Management API state.
     pub changes: cooper_change_management::api::ChangesApi,
+    /// Knowledge API state.
+    pub knowledge: cooper_knowledge::api::KnowledgeApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -187,6 +189,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(desk_capabilities::ALL)
         .chain(cooper_problem_management::application::capabilities::ALL)
         .chain(cooper_change_management::application::capabilities::ALL)
+        .chain(cooper_knowledge::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -220,6 +223,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_change_management::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Changes)),
+        )
+        .chain(
+            cooper_knowledge::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Knowledge)),
         )
         .collect()
 }
@@ -292,12 +300,29 @@ impl AppState {
             Arc::new(PgNotificationStore::new(pool.clone())),
             clock.clone(),
         );
+        let knowledge_service = cooper_knowledge::application::KnowledgeService::new(
+            cooper_knowledge::application::KnowledgePorts {
+                knowledge: Arc::new(cooper_knowledge::infrastructure::PgKnowledgeStore::new(
+                    pool.clone(),
+                )),
+                directory: Arc::new(crate::adapters::KnowledgeDirectory {
+                    identity: IdentityDirectory {
+                        identity: service.clone(),
+                    },
+                    desk: desk.clone(),
+                }),
+                clock: clock.clone(),
+            },
+        );
         let problem_service = cooper_problem_management::application::ProblemService::new(
             cooper_problem_management::application::ProblemPorts {
                 problems: Arc::new(
                     cooper_problem_management::infrastructure::PgProblemStore::new(pool.clone()),
                 ),
                 tickets: Arc::new(DeskTickets { desk: desk.clone() }),
+                knowledge: Arc::new(crate::adapters::KnownErrorPublisher {
+                    knowledge: knowledge_service.clone(),
+                }),
                 clock: clock.clone(),
             },
         );
@@ -326,6 +351,9 @@ impl AppState {
         let problems = cooper_problem_management::api::ProblemsApi {
             service: problem_service,
         };
+        let knowledge = cooper_knowledge::api::KnowledgeApi {
+            service: knowledge_service,
+        };
         Ok(Self {
             live: cooper_platform::live::LiveFeed::new(pool.clone()),
             pool,
@@ -344,6 +372,7 @@ impl AppState {
             },
             problems,
             changes,
+            knowledge,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -382,6 +411,12 @@ impl AppState {
                 notifications: self.notifications.service.clone(),
                 changes: Arc::new(crate::adapters::ChangeFactsLookup {
                     changes: self.changes.service.clone(),
+                }),
+            }),
+            Arc::new(cooper_notifications::handlers::ArticleReviewNotifier {
+                notifications: self.notifications.service.clone(),
+                articles: Arc::new(crate::adapters::ArticleFactsLookup {
+                    knowledge: self.knowledge.service.clone(),
                 }),
             }),
             Arc::new(cooper_notifications::handlers::MailboxAlerts {
@@ -430,6 +465,12 @@ impl AppState {
             Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
         }
         poller
+    }
+}
+
+impl FromRef<AppState> for cooper_knowledge::api::KnowledgeApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.knowledge.clone()
     }
 }
 
@@ -482,6 +523,7 @@ mod tests {
                 + desk_capabilities::ALL.len()
                 + cooper_problem_management::application::capabilities::ALL.len()
                 + cooper_change_management::application::capabilities::ALL.len()
+                + cooper_knowledge::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

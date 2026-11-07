@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO notifications (id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, article_id, source_event_id, created_at)\n             SELECT n.id, n.recipient, $3, $4, $5, $6, $7, $10, $11, $8, $9 FROM UNNEST($1::uuid[], $2::uuid[]) AS n(id, recipient)\n             JOIN analysts a ON a.id = n.recipient AND a.is_active\n             ON CONFLICT (source_event_id, recipient_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        "UuidArray",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c1a4cfbc8784dcc018763d0cfd1b60d8c17aebaf1723a67807e5b071ec6d9472"
+}

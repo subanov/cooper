@@ -273,6 +273,24 @@ impl IdentityService {
         Ok(())
     }
 
+    /// The active User Groups an Analyst or Requester currently belongs to (expired
+    /// memberships do not count). For other contexts' permission checks, such as
+    /// Knowledge ACLs; reveals nothing to the caller.
+    ///
+    /// # Errors
+    ///
+    /// Storage failures.
+    pub async fn groups_of(
+        &self,
+        member: crate::domain::Member,
+    ) -> Result<BTreeSet<Uuid>, AppError> {
+        Ok(self
+            .ports
+            .groups
+            .groups_of(member, self.ports.clock.now())
+            .await?)
+    }
+
     /// The Requesters whose tickets the signed-in Portal Requester may read as a
     /// manager. Empty unless Managers are switched on (fail closed).
     ///

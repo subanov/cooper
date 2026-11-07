@@ -376,6 +376,12 @@ pub trait GroupRepository: Send + Sync {
         std::collections::BTreeMap<Uuid, std::collections::BTreeSet<cooper_kernel::RequesterId>>,
         RepoError,
     >;
+    /// The active User Groups `member` currently belongs to (unexpired membership).
+    async fn groups_of(
+        &self,
+        member: super::Member,
+        now: DateTime<Utc>,
+    ) -> Result<std::collections::BTreeSet<Uuid>, RepoError>;
     /// The Manager Grants of a Company.
     async fn grants(&self, tenant: TenantId) -> Result<Vec<super::ManagerGrant>, RepoError>;
     /// Stores a grant.

@@ -65,7 +65,7 @@ pub struct NotificationDto {
     pub id: Uuid,
     /// `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
     /// `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-    /// `change_scheduled` or `change_completed`.
+    /// `change_scheduled`, `change_completed` or `article_review_due`.
     pub kind: String,
     /// Short text.
     pub title: String,
@@ -75,6 +75,8 @@ pub struct NotificationDto {
     pub ticket_id: Option<Uuid>,
     /// Linked Change.
     pub change_id: Option<Uuid>,
+    /// Linked Knowledge Article.
+    pub article_id: Option<Uuid>,
     /// Created.
     pub created_at: DateTime<Utc>,
     /// When it was read.
@@ -90,6 +92,7 @@ impl From<Notification> for NotificationDto {
             body: n.body,
             ticket_id: n.ticket_id.map(|t| t.as_uuid()),
             change_id: n.change_id,
+            article_id: n.article_id,
             created_at: n.created_at,
             read_at: n.read_at,
         }

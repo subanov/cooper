@@ -83,6 +83,8 @@ pub struct ProblemPorts {
     pub problems: Arc<dyn ProblemRepository>,
     /// The service desk.
     pub tickets: Arc<dyn Tickets>,
+    /// Knowledge.
+    pub knowledge: Arc<dyn crate::domain::Knowledge>,
     /// Time.
     pub clock: Arc<dyn Clock>,
 }
@@ -409,6 +411,53 @@ impl ProblemService {
         problem.assign(analyst, self.ports.clock.now());
         self.save(principal, &before, &problem, &[]).await?;
         Ok(problem)
+    }
+
+    /// Publishes a Known Error's Root Cause and Workaround as a Knowledge Article, or
+    /// updates the Article published before (needs `problems.update`, and Knowledge
+    /// checks `knowledge.write`). Returns the Article's ID (FR-PRB-005).
+    ///
+    /// # Errors
+    ///
+    /// Forbidden, not found, not a Known Error or without a Workaround, or refused by
+    /// Knowledge.
+    pub async fn publish_known_error(
+        &self,
+        principal: &Principal,
+        id: Uuid,
+    ) -> Result<Uuid, AppError> {
+        use crate::domain::{KnowledgeRefusal, KnownErrorFacts};
+        require(principal, capabilities::UPDATE)?;
+        let problem = self.get(principal, id).await?;
+        let d = problem.details();
+        if !d.is_known_error || d.workaround.trim().is_empty() {
+            return Err(ProblemError::InvalidState(
+                "only a Known Error with a Workaround can be published",
+            )
+            .into());
+        }
+        let facts = KnownErrorFacts {
+            problem_id: id,
+            tenant_id: problem.tenant_id(),
+            number: problem.number().to_owned(),
+            title: d.title.clone(),
+            root_cause: d.root_cause.clone(),
+            workaround: d.workaround.clone(),
+        };
+        match self
+            .ports
+            .knowledge
+            .publish_known_error(principal, &facts)
+            .await
+        {
+            Ok(article) => Ok(article),
+            Err(KnowledgeRefusal::Forbidden(c)) => Err(Forbidden(c).into()),
+            Err(KnowledgeRefusal::Rule(m)) => Err(AppError::Conflict(m)),
+            Err(KnowledgeRefusal::Failed(m)) => {
+                tracing::error!(error = %m, "publishing a Known Error failed");
+                Err(AppError::Internal)
+            }
+        }
     }
 
     // --- Notes and history (FR-PRB-007) --------------------------------------------------

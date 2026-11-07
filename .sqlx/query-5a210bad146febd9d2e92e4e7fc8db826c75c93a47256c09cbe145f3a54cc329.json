@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE knowledge_articles SET review_notified_for = next_review_date\n             WHERE id = $1 AND next_review_date = $2 AND review_notified_for IS DISTINCT FROM next_review_date",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Date"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5a210bad146febd9d2e92e4e7fc8db826c75c93a47256c09cbe145f3a54cc329"
+}

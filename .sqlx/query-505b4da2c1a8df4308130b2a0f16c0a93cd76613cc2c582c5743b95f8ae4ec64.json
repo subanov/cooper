@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT version_no, title, body, saved_by_kind, saved_by_id, saved_at FROM knowledge_article_versions\n             WHERE article_id = $1 ORDER BY version_no DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version_no",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "knowledge_article_versions",
+            "name": "version_no"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_article_versions",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "body",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_article_versions",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "saved_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_article_versions",
+            "name": "saved_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "saved_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_article_versions",
+            "name": "saved_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "saved_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "knowledge_article_versions",
+            "name": "saved_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "505b4da2c1a8df4308130b2a0f16c0a93cd76613cc2c582c5743b95f8ae4ec64"
+}

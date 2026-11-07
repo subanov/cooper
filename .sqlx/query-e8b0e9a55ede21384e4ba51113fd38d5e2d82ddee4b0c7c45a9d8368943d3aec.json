@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, source_event_id, created_at, read_at\n             FROM notifications\n             WHERE recipient_id = $1 AND (NOT $2 OR read_at IS NULL)\n               AND ($3::timestamptz IS NULL OR (created_at, id) < ($3, $4))\n             ORDER BY created_at DESC, id DESC LIMIT $5",
+  "query": "SELECT id, tenant_id, parent_id, name, is_restricted, inherit_permissions, owner_id, created_by_kind, created_by_id,\n                    created_at, updated_at\n             FROM knowledge_folders WHERE ($1 OR tenant_id IS NULL OR tenant_id = ANY($2)) ORDER BY lower(name), id",
   "describe": {
     "columns": [
       {
@@ -9,96 +9,96 @@
         "type_info": "Uuid",
         "origin": {
           "Table": {
-            "table": "notifications",
+            "table": "knowledge_folders",
             "name": "id"
           }
         }
       },
       {
         "ordinal": 1,
-        "name": "recipient_id",
-        "type_info": "Uuid",
-        "origin": {
-          "Table": {
-            "table": "notifications",
-            "name": "recipient_id"
-          }
-        }
-      },
-      {
-        "ordinal": 2,
         "name": "tenant_id",
         "type_info": "Uuid",
         "origin": {
           "Table": {
-            "table": "notifications",
+            "table": "knowledge_folders",
             "name": "tenant_id"
           }
         }
       },
       {
+        "ordinal": 2,
+        "name": "parent_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_folders",
+            "name": "parent_id"
+          }
+        }
+      },
+      {
         "ordinal": 3,
-        "name": "kind",
+        "name": "name",
         "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "notifications",
-            "name": "kind"
+            "table": "knowledge_folders",
+            "name": "name"
           }
         }
       },
       {
         "ordinal": 4,
-        "name": "title",
-        "type_info": "Text",
+        "name": "is_restricted",
+        "type_info": "Bool",
         "origin": {
           "Table": {
-            "table": "notifications",
-            "name": "title"
+            "table": "knowledge_folders",
+            "name": "is_restricted"
           }
         }
       },
       {
         "ordinal": 5,
-        "name": "body",
-        "type_info": "Text",
+        "name": "inherit_permissions",
+        "type_info": "Bool",
         "origin": {
           "Table": {
-            "table": "notifications",
-            "name": "body"
+            "table": "knowledge_folders",
+            "name": "inherit_permissions"
           }
         }
       },
       {
         "ordinal": 6,
-        "name": "ticket_id",
+        "name": "owner_id",
         "type_info": "Uuid",
         "origin": {
           "Table": {
-            "table": "notifications",
-            "name": "ticket_id"
+            "table": "knowledge_folders",
+            "name": "owner_id"
           }
         }
       },
       {
         "ordinal": 7,
-        "name": "change_id",
-        "type_info": "Uuid",
+        "name": "created_by_kind",
+        "type_info": "Text",
         "origin": {
           "Table": {
-            "table": "notifications",
-            "name": "change_id"
+            "table": "knowledge_folders",
+            "name": "created_by_kind"
           }
         }
       },
       {
         "ordinal": 8,
-        "name": "source_event_id",
+        "name": "created_by_id",
         "type_info": "Uuid",
         "origin": {
           "Table": {
-            "table": "notifications",
-            "name": "source_event_id"
+            "table": "knowledge_folders",
+            "name": "created_by_id"
           }
         }
       },
@@ -108,45 +108,42 @@
         "type_info": "Timestamptz",
         "origin": {
           "Table": {
-            "table": "notifications",
+            "table": "knowledge_folders",
             "name": "created_at"
           }
         }
       },
       {
         "ordinal": 10,
-        "name": "read_at",
+        "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
           "Table": {
-            "table": "notifications",
-            "name": "read_at"
+            "table": "knowledge_folders",
+            "name": "updated_at"
           }
         }
       }
     ],
     "parameters": {
       "Left": [
-        "Uuid",
         "Bool",
-        "Timestamptz",
-        "Uuid",
-        "Int8"
+        "UuidArray"
       ]
     },
     "nullable": [
       false,
-      false,
-      true,
-      false,
-      false,
-      false,
       true,
       true,
       false,
       false,
-      true
+      false,
+      true,
+      false,
+      true,
+      false,
+      false
     ]
   },
-  "hash": "a2d09787d9dec60e4855d4860ea46bb3dd3b9938a601786cfd99b36b64e54d52"
+  "hash": "e8b0e9a55ede21384e4ba51113fd38d5e2d82ddee4b0c7c45a9d8368943d3aec"
 }

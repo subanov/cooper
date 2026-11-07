@@ -126,6 +126,29 @@ impl GroupRepository for PgIdentityStore {
         Ok(out)
     }
 
+    async fn groups_of(
+        &self,
+        member: crate::domain::Member,
+        now: DateTime<Utc>,
+    ) -> Result<BTreeSet<Uuid>, RepoError> {
+        let id = match member {
+            crate::domain::Member::Analyst(a) => a.as_uuid(),
+            crate::domain::Member::Requester(r) => r.as_uuid(),
+        };
+        let rows = sqlx::query_scalar!(
+            "SELECT m.group_id FROM user_group_members m JOIN user_groups g ON g.id = m.group_id
+             WHERE g.is_active AND m.member_kind = $1 AND m.member_id = $2
+               AND (m.expires_at IS NULL OR m.expires_at > $3)",
+            member.kind(),
+            id,
+            now
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(db_err)?;
+        Ok(rows.into_iter().collect())
+    }
+
     async fn grants(&self, tenant: TenantId) -> Result<Vec<ManagerGrant>, RepoError> {
         let mut tx = tenancy::begin(&self.pool, &TenantScope::single(tenant))
             .await

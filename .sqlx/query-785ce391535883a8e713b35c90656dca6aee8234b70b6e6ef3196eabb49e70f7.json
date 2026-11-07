@@ -1,0 +1,54 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT object_id, principal_type, principal_id FROM knowledge_acl\n         WHERE object_type = $1 AND ($2 OR tenant_id IS NULL OR tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "object_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_acl",
+            "name": "object_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "principal_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_acl",
+            "name": "principal_type"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "principal_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_acl",
+            "name": "principal_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "785ce391535883a8e713b35c90656dca6aee8234b70b6e6ef3196eabb49e70f7"
+}

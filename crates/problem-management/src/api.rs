@@ -50,6 +50,7 @@ where
         .routes(routes!(list_problem_tickets, link_problem_ticket))
         .routes(routes!(unlink_problem_ticket))
         .routes(routes!(act_on_problem_tickets))
+        .routes(routes!(publish_problem_known_error))
 }
 
 /// An application error as problem+json.
@@ -688,4 +689,26 @@ async fn act_on_problem_tickets(
             })
             .collect(),
     ))
+}
+
+/// The Knowledge Article of a Known Error.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct ProblemKnowledgeArticleDto {
+    /// The Article (unpublished when new, for review in Knowledge).
+    pub article_id: Uuid,
+}
+
+/// Publishes a Known Error's Root Cause and Workaround as an internal Knowledge Article,
+/// or saves a new version of the one published before (needs `problems.update` and
+/// `knowledge.write`; FR-PRB-005).
+#[utoipa::path(post, path = "/problems/{id}/knowledge-article", tag = "Problems", params(("id" = Uuid, Path)),
+    responses((status = 200, body = ProblemKnowledgeArticleDto), (status = 409, description = "Not a Known Error with a Workaround")))]
+async fn publish_problem_known_error(
+    State(api): State<ProblemsApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<ProblemKnowledgeArticleDto>> {
+    Ok(Json(ProblemKnowledgeArticleDto {
+        article_id: api.service.publish_known_error(&p, id).await?,
+    }))
 }

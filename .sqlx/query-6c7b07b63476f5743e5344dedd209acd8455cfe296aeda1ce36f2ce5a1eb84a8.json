@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM knowledge_acl WHERE object_type = 'folder' AND object_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6c7b07b63476f5743e5344dedd209acd8455cfe296aeda1ce36f2ce5a1eb84a8"
+}

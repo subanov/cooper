@@ -28,6 +28,7 @@ cooper-kernel.workspace = true
 cooper-notifications.workspace = true
 cooper-platform.workspace = true
 cooper-change-management.workspace = true
+cooper-knowledge.workspace = true
 cooper-problem-management.workspace = true
 cooper-service-desk.workspace = true
 futures.workspace = true
