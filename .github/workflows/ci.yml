@@ -46,7 +46,7 @@ jobs:
           RUSTDOCFLAGS: -D warnings
 
   test:
-    name: Test (PostgreSQL 18) with coverage
+    name: Test (PostgreSQL 18)
     runs-on: ubuntu-latest
     permissions:
       contents: read
