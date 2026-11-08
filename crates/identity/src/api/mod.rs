@@ -200,7 +200,10 @@ fn csrf_problem() -> Problem {
 }
 
 /// Reads the session token from the `Cookie` header.
-fn session_cookie(headers: &HeaderMap) -> Option<SessionToken> {
+/// The Analyst session token from the request's cookie, for handlers that re-check the
+/// session later (the Live Updates stream).
+#[must_use]
+pub fn session_cookie(headers: &HeaderMap) -> Option<SessionToken> {
     cookie(headers, SESSION_COOKIE)
 }
 

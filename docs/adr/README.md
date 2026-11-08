@@ -28,4 +28,5 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0019](0019-email-templates.md) | Email Templates sent from ticket events, most specific match wins | Accepted |
 | [0020](0020-microsoft-graph-and-gmail-mailboxes.md) | Microsoft Graph and Gmail Mailboxes on the shared intake pipeline | Accepted |
 | [0021](0021-portal-accounts.md) | Portal Accounts per email address, set-password links and Portal sessions | Accepted |
+| [0022](0022-live-updates-over-server-sent-events.md) | Live Updates: PostgreSQL `NOTIFY` in the writing transaction, Server-Sent Events that only invalidate caches | Accepted |
 | [0023](0023-deployment-observability-and-release-pipeline.md) | Signed multi-arch image, separate migrate step, pgBackRest PITR, Prometheus metrics and OTLP traces, release pipeline | Accepted |

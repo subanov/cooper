@@ -460,6 +460,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Live Updates for the signed-in Analyst (Server-Sent Events, ADR-0022).
+         * @description Events: `ready` once changes are being received (refetch on every `ready` after the
+         *     first: changes may have been missed while disconnected); `invalidate` with
+         *     `{"topic":"ticket","id":"…"}` when a ticket the Analyst may see changed; `resync`
+         *     when everything should be read again. Events never contain record data.
+         *
+         *     Needs the Analyst session cookie; API keys and Portal sessions are refused.
+         */
+        get: operations["live_updates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/mailboxes": {
         parameters: {
             query?: never;
@@ -4750,6 +4775,33 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["EmailTemplateDto"];
                 };
+            };
+        };
+    };
+    live_updates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description An endless `text/event-stream` */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            /** @description Not signed in with an Analyst session */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

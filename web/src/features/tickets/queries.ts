@@ -10,6 +10,13 @@ async function ok<T>(call: Promise<{ data?: T; response: Response }>, what: stri
   return data;
 }
 
+/**
+ * Live Updates (ADR-0022) refresh ticket screens when a ticket changes, including SLA
+ * Warnings and Breaches. This slow refresh only catches what a push cannot: a ticket the
+ * Analyst may no longer see, and the SLA time remaining as it counts down.
+ */
+const FALLBACK_REFETCH_MS = 5 * 60_000;
+
 /** One built-in view of the ticket list, page by page (cursor pagination). */
 export function ticketListQuery(search: TicketSearch) {
   return infiniteQueryOptions({
@@ -32,8 +39,7 @@ export function ticketListQuery(search: TicketSearch) {
       ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.next_cursor ?? undefined,
-    // SLA time remaining moves on; refresh while the list is on screen.
-    refetchInterval: 60_000,
+    refetchInterval: FALLBACK_REFETCH_MS,
   });
 }
 
@@ -42,7 +48,7 @@ export function ticketQuery(id: string) {
   return queryOptions({
     queryKey: ["tickets", "detail", id],
     queryFn: () => ok(api.GET("/api/v1/tickets/{id}", { params: { path: { id } } }), "ticket"),
-    refetchInterval: 60_000,
+    refetchInterval: FALLBACK_REFETCH_MS,
   });
 }
 

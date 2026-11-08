@@ -10,6 +10,7 @@ mod adapters;
 pub mod config;
 mod health;
 pub mod healthcheck;
+pub mod live;
 mod state;
 mod web;
 
@@ -43,6 +44,7 @@ pub use state::{
         (name = "SLA", description = "SLA Calendars and Notification Rules"),
         (name = "Ticket reference data", description = "Statuses, Priorities, Types, Origins, Resolution Codes and Categories"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
+        (name = "Live updates", description = "Server-Sent Events telling the web UI which data changed (ADR-0022)"),
     )
 )]
 struct ApiDoc;
@@ -54,6 +56,7 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_administration::api::router())
         .merge(cooper_service_desk::api::router())
         .merge(cooper_notifications::api::router())
+        .merge(live::router())
         .split_for_parts()
 }
 

@@ -74,6 +74,7 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::with_settings(pool, Arc::new(SystemClock), config.security)
         .context("failed to initialise application state")?;
+    let live = state.live.clone();
     let app = cooper_server::router(state, &config.http)
         .into_make_service_with_connect_info::<SocketAddr>();
     let listener = tokio::net::TcpListener::bind(config.bind_addr)
@@ -81,7 +82,11 @@ async fn main() -> anyhow::Result<()> {
         .with_context(|| format!("failed to bind {}", config.bind_addr))?;
     tracing::info!(addr = %config.bind_addr, "cooper-server listening");
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(async move {
+            shutdown_signal().await;
+            // End open Live Updates streams, or graceful shutdown waits for them forever.
+            live.shutdown();
+        })
         .await?;
     tracing::info!("cooper-server stopped");
     Ok(())
