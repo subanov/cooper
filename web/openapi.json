@@ -1455,6 +1455,31 @@
         }
       }
     },
+    "/api/v1/live": {
+      "get": {
+        "tags": [
+          "Live updates"
+        ],
+        "summary": "Live Updates for the signed-in Analyst (Server-Sent Events, ADR-0022).",
+        "description": "Events: `ready` once changes are being received (refetch on every `ready` after the\nfirst: changes may have been missed while disconnected); `invalidate` with\n`{\"topic\":\"ticket\",\"id\":\"…\"}` when a ticket the Analyst may see changed; `resync`\nwhen everything should be read again. Events never contain record data.\n\nNeeds the Analyst session cookie; API keys and Portal sessions are refused.",
+        "operationId": "live_updates",
+        "responses": {
+          "200": {
+            "description": "An endless `text/event-stream`",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in with an Analyst session"
+          }
+        }
+      }
+    },
     "/api/v1/mailboxes": {
       "get": {
         "tags": [
@@ -9402,6 +9427,10 @@
     {
       "name": "Administration",
       "description": "Modules, System Settings, Background Jobs and the system log"
+    },
+    {
+      "name": "Live updates",
+      "description": "Server-Sent Events telling the web UI which data changed (ADR-0022)"
     }
   ]
 }

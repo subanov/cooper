@@ -28,6 +28,7 @@ cooper-kernel.workspace = true
 cooper-notifications.workspace = true
 cooper-platform.workspace = true
 cooper-service-desk.workspace = true
+futures.workspace = true
 http.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true

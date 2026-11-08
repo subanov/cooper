@@ -14,6 +14,7 @@ use cooper_kernel::{Actor, Clock, EventEnvelope, EventId, TenantId, TenantScope}
 use sqlx::{PgConnection, PgPool};
 use thiserror::Error;
 
+use crate::live::{self, LiveChange};
 use crate::tenancy;
 
 /// Error returned by an event handler.
@@ -32,7 +33,8 @@ pub trait EventHandler: Send + Sync {
     async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError>;
 }
 
-/// Appends an event to the outbox using the caller's transaction.
+/// Appends an event to the outbox using the caller's transaction, and announces a
+/// Live Update for its aggregate when the event belongs to a Company (ADR-0022).
 ///
 /// # Errors
 ///
@@ -57,8 +59,12 @@ pub async fn append(conn: &mut PgConnection, event: &EventEnvelope) -> Result<()
         event.occurred_at,
         event.payload,
     )
-    .execute(conn)
+    .execute(&mut *conn)
     .await?;
+    if let Some(tenant_id) = event.tenant_id {
+        let change = LiveChange::new(tenant_id, event.aggregate_type.clone(), event.aggregate_id);
+        live::publish(conn, &change).await?;
+    }
     Ok(())
 }
 

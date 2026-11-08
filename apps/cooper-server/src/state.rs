@@ -129,6 +129,8 @@ pub struct AppState {
     pub service_desk: ServiceDeskApi,
     /// Notifications API state.
     pub notifications: NotificationsApi,
+    /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
+    pub live: cooper_platform::live::LiveFeed,
 }
 
 /// Every Capability declared by the contexts wired into this server. Roles may only use
@@ -231,6 +233,7 @@ impl AppState {
             clock.clone(),
         );
         Ok(Self {
+            live: cooper_platform::live::LiveFeed::new(pool.clone()),
             pool,
             clock,
             identity: IdentityApi {

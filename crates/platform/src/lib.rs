@@ -10,6 +10,7 @@
 //! - [`attachments`]: content-addressed blob store and attachment metadata (ADR-0007).
 //! - [`audit`]: the append-only Audit trail (FR-GEN-001).
 //! - [`outbox`]: the transactional outbox and its dispatcher (ADR-0005).
+//! - [`live`]: Live Updates through PostgreSQL `NOTIFY` (ADR-0022).
 //! - [`jobs`]: background jobs with schedules, single-worker locking and run history
 //!   (FR-SYS-002).
 //! - [`telemetry`]: `tracing` subscriber set-up.
@@ -23,6 +24,7 @@ pub mod config;
 pub mod crypto;
 pub mod db;
 pub mod jobs;
+pub mod live;
 pub mod outbox;
 pub mod system_log;
 pub mod telemetry;

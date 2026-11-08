@@ -26,7 +26,7 @@ pub use mailboxes::{PgMailboxStore, ReencryptMailboxSecrets};
 pub use sla::SlaMonitor;
 pub use template_mailer::EmailTemplateMailer;
 
-use cooper_kernel::{AuditRecord, EventEnvelope};
+use cooper_kernel::{AuditRecord, EventEnvelope, TenantId, TicketId};
 use cooper_platform::db::Tx;
 use sqlx::PgPool;
 
@@ -75,4 +75,18 @@ pub(crate) async fn record(
             .map_err(db_err)?;
     }
     Ok(())
+}
+
+/// Announces a Live Update for a ticket when `tx` commits (ADR-0022). Needed for writes
+/// that raise no Domain Event; [`record`] already announces those that do, and duplicates
+/// within one transaction are delivered once.
+pub(crate) async fn ticket_changed(
+    tx: &mut Tx,
+    tenant: TenantId,
+    ticket: TicketId,
+) -> Result<(), RepoError> {
+    let change = cooper_platform::live::LiveChange::new(tenant, "ticket", ticket.as_uuid());
+    cooper_platform::live::publish(tx, &change)
+        .await
+        .map_err(db_err)
 }
