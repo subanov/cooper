@@ -803,7 +803,7 @@ impl ServiceDesk {
 
     // --- Bulk actions (FR-TKT-042) --------------------------------------------------------
 
-    /// Applies one action to up to [`MAX_BULK`] tickets. Each ticket is changed in its
+    /// Applies one action to up to `MAX_BULK` (100) tickets. Each ticket is changed in its
     /// own transaction with the same checks as a single change; the outcome of each is
     /// returned, so a failure on one ticket does not undo the others.
     ///
