@@ -546,7 +546,7 @@ pub struct KnowledgeArticleVersion {
     pub saved_at: DateTime<Utc>,
 }
 
-/// Stored state of an Article, for [`Article::restore`].
+/// Stored state of an Article, for [`KnowledgeArticle::restore`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ArticleRecord {
     /// ID.
