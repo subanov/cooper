@@ -58,6 +58,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-GEN-007 | Attachments can be uploaded to tickets, changes, problems, tasks, articles and contracts, with a configurable size limit. | M | P1 |
 | FR-GEN-008 | Users can save **Table Views** (columns, filters, sort) per list. | C | P4 |
 | FR-GEN-009 | The UI and email texts support localisation. English is the default. | C | P4 |
+| FR-GEN-010 | **Live Updates**: open Analyst screens refresh within seconds when a ticket they show changes (created, assigned, status or Priority changed, closed, reopened, Note, email, time, attachment, SLA Warning or Breach), without polling. Analysts are told only about tickets they may see (Company access and Confidential rules). Live Updates carry no ticket data; the screen re-reads it through the API (ADR-0022). A slow fallback refresh covers anything a Live Update cannot (ADR-0022). | S | P1 |
 
 ## 2. Identity, Access & Tenancy (IAM)
 
