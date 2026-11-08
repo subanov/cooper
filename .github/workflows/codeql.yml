@@ -1,7 +1,8 @@
 name: CodeQL
 
 # Static analysis of the Rust code and the GitHub Actions workflows (#90). Results appear
-# under Security → Code scanning.
+# under Security → Code scanning. Code scanning needs GitHub Advanced Security on a private
+# repository: the jobs run only when the repository variable CODE_SCANNING_ENABLED is "true".
 
 on:
   pull_request:
@@ -21,6 +22,7 @@ permissions:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
+    if: vars.CODE_SCANNING_ENABLED == 'true'
     runs-on: ubuntu-latest
     permissions:
       actions: read

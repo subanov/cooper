@@ -192,7 +192,9 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
       - name: Upload scan results to code scanning
-        if: always() && hashFiles('trivy.sarif') != ''
+        # Needs code scanning (GitHub Advanced Security on a private repository); the
+        # table scan below enforces the same severity gate without it.
+        if: always() && vars.CODE_SCANNING_ENABLED == 'true' && hashFiles('trivy.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy.sarif
