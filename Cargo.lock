@@ -813,7 +813,6 @@ dependencies = [
  "cooper-platform",
  "cooper-server",
  "cooper-service-desk",
- "cooper-tasks",
  "tokio",
  "tracing",
  "uuid",

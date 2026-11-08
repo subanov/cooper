@@ -10,7 +10,6 @@ publish.workspace = true
 [dependencies]
 cooper-identity.workspace = true
 cooper-knowledge.workspace = true
-cooper-tasks.workspace = true
 cooper-notifications.workspace = true
 cooper-server = { path = "../cooper-server" }
 cooper-service-desk.workspace = true
