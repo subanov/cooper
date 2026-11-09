@@ -136,7 +136,12 @@ async fn main() -> anyhow::Result<()> {
             .with_job(Arc::new(ReencryptMailboxSecrets::new(
                 config.keyring.clone(),
             )))
-            .with_job(Arc::new(state.mailbox_poller())),
+            .with_job(Arc::new(state.mailbox_poller()))
+            .with_job(Arc::new(
+                cooper_knowledge::infrastructure::KnowledgeReviewJob {
+                    service: state.knowledge.service.clone(),
+                },
+            )),
     );
     runner
         .register_all()

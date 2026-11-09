@@ -3108,6 +3108,761 @@
         }
       }
     },
+    "/api/v1/knowledge/articles": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Articles you may read (needs `knowledge.read`): access lists, Audience and Company\napply; a search ranks by relevance (FR-KNW-006).",
+        "operationId": "list_knowledge_articles",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "path",
+            "description": "Full-text search (web search syntax: words, \"phrases\", -exclusions).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "state",
+            "in": "path",
+            "description": "`live` (default), `current` (with unpublished) or `archived`; the last two need\n`knowledge.write`.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "audience",
+            "in": "path",
+            "description": "Audience.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "folder_id",
+            "in": "path",
+            "description": "Folder.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "path",
+            "description": "Tag.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "Owner (`me` is accepted).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "review_due",
+            "in": "path",
+            "description": "Only Articles whose Review Date has come.",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "description": "Linked to this ticket (the ticket's side of FR-KNW-008).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticlePage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Creates an unpublished Article (needs `knowledge.write`).",
+        "operationId": "create_knowledge_article",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeArticleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Opens an Article and counts the view (needs `knowledge.read`; unpublished and\narchived ones need `knowledge.write`).",
+        "operationId": "get_knowledge_article",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Edits an Article; a new title or body saves a new version (needs `knowledge.write`).",
+        "operationId": "edit_knowledge_article",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeArticleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/access": {
+      "put": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Replaces an Article's access rules (needs `knowledge.manage`).",
+        "operationId": "set_knowledge_article_access",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeAccessDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/archive": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Archives an Article; it leaves every list but keeps its history (needs\n`knowledge.write`).",
+        "operationId": "archive_knowledge_article",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/history": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "The knowledge audit of an Article: changes, views and administrator overrides\n(needs `knowledge.manage`; FR-KNW-009).",
+        "operationId": "knowledge_article_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnowledgeHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/published": {
+      "put": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Publishes or unpublishes an Article (needs `knowledge.write`).",
+        "operationId": "set_knowledge_article_published",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgePublishedRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/restore": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Restores an archived Article, unpublished (needs `knowledge.write`).",
+        "operationId": "unarchive_knowledge_article",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/tickets": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Tickets linked to an Article that you may see.",
+        "operationId": "list_knowledge_article_tickets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnowledgeTicketLinkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Links an Article to a ticket (needs `knowledge.write`; FR-KNW-008).",
+        "operationId": "link_knowledge_article_ticket",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeLinkTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeTicketLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/tickets/{ticket_id}": {
+      "delete": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Removes a ticket link (needs `knowledge.write`).",
+        "operationId": "unlink_knowledge_article_ticket",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/versions": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Versions of an Article, newest first (FR-KNW-002).",
+        "operationId": "list_knowledge_article_versions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnowledgeArticleVersionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/articles/{id}/versions/{version_no}/restore": {
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Restores a version as a new version (needs `knowledge.write`).",
+        "operationId": "revert_knowledge_article",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "version_no",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeArticleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/folders": {
+      "get": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Folders you may reach (needs `knowledge.read`).",
+        "operationId": "list_knowledge_folders",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnowledgeFolderDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Creates a Folder (needs `knowledge.manage`).",
+        "operationId": "create_knowledge_folder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeFolderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeFolderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/folders/{id}": {
+      "put": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Renames, moves or re-owns a Folder (needs `knowledge.manage`).",
+        "operationId": "update_knowledge_folder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeFolderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeFolderDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Deletes an empty Folder (needs `knowledge.manage`).",
+        "operationId": "delete_knowledge_folder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/knowledge/folders/{id}/access": {
+      "put": {
+        "tags": [
+          "Knowledge"
+        ],
+        "summary": "Replaces a Folder's access rules (needs `knowledge.manage`).",
+        "operationId": "set_knowledge_folder_access",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeAccessDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeFolderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/live": {
       "get": {
         "tags": [
@@ -3505,6 +4260,94 @@
           },
           "401": {
             "description": "Not signed in to the Portal"
+          }
+        }
+      }
+    },
+    "/api/v1/portal/knowledge": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Knowledge Articles for the signed-in Requester: live, `customer` or `public`, of\ntheir Company or shared, and allowed by the access lists.",
+        "operationId": "search_portal_knowledge",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "path",
+            "description": "Full-text search; without it, the newest Articles.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PortalArticleDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in to the Portal"
+          }
+        }
+      }
+    },
+    "/api/v1/portal/knowledge/{id}": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Reads one Article on the Portal and counts the view.",
+        "operationId": "read_portal_knowledge_article",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalArticleDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found or not readable"
           }
         }
       }
@@ -4591,6 +5434,40 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/knowledge-article": {
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Publishes a Known Error's Root Cause and Workaround as an internal Knowledge Article,\nor saves a new version of the one published before (needs `problems.update` and\n`knowledge.write`; FR-PRB-005).",
+        "operationId": "publish_problem_known_error",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemKnowledgeArticleDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Not a Known Error with a Workaround"
           }
         }
       }
@@ -11259,6 +12136,484 @@
           }
         }
       },
+      "KnowledgeAccessDto": {
+        "type": "object",
+        "description": "Access rules of a Folder or Article.",
+        "required": [
+          "is_restricted",
+          "inherit"
+        ],
+        "properties": {
+          "inherit": {
+            "type": "boolean",
+            "description": "Take the parent Folder's rules and ignore these."
+          },
+          "is_restricted": {
+            "type": "boolean",
+            "description": "Restricted: only the named may read. Open (false): everyone but the named."
+          },
+          "principals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgePrincipalDto"
+            },
+            "description": "The named."
+          }
+        }
+      },
+      "KnowledgeArticleDto": {
+        "type": "object",
+        "description": "A Knowledge Article.",
+        "required": [
+          "id",
+          "title",
+          "body",
+          "body_text",
+          "tags",
+          "audience",
+          "is_published",
+          "is_archived",
+          "version",
+          "view_count",
+          "access",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/KnowledgeAccessDto",
+            "description": "Access rules."
+          },
+          "audience": {
+            "type": "string",
+            "description": "`internal`, `customer` or `public`."
+          },
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Author."
+          },
+          "body": {
+            "type": "string",
+            "description": "Sanitised HTML."
+          },
+          "body_text": {
+            "type": "string",
+            "description": "Plain text, for inserting into a reply."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company, or null when shared with every Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "folder_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Folder, or null at the root."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_archived": {
+            "type": "boolean",
+            "description": "Archived."
+          },
+          "is_published": {
+            "type": "boolean",
+            "description": "Published."
+          },
+          "next_review_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Review Date."
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner."
+          },
+          "source_problem_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Problem whose Known Error it came from."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Current version."
+          },
+          "view_count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Views."
+          }
+        }
+      },
+      "KnowledgeArticlePage": {
+        "type": "object",
+        "description": "A page of Articles.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeArticleDto"
+            },
+            "description": "Articles: newest activity first, or most relevant first for a search."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page (lists without `q` only)."
+          }
+        }
+      },
+      "KnowledgeArticleRequest": {
+        "type": "object",
+        "description": "Creates or edits an Article.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "audience": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`internal` (default), `customer` or `public`."
+          },
+          "body": {
+            "type": "string",
+            "description": "HTML body (sanitised on save)."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only); null shares it with every Company."
+          },
+          "folder_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Folder, or null for the root."
+          },
+          "next_review_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Review Date."
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner (default: the author)."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          }
+        }
+      },
+      "KnowledgeArticleVersionDto": {
+        "type": "object",
+        "description": "A saved version.",
+        "required": [
+          "version_no",
+          "title",
+          "body",
+          "saved_by",
+          "saved_at"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Body then."
+          },
+          "saved_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "saved_by": {
+            "type": "object",
+            "description": "Who saved it (`{kind, id}`)."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title then."
+          },
+          "version_no": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Version number."
+          }
+        }
+      },
+      "KnowledgeFolderDto": {
+        "type": "object",
+        "description": "A Knowledge Folder.",
+        "required": [
+          "id",
+          "name",
+          "access",
+          "updated_at"
+        ],
+        "properties": {
+          "access": {
+            "$ref": "#/components/schemas/KnowledgeAccessDto",
+            "description": "Access rules."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company, or null when shared with every Company."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Parent, or null at the root."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "KnowledgeFolderRequest": {
+        "type": "object",
+        "description": "Creates or changes a Folder.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only); null shares it with every Company."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Parent, or null for the root."
+          }
+        }
+      },
+      "KnowledgeHistoryDto": {
+        "type": "object",
+        "description": "One entry of an Article's history.",
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created`, `updated`, `deleted` (archived), `restored`, `viewed` or\n`admin_override`."
+          },
+          "actor": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "KnowledgeLinkTicketRequest": {
+        "type": "object",
+        "description": "Links a ticket.",
+        "required": [
+          "ticket_id"
+        ],
+        "properties": {
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket."
+          }
+        }
+      },
+      "KnowledgePrincipalDto": {
+        "type": "object",
+        "description": "Someone an access list names.",
+        "required": [
+          "type",
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Their ID."
+          },
+          "type": {
+            "type": "string",
+            "description": "`analyst`, `team`, `requester` or `user_group`."
+          }
+        }
+      },
+      "KnowledgePublishedRequest": {
+        "type": "object",
+        "description": "Publishes or unpublishes.",
+        "required": [
+          "is_published"
+        ],
+        "properties": {
+          "is_published": {
+            "type": "boolean",
+            "description": "Published."
+          }
+        }
+      },
+      "KnowledgeTicketLinkDto": {
+        "type": "object",
+        "description": "A ticket linked to an Article.",
+        "required": [
+          "ticket_id",
+          "number",
+          "linked_at"
+        ],
+        "properties": {
+          "linked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was linked."
+          },
+          "number": {
+            "type": "string",
+            "description": "Ticket Number."
+          },
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket."
+          }
+        }
+      },
       "LinkRequest": {
         "type": "object",
         "description": "Links a ticket to another.",
@@ -12009,6 +13364,14 @@
           "created_at"
         ],
         "properties": {
+          "article_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Linked Knowledge Article."
+          },
           "body": {
             "type": "string",
             "description": "Longer text."
@@ -12033,7 +13396,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled` or `change_completed`."
+            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed` or `article_review_due`."
           },
           "read_at": {
             "type": [
@@ -12905,6 +14268,44 @@
           }
         }
       },
+      "PortalArticleDto": {
+        "type": "object",
+        "description": "An Article as the Portal shows it.",
+        "required": [
+          "id",
+          "title",
+          "body",
+          "tags",
+          "updated_at"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Sanitised HTML."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
       "PortalPasswordRequest": {
         "type": "object",
         "description": "Set a Portal password with an emailed link.",
@@ -13371,6 +14772,20 @@
           "old_value": {
             "type": "object",
             "description": "Before."
+          }
+        }
+      },
+      "ProblemKnowledgeArticleDto": {
+        "type": "object",
+        "description": "The Knowledge Article of a Known Error.",
+        "required": [
+          "article_id"
+        ],
+        "properties": {
+          "article_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Article (unpublished when new, for review in Knowledge)."
           }
         }
       },
@@ -15748,6 +17163,10 @@
     {
       "name": "Changes",
       "description": "Changes, CAB approval, the Change Calendar and Change Templates"
+    },
+    {
+      "name": "Knowledge",
+      "description": "Knowledge Articles, versions, Folders and access lists"
     },
     {
       "name": "Administration",

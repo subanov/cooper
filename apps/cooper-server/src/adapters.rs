@@ -700,3 +700,127 @@ impl cooper_notifications::handlers::ChangeLookup for ChangeFactsLookup {
         }))
     }
 }
+
+/// Knowledge's view of Teams, User Groups and tickets, through their application APIs
+/// (ADR-0028).
+pub struct KnowledgeDirectory {
+    /// Teams and User Groups.
+    pub identity: IdentityDirectory,
+    /// Tickets.
+    pub desk: cooper_service_desk::application::ServiceDesk,
+}
+
+fn knowledge_err(e: impl std::fmt::Display) -> cooper_knowledge::ports::RepoError {
+    cooper_knowledge::ports::RepoError::Storage(e.to_string())
+}
+
+#[async_trait]
+impl cooper_knowledge::ports::Directory for KnowledgeDirectory {
+    async fn teams_of(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<BTreeSet<TeamId>, cooper_knowledge::ports::RepoError> {
+        Directory::teams_of(&self.identity, analyst)
+            .await
+            .map_err(knowledge_err)
+    }
+
+    async fn analyst_groups(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<BTreeSet<uuid::Uuid>, cooper_knowledge::ports::RepoError> {
+        self.identity
+            .identity
+            .groups_of(cooper_identity::domain::Member::Analyst(analyst))
+            .await
+            .map_err(knowledge_err)
+    }
+
+    async fn requester_groups(
+        &self,
+        requester: RequesterId,
+    ) -> Result<BTreeSet<uuid::Uuid>, cooper_knowledge::ports::RepoError> {
+        self.identity
+            .identity
+            .groups_of(cooper_identity::domain::Member::Requester(requester))
+            .await
+            .map_err(knowledge_err)
+    }
+
+    async fn ticket(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_knowledge::ports::RepoError> {
+        use cooper_service_desk::application::AppError;
+        match self
+            .desk
+            .ticket(principal, cooper_kernel::TicketId::from_uuid(id))
+            .await
+        {
+            Ok(d) => Ok(Some((d.ticket.tenant_id(), d.ticket.number().to_owned()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(knowledge_err(e)),
+        }
+    }
+}
+
+/// Publishes Known Errors through Knowledge's application API (FR-PRB-005).
+pub struct KnownErrorPublisher {
+    /// Knowledge.
+    pub knowledge: cooper_knowledge::application::KnowledgeService,
+}
+
+#[async_trait]
+impl cooper_problem_management::domain::Knowledge for KnownErrorPublisher {
+    async fn publish_known_error(
+        &self,
+        principal: &Principal,
+        facts: &cooper_problem_management::domain::KnownErrorFacts,
+    ) -> Result<uuid::Uuid, cooper_problem_management::domain::KnowledgeRefusal> {
+        use cooper_knowledge::application::AppError;
+        use cooper_problem_management::domain::KnowledgeRefusal;
+        let ke = cooper_knowledge::application::KnownError {
+            problem_id: facts.problem_id,
+            tenant_id: facts.tenant_id,
+            number: facts.number.clone(),
+            title: facts.title.clone(),
+            root_cause: facts.root_cause.clone(),
+            workaround: facts.workaround.clone(),
+        };
+        match self.knowledge.publish_known_error(principal, &ke).await {
+            Ok(article) => Ok(article.id()),
+            Err(AppError::Forbidden(f)) => Err(KnowledgeRefusal::Forbidden(f.0)),
+            Err(e @ (AppError::Rule(_) | AppError::Conflict(_) | AppError::NotFound(_))) => {
+                Err(KnowledgeRefusal::Rule(e.to_string()))
+            }
+            Err(e) => Err(KnowledgeRefusal::Failed(e.to_string())),
+        }
+    }
+}
+
+/// Article facts for Review Date Notifications.
+pub struct ArticleFactsLookup {
+    /// Knowledge.
+    pub knowledge: cooper_knowledge::application::KnowledgeService,
+}
+
+#[async_trait]
+impl cooper_notifications::handlers::ArticleLookup for ArticleFactsLookup {
+    async fn article(
+        &self,
+        id: uuid::Uuid,
+    ) -> Result<Option<cooper_notifications::handlers::ArticleFacts>, String> {
+        Ok(self
+            .knowledge
+            .for_notifications(id)
+            .await
+            .map_err(|e| e.to_string())?
+            .filter(|a| !a.is_archived())
+            .map(|a| cooper_notifications::handlers::ArticleFacts {
+                title: a.title().to_owned(),
+                tenant_id: a.tenant_id(),
+                owner: a.owner_id(),
+            }))
+    }
+}

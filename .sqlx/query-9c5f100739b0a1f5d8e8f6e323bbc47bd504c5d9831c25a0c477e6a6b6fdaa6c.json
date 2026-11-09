@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT (EXISTS (SELECT 1 FROM knowledge_folders WHERE parent_id = $1)\n                    OR EXISTS (SELECT 1 FROM knowledge_articles WHERE folder_id = $1)) AS \"used!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "used!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "9c5f100739b0a1f5d8e8f6e323bbc47bd504c5d9831c25a0c477e6a6b6fdaa6c"
+}

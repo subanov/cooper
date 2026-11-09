@@ -241,13 +241,14 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
-| **Article** | A knowledge base document (HTML body) with author, owner, version, tags, folder, review date and view count. | `KnowledgeArticle` | page, doc, KB entry |
-| **Folder** | Hierarchical container of Articles. Can restrict access and inherit permissions. | `KnowledgeFolder` | category |
+| **Article** | A knowledge base document (sanitised HTML body) with author, Owner, version, tags, Folder, Audience, optional Company (none: shared with every Company), Review Date and view count. | `KnowledgeArticle`, `knowledge_articles` | page, doc, KB entry |
+| **Folder** | Hierarchical container of Articles (one parent). Can restrict access and inherit permissions; every Folder above an Article must admit the reader. | `KnowledgeFolder`, `knowledge_folders` | category |
 | **Audience** | Who an Article is for (fixed, ascending): `internal`, `customer`, `public`. | `Audience` | visibility |
-| **Published / Archived** | Article lifecycle flags. | `KnowledgeArticle::{is_published, is_archived}` | draft (use "unpublished") |
-| **Article Version** | An immutable previous version of an Article. | `KnowledgeArticleVersion` | |
+| **Published / Archived** | Article lifecycle flags. Live means published and not archived. Archiving (the recycle bin) also unpublishes. | `KnowledgeArticle::{is_published, is_archived}` | draft (use "unpublished") |
+| **Article Version** | An immutable saved state (title and body) of an Article; restoring one saves it as a new version. | `KnowledgeArticleVersion`, `knowledge_article_versions` | |
 | **Review Date** | When an Article is due for review. | `next_review_date` | expiry |
-| **Knowledge ACL** | An access rule on a folder or article for a principal (`analyst`, `team`, `user`, `user_group`). | `KnowledgeAcl` | |
+| **Knowledge ACL** | The access rules of a Folder or Article: **Open** (everyone except the named principals) or **Restricted** (only the named), or inherited from the parent. Principals: `analyst`, `team`, `requester`, `user_group`. | `KnowledgeAcl`, `AclPrincipal`, `knowledge_acl` | allow/deny rule |
+| **Administrator Floor** | Holders of `knowledge.manage` read every Article regardless of Knowledge ACLs; opening one that way is audited as an admin override. | `Viewer::floor` | superuser |
 | **User Group** | A named group of Analysts and/or Requesters, with optional membership expiry. Used for knowledge and learning permissions. | `UserGroup` | |
 | **Knowledge Gap** | A cluster of tickets that no Article covers yet. | `KnowledgeGapCluster` | |
 | **Knowledge Q&A** | AI answers grounded in Articles (embeddings). | — | chatbot |

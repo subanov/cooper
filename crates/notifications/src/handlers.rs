@@ -107,6 +107,7 @@ impl TicketNotifier {
             body: facts.subject.clone(),
             ticket_id: Some(TicketId::from_uuid(event.aggregate_id)),
             change_id: None,
+            article_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -278,6 +279,7 @@ impl EventHandler for MailboxAlerts {
             body: error.to_owned(),
             ticket_id: None,
             change_id: None,
+            article_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -381,10 +383,77 @@ impl EventHandler for ChangeNotifier {
             body: facts.title,
             ticket_id: None,
             change_id: Some(event.aggregate_id),
+            article_id: None,
             source_event_id: event.id,
         };
         self.notifications
             .send(draft, recipients, event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
+    }
+}
+
+/// What a Review Date Notification needs to know about an Article.
+#[derive(Debug, Clone)]
+pub struct ArticleFacts {
+    /// Title.
+    pub title: String,
+    /// Company, if any.
+    pub tenant_id: Option<TenantId>,
+    /// Owner now.
+    pub owner: Option<AnalystId>,
+}
+
+/// Reads Articles (through Knowledge's application API).
+#[async_trait]
+pub trait ArticleLookup: Send + Sync {
+    /// An Article that is not archived.
+    async fn article(&self, id: Uuid) -> Result<Option<ArticleFacts>, String>;
+}
+
+/// Tells an Article's Owner that its Review Date has come (FR-KNW-007).
+pub struct ArticleReviewNotifier {
+    /// The notifications service.
+    pub notifications: Notifications,
+    /// Articles.
+    pub articles: Arc<dyn ArticleLookup>,
+}
+
+#[async_trait]
+impl EventHandler for ArticleReviewNotifier {
+    fn name(&self) -> &'static str {
+        "article-review-notifier"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        event_type == "knowledge_article.review_due"
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        let Some(facts) = self
+            .articles
+            .article(event.aggregate_id)
+            .await
+            .map_err(handler_error)?
+        else {
+            return Ok(());
+        };
+        let Some(owner) = facts.owner else {
+            return Ok(());
+        };
+        let draft = Draft {
+            kind: NotificationKind::ArticleReviewDue,
+            tenant_id: facts.tenant_id,
+            title: format!("Review due: {}", facts.title),
+            body: String::new(),
+            ticket_id: None,
+            change_id: None,
+            article_id: Some(event.aggregate_id),
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, BTreeSet::from([owner]), event.actor)
             .await
             .map(|_| ())
             .map_err(|e| handler_error(e.to_string()))

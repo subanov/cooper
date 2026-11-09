@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE knowledge_articles SET folder_id = $2, title = $3, body = $4, body_text = $5, tags = $6, audience = $7,\n                    owner_id = $8, is_published = $9, is_archived = $10, archived_at = $11, is_restricted = $12,\n                    inherit_permissions = $13, next_review_date = $14, version = $15, updated_at = $16\n             WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        "Text",
+        "Uuid",
+        "Bool",
+        "Bool",
+        "Timestamptz",
+        "Bool",
+        "Bool",
+        "Date",
+        "Int4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4e09e6fbb93f6a710e7f5cc0858fd02d1dd99c09ec316c2b3a8b008e4e3c88ae"
+}

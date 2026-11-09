@@ -972,6 +972,261 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/knowledge/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Articles you may read (needs `knowledge.read`): access lists, Audience and Company
+         *     apply; a search ranks by relevance (FR-KNW-006).
+         */
+        get: operations["list_knowledge_articles"];
+        put?: never;
+        /** Creates an unpublished Article (needs `knowledge.write`). */
+        post: operations["create_knowledge_article"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Opens an Article and counts the view (needs `knowledge.read`; unpublished and
+         *     archived ones need `knowledge.write`).
+         */
+        get: operations["get_knowledge_article"];
+        /** Edits an Article; a new title or body saves a new version (needs `knowledge.write`). */
+        put: operations["edit_knowledge_article"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replaces an Article's access rules (needs `knowledge.manage`). */
+        put: operations["set_knowledge_article_access"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archives an Article; it leaves every list but keeps its history (needs
+         *     `knowledge.write`).
+         */
+        post: operations["archive_knowledge_article"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The knowledge audit of an Article: changes, views and administrator overrides
+         *     (needs `knowledge.manage`; FR-KNW-009).
+         */
+        get: operations["knowledge_article_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/published": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Publishes or unpublishes an Article (needs `knowledge.write`). */
+        put: operations["set_knowledge_article_published"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restores an archived Article, unpublished (needs `knowledge.write`). */
+        post: operations["unarchive_knowledge_article"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tickets linked to an Article that you may see. */
+        get: operations["list_knowledge_article_tickets"];
+        put?: never;
+        /** Links an Article to a ticket (needs `knowledge.write`; FR-KNW-008). */
+        post: operations["link_knowledge_article_ticket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/tickets/{ticket_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a ticket link (needs `knowledge.write`). */
+        delete: operations["unlink_knowledge_article_ticket"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Versions of an Article, newest first (FR-KNW-002). */
+        get: operations["list_knowledge_article_versions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/articles/{id}/versions/{version_no}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restores a version as a new version (needs `knowledge.write`). */
+        post: operations["revert_knowledge_article"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Folders you may reach (needs `knowledge.read`). */
+        get: operations["list_knowledge_folders"];
+        put?: never;
+        /** Creates a Folder (needs `knowledge.manage`). */
+        post: operations["create_knowledge_folder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Renames, moves or re-owns a Folder (needs `knowledge.manage`). */
+        put: operations["update_knowledge_folder"];
+        post?: never;
+        /** Deletes an empty Folder (needs `knowledge.manage`). */
+        delete: operations["delete_knowledge_folder"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/knowledge/folders/{id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replaces a Folder's access rules (needs `knowledge.manage`). */
+        put: operations["set_knowledge_folder_access"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/live": {
         parameters: {
             query?: never;
@@ -1204,6 +1459,43 @@ export interface paths {
         };
         /** The Portal Catalogue: portal-visible Categories in tree order. */
         get: operations["portal_catalogue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/knowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Knowledge Articles for the signed-in Requester: live, `customer` or `public`, of
+         *     their Company or shared, and allowed by the access lists.
+         */
+        get: operations["search_portal_knowledge"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/knowledge/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reads one Article on the Portal and counts the view. */
+        get: operations["read_portal_knowledge_article"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1604,6 +1896,27 @@ export interface paths {
         get: operations["problem_history"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/knowledge-article": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publishes a Known Error's Root Cause and Workaround as an internal Knowledge Article,
+         *     or saves a new version of the one published before (needs `problems.update` and
+         *     `knowledge.write`; FR-PRB-005).
+         */
+        post: operations["publish_problem_known_error"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4324,6 +4637,257 @@ export interface components {
             /** @description Worker. */
             worker_id: string;
         };
+        /** @description Access rules of a Folder or Article. */
+        KnowledgeAccessDto: {
+            /** @description Take the parent Folder's rules and ignore these. */
+            inherit: boolean;
+            /** @description Restricted: only the named may read. Open (false): everyone but the named. */
+            is_restricted: boolean;
+            /** @description The named. */
+            principals?: components["schemas"]["KnowledgePrincipalDto"][];
+        };
+        /** @description A Knowledge Article. */
+        KnowledgeArticleDto: {
+            /** @description Access rules. */
+            access: components["schemas"]["KnowledgeAccessDto"];
+            /** @description `internal`, `customer` or `public`. */
+            audience: string;
+            /**
+             * Format: uuid
+             * @description Author.
+             */
+            author_id?: string | null;
+            /** @description Sanitised HTML. */
+            body: string;
+            /** @description Plain text, for inserting into a reply. */
+            body_text: string;
+            /**
+             * Format: uuid
+             * @description Company, or null when shared with every Company.
+             */
+            company_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description Folder, or null at the root.
+             */
+            folder_id?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Archived. */
+            is_archived: boolean;
+            /** @description Published. */
+            is_published: boolean;
+            /**
+             * Format: date
+             * @description Review Date.
+             */
+            next_review_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Owner.
+             */
+            owner_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The Problem whose Known Error it came from.
+             */
+            source_problem_id?: string | null;
+            /** @description Tags. */
+            tags: string[];
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /**
+             * Format: int32
+             * @description Current version.
+             */
+            version: number;
+            /**
+             * Format: int64
+             * @description Views.
+             */
+            view_count: number;
+        };
+        /** @description A page of Articles. */
+        KnowledgeArticlePage: {
+            /** @description Articles: newest activity first, or most relevant first for a search. */
+            items: components["schemas"]["KnowledgeArticleDto"][];
+            /** @description Cursor for the next page (lists without `q` only). */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits an Article. */
+        KnowledgeArticleRequest: {
+            /** @description `internal` (default), `customer` or `public`. */
+            audience?: string | null;
+            /** @description HTML body (sanitised on save). */
+            body?: string;
+            /**
+             * Format: uuid
+             * @description Company (create only); null shares it with every Company.
+             */
+            company_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Folder, or null for the root.
+             */
+            folder_id?: string | null;
+            /**
+             * Format: date
+             * @description Review Date.
+             */
+            next_review_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Owner (default: the author).
+             */
+            owner_id?: string | null;
+            /** @description Tags. */
+            tags?: string[];
+            /** @description Title. */
+            title: string;
+        };
+        /** @description A saved version. */
+        KnowledgeArticleVersionDto: {
+            /** @description Body then. */
+            body: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            saved_at: string;
+            /** @description Who saved it (`{kind, id}`). */
+            saved_by: Record<string, never>;
+            /** @description Title then. */
+            title: string;
+            /**
+             * Format: int32
+             * @description Version number.
+             */
+            version_no: number;
+        };
+        /** @description A Knowledge Folder. */
+        KnowledgeFolderDto: {
+            /** @description Access rules. */
+            access: components["schemas"]["KnowledgeAccessDto"];
+            /**
+             * Format: uuid
+             * @description Company, or null when shared with every Company.
+             */
+            company_id?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Owner.
+             */
+            owner_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Parent, or null at the root.
+             */
+            parent_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description Creates or changes a Folder. */
+        KnowledgeFolderRequest: {
+            /**
+             * Format: uuid
+             * @description Company (create only); null shares it with every Company.
+             */
+            company_id?: string | null;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Owner.
+             */
+            owner_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Parent, or null for the root.
+             */
+            parent_id?: string | null;
+        };
+        /** @description One entry of an Article's history. */
+        KnowledgeHistoryDto: {
+            /**
+             * @description `created`, `updated`, `deleted` (archived), `restored`, `viewed` or
+             *     `admin_override`.
+             */
+            action: string;
+            /** @description Who (`{kind, id}`). */
+            actor: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /** @description Field. */
+            field?: string | null;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /** @description Links a ticket. */
+        KnowledgeLinkTicketRequest: {
+            /**
+             * Format: uuid
+             * @description The ticket.
+             */
+            ticket_id: string;
+        };
+        /** @description Someone an access list names. */
+        KnowledgePrincipalDto: {
+            /**
+             * Format: uuid
+             * @description Their ID.
+             */
+            id: string;
+            /** @description `analyst`, `team`, `requester` or `user_group`. */
+            type: string;
+        };
+        /** @description Publishes or unpublishes. */
+        KnowledgePublishedRequest: {
+            /** @description Published. */
+            is_published: boolean;
+        };
+        /** @description A ticket linked to an Article. */
+        KnowledgeTicketLinkDto: {
+            /**
+             * Format: date-time
+             * @description When it was linked.
+             */
+            linked_at: string;
+            /** @description Ticket Number. */
+            number: string;
+            /**
+             * Format: uuid
+             * @description The ticket.
+             */
+            ticket_id: string;
+        };
         /** @description Links a ticket to another. */
         LinkRequest: {
             /**
@@ -4686,6 +5250,11 @@ export interface components {
         };
         /** @description A Notification. */
         NotificationDto: {
+            /**
+             * Format: uuid
+             * @description Linked Knowledge Article.
+             */
+            article_id?: string | null;
             /** @description Longer text. */
             body: string;
             /**
@@ -4706,7 +5275,7 @@ export interface components {
             /**
              * @description `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
              *     `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-             *     `change_scheduled` or `change_completed`.
+             *     `change_scheduled`, `change_completed` or `article_review_due`.
              */
             kind: string;
             /**
@@ -5112,6 +5681,25 @@ export interface components {
             /** @description Pass as `cursor` to get the next page; absent on the last page. */
             next_cursor?: string | null;
         };
+        /** @description An Article as the Portal shows it. */
+        PortalArticleDto: {
+            /** @description Sanitised HTML. */
+            body: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Tags. */
+            tags: string[];
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
         /** @description Set a Portal password with an emailed link. */
         PortalPasswordRequest: {
             /** @description The new password (at least 12 characters). */
@@ -5347,6 +5935,14 @@ export interface components {
             new_value: Record<string, never>;
             /** @description Before. */
             old_value: Record<string, never>;
+        };
+        /** @description The Knowledge Article of a Known Error. */
+        ProblemKnowledgeArticleDto: {
+            /**
+             * Format: uuid
+             * @description The Article (unpublished when new, for review in Knowledge).
+             */
+            article_id: string;
         };
         /** @description Links a ticket. */
         ProblemLinkTicketRequest: {
@@ -8456,6 +9052,451 @@ export interface operations {
             };
         };
     };
+    list_knowledge_articles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Full-text search (web search syntax: words, "phrases", -exclusions). */
+                q: string | null;
+                /**
+                 * @description `live` (default), `current` (with unpublished) or `archived`; the last two need
+                 *     `knowledge.write`.
+                 */
+                state: string | null;
+                /** @description Audience. */
+                audience: string | null;
+                /** @description Folder. */
+                folder_id: string | null;
+                /** @description Tag. */
+                tag: string | null;
+                /** @description Owner (`me` is accepted). */
+                owner: string | null;
+                /** @description Only Articles whose Review Date has come. */
+                review_due: boolean | null;
+                /** @description Linked to this ticket (the ticket's side of FR-KNW-008). */
+                ticket_id: string | null;
+                /** @description Page size (1 to 200). */
+                limit: number | null;
+                /** @description Cursor. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticlePage"];
+                };
+            };
+        };
+    };
+    create_knowledge_article: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeArticleRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    get_knowledge_article: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    edit_knowledge_article: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeArticleRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    set_knowledge_article_access: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    archive_knowledge_article: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    knowledge_article_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeHistoryDto"][];
+                };
+            };
+        };
+    };
+    set_knowledge_article_published: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgePublishedRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    unarchive_knowledge_article: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    list_knowledge_article_tickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeTicketLinkDto"][];
+                };
+            };
+        };
+    };
+    link_knowledge_article_ticket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeLinkTicketRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeTicketLinkDto"];
+                };
+            };
+        };
+    };
+    unlink_knowledge_article_ticket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_knowledge_article_versions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleVersionDto"][];
+                };
+            };
+        };
+    };
+    revert_knowledge_article: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                version_no: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeArticleDto"];
+                };
+            };
+        };
+    };
+    list_knowledge_folders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolderDto"][];
+                };
+            };
+        };
+    };
+    create_knowledge_folder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeFolderRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolderDto"];
+                };
+            };
+        };
+    };
+    update_knowledge_folder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeFolderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolderDto"];
+                };
+            };
+        };
+    };
+    delete_knowledge_folder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_knowledge_folder_access: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KnowledgeAccessDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KnowledgeFolderDto"];
+                };
+            };
+        };
+    };
     live_updates: {
         parameters: {
             query?: never;
@@ -8768,6 +9809,65 @@ export interface operations {
             };
             /** @description Not signed in to the Portal */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    search_portal_knowledge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Full-text search; without it, the newest Articles. */
+                q: string | null;
+                /** @description Page size (1 to 200). */
+                limit: number | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalArticleDto"][];
+                };
+            };
+            /** @description Not signed in to the Portal */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    read_portal_knowledge_article: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalArticleDto"];
+                };
+            };
+            /** @description Not found or not readable */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9599,6 +10699,34 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ProblemHistoryDto"][];
                 };
+            };
+        };
+    };
+    publish_problem_known_error: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemKnowledgeArticleDto"];
+                };
+            };
+            /** @description Not a Known Error with a Workaround */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

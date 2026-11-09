@@ -232,9 +232,9 @@ come from [VOCABULARY.md](VOCABULARY.md).
 |---|---|---|---|
 | FR-KNW-001 | Analysts create and edit **Articles** (title, rich HTML body, tags, folder, owner, review date). HTML is sanitised. | M | P2 |
 | FR-KNW-002 | Each save creates an immutable **Article Version**. Previous versions can be viewed and restored. | M | P2 |
-| FR-KNW-003 | Articles can be published or unpublished, and archived. | M | P2 |
-| FR-KNW-004 | Each Article has an **Audience** (`internal`, `customer`, `public`) and an optional Company (empty means shared with all Companies). | M | P2 |
-| FR-KNW-005 | **Folders** form a tree. Folders and Articles can be restricted through ACLs for analysts, teams, requesters or user groups, with permission inheritance. | S | P2 |
+| FR-KNW-003 | Articles can be published or unpublished, and archived. Deviation from FreeITSM: new Articles start unpublished, archiving also unpublishes, and restoring brings an Article back unpublished (ADR-0028). | M | P2 |
+| FR-KNW-004 | Each Article has an **Audience** (`internal`, `customer`, `public`) and an optional Company (empty means shared with all Companies). Only callers who see every Company create shared content. | M | P2 |
+| FR-KNW-005 | **Folders** form a tree. Folders and Articles can be restricted through ACLs for analysts, teams, requesters or user groups, with permission inheritance. Open nodes deny the named, Restricted nodes admit only the named; every Folder above an Article must admit the reader; `knowledge.manage` is the audited administrator floor. Deviation from FreeITSM: only the `containers` permission model (no install-wide `filing` switch) (ADR-0028). | S | P2 |
 | FR-KNW-006 | Full-text search across Articles that respects permissions. | M | P2 |
 | FR-KNW-007 | Articles past their Review Date are listed for their Owner and notified. | S | P2 |
 | FR-KNW-008 | Analysts can link Articles to tickets and insert them into replies. | S | P2 |

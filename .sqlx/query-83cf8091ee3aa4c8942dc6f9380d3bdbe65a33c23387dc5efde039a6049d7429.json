@@ -1,0 +1,294 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, folder_id, title, body, body_text, tags, audience, author_id, owner_id, is_published, is_archived,\n                    archived_at, is_restricted, inherit_permissions, next_review_date, version, view_count, source_problem_id,\n                    created_by_kind, created_by_id, created_at, updated_at\n             FROM knowledge_articles WHERE source_problem_id = $1 AND ($2 OR tenant_id IS NULL OR tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "folder_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "folder_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "body",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "body_text",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "body_text"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "tags",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "tags"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "audience",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "audience"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "author_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "author_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "owner_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "is_published",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "is_published"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "is_archived",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "is_archived"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "archived_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "archived_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "is_restricted",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "is_restricted"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "inherit_permissions",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "inherit_permissions"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "next_review_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "next_review_date"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "version"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "view_count",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "view_count"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "source_problem_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "source_problem_id"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 22,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "knowledge_articles",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "83cf8091ee3aa4c8942dc6f9380d3bdbe65a33c23387dc5efde039a6049d7429"
+}

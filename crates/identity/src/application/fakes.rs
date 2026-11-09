@@ -876,6 +876,13 @@ impl crate::domain::GroupRepository for Fakes {
     {
         Ok(std::collections::BTreeMap::new())
     }
+    async fn groups_of(
+        &self,
+        _: crate::domain::Member,
+        _: DateTime<Utc>,
+    ) -> Result<BTreeSet<Uuid>, RepoError> {
+        Ok(BTreeSet::new())
+    }
     async fn grants(&self, _: TenantId) -> Result<Vec<crate::domain::ManagerGrant>, RepoError> {
         Ok(Vec::new())
     }

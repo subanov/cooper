@@ -34,3 +34,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0025](0025-user-groups-manager-grants-and-oidc.md) | User Groups, Manager Grants for the Portal, and OIDC single sign-on verified with ring | Accepted |
 | [0026](0026-problem-management-context.md) | Problem Management as its own context, reaching tickets through the service desk API | Accepted |
 | [0027](0027-change-management-context.md) | Change Management: stages, CAB approval rounds, versioned templates and a calendar | Accepted |
+| [0028](0028-knowledge-context.md) | Knowledge: one read decision, access lists with object polarity, shared Articles | Accepted |

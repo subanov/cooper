@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT m.group_id FROM user_group_members m JOIN user_groups g ON g.id = m.group_id\n             WHERE g.is_active AND m.member_kind = $1 AND m.member_id = $2\n               AND (m.expires_at IS NULL OR m.expires_at > $3)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "group_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "user_group_members",
+            "name": "group_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1b576a65f583c48c5b78ba73382cbb57952526756e5d5a2c54436c9abebca4af"
+}

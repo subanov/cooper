@@ -779,6 +779,46 @@ pub trait Tickets: Send + Sync {
     ) -> Result<(), String>;
 }
 
+/// What Knowledge needs to publish a Known Error (FR-PRB-005).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KnownErrorFacts {
+    /// The Problem.
+    pub problem_id: Uuid,
+    /// Its Company.
+    pub tenant_id: cooper_kernel::TenantId,
+    /// Problem Number.
+    pub number: String,
+    /// Title.
+    pub title: String,
+    /// Root Cause.
+    pub root_cause: String,
+    /// Workaround.
+    pub workaround: String,
+}
+
+/// Knowledge, through its application API (never its tables).
+#[async_trait]
+pub trait Knowledge: Send + Sync {
+    /// Publishes (or updates) the Article of a Known Error as the caller; returns its
+    /// ID, or the refusal as a message.
+    async fn publish_known_error(
+        &self,
+        principal: &cooper_kernel::Principal,
+        facts: &KnownErrorFacts,
+    ) -> Result<Uuid, KnowledgeRefusal>;
+}
+
+/// Why Knowledge refused to publish.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum KnowledgeRefusal {
+    /// The caller may not write Knowledge Articles.
+    Forbidden(String),
+    /// A Knowledge rule refused it (for example an archived Article).
+    Rule(String),
+    /// Anything else (logged).
+    Failed(String),
+}
+
 /// Distinct ticket IDs, keeping order.
 #[must_use]
 pub fn dedup(ids: Vec<TicketId>) -> Vec<TicketId> {

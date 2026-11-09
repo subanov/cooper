@@ -34,6 +34,17 @@ allow = [
 ]
 confidence-threshold = 0.9
 
+# MPL-2.0 (file-level copyleft) only for the CSS parser that `ammonia` uses to sanitise
+# Knowledge HTML (ADR-0028). Cooper uses these crates unmodified. Older ammonia versions
+# without them have RUSTSEC-2021-0157.
+[[licenses.exceptions]]
+allow = ["MPL-2.0"]
+crate = "cssparser"
+
+[[licenses.exceptions]]
+allow = ["MPL-2.0"]
+crate = "dtoa-short"
+
 [licenses.private]
 # Cooper's own crates are `publish = false`.
 ignore = true
