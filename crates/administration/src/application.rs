@@ -46,8 +46,17 @@ pub mod settings {
         default: "\"http://localhost:8080\"",
     };
 
+    /// Time zone of this instance: calendar days (for example Morning Check Dates) are
+    /// days in this zone, never in the server's local time (ADR-0002, ADR-0031).
+    pub const TIME_ZONE: SettingDefinition = SettingDefinition {
+        key: "general.time_zone",
+        description: "Time zone of this Cooper instance as an IANA name (for example Europe/London); calendar days such as Morning Check Dates are days in this zone.",
+        kind: SettingKind::Text { max_chars: 64 },
+        default: "\"UTC\"",
+    };
+
     /// Every setting declared by the administration context.
-    pub const ALL: &[SettingDefinition] = &[INSTANCE_NAME, BASE_URL];
+    pub const ALL: &[SettingDefinition] = &[INSTANCE_NAME, BASE_URL, TIME_ZONE];
 }
 
 /// A use case failed.

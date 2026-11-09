@@ -46,11 +46,12 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Sensitivity** | Confidentiality of a ticket or department (fixed): `normal`, `confidential`. Confidential items are visible only to authorised Analysts. | `Sensitivity` (kernel) | privacy level |
 | **Company Access** | Which Companies an Analyst or Team may see: all Companies, specific Companies, or none. An Analyst's Tenant Scope is the union of their own and their active Teams' access. | `CompanyAccess`, `company_access_grants` | tenant membership |
 | **System Setting** | A typed configuration value (bool, integer, text or choice) declared by a context with a default; Administrators change it. | `SettingDefinition`, `Setting`, `system_settings` | option, config key |
+| **Time Zone** | The instance's IANA time zone (`general.time_zone`, default `UTC`). Calendar days such as Check Dates are days in this zone. | `general.time_zone` | server time |
 | **System Log** | Warnings and errors from cooper-server and cooper-worker, stored for Administrators to read in Cooper. | `system_log_entries` | error log |
 | **Audit** | An append-only record of who changed what and when: Actor, timestamp, field, old value, new value. Every aggregate has an audit trail (ticket audit, change audit, …), stored in one platform table keyed by aggregate type and ID (ADR-0009). | `AuditRecord`, `audit_entries` | history log |
 | **Tenant Scope** | The set of Companies a request or job may see: specific Companies, or all. Every tenant query runs inside one; the database enforces it with Row-Level Security (ADR-0004). | `TenantScope` | tenant context, org filter |
 | **Domain Event** | A past-tense fact recorded by an aggregate (`TicketCreated`, `ChangeApproved`), with a stable dotted type (`ticket.created`). The way contexts react to each other. | `DomainEvent`, `EventEnvelope` | message, notification (Notification is the in-app bell) |
-| **Notification** | An entry in an Analyst's bell (in-app), about an assignment, a mention, a Requester reply or an SLA Warning or Breach. Kinds (fixed): `ticket_assigned`, `mentioned`, `reply_received`, `sla_warning`, `sla_breached`. | `Notification`, `notifications` | alert, message |
+| **Notification** | An entry in an Analyst's bell (in-app), about an assignment, a mention, a Requester reply, an SLA Warning or Breach, or unrecorded Morning Checks. Kinds (fixed): `ticket_assigned`, `mentioned`, `reply_received`, `sla_warning`, `sla_breached`, `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`, `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`, `checks_unrecorded`. | `Notification`, `notifications` | alert, message |
 | **Live Update** | A signal pushed to a signed-in Analyst's browser that a record they can see (for now a ticket) has changed, so the screen fetches it again. Carries only which record changed, never its data. Sent over Server-Sent Events (ADR-0022). | `LiveChange`, `/api/v1/live` | push message, notification (Notification is the in-app bell), websocket event |
 | **Mention** | `@username` in a Note; the mentioned Analyst gets a Notification. | `mentions()` | tag |
 | **Outbox** | The table where Domain Events are stored in the same transaction as the change, then delivered at least once to Event Handlers by the worker (ADR-0005). | `outbox_events`, `EventHandler` | queue (generic) |
@@ -275,11 +276,15 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Morning Checks** | The daily round of infrastructure health checks that Analysts record. | module `morning_checks` | health checks |
-| **Check Group** | A group of Checks, assigned to a Team or Analyst. | `CheckGroup` | |
-| **Check** | One item to verify each day (for example "Backups completed"). Has an assigned Analyst. | `Check` | test |
-| **Check Status** | Seed: **Green** (OK), **Amber** (requires notes), **Red** (requires notes). Colours #28a745, #ffc107, #dc3545. | `CheckStatus` | RAG (acceptable in UI), pass/fail |
-| **Check Result** | The recorded Status and Notes of one Check on one **Check Date**. Unique per check per date. | `CheckResult` | |
-| **Result Link** | Links a Check Result to a follow-up ticket or task. | `CheckResultLink` | |
+| **Check Group** | A group of Checks of one Company, routed to a Team or an Analyst (not both). Deactivated, never deleted; an inactive group takes its Checks out of the Round. | `CheckGroup`, `check_groups` | |
+| **Check** | One item to verify each day (for example "Backups completed"), of one Company, optionally in a Check Group. Can have its own assigned Analyst. Deactivated, never deleted. | `Check`, `checks` | test |
+| **Check Status** | Seed: **Green** (OK), **Amber** (requires notes), **Red** (requires notes). Colours #28a745, #ffc107, #dc3545. Flag: `requires_notes`. Deactivated, never deleted. | `CheckStatus`, `check_statuses` | RAG (acceptable in UI), pass/fail |
+| **Check Date** | The calendar day a Check Result is for: a day in the instance **Time Zone**, never in the server's local time. Default today; never after today. | `check_date` | day (alone), run date |
+| **Check Result** | The recorded Status and Notes of one Check on one **Check Date**. Unique per check per date. Keeps who first recorded it and who last changed it. Clearing it makes the Check unrecorded again. | `CheckResult`, `check_results` | |
+| **Result Link** | Links a Check Result to a follow-up ticket or Task of the same Company. Kinds (fixed): `ticket`, `task`. | `ResultLink`, `check_result_links` | |
+| **Round** | The Checks to record on a Check Date: every active Check whose Check Group (if any) is active, in group and Check order. | `Day`, `GET /morning-checks/results` | checklist (a Checklist is a Task feature) |
+| **Routing** | Who a Check is for, most specific first: the Check's own Analyst, else its group's Analyst, else its group's Team. | `Routing` | owner |
+| **Check Reminder** | A Notification to the Analysts a Check is routed to when it is still unrecorded at the reminder time; one per Check Date, Check Group and Analyst. | `ChecksUnrecorded`, `check_reminders` | alert |
 
 ---
 

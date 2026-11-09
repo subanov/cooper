@@ -199,6 +199,11 @@ fn with_jobs(
         .with_job(Arc::new(cooper_tasks::infrastructure::TaskRecurrenceJob {
             service: state.tasks.service.clone(),
         }))
+        .with_job(Arc::new(
+            cooper_morning_checks::infrastructure::MorningCheckReminderJob {
+                service: state.morning_checks.service.clone(),
+            },
+        ))
 }
 
 async fn job_loop(
@@ -350,6 +355,7 @@ mod tests {
             "knowledge-review",
             "mailbox-poll",
             "mailbox-secrets-reencrypt",
+            "morning-check-reminders",
             "planned-maintenance",
             "sla-monitor",
             "system-log-prune",

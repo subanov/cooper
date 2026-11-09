@@ -52,6 +52,8 @@ pub enum NotificationKind {
     ArticleReviewDue,
     /// A Task was assigned to the recipient.
     TaskAssigned,
+    /// Morning Checks routed to the recipient are still unrecorded.
+    ChecksUnrecorded,
 }
 
 impl NotificationKind {
@@ -72,6 +74,7 @@ impl NotificationKind {
             Self::ChangeCompleted => "change_completed",
             Self::ArticleReviewDue => "article_review_due",
             Self::TaskAssigned => "task_assigned",
+            Self::ChecksUnrecorded => "checks_unrecorded",
         }
     }
 
@@ -90,6 +93,7 @@ impl NotificationKind {
             Self::ChangeCompleted,
             Self::ArticleReviewDue,
             Self::TaskAssigned,
+            Self::ChecksUnrecorded,
         ]
         .into_iter()
         .find(|k| k.as_str() == s)

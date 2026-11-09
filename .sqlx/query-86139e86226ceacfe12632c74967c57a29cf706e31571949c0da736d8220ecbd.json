@@ -1,0 +1,163 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, check_id, check_date, status_id, notes, recorded_by_kind, recorded_by_id, recorded_at,\n                    modified_by_kind, modified_by_id, updated_at\n             FROM check_results\n             WHERE ($1 OR tenant_id = ANY($2)) AND check_id = $3 AND check_date = $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "check_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "check_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "check_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "check_date"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "notes",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "notes"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "recorded_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "recorded_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "recorded_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "recorded_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "recorded_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "recorded_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "modified_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "modified_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "modified_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "modified_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "check_results",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid",
+        "Date"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "86139e86226ceacfe12632c74967c57a29cf706e31571949c0da736d8220ecbd"
+}

@@ -65,7 +65,8 @@ pub struct NotificationDto {
     pub id: Uuid,
     /// `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
     /// `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-    /// `change_scheduled`, `change_completed`, `article_review_due` or `task_assigned`.
+    /// `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or
+    /// `checks_unrecorded`.
     pub kind: String,
     /// Short text.
     pub title: String,

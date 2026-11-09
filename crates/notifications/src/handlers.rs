@@ -536,3 +536,82 @@ impl EventHandler for TaskNotifier {
             .map_err(|e| handler_error(e.to_string()))
     }
 }
+
+/// Reads Morning Checks (through the Morning Checks application API).
+#[async_trait]
+pub trait UnrecordedChecksLookup: Send + Sync {
+    /// How many of an Analyst's Checks of a Check Group (`None`: ungrouped) are still
+    /// unrecorded on a Check Date.
+    async fn unrecorded(
+        &self,
+        tenant: TenantId,
+        check_date: chrono::NaiveDate,
+        check_group: Option<Uuid>,
+        analyst: AnalystId,
+    ) -> Result<u32, String>;
+}
+
+/// Reminds an Analyst of Morning Checks still unrecorded at the reminder time
+/// (FR-MCK-006), unless they have all been recorded since.
+pub struct CheckReminderNotifier {
+    /// The notifications service.
+    pub notifications: Notifications,
+    /// Morning Checks.
+    pub checks: Arc<dyn UnrecordedChecksLookup>,
+}
+
+#[async_trait]
+impl EventHandler for CheckReminderNotifier {
+    fn name(&self) -> &'static str {
+        "check-reminder-notifier"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        event_type == "morning_checks.unrecorded"
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        let (Some(tenant), Some(to), Some(date)) = (
+            event.tenant_id,
+            uuid(&event.payload, "analyst_id").map(AnalystId::from_uuid),
+            field(&event.payload, "check_date")
+                .and_then(Value::as_str)
+                .and_then(|d| d.parse::<chrono::NaiveDate>().ok()),
+        ) else {
+            return Ok(());
+        };
+        let group = uuid(&event.payload, "check_group_id");
+        let left = self
+            .checks
+            .unrecorded(tenant, date, group, to)
+            .await
+            .map_err(handler_error)?;
+        if left == 0 {
+            return Ok(());
+        }
+        let name = field(&event.payload, "check_group_name")
+            .and_then(Value::as_str)
+            .unwrap_or("Ungrouped Checks");
+        let (s, verb) = if left == 1 {
+            ("", "has")
+        } else {
+            ("s", "have")
+        };
+        let draft = Draft {
+            kind: NotificationKind::ChecksUnrecorded,
+            tenant_id: Some(tenant),
+            title: format!("Morning Checks not recorded: {name}"),
+            body: format!("{left} Check{s} for {date} still {verb} no result."),
+            ticket_id: None,
+            change_id: None,
+            article_id: None,
+            task_id: None,
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, BTreeSet::from([to]), event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
+    }
+}

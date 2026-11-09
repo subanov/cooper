@@ -948,3 +948,197 @@ impl cooper_service_status::ports::PublicationSettingsProvider for StatusPublica
         }
     }
 }
+
+/// Morning Checks' view of tickets, Tasks, Analysts and Teams.
+pub struct MorningCheckDirectory {
+    /// Analysts and Teams.
+    pub identity: IdentityDirectory,
+    /// Tickets.
+    pub desk: cooper_service_desk::application::ServiceDesk,
+    /// Tasks.
+    pub tasks: cooper_tasks::application::TaskService,
+    /// Module switches (follow-up Tasks need the Tasks Module).
+    pub gate: cooper_administration::api::ModuleGate,
+}
+
+fn check_err(e: impl std::fmt::Display) -> cooper_morning_checks::ports::RepoError {
+    cooper_morning_checks::ports::RepoError::Storage(e.to_string())
+}
+
+#[async_trait]
+impl cooper_morning_checks::ports::Directory for MorningCheckDirectory {
+    async fn ticket(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_morning_checks::ports::RepoError> {
+        use cooper_service_desk::application::AppError;
+        match self
+            .desk
+            .ticket(principal, cooper_kernel::TicketId::from_uuid(id))
+            .await
+        {
+            Ok(d) => Ok(Some((d.ticket.tenant_id(), d.ticket.number().to_owned()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(check_err(e)),
+        }
+    }
+
+    async fn task(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_morning_checks::ports::RepoError> {
+        use cooper_tasks::application::AppError;
+        if !self.gate.is_enabled(cooper_kernel::Module::Tasks).await {
+            return Ok(None);
+        }
+        match self.tasks.get(principal, id).await {
+            Ok(t) => Ok(Some((t.tenant_id(), t.details().title.clone()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(check_err(e)),
+        }
+    }
+
+    async fn create_task(
+        &self,
+        principal: &Principal,
+        task: cooper_morning_checks::ports::FollowUpTask,
+    ) -> Result<(uuid::Uuid, String), cooper_morning_checks::ports::FollowUpError> {
+        use cooper_morning_checks::ports::FollowUpError;
+        use cooper_tasks::application::AppError;
+        if !self.gate.is_enabled(cooper_kernel::Module::Tasks).await {
+            return Err(FollowUpError::Forbidden("the Tasks Module is off".into()));
+        }
+        let new = cooper_tasks::application::NewTask {
+            tenant_id: Some(task.tenant_id),
+            details: cooper_tasks::domain::TaskDetails {
+                title: task.title,
+                description: task.description,
+                priority_id: uuid::Uuid::nil(),
+                start_date: None,
+                due_date: None,
+                estimate_minutes: None,
+                assigned_analyst: task.assigned_analyst,
+                assigned_team: task.assigned_team,
+                tags: Vec::new(),
+            },
+            status_id: None,
+            parent_id: None,
+            collaborators: BTreeSet::new(),
+        };
+        match self.tasks.create(principal, new).await {
+            Ok(t) => Ok((t.id(), t.details().title.clone())),
+            Err(AppError::Forbidden(f)) => Err(FollowUpError::Forbidden(f.0)),
+            Err(e @ (AppError::Rule(_) | AppError::NotFound(_) | AppError::Conflict(_))) => {
+                Err(FollowUpError::Invalid(e.to_string()))
+            }
+            Err(e) => Err(FollowUpError::Storage(e.to_string())),
+        }
+    }
+
+    async fn analyst_active(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<bool, cooper_morning_checks::ports::RepoError> {
+        Directory::analyst_is_active(&self.identity, analyst)
+            .await
+            .map_err(check_err)
+    }
+
+    async fn team_members(
+        &self,
+        team: TeamId,
+    ) -> Result<Option<BTreeSet<AnalystId>>, cooper_morning_checks::ports::RepoError> {
+        Directory::team_members(&self.identity, team)
+            .await
+            .map_err(check_err)
+    }
+
+    async fn teams_of(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<BTreeSet<TeamId>, cooper_morning_checks::ports::RepoError> {
+        Directory::teams_of(&self.identity, analyst)
+            .await
+            .map_err(check_err)
+    }
+
+    async fn analyst_name(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<Option<String>, cooper_morning_checks::ports::RepoError> {
+        Ok(Directory::analyst_profile(&self.identity, analyst)
+            .await
+            .map_err(check_err)?
+            .map(|p| p.name))
+    }
+}
+
+/// Morning Checks settings, read from System Settings (`general.time_zone` and the
+/// `morning_checks.*` reminder settings).
+pub struct MorningCheckSettings {
+    /// Administration.
+    pub admin: AdministrationService,
+}
+
+#[async_trait]
+impl cooper_morning_checks::ports::MorningCheckSettingsProvider for MorningCheckSettings {
+    async fn settings(&self) -> cooper_morning_checks::ports::MorningCheckSettings {
+        use cooper_morning_checks::application::settings;
+        let defaults = cooper_morning_checks::ports::MorningCheckSettings::default();
+        let value = |key: &'static str| {
+            let admin = self.admin.clone();
+            async move { admin.setting_value(key).await.ok().flatten() }
+        };
+        let text = |v: Option<serde_json::Value>, default: String| {
+            v.and_then(|v| v.as_str().map(str::to_owned))
+                .unwrap_or(default)
+        };
+        cooper_morning_checks::ports::MorningCheckSettings {
+            time_zone: text(
+                value(cooper_administration::application::settings::TIME_ZONE.key).await,
+                defaults.time_zone,
+            ),
+            reminders: value(settings::REMINDERS.key)
+                .await
+                .and_then(|v| v.as_bool())
+                .unwrap_or(defaults.reminders),
+            reminder_time: text(
+                value(settings::REMINDER_TIME.key).await,
+                defaults.reminder_time,
+            ),
+            reminder_weekends: value(settings::REMINDER_WEEKENDS.key)
+                .await
+                .and_then(|v| v.as_bool())
+                .unwrap_or(defaults.reminder_weekends),
+        }
+    }
+}
+
+/// Unrecorded Morning Checks, for reminder Notifications.
+pub struct UnrecordedChecks {
+    /// Morning Checks.
+    pub checks: cooper_morning_checks::application::MorningChecksService,
+}
+
+#[async_trait]
+impl cooper_notifications::handlers::UnrecordedChecksLookup for UnrecordedChecks {
+    async fn unrecorded(
+        &self,
+        tenant: TenantId,
+        check_date: chrono::NaiveDate,
+        check_group: Option<uuid::Uuid>,
+        analyst: AnalystId,
+    ) -> Result<u32, String> {
+        self.checks
+            .unrecorded_for(
+                tenant,
+                check_date,
+                check_group.map(cooper_morning_checks::domain::CheckGroupId::from_uuid),
+                analyst,
+            )
+            .await
+            .map_err(|e| e.to_string())
+    }
+}

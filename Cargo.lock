@@ -642,6 +642,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "cooper-morning-checks"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "chrono-tz",
+ "cooper-http",
+ "cooper-kernel",
+ "cooper-platform",
+ "proptest",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.21",
+ "tracing",
+ "utoipa",
+ "utoipa-axum",
+ "uuid",
+]
+
+[[package]]
 name = "cooper-notifications"
 version = "0.1.0"
 dependencies = [
@@ -731,6 +753,7 @@ dependencies = [
  "cooper-identity",
  "cooper-kernel",
  "cooper-knowledge",
+ "cooper-morning-checks",
  "cooper-notifications",
  "cooper-platform",
  "cooper-problem-management",
@@ -840,6 +863,7 @@ dependencies = [
  "cooper-identity",
  "cooper-kernel",
  "cooper-knowledge",
+ "cooper-morning-checks",
  "cooper-notifications",
  "cooper-platform",
  "cooper-server",

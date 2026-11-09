@@ -179,6 +179,8 @@ pub struct AppState {
     pub tasks: cooper_tasks::api::TasksApi,
     /// Service Status API state.
     pub service_status: cooper_service_status::api::ServiceStatusApi,
+    /// Morning Checks API state.
+    pub morning_checks: cooper_morning_checks::api::MorningChecksApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -196,6 +198,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_knowledge::application::capabilities::ALL)
         .chain(cooper_tasks::application::capabilities::ALL)
         .chain(cooper_service_status::application::capabilities::ALL)
+        .chain(cooper_morning_checks::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -209,6 +212,7 @@ pub fn setting_catalogue() -> Vec<SettingDefinition> {
         .chain(desk_settings::ALL)
         .chain(cooper_notifications::email::settings::ALL)
         .chain(cooper_service_status::application::settings::ALL)
+        .chain(cooper_morning_checks::application::settings::ALL)
         .copied()
         .collect()
 }
@@ -245,6 +249,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_service_status::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::ServiceStatus)),
+        )
+        .chain(
+            cooper_morning_checks::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::MorningChecks)),
         )
         .collect()
 }
@@ -389,6 +398,29 @@ impl AppState {
                 },
             ),
         };
+        let morning_checks = cooper_morning_checks::api::MorningChecksApi {
+            service: cooper_morning_checks::application::MorningChecksService::new(
+                cooper_morning_checks::application::MorningChecksPorts {
+                    store: Arc::new(
+                        cooper_morning_checks::infrastructure::PgMorningChecksStore::new(
+                            pool.clone(),
+                        ),
+                    ),
+                    directory: Arc::new(crate::adapters::MorningCheckDirectory {
+                        identity: IdentityDirectory {
+                            identity: service.clone(),
+                        },
+                        desk: desk.clone(),
+                        tasks: tasks.service.clone(),
+                        gate: ModuleGate::new(admin.clone(), module_routes()),
+                    }),
+                    settings: Arc::new(crate::adapters::MorningCheckSettings {
+                        admin: admin.clone(),
+                    }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let changes = cooper_change_management::api::ChangesApi {
             service: change_service,
             blobs: blobs.clone(),
@@ -423,6 +455,7 @@ impl AppState {
             knowledge,
             tasks,
             service_status,
+            morning_checks,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -475,6 +508,12 @@ impl AppState {
                     tasks: self.tasks.service.clone(),
                 }),
             }),
+            Arc::new(cooper_notifications::handlers::CheckReminderNotifier {
+                notifications: self.notifications.service.clone(),
+                checks: Arc::new(crate::adapters::UnrecordedChecks {
+                    checks: self.morning_checks.service.clone(),
+                }),
+            }),
             Arc::new(cooper_notifications::handlers::MailboxAlerts {
                 notifications: self.notifications.service.clone(),
                 people: Arc::new(IdentityDirectory {
@@ -521,6 +560,12 @@ impl AppState {
             Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
         }
         poller
+    }
+}
+
+impl FromRef<AppState> for cooper_morning_checks::api::MorningChecksApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.morning_checks.clone()
     }
 }
 
@@ -594,6 +639,7 @@ mod tests {
                 + cooper_knowledge::application::capabilities::ALL.len()
                 + cooper_tasks::application::capabilities::ALL.len()
                 + cooper_service_status::application::capabilities::ALL.len()
+                + cooper_morning_checks::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(
