@@ -23,6 +23,8 @@ use sqlx::{PgConnection, PgPool};
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::metrics::names;
+
 pub use prune::PruneJobRuns;
 pub use schedule::{Schedule, ScheduleError};
 
@@ -247,7 +249,8 @@ impl JobRunner {
 
         let started = Instant::now();
         let result = run_catching_panics(job, &self.ctx).await;
-        let duration_ms = i64::try_from(started.elapsed().as_millis()).unwrap_or(i64::MAX);
+        let elapsed = started.elapsed();
+        let duration_ms = i64::try_from(elapsed.as_millis()).unwrap_or(i64::MAX);
         let finished_at = self.ctx.clock.now().max(now);
 
         let (outcome, message, run_outcome) = match result {
@@ -257,6 +260,13 @@ impl JobRunner {
                 ("failed", Some(error.clone()), RunOutcome::Failed(error))
             }
         };
+        metrics::counter!(names::JOB_RUNS, "job" => job.name(), "outcome" => outcome).increment(1);
+        metrics::histogram!(names::JOB_DURATION, "job" => job.name()).record(elapsed.as_secs_f64());
+        if matches!(run_outcome, RunOutcome::Succeeded) {
+            #[allow(clippy::cast_precision_loss)] // Unix seconds fit an f64 exactly until 2^53
+            metrics::gauge!(names::JOB_LAST_SUCCESS, "job" => job.name())
+                .set(finished_at.timestamp() as f64);
+        }
         sqlx::query!(
             r#"
             UPDATE background_job_runs

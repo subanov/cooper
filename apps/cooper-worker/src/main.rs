@@ -36,6 +36,7 @@ struct WorkerConfig {
     smtp_url: Option<String>,
     blob_dir: std::path::PathBuf,
     log_format: LogFormat,
+    metrics_addr: Option<std::net::SocketAddr>,
 }
 
 impl WorkerConfig {
@@ -52,6 +53,7 @@ impl WorkerConfig {
                 30_u16,
             )?,
             log_format: config::parse_or("COOPER_LOG_FORMAT", LogFormat::default())?,
+            metrics_addr: cooper_server::config::metrics_addr()?,
             smtp_url: config::var("COOPER_SMTP_URL")?,
             blob_dir: config::parse_or("COOPER_BLOB_DIR", std::path::PathBuf::from("data/blobs"))?,
             keyring: Keyring::parse(&config::required("COOPER_ENCRYPTION_KEYS")?).map_err(|e| {
@@ -68,15 +70,26 @@ impl WorkerConfig {
 async fn main() -> anyhow::Result<()> {
     let config = WorkerConfig::from_env().context("invalid configuration")?;
     let (system_log, system_log_writer) = system_log::channel("worker");
-    telemetry::init(config.log_format, Some(system_log)).context("failed to initialise logging")?;
+    let _telemetry = telemetry::init(config.log_format, Some(system_log), "cooper-worker")
+        .context("failed to initialise logging")?;
+    let metrics_enabled = config.metrics_addr.is_some();
+    if let Some(addr) = config.metrics_addr {
+        let handle = cooper_platform::metrics::install().context("failed to install metrics")?;
+        tokio::spawn(async move {
+            let render = move || handle.render();
+            if let Err(error) =
+                cooper_http::metrics::serve(addr, render, std::future::pending()).await
+            {
+                tracing::error!(%error, %addr, "metrics listener failed");
+            }
+        });
+    }
 
     let pool = db::connect(&config.database)
         .await
         .context("failed to connect to the database")?;
     if let db::MigrationStatus::Pending { versions } = db::migration_status(&pool).await? {
-        anyhow::bail!(
-            "database migrations are pending: {versions:?}; run `cargo sqlx migrate run`"
-        );
+        anyhow::bail!("database migrations are pending: {versions:?}; run `cooper-server migrate`");
     }
 
     tokio::spawn(system_log_writer.run(pool.clone()));
@@ -135,7 +148,7 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("failed to register jobs")?;
     let dispatcher = state.event_handlers().into_iter().fold(
-        Dispatcher::new(pool, clock).with_batch_size(config.outbox_batch_size),
+        Dispatcher::new(pool.clone(), clock.clone()).with_batch_size(config.outbox_batch_size),
         Dispatcher::with_handler,
     );
     let dispatcher = Arc::new(dispatcher);
@@ -147,6 +160,13 @@ async fn main() -> anyhow::Result<()> {
             runner.clone(),
             name,
             config.tick,
+            shutdown_rx.clone(),
+        ));
+    }
+    if metrics_enabled {
+        tasks.spawn(backlog_loop(
+            pool.clone(),
+            clock.clone(),
             shutdown_rx.clone(),
         ));
     }
@@ -199,6 +219,23 @@ async fn outbox_loop(
             }
         };
         if *shutdown.borrow() || (!busy && wait_or_shutdown(tick, &mut shutdown).await) {
+            return;
+        }
+    }
+}
+
+/// Samples the outbox backlog into the metrics gauges every 15 seconds (ADR-0023).
+async fn backlog_loop(
+    pool: sqlx::PgPool,
+    clock: Arc<dyn Clock>,
+    mut shutdown: watch::Receiver<bool>,
+) {
+    loop {
+        match cooper_platform::outbox::backlog(&pool, clock.now()).await {
+            Ok(backlog) => cooper_platform::outbox::record_backlog(&backlog),
+            Err(error) => tracing::warn!(%error, "cannot measure the outbox backlog"),
+        }
+        if wait_or_shutdown(Duration::from_secs(15), &mut shutdown).await {
             return;
         }
     }

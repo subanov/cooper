@@ -1,0 +1,7 @@
+# Trivy exceptions. Every entry needs a reason and an expiry (exp:YYYY-MM-DD); an expired
+# entry stops matching, so the finding fails the build again.
+
+# libssl3 3.0.20-1~deb12u2 in gcr.io/distroless/cc-debian12:nonroot. Debian fixed it in
+# 3.0.22-1~deb12u2, but the distroless base image has not been rebuilt with it yet.
+# Remove this entry when the base image picks up the fix.
+CVE-2026-84782 exp:2026-11-22

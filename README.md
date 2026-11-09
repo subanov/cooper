@@ -85,9 +85,15 @@ docker compose --profile app up -d --build   # or: just up-app
 ```
 
 Images: `runtime` (default; `cooper-server` and `cooper-worker` on distroless, non-root, start
-the worker with `/usr/local/bin/cooper-worker`) and `migrate` (`sqlx migrate run` as the owner
-role). Probe `GET /health/live` and `GET /health/ready`. Tagged releases (`v*`) publish both
-images to GitHub Container Registry.
+the worker with `/usr/local/bin/cooper-worker`) and `migrate` (`cooper-server migrate` as the
+owner role). Probe `GET /health/live` and `GET /health/ready`. Tagged releases (`vX.Y.Z`)
+publish signed `linux/amd64` and `linux/arm64` images to GitHub Container Registry.
+
+For production, start from the single-host deployment in
+[deploy/single-host/](deploy/single-host/compose.yaml) (Caddy with automatic HTTPS,
+PostgreSQL with pgBackRest point-in-time recovery): see the
+[deployment](docs/runbooks/deployment.md) and [backup](docs/runbooks/backup-and-restore.md)
+runbooks.
 
 Run the checks before you push (`just check`, and `just web-check` when `web/` changed):
 
@@ -109,6 +115,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 | [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Set-up, workflow, commit style |
 | [SECURITY.md](SECURITY.md) | How to report vulnerabilities |
+| [docs/runbooks/](docs/runbooks/) | Deploying, upgrading, backups and restore, releasing, key rotation |
 
 ## Contributing
 

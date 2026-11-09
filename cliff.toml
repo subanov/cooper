@@ -1,0 +1,49 @@
+# git-cliff configuration: CHANGELOG.md and release notes from Conventional Commits
+# (docs/runbooks/releasing.md, #86).
+
+[changelog]
+header = """
+# Changelog
+
+All notable changes to Cooper. Versions follow [Semantic Versioning](https://semver.org);
+entries are generated from [Conventional Commits](https://www.conventionalcommits.org).\n
+"""
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}\
+{% if commit.breaking %}[**breaking**] {% endif %}\
+{{ commit.message | upper_first }}\
+{% endfor %}
+{% endfor %}\n
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+protect_breaking_commits = true
+tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+.*"
+sort_commits = "oldest"
+commit_preprocessors = [
+  # Drop the PR number suffix GitHub adds to squash merges; the changelog links tags.
+  { pattern = '\s*\(#[0-9]+\)$', replace = "" },
+]
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Bug fixes" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^sec|^security", group = "<!-- 3 -->Security" },
+  { message = "^refactor", group = "<!-- 4 -->Refactoring" },
+  { message = "^docs", group = "<!-- 5 -->Documentation" },
+  { message = "^(ci|build)", group = "<!-- 6 -->Build and CI" },
+  { message = "^chore\\(deps\\)|^chore: bump", group = "<!-- 7 -->Dependencies" },
+  { message = "^(chore|test|style)", skip = true },
+]
