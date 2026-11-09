@@ -89,7 +89,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 |---|---|---|---|
 | FR-TKT-001 | An Analyst can create a **Ticket** with subject, description, Requester, Department, Ticket Type, Category, Priority, Origin, Queue (Team), Assignee and Sensitivity. | M | P1 |
 | FR-TKT-002 | Each ticket gets a unique **Ticket Number** from a configurable format (prefix per department or type, `{COMPANY}` token, zero-padded sequence). Cooper tokens: `{COMPANY}`, `{TYPE}`, `{YEAR}`, `{SEQ:n}`, one sequence per Company; a per-Department prefix is not supported yet (ADR-0014). | M | P1 |
-| FR-TKT-003 | When the number format changes or a ticket is renumbered, previous numbers are kept in Ticket Number History and still resolve to the ticket. | S | P2 |
+| FR-TKT-003 | When the number format changes or a ticket is renumbered, previous numbers are kept in Ticket Number History and still resolve to the ticket. Renumbering (`tickets.configure`) takes the next number of the current format; a retired number is never reused (ADR-0024). | S | P2 |
 | FR-TKT-004 | **Ticket Statuses** are configurable, each with `is_closed`, `pauses_sla` and `is_default` flags. Seeded with Open (default), In Progress, On Hold (pauses SLA), Awaiting Response (pauses SLA), Closed. Exactly one status is the default. Deviation from FreeITSM: the seed always sets `pauses_sla` (FreeITSM's verification seeder omits it, so those installs never pause the SLA). | M | P1 |
 | FR-TKT-005 | **Ticket Priorities** are configurable, each with SLA response minutes, resolution minutes and SLA Calendar. Seeded with Low, Normal (default), High, Critical, Urgent. | M | P1 |
 | FR-TKT-006 | **Ticket Types**, **Origins** and **Resolution Codes** are configurable, with the FreeITSM seeds in the Vocabulary. Seeded rows have a stable `key` that code uses instead of the name. Deviation from FreeITSM: FreeITSM finds channel Origins by English name, so renaming one breaks channel intake. | M | P1 |
@@ -97,8 +97,8 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TKT-008 | Closing a ticket (moving it to a closed status) records the closed timestamp. It requires a **Resolution Code**, and a **Closure Category** when configured. It also requires every Ticket Field marked *required on close*. | M | P1 |
 | FR-TKT-009 | A closed ticket can be reopened. Reopening clears the closed timestamp and is audited. A Requester reply to a closed ticket reopens it or creates a new linked ticket (configurable). | M | P1 |
 | FR-TKT-010 | A ticket can be assigned to a Team (Queue) and/or an Analyst. The Analyst must belong to the Team when both are set (configurable). Assignment changes notify the new assignee. | M | P1 |
-| FR-TKT-011 | **Ticket Type Rules** set the default Ticket Type from channel, mailbox, origin, department, subject keywords, requester domain or company. Rules are evaluated in order. | S | P2 |
-| FR-TKT-012 | Analysts can **Snooze** a ticket until a date and time, with a reason. Snoozed tickets are hidden from default views and reappear automatically. | S | P2 |
+| FR-TKT-011 | **Ticket Type Rules** set the default Ticket Type from channel, mailbox, origin, department, subject keywords, requester domain or company. Rules are evaluated in order. A chosen type always wins and a failing rule never stops a ticket being created. Deviation from FreeITSM: rules are instance-wide reference data with a Company condition, not per-Company rows, and there is no separate default-type setting (ADR-0024). | S | P2 |
+| FR-TKT-012 | Analysts can **Snooze** a ticket until a date and time (at most 730 days ahead), with a reason. The ticket records who snoozed it and when. Snoozed tickets are hidden from default views and reappear automatically; the SLA clock keeps running. | S | P2 |
 | FR-TKT-013 | A ticket can be flagged **First Time Fix** and **Training Provided**. | S | P1 |
 | FR-TKT-014 | A ticket can be **Confidential**. Only Analysts with the matching capability, or in the Department's Teams, can see confidential tickets. Confidential content is excluded from search for everyone else. | M | P1 |
 
@@ -111,11 +111,11 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TKT-022 | Analysts can insert **Reply Templates** with placeholders (requester name, ticket number, …). | S | P1 |
 | FR-TKT-023 | Analysts record **Time Entries** (minutes, note, date) on a ticket. The ticket shows total time. | S | P1 |
 | FR-TKT-024 | The ticket timeline shows emails, notes, status and assignment changes, and audit events, in chronological order. | M | P1 |
-| FR-TKT-025 | **Ticket Presence**: the ticket shows which other Analysts are viewing or replying to it, live. | C | P2 |
-| FR-TKT-026 | **Merge** a ticket into another: emails, notes and attachments move, and the source ticket is closed and points to the target. Merge can be undone. | S | P2 |
-| FR-TKT-027 | **Split** selected emails or notes into a new ticket. Split can be undone. | C | P2 |
-| FR-TKT-028 | **Ticket Links** between tickets: related, duplicate, parent/child. | S | P2 |
-| FR-TKT-029 | Administrators define custom **Ticket Fields** (typed: text, number, date, dropdown, checkbox, …) with *required on create*, *required on close* and *ask requester* options. | S | P2 |
+| FR-TKT-025 | **Ticket Presence**: the ticket shows which other Analysts are viewing or replying to it, live. Presence is a heartbeat that goes stale after 30 seconds; it warns and never locks, and it is not audited (ADR-0024). | C | P2 |
+| FR-TKT-026 | **Merge** a ticket into another: emails, notes and attachments move, and the source ticket is closed and points to the target. Merge can be undone. Time Entries move too; replies to the merged-away ticket's SDREF reach the target. Deviation from FreeITSM: only its default policy (the target survives, messages move) is offered, and the target must be open (ADR-0024). | S | P2 |
+| FR-TKT-027 | **Split** selected emails or notes into a new ticket. Split can be undone. The new ticket copies the source's details and Queue and is linked as related; undo is refused once the new ticket has activity of its own (ADR-0024). | C | P2 |
+| FR-TKT-028 | **Ticket Links** between tickets: related, duplicate, parent/child. Links stay within one Company, a ticket has at most one parent and one master, parent/child cycles are refused, and links to tickets an Analyst may not see are hidden from them. | S | P2 |
+| FR-TKT-029 | Administrators define custom **Ticket Fields** (typed: text, number, date, dropdown, checkbox, …) with *required on create*, *required on close* and *ask requester* options. A field's key and type never change; fields are retired, not deleted. Emailed tickets cannot be asked and skip *required on create*. Deviation from FreeITSM: fields are instance-wide, not per Company (ADR-0024). | S | P2 |
 | FR-TKT-030 | Tickets can be linked to Assets, CIs, Problems, Changes and Tasks. | S | P2 |
 | FR-TKT-031 | Analysts can schedule work on a ticket (start, end, all-day) for an **Owner**. The work appears on the Calendar. | C | P3 |
 | FR-TKT-032 | **Checklists** from templates can be attached to a ticket. The template's Closure Mode decides whether incomplete mandatory items block closure. | C | P3 |
@@ -127,7 +127,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 |---|---|---|---|
 | FR-TKT-040 | Built-in views: My tickets, My team's tickets (Queue), Unassigned, All open, Snoozed, Recently closed. | M | P1 |
 | FR-TKT-041 | Ticket search by number (current or historical), subject, body, requester, email address and extracted attachment text. | M | P1 |
-| FR-TKT-042 | Bulk actions on selected tickets: assign, change status or priority, merge, close. | S | P2 |
+| FR-TKT-042 | Bulk actions on selected tickets: assign, change status or priority, merge, close. Up to 100 tickets; each is changed in its own transaction with the usual checks and its outcome is reported. | S | P2 |
 
 ## 4. Mailboxes & Email Intake (EML)
 

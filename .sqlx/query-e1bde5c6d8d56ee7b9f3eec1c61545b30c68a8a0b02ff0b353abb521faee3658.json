@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_splits (id, tenant_id, source_ticket_id, new_ticket_id, moved, marker_note_id, link_id,\n                                        split_by_kind, split_by_id, split_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Jsonb",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e1bde5c6d8d56ee7b9f3eec1c61545b30c68a8a0b02ff0b353abb521faee3658"
+}

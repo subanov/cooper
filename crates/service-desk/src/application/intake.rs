@@ -258,6 +258,11 @@ impl ServiceDesk {
                 ticket = self.ticket(&system, id).await.ok().map(|d| d.ticket);
             }
         }
+        // A reply to a merged-away ticket belongs to the ticket it was merged into
+        // (FR-TKT-026); old and historical numbers resolve the same way (FR-TKT-003).
+        if let Some(t) = ticket {
+            ticket = Some(self.follow_merges(&system, t).await);
+        }
 
         // Requester and Company (FR-EML-004).
         let known = self
@@ -346,6 +351,9 @@ impl ServiceDesk {
                             sensitivity_given: false,
                             team_id: mailbox.settings().team_id,
                             analyst_id: None,
+                            channel: crate::domain::Channel::Email,
+                            mailbox_id: Some(mailbox.id()),
+                            fields: std::collections::BTreeMap::new(),
                         },
                     )
                     .await?;

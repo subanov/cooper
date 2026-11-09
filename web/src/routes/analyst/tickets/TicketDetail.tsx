@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { analystSessionQuery } from "@/features/session/queries";
 import { addNote, assignTicket, changeStatus, sendReply } from "@/features/tickets/actions";
+import { useTicketPresence } from "@/features/tickets/presence";
 import {
   analystsQuery,
   namesById,
@@ -23,6 +24,7 @@ import { useText } from "@/i18n/useText";
 import type { Schemas } from "@/lib/api";
 import type { Problem } from "@/lib/problem";
 import { useKeys } from "../useShortcuts";
+import { PresenceNotice } from "./PresenceNotice";
 import { SlaTargetBadge } from "./SlaBadge";
 import { Timeline } from "./Timeline";
 
@@ -46,6 +48,8 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
   const requesters = useQuery(requesterNamesQuery(requesterId ? [requesterId] : []));
   const [problem, setProblem] = useState<Problem | null>(null);
   const composer = useRef<ComposerHandle>(null);
+  const [composing, setComposing] = useState(false);
+  const viewers = useTicketPresence(ticketId, composing);
 
   async function updated(result: { ok: true; data: Ticket } | { ok: false; problem: Problem }) {
     if (!result.ok) {
@@ -121,6 +125,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
   return (
     <article aria-labelledby="ticket-subject" className="grid content-start gap-5">
       {header}
+      <PresenceNotice viewers={viewers} names={namesById(analysts.data, (a) => a.full_name)} />
 
       <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-sm">
         <dt className="text-muted-foreground">{t("ticket.requester")}</dt>
@@ -178,7 +183,7 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         <p className="whitespace-pre-wrap text-sm">{tk.description}</p>
       </section>
 
-      <Composer ref={composer} ticketId={ticketId} />
+      <Composer ref={composer} ticketId={ticketId} onComposingChange={setComposing} />
       <Timeline ticketId={ticketId} />
     </article>
   );
@@ -262,7 +267,15 @@ export interface ComposerHandle {
   focus: (mode: "reply" | "note") => void;
 }
 
-function Composer({ ticketId, ref }: { ticketId: string; ref: Ref<ComposerHandle> }) {
+function Composer({
+  ticketId,
+  ref,
+  onComposingChange,
+}: {
+  ticketId: string;
+  ref: Ref<ComposerHandle>;
+  onComposingChange?: (composing: boolean) => void;
+}) {
   const t = useText();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"reply" | "note">("reply");
@@ -271,6 +284,8 @@ function Composer({ ticketId, ref }: { ticketId: string; ref: Ref<ComposerHandle
   const [state, setState] = useState<"idle" | "busy" | "sent" | "error">("idle");
   const [error, setError] = useState<string | undefined>();
   const textarea = useRef<HTMLTextAreaElement>(null);
+  const hasText = body.trim() !== "";
+  useEffect(() => onComposingChange?.(hasText), [hasText, onComposingChange]);
 
   useImperativeHandle(ref, () => ({
     focus: (next) => {

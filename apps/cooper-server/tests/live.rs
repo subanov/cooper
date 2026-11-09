@@ -369,3 +369,41 @@ async fn streams_end_when_the_server_shuts_down(pool: PgPool) {
     w.state.live.shutdown();
     assert!(live.next().await.is_none(), "the stream ends");
 }
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn presence_changes_are_announced_to_analysts_who_can_see_the_ticket(pool: PgPool) {
+    let w = World::new(&pool).await;
+    let other = w.company("Other Ltd", "OTH", "other.example").await;
+    let (_, ann) = w.analyst("ann", DESK_CAPS, &[&w.company]).await;
+    let (_, bob) = w.analyst("bob", DESK_CAPS, &[&w.company]).await;
+    let (_, theirs) = w.analyst("theirs", DESK_CAPS, &[&other]).await;
+    let ticket = w
+        .ticket(&w.admin, &w.company, json!({ "subject": "Busy ticket" }))
+        .await;
+    let mut ann_live = Stream::open(&ann).await;
+    let mut theirs_live = Stream::open(&theirs).await;
+
+    let path = format!("/api/v1/tickets/{ticket}/presence");
+    assert_eq!(
+        bob.put(&path, json!({ "composing": true })).await.status,
+        StatusCode::OK
+    );
+    let (name, data) = ann_live.next().await.unwrap();
+    assert_eq!(name, "invalidate");
+    assert_eq!(data, json!({ "topic": "ticket_presence", "id": ticket }));
+
+    // A repeated heartbeat with nothing new is not announced: Ann's next event is the
+    // marker ticket created after it. `theirs` (another Company) never hears of it.
+    assert_eq!(
+        bob.put(&path, json!({ "composing": true })).await.status,
+        StatusCode::OK
+    );
+    let marker = w
+        .ticket(&w.admin, &w.company, json!({ "subject": "Marker" }))
+        .await;
+    assert_eq!(ann_live.invalidated().await, marker);
+    let their_marker = w
+        .ticket(&w.admin, &other, json!({ "subject": "Their marker" }))
+        .await;
+    assert_eq!(theirs_live.invalidated().await, their_marker);
+}

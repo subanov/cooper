@@ -1,0 +1,54 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT ticket_number, reason, retired_at FROM ticket_number_history\n             WHERE ticket_id = $1 AND ($2 OR tenant_id = ANY($3)) ORDER BY retired_at DESC, id DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "ticket_number",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ticket_number_history",
+            "name": "ticket_number"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "reason",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "ticket_number_history",
+            "name": "reason"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "retired_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "ticket_number_history",
+            "name": "retired_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "e000abd131aa794fd006fdf79d71e3b06896689350adf19123b2cf1ca9b2cc8f"
+}

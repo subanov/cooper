@@ -120,6 +120,9 @@ pub struct Ticket {
     closed_at: Option<DateTime<Utc>>,
     snoozed_until: Option<DateTime<Utc>>,
     snooze_reason: Option<String>,
+    snoozed_by: Option<AnalystId>,
+    snoozed_at: Option<DateTime<Utc>>,
+    merged_into: Option<TicketId>,
     deleted_at: Option<DateTime<Utc>>,
     sla: TicketSla,
     created_by: Actor,
@@ -160,6 +163,9 @@ impl Ticket {
             closed_at: None,
             snoozed_until: None,
             snooze_reason: None,
+            snoozed_by: None,
+            snoozed_at: None,
+            merged_into: None,
             deleted_at: None,
             sla: TicketSla::default(),
             created_by: new.created_by,
@@ -204,11 +210,29 @@ impl Ticket {
             closed_at,
             snoozed_until,
             snooze_reason,
+            snoozed_by: None,
+            snoozed_at: None,
+            merged_into: None,
             deleted_at,
             created_by,
             created_at,
             updated_at,
         }
+    }
+
+    /// Adds the state stored beside the core columns: who snoozed the ticket and when
+    /// (FR-TKT-012), and the ticket it was merged into (FR-TKT-026). Storage only.
+    #[must_use]
+    pub const fn with_lineage(
+        mut self,
+        snoozed_by: Option<AnalystId>,
+        snoozed_at: Option<DateTime<Utc>>,
+        merged_into: Option<TicketId>,
+    ) -> Self {
+        self.snoozed_by = snoozed_by;
+        self.snoozed_at = snoozed_at;
+        self.merged_into = merged_into;
+        self
     }
 
     fn ensure_live(&self) -> Result<(), TicketError> {
@@ -276,8 +300,7 @@ impl Ticket {
                 self.closure_category_id = category;
                 if !was_closed {
                     self.closed_at = Some(now);
-                    self.snoozed_until = None;
-                    self.snooze_reason = None;
+                    self.clear_snooze();
                 }
                 if was_closed {
                     StatusTransition::Moved
@@ -329,15 +352,18 @@ impl Ticket {
         Ok(true)
     }
 
-    /// Hides the ticket from default views until `until` (FR-TKT-012).
+    /// Hides the ticket from default views until `until` (FR-TKT-012), for the whole
+    /// desk: the ticket records who snoozed it and when. The SLA clock keeps running.
     ///
     /// # Errors
     ///
-    /// Deleted or closed ticket, a time in the past, or an over-long reason.
+    /// Deleted or closed ticket, a time in the past or more than
+    /// [`Ticket::MAX_SNOOZE_DAYS`] ahead, or an over-long reason.
     pub fn snooze(
         &mut self,
         until: DateTime<Utc>,
         reason: &str,
+        by: Option<AnalystId>,
         now: DateTime<Utc>,
     ) -> Result<(), TicketError> {
         self.ensure_live()?;
@@ -346,6 +372,12 @@ impl Ticket {
         }
         if until <= now {
             return Err(TicketError::invalid("until", "must be in the future"));
+        }
+        if until - now > chrono::Duration::days(Self::MAX_SNOOZE_DAYS) {
+            return Err(TicketError::invalid(
+                "until",
+                format!("must be within {} days", Self::MAX_SNOOZE_DAYS),
+            ));
         }
         let reason = reason.trim();
         if reason.chars().count() > 500 {
@@ -356,17 +388,134 @@ impl Ticket {
         }
         self.snoozed_until = Some(until);
         self.snooze_reason = (!reason.is_empty()).then(|| reason.to_owned());
+        self.snoozed_by = by;
+        self.snoozed_at = Some(now);
         self.updated_at = now;
         Ok(())
     }
 
+    /// Longest a ticket may be snoozed: a typo of 2206 for 2026 is refused.
+    pub const MAX_SNOOZE_DAYS: i64 = 730;
+
     /// Ends a snooze early.
     pub fn unsnooze(&mut self, now: DateTime<Utc>) {
         if self.snoozed_until.is_some() {
-            self.snoozed_until = None;
-            self.snooze_reason = None;
+            self.clear_snooze();
             self.updated_at = now;
         }
+    }
+
+    fn clear_snooze(&mut self) {
+        self.snoozed_until = None;
+        self.snooze_reason = None;
+        self.snoozed_by = None;
+        self.snoozed_at = None;
+    }
+
+    /// Gives the ticket a new Ticket Number (FR-TKT-003) and returns the old one, which
+    /// goes to the Ticket Number History and keeps resolving to this ticket.
+    ///
+    /// # Errors
+    ///
+    /// Deleted ticket, or the same number.
+    pub fn renumber(&mut self, number: String, now: DateTime<Utc>) -> Result<String, TicketError> {
+        self.ensure_live()?;
+        if number == self.number {
+            return Err(TicketError::invalid("number", "is the current number"));
+        }
+        self.updated_at = now;
+        Ok(std::mem::replace(&mut self.number, number))
+    }
+
+    /// Merges this ticket into `target` (FR-TKT-026): closes it with `closed_status`
+    /// (keeping its closure when it is already closed) and points it at the target.
+    /// Returns the state needed to undo the merge.
+    ///
+    /// # Errors
+    ///
+    /// Deleted tickets, different Companies, the same ticket, a ticket already merged
+    /// away on either side, a closed target, or a status that is not closed.
+    pub fn merge_into(
+        &mut self,
+        target: &Self,
+        closed_status: &Lookup,
+        resolution_code_id: Uuid,
+        now: DateTime<Utc>,
+    ) -> Result<super::SourceState, TicketError> {
+        self.ensure_live()?;
+        target.ensure_live()?;
+        if target.id == self.id {
+            return Err(TicketError::invalid(
+                "target_id",
+                "a ticket cannot be merged into itself",
+            ));
+        }
+        if target.tenant_id != self.tenant_id {
+            return Err(TicketError::invalid(
+                "target_id",
+                "belongs to a different Company",
+            ));
+        }
+        if self.merged_into.is_some() {
+            return Err(TicketError::InvalidState("the ticket is already merged"));
+        }
+        if target.merged_into.is_some() {
+            return Err(TicketError::invalid(
+                "target_id",
+                "was merged into another ticket; merge into that one",
+            ));
+        }
+        if target.closed_at.is_some() {
+            return Err(TicketError::invalid(
+                "target_id",
+                "is closed; reopen it first",
+            ));
+        }
+        if !closed_status.flags().is_closed {
+            return Err(TicketError::invalid("status", "must be a closed status"));
+        }
+        let before = super::SourceState {
+            status_id: self.status_id,
+            closed_at: self.closed_at,
+            resolution_code_id: self.resolution_code_id,
+            closure_category_id: self.closure_category_id,
+        };
+        if self.closed_at.is_none() {
+            self.status_id = closed_status.id();
+            self.closed_at = Some(now);
+            self.resolution_code_id = Some(resolution_code_id);
+        }
+        self.clear_snooze();
+        self.merged_into = Some(target.id);
+        self.updated_at = now;
+        Ok(before)
+    }
+
+    /// Undoes [`Ticket::merge_into`]: restores the status and closure from `before`.
+    ///
+    /// # Errors
+    ///
+    /// The ticket is not merged.
+    pub fn unmerge(
+        &mut self,
+        before: &super::SourceState,
+        now: DateTime<Utc>,
+    ) -> Result<(), TicketError> {
+        if self.merged_into.is_none() {
+            return Err(TicketError::InvalidState("the ticket is not merged"));
+        }
+        self.status_id = before.status_id;
+        self.closed_at = before.closed_at;
+        self.resolution_code_id = before.resolution_code_id;
+        self.closure_category_id = before.closure_category_id;
+        self.merged_into = None;
+        self.updated_at = now;
+        Ok(())
+    }
+
+    /// Records that something attached to the ticket changed (field values, links).
+    pub fn touch(&mut self, now: DateTime<Utc>) {
+        self.updated_at = now;
     }
 
     /// Soft-deletes the ticket (FR-GEN-004).
@@ -545,6 +694,21 @@ impl Ticket {
     pub fn snooze_reason(&self) -> Option<&str> {
         self.snooze_reason.as_deref()
     }
+    /// Who snoozed the ticket.
+    #[must_use]
+    pub const fn snoozed_by(&self) -> Option<AnalystId> {
+        self.snoozed_by
+    }
+    /// When it was snoozed.
+    #[must_use]
+    pub const fn snoozed_at(&self) -> Option<DateTime<Utc>> {
+        self.snoozed_at
+    }
+    /// The ticket this one was merged into (FR-TKT-026).
+    #[must_use]
+    pub const fn merged_into(&self) -> Option<TicketId> {
+        self.merged_into
+    }
     /// When it was deleted.
     #[must_use]
     pub const fn deleted_at(&self) -> Option<DateTime<Utc>> {
@@ -597,7 +761,9 @@ impl Audited for Ticket {
             ("resolution_code_id", json!(self.resolution_code_id)),
             ("closure_category_id", json!(self.closure_category_id)),
             ("closed_at", json!(self.closed_at)),
+            ("ticket_number", json!(self.number)),
             ("snoozed_until", json!(self.snoozed_until)),
+            ("merged_into_id", json!(self.merged_into)),
             ("deleted_at", json!(self.deleted_at)),
             ("responded_at", json!(self.sla.responded_at)),
             ("response_due_at", json!(self.sla.response_due_at)),
@@ -998,11 +1164,95 @@ mod tests {
         assert!(t.undelete(now()).is_err());
     }
 
+    fn sibling(of: &Ticket) -> Ticket {
+        let mut t = ticket();
+        t.tenant_id = of.tenant_id;
+        t.number = format!("{}-B", of.number);
+        t
+    }
+
+    #[test]
+    fn renumbering_returns_the_old_number() {
+        let mut t = ticket();
+        assert!(t.renumber("ACME-000001".into(), now()).is_err());
+        assert_eq!(
+            t.renumber("ACME-2026-1".into(), now()).unwrap(),
+            "ACME-000001"
+        );
+        assert_eq!(t.number(), "ACME-2026-1");
+    }
+
+    #[test]
+    fn merge_closes_the_source_points_it_at_the_target_and_undoes_exactly() {
+        let mut source = ticket();
+        let target = sibling(&source);
+        let open_status = source.status_id();
+        let duplicate = Uuid::now_v7();
+        let closed = status("Closed", true);
+        assert!(
+            source
+                .merge_into(&source.clone(), &closed, duplicate, now())
+                .is_err()
+        );
+        assert!(
+            source
+                .merge_into(&ticket(), &closed, duplicate, now())
+                .is_err(),
+            "different Company"
+        );
+        assert!(
+            source
+                .merge_into(&target, &status("Open", false), duplicate, now())
+                .is_err()
+        );
+        let before = source
+            .merge_into(&target, &closed, duplicate, now())
+            .unwrap();
+        assert_eq!(source.merged_into(), Some(target.id()));
+        assert_eq!(source.closed_at(), Some(now()));
+        assert_eq!(source.resolution_code_id(), Some(duplicate));
+        assert!(
+            source
+                .merge_into(&target, &closed, duplicate, now())
+                .is_err(),
+            "merged once"
+        );
+
+        let mut third = sibling(&source);
+        assert!(
+            third
+                .merge_into(&source, &closed, duplicate, now())
+                .is_err(),
+            "cannot merge into a merged-away ticket"
+        );
+        let mut closed_target = sibling(&source);
+        closed_target
+            .change_status(&closed, Some(duplicate), None, false, now())
+            .unwrap();
+        assert!(
+            third
+                .merge_into(&closed_target, &closed, duplicate, now())
+                .is_err()
+        );
+
+        source.unmerge(&before, now()).unwrap();
+        assert_eq!(source.merged_into(), None);
+        assert_eq!(source.status_id(), open_status);
+        assert_eq!(source.closed_at(), None);
+        assert_eq!(source.resolution_code_id(), None);
+        assert!(source.unmerge(&before, now()).is_err());
+    }
+
     #[test]
     fn snooze_rules() {
         let mut t = ticket();
-        assert!(t.snooze(now(), "", now()).is_err());
-        t.snooze(now() + Duration::days(1), "waiting for parts", now())
+        assert!(t.snooze(now(), "", None, now()).is_err());
+        assert!(
+            t.snooze(now() + Duration::days(731), "", None, now())
+                .is_err(),
+            "two years at most"
+        );
+        t.snooze(now() + Duration::days(1), "waiting for parts", None, now())
             .unwrap();
         assert!(t.is_snoozed(now()));
         assert!(!t.is_snoozed(now() + Duration::days(2)));

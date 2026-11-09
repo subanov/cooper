@@ -36,6 +36,8 @@ const MAX_BATCH: usize = 256;
 
 /// Topic of ticket changes.
 const TICKET: &str = "ticket";
+/// Topic of Ticket TicketPresence changes (FR-TKT-025); authorised like the ticket itself.
+const PRESENCE: &str = cooper_service_desk::infrastructure::PRESENCE_TOPIC;
 
 /// The Live Updates route, to be nested under `/api/v1`.
 pub fn router() -> OpenApiRouter<AppState> {
@@ -46,7 +48,8 @@ pub fn router() -> OpenApiRouter<AppState> {
 ///
 /// Events: `ready` once changes are being received (refetch on every `ready` after the
 /// first: changes may have been missed while disconnected); `invalidate` with
-/// `{"topic":"ticket","id":"…"}` when a ticket the Analyst may see changed; `resync`
+/// `{"topic":"ticket"|"ticket_presence","id":"…"}` when a ticket the Analyst may see
+/// (or who has it open) changed; `resync`
 /// when everything should be read again. Events never contain record data.
 ///
 /// Needs the Analyst session cookie; API keys and Portal sessions are refused.
@@ -194,7 +197,7 @@ impl LiveStream {
                 LiveSignal::Resync => resync = true,
                 LiveSignal::Changed(change) => {
                     if !resync
-                        && change.topic == TICKET
+                        && (change.topic == TICKET || change.topic == PRESENCE)
                         && self.principal.scope().allows(change.tenant_id)
                         && seen.insert(change.clone())
                     {
@@ -231,7 +234,7 @@ impl LiveStream {
                 Ok(true) => events.push_back(
                     Event::default()
                         .event("invalidate")
-                        .data(json!({ "topic": TICKET, "id": change.id }).to_string()),
+                        .data(json!({ "topic": change.topic, "id": change.id }).to_string()),
                 ),
                 Ok(false) => {}
                 Err(error) => {

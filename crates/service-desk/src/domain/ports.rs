@@ -11,7 +11,10 @@ use cooper_kernel::{
 use thiserror::Error;
 use uuid::Uuid;
 
-use super::{Category, Lookup, LookupKind, Note, Ticket, TimeEntry};
+use super::{
+    Category, Lookup, LookupKind, MovedRows, Note, Ticket, TicketField, TicketLink, TicketMerge,
+    TicketPresence, TicketSplit, TicketTypeRule, TimeEntry,
+};
 
 /// A storage operation failed.
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
@@ -134,6 +137,28 @@ pub trait ReferenceData: Send + Sync {
         audit: &AuditRecord,
         created: bool,
     ) -> Result<(), RepoError>;
+    /// Custom Ticket Fields (FR-TKT-029), active and retired.
+    async fn ticket_fields(&self) -> Result<Vec<TicketField>, RepoError>;
+    /// Inserts or updates a Ticket Field.
+    async fn save_ticket_field(
+        &self,
+        field: &TicketField,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Ticket Type Rules (FR-TKT-011).
+    async fn type_rules(&self) -> Result<Vec<TicketTypeRule>, RepoError>;
+    /// Inserts or updates a Ticket Type Rule.
+    async fn save_type_rule(
+        &self,
+        rule: &TicketTypeRule,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Deletes a Ticket Type Rule (rules have no dependants).
+    async fn delete_type_rule(
+        &self,
+        rule: &TicketTypeRule,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
 }
 
 /// Tickets, Notes and Time Entries (tenant-scoped).
@@ -146,6 +171,7 @@ pub trait TicketRepository: Send + Sync {
     async fn insert(
         &self,
         ticket: &Ticket,
+        fields: &std::collections::BTreeMap<Uuid, serde_json::Value>,
         audit: &AuditRecord,
         events: &[EventEnvelope],
     ) -> Result<(), RepoError>;
@@ -457,4 +483,156 @@ pub trait MailboxRepository: Send + Sync {
         mailbox: Uuid,
         limit: i64,
     ) -> Result<Vec<(String, String, String, DateTime<Utc>)>, RepoError>;
+}
+
+/// A retired Ticket Number (FR-TKT-003).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RetiredNumber {
+    /// The number.
+    pub number: String,
+    /// Why (`renumbered`).
+    pub reason: String,
+    /// When it stopped being the ticket's number.
+    pub retired_at: DateTime<Utc>,
+}
+
+/// Relations between tickets and per-ticket extras (ADR-0024): Ticket Links, Ticket
+/// Number History, Merge and Split, Ticket TicketPresence and Ticket Field values.
+#[async_trait]
+pub trait TicketRelations: Send + Sync {
+    /// Links that involve `ticket`.
+    async fn links(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<TicketLink>, RepoError>;
+    /// One link.
+    async fn link(&self, scope: &TenantScope, id: Uuid) -> Result<Option<TicketLink>, RepoError>;
+    /// The parent, grandparent, … of `ticket` (nearest first).
+    async fn ancestors(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<TicketId>, RepoError>;
+    /// Stores a new link.
+    async fn add_link(&self, link: &TicketLink, audit: &AuditRecord) -> Result<(), RepoError>;
+    /// Removes a link.
+    async fn remove_link(&self, link: &TicketLink, audit: &AuditRecord) -> Result<(), RepoError>;
+
+    /// Saves a renumbered ticket and retires `old_number` into the history, atomically.
+    async fn renumber(
+        &self,
+        ticket: &Ticket,
+        old_number: &str,
+        audit: &AuditRecord,
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+    /// The ticket's previous numbers, newest first.
+    async fn number_history(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<RetiredNumber>, RepoError>;
+
+    /// Merges: moves every conversation row of `source` to `target`, saves `source`
+    /// (closed and pointing at the target), stores `link` and the merge record (with
+    /// the moved rows filled in), all in one transaction. Returns the stored record.
+    async fn merge(
+        &self,
+        source: &Ticket,
+        target: &Ticket,
+        merge: TicketMerge,
+        link: Option<&TicketLink>,
+        audits: &[AuditRecord],
+        events: &[EventEnvelope],
+    ) -> Result<TicketMerge, RepoError>;
+    /// One merge.
+    async fn merge_record(
+        &self,
+        scope: &TenantScope,
+        id: Uuid,
+    ) -> Result<Option<TicketMerge>, RepoError>;
+    /// Merges in which `ticket` was the source or the target, newest first.
+    async fn merges_of(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<Vec<TicketMerge>, RepoError>;
+    /// Undoes a merge: moves the recorded rows that are still on the target back,
+    /// removes the merge's link, saves the restored source and the undone record.
+    async fn unmerge(
+        &self,
+        source: &Ticket,
+        merge: &TicketMerge,
+        audits: &[AuditRecord],
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+
+    /// Splits: inserts `new_ticket`, moves `split.moved` (which must all belong to the
+    /// source) to it, adds `marker` to the source, stores `link` and the split record.
+    #[allow(clippy::too_many_arguments)]
+    async fn split(
+        &self,
+        new_ticket: &Ticket,
+        split: &TicketSplit,
+        marker: &Note,
+        link: &TicketLink,
+        audits: &[AuditRecord],
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+    /// One split.
+    async fn split_record(
+        &self,
+        scope: &TenantScope,
+        id: Uuid,
+    ) -> Result<Option<TicketSplit>, RepoError>;
+    /// Conversation rows on `ticket` that are not in `moved` (new activity since a split).
+    async fn other_rows(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+        moved: &MovedRows,
+    ) -> Result<usize, RepoError>;
+    /// Undoes a split: moves the rows back, deletes the marker Note and the link, saves
+    /// `new_ticket` (soft-deleted) and the undone record.
+    async fn unsplit(
+        &self,
+        split: &TicketSplit,
+        new_ticket: &Ticket,
+        audits: &[AuditRecord],
+        events: &[EventEnvelope],
+    ) -> Result<(), RepoError>;
+
+    /// Records a heartbeat; returns whether what others see changed (a new viewer or
+    /// a change in composing), so only then is a Live Update sent.
+    async fn heartbeat(
+        &self,
+        ticket: &Ticket,
+        analyst: AnalystId,
+        composing: bool,
+        now: DateTime<Utc>,
+    ) -> Result<bool, RepoError>;
+    /// Removes the Analyst from the ticket; returns whether they were there.
+    async fn leave(&self, ticket: &Ticket, analyst: AnalystId) -> Result<bool, RepoError>;
+    /// Heartbeats on the ticket newer than `since`.
+    async fn presence(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+        since: DateTime<Utc>,
+    ) -> Result<Vec<TicketPresence>, RepoError>;
+
+    /// Ticket Field values of a ticket, by field ID.
+    async fn field_values(
+        &self,
+        scope: &TenantScope,
+        ticket: TicketId,
+    ) -> Result<std::collections::BTreeMap<Uuid, serde_json::Value>, RepoError>;
+    /// Sets (`Some`) or clears (`None`) Ticket Field values.
+    async fn set_field_values(
+        &self,
+        ticket: &Ticket,
+        values: &std::collections::BTreeMap<Uuid, Option<serde_json::Value>>,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
 }

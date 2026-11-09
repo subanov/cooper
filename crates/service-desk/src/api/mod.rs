@@ -3,6 +3,7 @@
 mod dto;
 mod handlers;
 mod portal;
+mod relations;
 
 pub use portal::{
     CatalogueEntryDto, PortalReplyRequest, PortalTicketDto, PortalTicketPage, PortalTicketRequest,
@@ -20,6 +21,7 @@ use crate::application::{AppError, ServiceDesk};
 use crate::domain::TicketError;
 
 pub use dto::*;
+pub use relations::*;
 
 /// State the service desk handlers need.
 #[derive(Clone)]
@@ -36,7 +38,9 @@ where
     S: Clone + Send + Sync + 'static,
     ServiceDeskApi: FromRef<S>,
 {
-    handlers::router().merge(portal::router())
+    handlers::router()
+        .merge(relations::router())
+        .merge(portal::router())
 }
 
 /// `/api/v1` path prefixes owned by the Tickets Module (FR-GEN-005).
@@ -53,6 +57,10 @@ pub const ROUTE_PREFIXES: &[&str] = &[
     "/reply-templates",
     "/email-templates",
     "/mailboxes",
+    "/ticket-fields",
+    "/ticket-type-rules",
+    "/ticket-merges",
+    "/ticket-splits",
 ];
 
 /// An application error rendered as problem+json.
@@ -86,6 +94,12 @@ impl IntoResponse for ApiError {
                 "Invalid input",
             )
             .with_extension("field", field),
+            AppError::Rule(TicketError::FieldsRequired(keys)) => typed(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "fields-required",
+                "Ticket Fields required",
+            )
+            .with_extension("fields", keys),
             AppError::Rule(
                 TicketError::ResolutionCodeRequired
                 | TicketError::ClosureCategoryRequired

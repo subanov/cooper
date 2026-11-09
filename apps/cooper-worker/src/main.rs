@@ -20,7 +20,7 @@ use cooper_platform::outbox::Dispatcher;
 use cooper_platform::system_log::{self, PruneSystemLog};
 use cooper_platform::telemetry::{self, LogFormat};
 use cooper_server::{AppState, SecuritySettings};
-use cooper_service_desk::infrastructure::{ReencryptMailboxSecrets, SlaMonitor};
+use cooper_service_desk::infrastructure::{PrunePresence, ReencryptMailboxSecrets, SlaMonitor};
 use tokio::sync::watch;
 use tokio::task::JoinSet;
 
@@ -128,6 +128,7 @@ async fn main() -> anyhow::Result<()> {
             )))
             .with_job(Arc::new(IdentityHousekeeping))
             .with_job(Arc::new(SlaMonitor))
+            .with_job(Arc::new(PrunePresence))
             .with_job(Arc::new(EmailSender::new(transport)))
             .with_job(Arc::new(ReencryptIdentitySecrets::new(
                 config.keyring.clone(),

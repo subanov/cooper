@@ -220,6 +220,7 @@ impl AppState {
             sla: Arc::new(PgServiceDeskStore::new(pool.clone())),
             content: Arc::new(PgServiceDeskStore::new(pool.clone())),
             mailboxes,
+            relations: Arc::new(PgServiceDeskStore::new(pool.clone())),
             directory: Arc::new(IdentityDirectory {
                 identity: service.clone(),
             }),
