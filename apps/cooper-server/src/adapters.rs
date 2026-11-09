@@ -600,3 +600,103 @@ impl cooper_problem_management::domain::Tickets for DeskTickets {
         }
     }
 }
+
+/// Change Management's view of Teams, tickets and Problems, through their application
+/// APIs (ADR-0027).
+pub struct ChangeDirectory {
+    /// Teams.
+    pub identity: IdentityDirectory,
+    /// Tickets.
+    pub desk: cooper_service_desk::application::ServiceDesk,
+    /// Problems.
+    pub problems: cooper_problem_management::application::ProblemService,
+}
+
+#[async_trait]
+impl cooper_change_management::ports::Directory for ChangeDirectory {
+    async fn teams_of(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<BTreeSet<TeamId>, cooper_change_management::ports::RepoError> {
+        Directory::teams_of(&self.identity, analyst)
+            .await
+            .map_err(|e| cooper_change_management::ports::RepoError::Storage(e.to_string()))
+    }
+
+    async fn ticket(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_change_management::ports::RepoError> {
+        use cooper_service_desk::application::AppError;
+        match self
+            .desk
+            .ticket(principal, cooper_kernel::TicketId::from_uuid(id))
+            .await
+        {
+            Ok(d) => Ok(Some((d.ticket.tenant_id(), d.ticket.number().to_owned()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(cooper_change_management::ports::RepoError::Storage(
+                e.to_string(),
+            )),
+        }
+    }
+
+    async fn problem(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_change_management::ports::RepoError> {
+        use cooper_problem_management::application::AppError;
+        match self.problems.get(principal, id).await {
+            Ok(p) => Ok(Some((p.tenant_id(), p.number().to_owned()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(cooper_change_management::ports::RepoError::Storage(
+                e.to_string(),
+            )),
+        }
+    }
+}
+
+#[async_trait]
+impl cooper_change_management::ports::UploadLimit for DeskSettings {
+    async fn max_upload_bytes(&self) -> u64 {
+        self.settings().await.max_attachment_bytes
+    }
+}
+
+/// Change facts for Change Notifications.
+pub struct ChangeFactsLookup {
+    /// Change Management.
+    pub changes: cooper_change_management::application::ChangeService,
+}
+
+#[async_trait]
+impl cooper_notifications::handlers::ChangeLookup for ChangeFactsLookup {
+    async fn change(
+        &self,
+        id: uuid::Uuid,
+    ) -> Result<Option<cooper_notifications::handlers::ChangeFacts>, String> {
+        let Some((change, cab)) = self
+            .changes
+            .for_notifications(id)
+            .await
+            .map_err(|e| e.to_string())?
+        else {
+            return Ok(None);
+        };
+        let d = change.details();
+        let deciders = if d.cab_required {
+            cab.iter().map(|m| m.analyst_id).collect()
+        } else {
+            d.approver.into_iter().collect()
+        };
+        Ok(Some(cooper_notifications::handlers::ChangeFacts {
+            number: change.number().to_owned(),
+            title: d.title.clone(),
+            tenant_id: change.tenant_id(),
+            owners: d.requested_by.into_iter().chain(d.assigned_to).collect(),
+            deciders,
+        }))
+    }
+}

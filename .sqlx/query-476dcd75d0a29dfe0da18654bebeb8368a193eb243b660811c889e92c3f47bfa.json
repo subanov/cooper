@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM change_risk_levels",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "476dcd75d0a29dfe0da18654bebeb8368a193eb243b660811c889e92c3f47bfa"
+}

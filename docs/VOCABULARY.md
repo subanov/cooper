@@ -144,6 +144,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Change** | A planned modification to IT services or infrastructure, with risk assessment, approval, schedule and review. | `Change`, `changes` | RFC, change request (in code) |
+| **Change Number** | The human-readable number of a Change, `CHG-00001`, from one instance-wide sequence. | `Change::number`, `change_number` | change ID |
 | **Change Type** | Seed: **Standard** (pre-approved), **Normal** (default), **Emergency**. Each type has an **Approval Route** (fixed): `review` (approve before work, default) or `emergency` (approve afterwards). Seeded Emergency uses `emergency`. | `ChangeType` | |
 | **Change Status** | Each status belongs to a **Stage** and may be closed. Seed (status → stage): Draft → draft (default), Submitted → draft, Pending Approval → awaiting, Approved → approved, Rejected → stopped (closed), Scheduled → implementing, In Progress → implementing, Completed → done (closed), Failed → done (closed), Cancelled → stopped (closed). | `ChangeStatus`, `ChangeStage` | |
 | **Change Stage** | Fixed lifecycle phase that groups statuses: `draft`, `awaiting`, `approved`, `implementing`, `done`, `stopped`. | `ChangeStage` | |
@@ -151,19 +152,19 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Change Impact** | Seed: Low, Medium (default), High. | `ChangeImpact` | |
 | **Change Category** | Configurable classification of changes. | `ChangeCategory` | |
 | **Change Template** | A versioned template that pre-fills a Change. Can be limited to Teams. | `ChangeTemplate` | |
-| **Requester / Assigned To / Approver** | The people on a Change: who asked, who implements, who approves. | `Change::{requester_id, assigned_to_id, approver_id}` | |
+| **Requested By / Assigned To / Approver** | The people on a Change, all Analysts: who asked, who implements, who approves (when no CAB is required). | `Change::{requested_by, assigned_to, approver}`, `requested_by_id` | Requester (a Portal user; not for Changes) |
 | **Work Window** | Planned implementation start and end. | `Change::{work_start, work_end}` | |
 | **Outage Window** | Planned service downtime start and end. | `Change::{outage_start, outage_end}` | |
 | **Reason for Change** | Business justification. | `Change::reason_for_change` | |
-| **Risk Evaluation** | Narrative risk assessment, plus a **Risk Likelihood** × **Risk Impact Score** = **Risk Score**, mapped to a **Risk Level**. Likelihood and Impact Score are 1–5 (Very low, Low, Medium, High, Very high). Risk Level seed (score bands): **Low** ≤ 4, **Medium** 5–9, **High** 10–15, **Very High** 16–20, **Critical** 21–25. | `RiskAssessment` | |
+| **Risk Evaluation** | Narrative risk assessment, plus a **Risk Likelihood** × **Risk Impact Score** = **Risk Score**, mapped to a **Risk Level**. Likelihood and Impact Score are 1–5 (Very low, Low, Medium, High, Very high). Risk Level seed (score bands): **Low** ≤ 4, **Medium** 5–9, **High** 10–15, **Very High** 16–20, **Critical** 21–25. | `Change::risk_evaluation`, `RiskLevel`, `change_risk_levels` | |
 | **Test Plan** | How the change will be verified. | `Change::test_plan` | |
 | **Rollback Plan** | How to revert if the change fails. | `Change::rollback_plan` | backout plan |
-| **CAB** | Change Advisory Board: the members who vote on a Change. Members can be required. **CAB Approval Type** (fixed) sets the rule for passing: `all` required members approve (default) or `majority` of required members approve. One rejection sends the Change back. | `CabMember`, `Change::cab_required` | committee |
-| **Vote** | A CAB member's decision, with a comment. Votes are append-only and are never updated. | `ChangeApprovalVote` | |
-| **Approval Round** | One cycle of approval. A Change that is edited after approval starts a new round. | `ChangeApproval::round_no` | |
-| **PIR** | Post-Implementation Review: was the change successful, actual start and end, lessons learned, follow-up. | `PostImplementationReview` | retrospective |
-| **Text Revision** | Every saved version of a Change's long-text fields. | `ChangeTextRevision` | |
-| **Change Calendar** | A view of Changes by Work and Outage Windows. | — | forward schedule |
+| **CAB** | Change Advisory Board: the members who vote on a Change. Members can be required; optional members only advise. **CAB Approval Type** (fixed) sets the rule for passing: `all` required members approve (default) or `majority` of required members approve. A rejection by a required member sends the Change back to Draft. | `CabMember`, `Change::cab_required` | committee |
+| **Vote** | An Approver's or CAB member's decision in an Approval Round (`approve` or `reject`, a comment, required to reject). Votes are append-only and are never updated. | `Vote`, `change_approval_votes` | |
+| **Approval Round** | One cycle of approval, opened by each submission. A material edit while awaiting or after approval starts a new round. | `Change::approval_round`, `Vote::round_no` | |
+| **PIR** | Post-Implementation Review: was the change successful, actual start and end, lessons learned, follow-up. Recorded once the Change is done. | `Pir` | retrospective |
+| **Text Revision** | Every saved version of a Change's long-text fields. | `TextRevision`, `change_text_revisions` | |
+| **Change Calendar** | A view of Changes by Work and Outage Windows, with overlapping windows highlighted. | `/change-calendar` | forward schedule |
 
 ---
 

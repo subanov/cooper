@@ -1,0 +1,510 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT c.id, c.tenant_id, c.change_number, c.title, c.type_id, c.status_id, s.stage, c.priority_id, c.impact_id, c.category_id,\n                      c.requested_by_id, c.assigned_to_id, c.approver_id, c.work_start, c.work_end, c.outage_start, c.outage_end,\n                      c.description, c.reason_for_change, c.risk_evaluation, c.risk_likelihood, c.risk_impact_score, c.test_plan,\n                      c.rollback_plan, c.cab_required, c.cab_approval_type, c.approval_round, c.approved_at, c.template_id,\n                      c.template_version, c.pir_successful, c.pir_actual_start, c.pir_actual_end, c.pir_lessons_learned, c.pir_follow_up,\n                      c.pir_recorded_at, c.created_by_kind, c.created_by_id, c.created_at, c.updated_at, c.closed_at\n               FROM changes c JOIN change_statuses s ON s.id = c.status_id\n               WHERE c.id = $1 AND ($2 OR c.tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "change_number",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "change_number"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "type_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "type_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "stage",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "change_statuses",
+            "name": "stage"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "priority_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "priority_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "impact_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "impact_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "category_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "category_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "requested_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "requested_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "assigned_to_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "assigned_to_id"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "approver_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "approver_id"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "work_start",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "work_start"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "work_end",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "work_end"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "outage_start",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "outage_start"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "outage_end",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "outage_end"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "reason_for_change",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "reason_for_change"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "risk_evaluation",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "risk_evaluation"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "risk_likelihood",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "risk_likelihood"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "risk_impact_score",
+        "type_info": "Int2",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "risk_impact_score"
+          }
+        }
+      },
+      {
+        "ordinal": 22,
+        "name": "test_plan",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "test_plan"
+          }
+        }
+      },
+      {
+        "ordinal": 23,
+        "name": "rollback_plan",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "rollback_plan"
+          }
+        }
+      },
+      {
+        "ordinal": 24,
+        "name": "cab_required",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "cab_required"
+          }
+        }
+      },
+      {
+        "ordinal": 25,
+        "name": "cab_approval_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "cab_approval_type"
+          }
+        }
+      },
+      {
+        "ordinal": 26,
+        "name": "approval_round",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "approval_round"
+          }
+        }
+      },
+      {
+        "ordinal": 27,
+        "name": "approved_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "approved_at"
+          }
+        }
+      },
+      {
+        "ordinal": 28,
+        "name": "template_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "template_id"
+          }
+        }
+      },
+      {
+        "ordinal": 29,
+        "name": "template_version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "template_version"
+          }
+        }
+      },
+      {
+        "ordinal": 30,
+        "name": "pir_successful",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "pir_successful"
+          }
+        }
+      },
+      {
+        "ordinal": 31,
+        "name": "pir_actual_start",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "pir_actual_start"
+          }
+        }
+      },
+      {
+        "ordinal": 32,
+        "name": "pir_actual_end",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "pir_actual_end"
+          }
+        }
+      },
+      {
+        "ordinal": 33,
+        "name": "pir_lessons_learned",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "pir_lessons_learned"
+          }
+        }
+      },
+      {
+        "ordinal": 34,
+        "name": "pir_follow_up",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "pir_follow_up"
+          }
+        }
+      },
+      {
+        "ordinal": 35,
+        "name": "pir_recorded_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "pir_recorded_at"
+          }
+        }
+      },
+      {
+        "ordinal": 36,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 37,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 38,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 39,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 40,
+        "name": "closed_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "changes",
+            "name": "closed_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "42d3e89c1be13e61f8c34e3c55e26100314ac26cca6b835c48db546d5c94ff24"
+}

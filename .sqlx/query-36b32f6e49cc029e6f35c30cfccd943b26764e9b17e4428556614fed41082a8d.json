@@ -1,0 +1,78 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT kind, target_id, linked_by_kind, linked_by_id, linked_at FROM change_links\n             WHERE change_id = $1 AND ($2 OR tenant_id = ANY($3)) ORDER BY linked_at, target_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "change_links",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "target_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "change_links",
+            "name": "target_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "linked_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "change_links",
+            "name": "linked_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "linked_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "change_links",
+            "name": "linked_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "linked_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "change_links",
+            "name": "linked_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "36b32f6e49cc029e6f35c30cfccd943b26764e9b17e4428556614fed41082a8d"
+}

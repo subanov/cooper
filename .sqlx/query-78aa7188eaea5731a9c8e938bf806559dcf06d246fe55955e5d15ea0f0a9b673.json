@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE changes SET title = $2, type_id = $3, status_id = $4, priority_id = $5, impact_id = $6, category_id = $7,\n                requested_by_id = $8, assigned_to_id = $9, approver_id = $10, work_start = $11, work_end = $12, outage_start = $13,\n                outage_end = $14, description = $15, reason_for_change = $16, risk_evaluation = $17, risk_likelihood = $18,\n                risk_impact_score = $19, test_plan = $20, rollback_plan = $21, cab_required = $22, cab_approval_type = $23,\n                approval_round = $24, approved_at = $25, pir_successful = $26, pir_actual_start = $27, pir_actual_end = $28,\n                pir_lessons_learned = $29, pir_follow_up = $30, pir_recorded_at = $31, updated_at = $32, closed_at = $33\n         WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Text",
+        "Text",
+        "Int2",
+        "Int2",
+        "Text",
+        "Text",
+        "Bool",
+        "Text",
+        "Int4",
+        "Timestamptz",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "78aa7188eaea5731a9c8e938bf806559dcf06d246fe55955e5d15ea0f0a9b673"
+}

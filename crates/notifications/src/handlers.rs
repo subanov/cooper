@@ -106,6 +106,7 @@ impl TicketNotifier {
             title,
             body: facts.subject.clone(),
             ticket_id: Some(TicketId::from_uuid(event.aggregate_id)),
+            change_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -276,10 +277,114 @@ impl EventHandler for MailboxAlerts {
             title: format!("Mailbox {name} keeps failing to poll"),
             body: error.to_owned(),
             ticket_id: None,
+            change_id: None,
             source_event_id: event.id,
         };
         self.notifications
             .send(draft, admins, event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
+    }
+}
+
+/// What a Notification needs to know about a Change.
+#[derive(Debug, Clone)]
+pub struct ChangeFacts {
+    /// Change Number.
+    pub number: String,
+    /// Title.
+    pub title: String,
+    /// Company.
+    pub tenant_id: TenantId,
+    /// Requested By and Assigned To: told about outcomes.
+    pub owners: BTreeSet<AnalystId>,
+    /// Approver or CAB members: asked to vote.
+    pub deciders: BTreeSet<AnalystId>,
+}
+
+/// Reads Changes (through Change Management's application API).
+#[async_trait]
+pub trait ChangeLookup: Send + Sync {
+    /// A Change, if it exists.
+    async fn change(&self, id: Uuid) -> Result<Option<ChangeFacts>, String>;
+}
+
+/// Notifies Analysts about Change events (FR-CHG-014): deciders when a Change is
+/// submitted, the requester and assignee when it is approved, rejected, scheduled or
+/// finished.
+pub struct ChangeNotifier {
+    /// The notifications service.
+    pub notifications: Notifications,
+    /// Changes.
+    pub changes: Arc<dyn ChangeLookup>,
+}
+
+#[async_trait]
+impl EventHandler for ChangeNotifier {
+    fn name(&self) -> &'static str {
+        "change-notifier"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        matches!(
+            event_type,
+            "change.submitted"
+                | "change.approved"
+                | "change.rejected"
+                | "change.scheduled"
+                | "change.completed"
+        )
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        let Some(facts) = self
+            .changes
+            .change(event.aggregate_id)
+            .await
+            .map_err(handler_error)?
+        else {
+            return Ok(());
+        };
+        let (kind, verb, recipients) = match event.event_type.as_str() {
+            "change.submitted" => (
+                NotificationKind::ChangeSubmitted,
+                "awaits your approval",
+                facts.deciders.clone(),
+            ),
+            "change.approved" => (
+                NotificationKind::ChangeApproved,
+                "was approved",
+                facts.owners.clone(),
+            ),
+            "change.rejected" => (
+                NotificationKind::ChangeRejected,
+                "was rejected",
+                facts.owners.clone(),
+            ),
+            "change.scheduled" => (
+                NotificationKind::ChangeScheduled,
+                "was scheduled",
+                facts.owners.clone(),
+            ),
+            "change.completed" => (
+                NotificationKind::ChangeCompleted,
+                "was finished",
+                facts.owners.clone(),
+            ),
+            _ => return Ok(()),
+        };
+        let draft = Draft {
+            kind,
+            tenant_id: Some(facts.tenant_id),
+            title: format!("{} {verb}", facts.number),
+            body: facts.title,
+            ticket_id: None,
+            change_id: Some(event.aggregate_id),
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, recipients, event.actor)
             .await
             .map(|_| ())
             .map_err(|e| handler_error(e.to_string()))

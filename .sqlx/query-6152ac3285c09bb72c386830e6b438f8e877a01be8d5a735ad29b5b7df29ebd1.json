@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT analyst_id, is_required FROM change_cab_members WHERE change_id = $1 AND ($2 OR tenant_id = ANY($3)) ORDER BY analyst_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "analyst_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "change_cab_members",
+            "name": "analyst_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "is_required",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "change_cab_members",
+            "name": "is_required"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "6152ac3285c09bb72c386830e6b438f8e877a01be8d5a735ad29b5b7df29ebd1"
+}

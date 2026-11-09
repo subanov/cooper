@@ -283,6 +283,518 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/change-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Changes scheduled in a period, with conflicts (FR-CHG-012). */
+        get: operations["change_calendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_change_categories"];
+        put?: never;
+        post: operations["create_change_category"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_change_category"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-impacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_change_impacts"];
+        put?: never;
+        post: operations["create_change_impact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-impacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_change_impact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-priorities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_change_priorities"];
+        put?: never;
+        post: operations["create_change_priority"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-priorities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_change_priority"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-risk-levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Risk Levels by score (FR-CHG-005). */
+        get: operations["list_change_risk_levels"];
+        /**
+         * Replaces the Risk Levels; together they must cover scores 1–25 exactly once (needs
+         *     `changes.configure`).
+         */
+        put: operations["replace_change_risk_levels"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_change_statuses"];
+        put?: never;
+        post: operations["create_change_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_change_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Change Templates; Analysts see those usable by one of their Teams. */
+        get: operations["list_change_templates"];
+        put?: never;
+        /** Creates a Change Template (needs `changes.configure`). */
+        post: operations["create_change_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Changes a Change Template; new content makes a new version, Changes keep the version
+         *     they were created from (needs `changes.configure`).
+         */
+        put: operations["update_change_template"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_change_types"];
+        put?: never;
+        post: operations["create_change_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/change-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_change_type"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Changes in your Companies, newest activity first (needs `changes.read`). */
+        get: operations["list_changes"];
+        put?: never;
+        /** Creates a Change in Draft (needs `changes.create`). */
+        post: operations["create_change"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Change. */
+        get: operations["get_change"];
+        /**
+         * Edits a Change. A material edit while awaiting approval or approved returns it to
+         *     Awaiting Approval with a new Approval Round (needs `changes.update`).
+         */
+        put: operations["edit_change"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Files attached to a Change. */
+        get: operations["list_change_attachments"];
+        put?: never;
+        /**
+         * Uploads a file (multipart field `file`); the media type is detected from the content
+         *     (needs `changes.update`).
+         */
+        post: operations["upload_change_attachment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/attachments/{attachment_id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Downloads an attached file (always as a download, never rendered inline). */
+        get: operations["download_change_attachment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/cab": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The CAB of a Change. */
+        get: operations["get_change_cab"];
+        /** Replaces the CAB while the Change is in Draft (needs `changes.update`). */
+        put: operations["set_change_cab"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The implementation checklist. */
+        get: operations["list_change_checklist"];
+        put?: never;
+        /** Adds a checklist item (needs `changes.update`). */
+        post: operations["add_change_checklist_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/checklist/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes or ticks a checklist item (needs `changes.update`). */
+        put: operations["update_change_checklist_item"];
+        post?: never;
+        /** Removes a checklist item (needs `changes.update`). */
+        delete: operations["delete_change_checklist_item"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comments, oldest first. */
+        get: operations["list_change_comments"];
+        put?: never;
+        /** Adds a comment (needs `changes.update`). */
+        post: operations["add_change_comment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Linked tickets, Problems and Changes (FR-CHG-008). */
+        get: operations["list_change_links"];
+        put?: never;
+        /** Links a ticket, Problem or Change of the same Company (needs `changes.update`). */
+        post: operations["link_change"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/links/{kind}/{target_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a link (needs `changes.update`). */
+        delete: operations["unlink_change"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/pir": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Records the Post-Implementation Review of a finished Change (needs `changes.update`). */
+        put: operations["record_change_pir"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/revisions/{field}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Revisions of one long text field (`description`, `reason_for_change`,
+         *     `risk_evaluation`, `test_plan`, `rollback_plan`), oldest first (FR-CHG-009).
+         */
+        get: operations["list_change_revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/revisions/{field}/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Line comparison of two revisions of a field. */
+        get: operations["compare_change_revisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Moves a Change to another status, following the stage order (needs `changes.update`). */
+        post: operations["move_change"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/changes/{id}/votes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Votes of an Approval Round. */
+        get: operations["list_change_votes"];
+        put?: never;
+        /**
+         * Votes in the current Approval Round as Approver or CAB member; the last deciding
+         *     vote approves or rejects the Change (needs `changes.approve`).
+         */
+        post: operations["vote_on_change"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies": {
         parameters: {
             query?: never;
@@ -471,8 +983,8 @@ export interface paths {
          * Live Updates for the signed-in Analyst (Server-Sent Events, ADR-0022).
          * @description Events: `ready` once changes are being received (refetch on every `ready` after the
          *     first: changes may have been missed while disconnected); `invalidate` with
-         *     `{"topic":"ticket"|"ticket_presence","id":"…"}` when a ticket the Analyst may see
-         *     (or who has it open) changed; `resync`
+         *     `{"topic":"ticket"|"ticket_presence"|"change","id":"…"}` when a ticket the Analyst
+         *     may see (or who has it open) or a Change they may read changed; `resync`
          *     when everything should be read again. Events never contain record data.
          *
          *     Needs the Analyst session cookie; API keys and Portal sessions are refused.
@@ -2916,12 +3428,663 @@ export interface components {
             /** @description Limited to these Ticket Types. */
             type_ids?: string[];
         };
+        /** @description A file attached to a Change. */
+        ChangeAttachmentDto: {
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            created_at: string;
+            /** @description File name. */
+            file_name: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Detected media type. */
+            media_type: string;
+            /**
+             * Format: int64
+             * @description Size in bytes.
+             */
+            size_bytes: number;
+        };
+        /** @description A CAB member. */
+        ChangeCabMemberDto: {
+            /**
+             * Format: uuid
+             * @description The Analyst.
+             */
+            analyst_id: string;
+            /** @description Their vote counts towards the outcome (optional members only advise). */
+            is_required?: boolean;
+        };
+        /** @description The Change Calendar. */
+        ChangeCalendarDto: {
+            /** @description Changes with a Work or Outage Window in the period. */
+            changes: components["schemas"]["ChangeDto"][];
+            /** @description Conflicts (overlapping windows of open Changes). */
+            overlaps: components["schemas"]["ChangeOverlapDto"][];
+        };
+        /** @description A checklist item. */
+        ChangeChecklistItemDto: {
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            done_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Who ticked it.
+             */
+            done_by_id?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Done. */
+            is_done: boolean;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+            /** @description Text. */
+            text: string;
+        };
+        /** @description Adds or changes a checklist item. */
+        ChangeChecklistItemRequest: {
+            /** @description Done. */
+            is_done?: boolean;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order?: number;
+            /** @description Text. */
+            text: string;
+        };
+        /** @description A comment. */
+        ChangeCommentDto: {
+            /**
+             * Format: uuid
+             * @description Author.
+             */
+            author_id?: string | null;
+            /** @description Text. */
+            body: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+        };
+        /** @description Adds a comment. */
+        ChangeCommentRequest: {
+            /** @description Text. */
+            body: string;
+        };
+        /** @description One line of a comparison. */
+        ChangeDiffLineDto: {
+            /** @description `same`, `added` or `removed`. */
+            kind: string;
+            /** @description The line. */
+            text: string;
+        };
+        /** @description A Change (FR-CHG-001). */
+        ChangeDto: {
+            /**
+             * Format: int32
+             * @description Current Approval Round (0 before the first submission).
+             */
+            approval_round: number;
+            /**
+             * Format: date-time
+             * @description When the current round approved it.
+             */
+            approved_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Approver (when no CAB is required).
+             */
+            approver_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Assigned To.
+             */
+            assigned_to_id?: string | null;
+            /** @description `all` or `majority`. */
+            cab_approval_type?: string | null;
+            /** @description CAB approval required. */
+            cab_required: boolean;
+            /**
+             * Format: uuid
+             * @description Category.
+             */
+            category_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Closed.
+             */
+            closed_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Impact.
+             */
+            impact_id: string;
+            /** @description Change Number (`CHG-00001`). */
+            number: string;
+            /**
+             * Format: date-time
+             * @description Outage Window end.
+             */
+            outage_end?: string | null;
+            /**
+             * Format: date-time
+             * @description Outage Window start.
+             */
+            outage_start?: string | null;
+            pir?: components["schemas"]["ChangePirDto"] | null;
+            /**
+             * Format: uuid
+             * @description Priority.
+             */
+            priority_id: string;
+            /** @description Reason for Change. */
+            reason_for_change: string;
+            /**
+             * Format: uuid
+             * @description Requested By (an Analyst).
+             */
+            requested_by_id?: string | null;
+            /** @description Risk Evaluation. */
+            risk_evaluation: string;
+            /**
+             * Format: int32
+             * @description Impact score (1–5).
+             */
+            risk_impact_score?: number | null;
+            /** @description Risk Level name. */
+            risk_level?: string | null;
+            /**
+             * Format: int32
+             * @description Likelihood (1–5).
+             */
+            risk_likelihood?: number | null;
+            /**
+             * Format: int32
+             * @description Risk score (likelihood × impact).
+             */
+            risk_score?: number | null;
+            /** @description Rollback Plan. */
+            rollback_plan: string;
+            /** @description Stage of the status. */
+            stage: string;
+            /**
+             * Format: uuid
+             * @description Status.
+             */
+            status_id: string;
+            /**
+             * Format: uuid
+             * @description Template it was created from.
+             */
+            template_id?: string | null;
+            /**
+             * Format: int32
+             * @description Template version it was created from.
+             */
+            template_version?: number | null;
+            /** @description Test Plan. */
+            test_plan: string;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: uuid
+             * @description Change Type.
+             */
+            type_id: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /**
+             * Format: date-time
+             * @description Work Window end.
+             */
+            work_end?: string | null;
+            /**
+             * Format: date-time
+             * @description Work Window start.
+             */
+            work_start?: string | null;
+        };
+        /** @description A linked ticket, Problem or Change. */
+        ChangeLinkDto: {
+            /** @description `ticket`, `problem` or `change`. */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When it was linked.
+             */
+            linked_at: string;
+            /** @description Its number (Ticket Number, Problem Number or Change Number). */
+            number: string;
+            /**
+             * Format: uuid
+             * @description The linked record.
+             */
+            target_id: string;
+        };
+        /** @description Links a record. */
+        ChangeLinkRequest: {
+            /** @description `ticket`, `problem` or `change`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description The record (in the same Company).
+             */
+            target_id: string;
+        };
+        /** @description A Change Type, Status, Priority, Impact or Category. */
+        ChangeLookupDto: {
+            /** @description Approval route (Types): `review` or `emergency`. */
+            approval_route?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Closing status (Statuses). */
+            is_closed: boolean;
+            /** @description Default for new Changes. */
+            is_default: boolean;
+            /** @description Standard Change: pre-approved, skips approval (Types). */
+            is_standard: boolean;
+            /** @description Stable key of seeded rows. */
+            key?: string | null;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+            /** @description Stage (Statuses): `draft`, `awaiting`, `approved`, `implementing`, `done`, `stopped`. */
+            stage?: string | null;
+        };
+        /** @description Creates or changes a Change Type, Status, Priority, Impact or Category. */
+        ChangeLookupRequest: {
+            /** @description Approval route (Types): `review` (default) or `emergency`. */
+            approval_route?: string | null;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Closing status (Statuses). */
+            is_closed?: boolean;
+            /** @description Make it the default. */
+            is_default?: boolean;
+            /** @description Standard Change (Types). */
+            is_standard?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order?: number;
+            /** @description Stage (Statuses; fixed once created). */
+            stage?: string | null;
+        };
+        /** @description Two Changes whose windows overlap. */
+        ChangeOverlapDto: {
+            /**
+             * Format: uuid
+             * @description One Change.
+             */
+            change_id: string;
+            /**
+             * Format: uuid
+             * @description The other.
+             */
+            other_change_id: string;
+        };
+        /** @description A page of Changes. */
+        ChangePage: {
+            /** @description Changes, newest activity first. */
+            items: components["schemas"]["ChangeDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
         /** @description Own password change. */
         ChangePasswordRequest: {
             /** @description The current password. */
             current_password: string;
             /** @description The new password (at least 12 characters). */
             new_password: string;
+        };
+        /** @description A Post-Implementation Review (FR-CHG-011). */
+        ChangePirDto: {
+            /**
+             * Format: date-time
+             * @description When work actually ended.
+             */
+            actual_end?: string | null;
+            /**
+             * Format: date-time
+             * @description When work actually started.
+             */
+            actual_start?: string | null;
+            /** @description Follow-up actions. */
+            follow_up?: string;
+            /** @description Lessons Learned. */
+            lessons_learned?: string;
+            /**
+             * Format: date-time
+             * @description When it was recorded (output).
+             */
+            recorded_at?: string;
+            /** @description The Change achieved its goal. */
+            successful: boolean;
+        };
+        /**
+         * @description Creates or edits a Change. Absent Type, Priority and Impact take the defaults (or the
+         *     template's values).
+         */
+        ChangeRequest: {
+            /**
+             * Format: uuid
+             * @description Approver (when no CAB is required).
+             */
+            approver_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Assigned To.
+             */
+            assigned_to_id?: string | null;
+            /** @description `all` (default) or `majority`. */
+            cab_approval_type?: string | null;
+            /** @description CAB approval required. */
+            cab_required?: boolean;
+            /**
+             * Format: uuid
+             * @description Category.
+             */
+            category_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /**
+             * Format: uuid
+             * @description Impact.
+             */
+            impact_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Outage Window end.
+             */
+            outage_end?: string | null;
+            /**
+             * Format: date-time
+             * @description Outage Window start.
+             */
+            outage_start?: string | null;
+            /**
+             * Format: uuid
+             * @description Priority.
+             */
+            priority_id?: string | null;
+            /** @description Reason for Change. */
+            reason_for_change?: string;
+            /**
+             * Format: uuid
+             * @description Requested By (an Analyst).
+             */
+            requested_by_id?: string | null;
+            /** @description Risk Evaluation. */
+            risk_evaluation?: string;
+            /**
+             * Format: int32
+             * @description Impact score (1–5).
+             */
+            risk_impact_score?: number | null;
+            /**
+             * Format: int32
+             * @description Likelihood (1–5).
+             */
+            risk_likelihood?: number | null;
+            /** @description Rollback Plan. */
+            rollback_plan?: string;
+            /**
+             * Format: uuid
+             * @description Change Template to pre-fill empty fields from (create only).
+             */
+            template_id?: string | null;
+            /** @description Test Plan. */
+            test_plan?: string;
+            /** @description Title. */
+            title?: string;
+            /**
+             * Format: uuid
+             * @description Change Type.
+             */
+            type_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Work Window end.
+             */
+            work_end?: string | null;
+            /**
+             * Format: date-time
+             * @description Work Window start.
+             */
+            work_start?: string | null;
+        };
+        /** @description A Risk Level: a named band of risk scores (likelihood × impact, 1–25). */
+        ChangeRiskLevelDto: {
+            /**
+             * Format: uuid
+             * @description ID (output; ignored on input).
+             */
+            id?: string;
+            /**
+             * Format: int32
+             * @description Highest score (inclusive).
+             */
+            max_score: number;
+            /**
+             * Format: int32
+             * @description Lowest score (inclusive).
+             */
+            min_score: number;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order?: number;
+        };
+        /** @description A status move. */
+        ChangeStatusRequest: {
+            /**
+             * Format: uuid
+             * @description The status.
+             */
+            status_id: string;
+        };
+        /** @description The fields a Change Template pre-fills. */
+        ChangeTemplateContentDto: {
+            /** @description `all` or `majority`. */
+            cab_approval_type?: string | null;
+            /** @description CAB approval required. */
+            cab_required?: boolean;
+            /**
+             * Format: uuid
+             * @description Category.
+             */
+            category_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /**
+             * Format: uuid
+             * @description Impact.
+             */
+            impact_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Priority.
+             */
+            priority_id?: string | null;
+            /** @description Reason for Change. */
+            reason_for_change?: string;
+            /** @description Risk Evaluation. */
+            risk_evaluation?: string;
+            /**
+             * Format: int32
+             * @description Impact score (1–5).
+             */
+            risk_impact_score?: number | null;
+            /**
+             * Format: int32
+             * @description Likelihood (1–5).
+             */
+            risk_likelihood?: number | null;
+            /** @description Rollback Plan. */
+            rollback_plan?: string;
+            /** @description Test Plan. */
+            test_plan?: string;
+            /** @description Title. */
+            title?: string;
+            /**
+             * Format: uuid
+             * @description Change Type.
+             */
+            type_id?: string | null;
+        };
+        /** @description A Change Template (FR-CHG-010). */
+        ChangeTemplateDto: {
+            /** @description Content of the current version. */
+            content: components["schemas"]["ChangeTemplateContentDto"];
+            /** @description What it is for. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+            /** @description Teams that may use it (empty: everyone). */
+            team_ids: string[];
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /**
+             * Format: int32
+             * @description Current version (grows when the content changes).
+             */
+            version: number;
+        };
+        /** @description Creates or changes a Change Template. */
+        ChangeTemplateRequest: {
+            /** @description Content. */
+            content: components["schemas"]["ChangeTemplateContentDto"];
+            /** @description What it is for. */
+            description?: string;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Name. */
+            name: string;
+            /** @description Teams that may use it (empty: everyone). */
+            team_ids?: string[];
+        };
+        /** @description A saved version of a long text field. */
+        ChangeTextRevisionDto: {
+            /** @description Who (`{kind, id}`). */
+            author: Record<string, never>;
+            /** @description Text. */
+            body: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            created_at: string;
+            /** @description Field. */
+            field: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+        };
+        /** @description A vote. */
+        ChangeVoteDto: {
+            /**
+             * Format: uuid
+             * @description The Analyst.
+             */
+            analyst_id: string;
+            /** @description Comment. */
+            comment: string;
+            /** @description `approve` or `reject`. */
+            decision: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: int32
+             * @description Approval Round.
+             */
+            round_no: number;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            voted_at: string;
+        };
+        /** @description Casts a vote. */
+        ChangeVoteRequest: {
+            /** @description Comment (required to reject). */
+            comment?: string;
+            /** @description `approve` or `reject`. */
+            decision: string;
         };
         /** @description Company access of an Analyst or Team. */
         CompanyAccessDto: {
@@ -3526,6 +4689,11 @@ export interface components {
             /** @description Longer text. */
             body: string;
             /**
+             * Format: uuid
+             * @description Linked Change.
+             */
+            change_id?: string | null;
+            /**
              * Format: date-time
              * @description Created.
              */
@@ -3535,7 +4703,11 @@ export interface components {
              * @description ID.
              */
             id: string;
-            /** @description `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached` or `reply_received`. */
+            /**
+             * @description `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
+             *     `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
+             *     `change_scheduled` or `change_completed`.
+             */
             kind: string;
             /**
              * Format: date-time
@@ -5823,6 +6995,1051 @@ export interface operations {
                 };
                 content: {
                     "application/json": string[];
+                };
+            };
+        };
+    };
+    change_calendar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Start (inclusive). */
+                from: string;
+                /** @description End (exclusive; at most 366 days after `from`). */
+                to: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeCalendarDto"];
+                };
+            };
+        };
+    };
+    list_change_categories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"][];
+                };
+            };
+        };
+    };
+    create_change_category: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    update_change_category: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    list_change_impacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"][];
+                };
+            };
+        };
+    };
+    create_change_impact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    update_change_impact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    list_change_priorities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"][];
+                };
+            };
+        };
+    };
+    create_change_priority: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    update_change_priority: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    list_change_risk_levels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeRiskLevelDto"][];
+                };
+            };
+        };
+    };
+    replace_change_risk_levels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeRiskLevelDto"][];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeRiskLevelDto"][];
+                };
+            };
+        };
+    };
+    list_change_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"][];
+                };
+            };
+        };
+    };
+    create_change_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    update_change_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    list_change_templates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeTemplateDto"][];
+                };
+            };
+        };
+    };
+    create_change_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeTemplateRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeTemplateDto"];
+                };
+            };
+        };
+    };
+    update_change_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeTemplateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeTemplateDto"];
+                };
+            };
+        };
+    };
+    list_change_types: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"][];
+                };
+            };
+        };
+    };
+    create_change_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    update_change_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLookupDto"];
+                };
+            };
+        };
+    };
+    list_changes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Comma-separated stages (`draft,awaiting`). */
+                stage: string | null;
+                /** @description Assigned To. */
+                assigned_to_id: string | null;
+                /** @description Waiting for my vote (Approver or CAB member of the open round). */
+                awaiting_my_vote: boolean | null;
+                /** @description Linked to this ticket. */
+                ticket_id: string | null;
+                /** @description Linked to this Problem. */
+                problem_id: string | null;
+                /** @description Number or title text. */
+                q: string | null;
+                /** @description Page size (1 to 200). */
+                limit: number | null;
+                /** @description Cursor. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangePage"];
+                };
+            };
+        };
+    };
+    create_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeDto"];
+                };
+            };
+        };
+    };
+    get_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeDto"];
+                };
+            };
+        };
+    };
+    edit_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeDto"];
+                };
+            };
+        };
+    };
+    list_change_attachments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeAttachmentDto"][];
+                };
+            };
+        };
+    };
+    upload_change_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** @description A `file` field */
+        requestBody?: {
+            content: {
+                "multipart/form-data": unknown;
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeAttachmentDto"];
+                };
+            };
+            /** @description Too large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    download_change_attachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_change_cab: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeCabMemberDto"][];
+                };
+            };
+        };
+    };
+    set_change_cab: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeCabMemberDto"][];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeCabMemberDto"][];
+                };
+            };
+        };
+    };
+    list_change_checklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeChecklistItemDto"][];
+                };
+            };
+        };
+    };
+    add_change_checklist_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeChecklistItemRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeChecklistItemDto"];
+                };
+            };
+        };
+    };
+    update_change_checklist_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeChecklistItemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeChecklistItemDto"];
+                };
+            };
+        };
+    };
+    delete_change_checklist_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_change_comments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeCommentDto"][];
+                };
+            };
+        };
+    };
+    add_change_comment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeCommentRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeCommentDto"];
+                };
+            };
+        };
+    };
+    list_change_links: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLinkDto"][];
+                };
+            };
+        };
+    };
+    link_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeLinkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeLinkDto"];
+                };
+            };
+        };
+    };
+    unlink_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                kind: string;
+                target_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    record_change_pir: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePirDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeDto"];
+                };
+            };
+        };
+    };
+    list_change_revisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                field: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeTextRevisionDto"][];
+                };
+            };
+        };
+    };
+    compare_change_revisions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                field: string;
+                /** @description Older revision. */
+                from: string;
+                /** @description Newer revision. */
+                to: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeDiffLineDto"][];
+                };
+            };
+        };
+    };
+    move_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeStatusRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeDto"];
+                };
+            };
+        };
+    };
+    list_change_votes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                /** @description Approval Round (default: the current one). */
+                round: number | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeVoteDto"][];
+                };
+            };
+        };
+    };
+    vote_on_change: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeVoteRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChangeDto"];
                 };
             };
         };

@@ -171,6 +171,8 @@ pub struct AppState {
     pub notifications: NotificationsApi,
     /// Problem Management API state.
     pub problems: cooper_problem_management::api::ProblemsApi,
+    /// Change Management API state.
+    pub changes: cooper_change_management::api::ChangesApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -184,6 +186,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(admin_capabilities::ALL)
         .chain(desk_capabilities::ALL)
         .chain(cooper_problem_management::application::capabilities::ALL)
+        .chain(cooper_change_management::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -212,6 +215,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_problem_management::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Problems)),
+        )
+        .chain(
+            cooper_change_management::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Changes)),
         )
         .collect()
 }
@@ -284,18 +292,39 @@ impl AppState {
             Arc::new(PgNotificationStore::new(pool.clone())),
             clock.clone(),
         );
-        let problems = cooper_problem_management::api::ProblemsApi {
-            service: cooper_problem_management::application::ProblemService::new(
-                cooper_problem_management::application::ProblemPorts {
-                    problems: Arc::new(
-                        cooper_problem_management::infrastructure::PgProblemStore::new(
-                            pool.clone(),
-                        ),
+        let problem_service = cooper_problem_management::application::ProblemService::new(
+            cooper_problem_management::application::ProblemPorts {
+                problems: Arc::new(
+                    cooper_problem_management::infrastructure::PgProblemStore::new(pool.clone()),
+                ),
+                tickets: Arc::new(DeskTickets { desk: desk.clone() }),
+                clock: clock.clone(),
+            },
+        );
+        let blobs = cooper_platform::attachments::FilesystemBlobStore::new(security.blob_dir);
+        let changes = cooper_change_management::api::ChangesApi {
+            service: cooper_change_management::application::ChangeService::new(
+                cooper_change_management::application::ChangePorts {
+                    changes: Arc::new(
+                        cooper_change_management::infrastructure::PgChangeStore::new(pool.clone()),
                     ),
-                    tickets: Arc::new(DeskTickets { desk: desk.clone() }),
+                    directory: Arc::new(crate::adapters::ChangeDirectory {
+                        identity: IdentityDirectory {
+                            identity: service.clone(),
+                        },
+                        desk: desk.clone(),
+                        problems: problem_service.clone(),
+                    }),
                     clock: clock.clone(),
                 },
             ),
+            blobs: blobs.clone(),
+            upload_limit: Arc::new(DeskSettings {
+                admin: admin.clone(),
+            }),
+        };
+        let problems = cooper_problem_management::api::ProblemsApi {
+            service: problem_service,
         };
         Ok(Self {
             live: cooper_platform::live::LiveFeed::new(pool.clone()),
@@ -314,9 +343,10 @@ impl AppState {
                 service: notifications,
             },
             problems,
+            changes,
             service_desk: ServiceDeskApi {
                 service: desk,
-                blobs: cooper_platform::attachments::FilesystemBlobStore::new(security.blob_dir),
+                blobs,
             },
         })
     }
@@ -346,6 +376,12 @@ impl AppState {
                 }),
                 people: Arc::new(IdentityDirectory {
                     identity: self.identity.service.clone(),
+                }),
+            }),
+            Arc::new(cooper_notifications::handlers::ChangeNotifier {
+                notifications: self.notifications.service.clone(),
+                changes: Arc::new(crate::adapters::ChangeFactsLookup {
+                    changes: self.changes.service.clone(),
                 }),
             }),
             Arc::new(cooper_notifications::handlers::MailboxAlerts {
@@ -397,6 +433,12 @@ impl AppState {
     }
 }
 
+impl FromRef<AppState> for cooper_change_management::api::ChangesApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.changes.clone()
+    }
+}
+
 impl FromRef<AppState> for cooper_problem_management::api::ProblemsApi {
     fn from_ref(state: &AppState) -> Self {
         state.problems.clone()
@@ -439,6 +481,7 @@ mod tests {
                 + admin_capabilities::ALL.len()
                 + desk_capabilities::ALL.len()
                 + cooper_problem_management::application::capabilities::ALL.len()
+                + cooper_change_management::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(
