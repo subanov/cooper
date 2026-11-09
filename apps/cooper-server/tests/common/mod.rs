@@ -45,9 +45,17 @@ pub struct Reply {
 
 impl Client {
     pub fn anonymous(pool: &PgPool) -> Self {
+        Self::anonymous_with_clock(pool, std::sync::Arc::new(cooper_kernel::SystemClock))
+    }
+
+    /// An anonymous client whose server reads time from `clock` (e.g. a `FixedClock`).
+    pub fn anonymous_with_clock(
+        pool: &PgPool,
+        clock: std::sync::Arc<dyn cooper_kernel::Clock>,
+    ) -> Self {
         let state = AppState::with_settings(
             pool.clone(),
-            std::sync::Arc::new(cooper_kernel::SystemClock),
+            clock,
             SecuritySettings {
                 secure_cookies: false,
                 ..test_settings()
@@ -173,7 +181,15 @@ impl Client {
 }
 
 pub async fn setup(pool: &PgPool) -> (Client, Client) {
-    let anon = Client::anonymous(pool);
+    setup_with_clock(pool, std::sync::Arc::new(cooper_kernel::SystemClock)).await
+}
+
+/// [`setup`] with a server that reads time from `clock`.
+pub async fn setup_with_clock(
+    pool: &PgPool,
+    clock: std::sync::Arc<dyn cooper_kernel::Clock>,
+) -> (Client, Client) {
+    let anon = Client::anonymous_with_clock(pool, clock);
     let reply = anon
         .post(
             "/api/v1/setup",

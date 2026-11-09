@@ -4,19 +4,29 @@
 
 mod common;
 
-use chrono::Utc;
-use common::{ADMIN_PASSWORD, Client, setup};
+use std::sync::Arc;
+
+use chrono::{Duration, Utc};
+use common::{ADMIN_PASSWORD, Client, setup, setup_with_clock};
 use cooper_identity::domain::{STEP_SECONDS, TotpSecret};
+use cooper_kernel::{Clock, FixedClock};
 use http::{Method, StatusCode, header};
 use serde_json::json;
 use sqlx::PgPool;
 
-fn code(secret: &str, steps_ahead: i64) -> String {
-    let s = TotpSecret::from_base32(secret).unwrap();
-    s.code_at_step(Utc::now().timestamp() / STEP_SECONDS + steps_ahead)
+/// A frozen server clock, so wall-clock TOTP step rollovers during a test cannot
+/// change which codes the server accepts.
+fn frozen_clock() -> Arc<FixedClock> {
+    Arc::new(FixedClock::new(Utc::now()))
 }
 
-async fn enroll(admin: &Client) -> String {
+/// The code for the server clock's current step plus `steps_ahead`.
+fn code(clock: &FixedClock, secret: &str, steps_ahead: i64) -> String {
+    let s = TotpSecret::from_base32(secret).unwrap();
+    s.code_at_step(clock.now().timestamp().div_euclid(STEP_SECONDS) + steps_ahead)
+}
+
+async fn enroll(admin: &Client, clock: &FixedClock) -> String {
     let e = admin
         .post("/api/v1/session/totp/enrollment", json!({}))
         .await;
@@ -31,7 +41,7 @@ async fn enroll(admin: &Client) -> String {
     let confirm = admin
         .post(
             "/api/v1/session/totp/enrollment/confirm",
-            json!({ "code": code(&secret, 0) }),
+            json!({ "code": code(clock, &secret, 0) }),
         )
         .await;
     assert_eq!(confirm.status, StatusCode::NO_CONTENT, "{:?}", confirm.body);
@@ -40,8 +50,9 @@ async fn enroll(admin: &Client) -> String {
 
 #[sqlx::test(migrations = "../../migrations")]
 async fn two_factor_sign_in_with_remembered_device(pool: PgPool) {
-    let (anon, admin) = setup(&pool).await;
-    let secret = enroll(&admin).await;
+    let clock = frozen_clock();
+    let (anon, admin) = setup_with_clock(&pool, clock.clone()).await;
+    let secret = enroll(&admin, &clock).await;
 
     let stored: String =
         sqlx::query_scalar("SELECT totp_secret_encrypted FROM analysts WHERE username = 'admin'")
@@ -68,7 +79,7 @@ async fn two_factor_sign_in_with_remembered_device(pool: PgPool) {
     let replay = anon
         .post(
             "/api/v1/session",
-            json!({ "login": "admin", "password": ADMIN_PASSWORD, "totp_code": code(&secret, 0) }),
+            json!({ "login": "admin", "password": ADMIN_PASSWORD, "totp_code": code(&clock, &secret, 0) }),
         )
         .await;
     assert_eq!(
@@ -76,8 +87,9 @@ async fn two_factor_sign_in_with_remembered_device(pool: PgPool) {
         "the enrollment code cannot be reused"
     );
 
+    clock.advance(Duration::seconds(STEP_SECONDS));
     let ok = anon.post("/api/v1/session", json!({
-        "login": "admin", "password": ADMIN_PASSWORD, "totp_code": code(&secret, 1), "remember_device": true
+        "login": "admin", "password": ADMIN_PASSWORD, "totp_code": code(&clock, &secret, 0), "remember_device": true
     })).await;
     assert_eq!(ok.status, StatusCode::OK, "{:?}", ok.body);
     let cookies: Vec<String> = ok
@@ -114,7 +126,8 @@ async fn two_factor_sign_in_with_remembered_device(pool: PgPool) {
 async fn required_two_factor_blocks_everything_but_enrollment(pool: PgPool) {
     sqlx::query("INSERT INTO system_settings (key, value, updated_at) VALUES ('security.require_totp', 'true', now())")
         .execute(&pool).await.unwrap();
-    let (_, admin) = setup(&pool).await;
+    let clock = frozen_clock();
+    let (_, admin) = setup_with_clock(&pool, clock.clone()).await;
     let session = admin.get("/api/v1/session").await;
     assert_eq!(session.body["totp_enrollment_required"], true);
     let blocked = admin.get("/api/v1/analysts").await;
@@ -124,13 +137,13 @@ async fn required_two_factor_blocks_everything_but_enrollment(pool: PgPool) {
         "https://cooper.dev/problems/totp-enrollment-required"
     );
 
-    let secret = enroll(&admin).await;
+    let secret = enroll(&admin, &clock).await;
     assert_eq!(admin.get("/api/v1/analysts").await.status, StatusCode::OK);
     let off = admin
         .send(
             Method::DELETE,
             "/api/v1/session/totp",
-            Some(json!({ "code": code(&secret, 1) })),
+            Some(json!({ "code": code(&clock, &secret, 1) })),
         )
         .await;
     assert_eq!(
