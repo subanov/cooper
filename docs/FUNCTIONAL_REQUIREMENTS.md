@@ -55,7 +55,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-GEN-004 | Records support soft delete where FreeITSM does (tickets, assets). Soft-deleted records are hidden by default and an Administrator can restore them. | S | P1 |
 | FR-GEN-005 | Each Module can be turned on or off. A disabled module is hidden from navigation and its API returns 404. Deviation from FreeITSM: the Tickets Module is always on (ADR-0012). | S | P1 |
 | FR-GEN-006 | Users receive in-app **Notifications** (the bell) for assignments, mentions, replies and SLA events. | S | P1 |
-| FR-GEN-007 | Attachments can be uploaded to tickets, changes, problems, tasks, articles and contracts, with a configurable size limit. | M | P1 |
+| FR-GEN-007 | Attachments can be uploaded to tickets, changes, problems, tasks, articles and contracts, with a configurable size limit. Content is stored once per SHA-256 on the file system or in an S3-compatible bucket (configuration); content no attachment references is deleted after a grace period (ADR-0007, ADR-0033). | M | P1 |
 | FR-GEN-008 | Users can save **Table Views** (columns, filters, sort) per list. | C | P4 |
 | FR-GEN-009 | The UI and email texts support localisation. English is the default. | C | P4 |
 | FR-GEN-010 | **Live Updates**: open Analyst screens refresh within seconds when a ticket they show changes (created, assigned, status or Priority changed, closed, reopened, Note, email, time, attachment, SLA Warning or Breach), without polling. Analysts are told only about tickets they may see (Company access and Confidential rules). Live Updates carry no ticket data; the screen re-reads it through the API (ADR-0022). A slow fallback refresh covers anything a Live Update cannot (ADR-0022). | S | P1 |
@@ -133,13 +133,13 @@ come from [VOCABULARY.md](VOCABULARY.md).
 
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
-| FR-EML-001 | Administrators configure **Mailboxes**: provider `microsoft` (Graph, auth mode `delegated` or `app_only`), `google` or `imap`/`smtp`, with default Department, Origin, Company and Team. Deviation from FreeITSM: OAuth refresh tokens are pasted until the consent flow ships with the Mailbox screens (ADR-0020). | M | P1 |
+| FR-EML-001 | Administrators configure **Mailboxes**: provider `microsoft` (Graph, auth mode `delegated` or `app_only`), `google` or `imap`/`smtp`, with default Department, Origin, Company and Team. Microsoft `delegated` and Google Mailboxes are connected by **Mailbox Consent**: the Administrator signs in to the account at the provider (authorization code with PKCE, single-use state, redirect URI from configuration); the refresh token is stored encrypted and never returned (ADR-0020, ADR-0033). | M | P1 |
 | FR-EML-002 | A background job polls each active Mailbox on a configurable interval and imports new emails. | M | P1 |
 | FR-EML-003 | An inbound email whose subject contains a valid **SDREF** tag (or matches a known thread or message id) is added to the existing ticket. Otherwise it creates a new ticket. | M | P1 |
 | FR-EML-004 | The Requester is matched by sender address. Unknown senders create a Requester (configurable) or are rejected. The Company is set from **Sender Domains**. **Freemail Domains** never set a Company. | M | P1 |
 | FR-EML-005 | The **Mailbox Whitelist** allows or blocks senders by address or domain. Rejected emails are deleted, moved or kept (configurable) and logged. | S | P1 |
 | FR-EML-006 | After import, the mailbox message is deleted, moved or marked read (configurable). | M | P1 |
-| FR-EML-007 | Attachments and inline images are stored. Text is extracted asynchronously for search, with extraction status recorded. | S | P2 |
+| FR-EML-007 | Attachments and inline images are stored. Text is extracted asynchronously for search, with extraction status recorded. Plain text, HTML and Office Open XML documents are read, with size, length and time limits; a file whose content cannot be fetched is retried, then `failed` (ADR-0033). Deviation from FreeITSM: there is no Apache Tika tier, so PDF and images are `unsupported`. | S | P2 |
 | FR-EML-008 | Every outbound send attempt is logged (success or failure, error). Failed sends are retried. | M | P1 |
 | FR-EML-009 | **Email Templates** send automated emails on events (ticket created, assigned, replied, closed), matched by recipient address or domain. Deviation from FreeITSM: only the most specific template is sent, and never twice for one event (ADR-0019). | S | P1 |
 | FR-EML-010 | Mailbox health (last poll, last error) is visible to Administrators and raises a notification on failure. | S | P1 |
@@ -179,7 +179,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-PRT-004 | Managers see tickets of Requesters covered by their Manager Grants. Read-only (replying and attachments stay with each Requester); Confidential tickets only when configured; a Requester's directory Manager covers their reports (direct or whole chain, configurable). | S | P2 |
 | FR-PRT-005 | Requesters search and read Knowledge Articles with `customer` or `public` audience that they are allowed to see. | S | P2 |
 | FR-PRT-006 | The Portal shows current **Service Status** and Planned Maintenance: active shared Services and those of the Company the session acts for, scheduled and started Planned Maintenance, and, when `service_status.show_incidents` is on, unresolved and recently resolved (`service_status.recent_days`) Incidents that have a public update, with their public updates only and no authors. Deviation from FreeITSM: Incident display is one switch, off by default, with no separate "all incidents" mode (ADR-0030). | S | P2 |
-| FR-PRT-007 | Requesters receive Portal notifications and can set notification preferences. | C | P2 |
+| FR-PRT-007 | Requesters receive Portal notifications and can set notification preferences. Portal Notifications tell a Requester that their ticket was logged, has a Reply or public Note, or was closed (never about their own actions), in the Company the Portal session acts for. Notification Preferences turn each kind on or off in-app and by email (the Email Template of the event); Analyst Replies always go out (ADR-0033). Deviation from FreeITSM: Manager notifications about their reports' tickets are not included. | C | P2 |
 
 ## 8. Problem Management (PRB)
 

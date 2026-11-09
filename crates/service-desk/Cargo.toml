@@ -9,21 +9,22 @@ publish.workspace = true
 
 [features]
 ## Microsoft 365 Mailboxes through Microsoft Graph.
-graph = ["dep:reqwest", "dep:base64"]
+graph = ["dep:reqwest"]
 ## Google Workspace Mailboxes through the Gmail API.
-google = ["dep:reqwest", "dep:base64"]
+google = ["dep:reqwest"]
 
 [dependencies]
 async-imap.workspace = true
 async-trait.workspace = true
 axum.workspace = true
-base64 = { workspace = true, optional = true }
+base64.workspace = true
 chrono.workspace = true
 chrono-tz.workspace = true
 cooper-http.workspace = true
 cooper-kernel.workspace = true
 cooper-platform.workspace = true
 futures.workspace = true
+getrandom.workspace = true
 hex.workspace = true
 http.workspace = true
 mail-parser.workspace = true

@@ -497,7 +497,7 @@ impl TicketRepository for PgServiceDeskStore {
             q.push(" AND t.deleted_at IS NOT NULL");
         }
         if let Some(text) = f.search.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
-            // Number prefix, ticket text, or the text of a Note (FR-TKT-041).
+            // Number prefix, ticket text, the text of an email, Note or attachment (FR-TKT-041).
             let prefix = format!(
                 "{}%",
                 text.replace('\\', "\\\\")
@@ -514,6 +514,9 @@ impl TicketRepository for PgServiceDeskStore {
                 .push(")) OR EXISTS (SELECT 1 FROM ticket_emails e WHERE e.ticket_id = t.id AND e.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
                 .push_bind(text.to_owned())
                 .push("))) OR EXISTS (SELECT 1 FROM ticket_notes n WHERE n.ticket_id = t.id AND n.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
+                .push_bind(text.to_owned())
+                // Text extracted from the ticket's attachments (FR-EML-007).
+                .push("))) OR EXISTS (SELECT 1 FROM attachments a WHERE a.owner_type = 'ticket' AND a.owner_id = t.id AND a.search_vector @@ websearch_to_tsquery('simple', cooper_unaccent(")
                 .push_bind(text.to_owned())
                 .push("))))");
         }

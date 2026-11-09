@@ -1,6 +1,7 @@
 //! Service desk use cases.
 
 mod configuration;
+mod consent;
 mod content;
 mod email_templates;
 mod intake;
@@ -17,8 +18,9 @@ use cooper_kernel::{Actor, Clock, Forbidden, Principal};
 use thiserror::Error;
 
 use crate::domain::{
-    ContentRepository, Directory, MailboxRepository, ReferenceData, RepoError, SlaRepository,
-    TicketError, TicketRelations, TicketRepository, TicketSettingsProvider, TicketStatistics,
+    ContentRepository, Directory, MailboxConsentClient, MailboxRepository, ReferenceData,
+    RepoError, RequesterNotificationPreferences, SlaRepository, TicketError, TicketRelations,
+    TicketRepository, TicketSettingsProvider, TicketStatistics,
 };
 
 pub use configuration::FieldValue;
@@ -194,6 +196,10 @@ pub struct ServiceDeskPorts {
     pub content: Arc<dyn ContentRepository>,
     /// Mailboxes.
     pub mailboxes: Arc<dyn MailboxRepository>,
+    /// The providers of Mailbox Consent.
+    pub consent: Arc<dyn MailboxConsentClient>,
+    /// Requesters' Notification Preferences (the notifications context).
+    pub preferences: Arc<dyn RequesterNotificationPreferences>,
     /// Links, merges, splits, number history, presence and field values.
     pub relations: Arc<dyn TicketRelations>,
     /// Aggregate figures for reports (ADR-0032).

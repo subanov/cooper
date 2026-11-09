@@ -123,8 +123,48 @@ fn security_from_env() -> Result<SecuritySettings, ConfigError> {
         secure_cookies: config::parse_or("COOPER_SECURE_COOKIES", true)?,
         keyring,
         trusted_proxies,
-        blob_dir: config::parse_or("COOPER_BLOB_DIR", std::path::PathBuf::from("data/blobs"))?,
+        blobs: blob_store()?,
+        public_url: public_url()?,
+        mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints::default(),
     })
+}
+
+/// The attachment blob store from `COOPER_BLOB_STORE`, `COOPER_BLOB_DIR` and the
+/// `COOPER_S3_*` variables (ADR-0033).
+///
+/// # Errors
+///
+/// Invalid settings, or an S3 client that cannot be built.
+pub fn blob_store() -> Result<cooper_platform::attachments::BlobStore, ConfigError> {
+    cooper_platform::attachments::BlobStoreConfig::from_env()?
+        .build()
+        .map_err(|e| ConfigError::Invalid {
+            name: "COOPER_BLOB_STORE",
+            reason: e.to_string(),
+        })
+}
+
+/// `COOPER_PUBLIC_URL`: Cooper's address as browsers reach it, for OAuth redirect URIs.
+///
+/// # Errors
+///
+/// Not an `http://` or `https://` URL.
+pub fn public_url() -> Result<Option<String>, ConfigError> {
+    config::var("COOPER_PUBLIC_URL")?
+        .map(|v| {
+            let v = v.trim().trim_end_matches('/').to_owned();
+            if (v.starts_with("https://") || v.starts_with("http://"))
+                && !v.contains(['?', '#', ' '])
+            {
+                Ok(v)
+            } else {
+                Err(ConfigError::Invalid {
+                    name: "COOPER_PUBLIC_URL",
+                    reason: "must be an http:// or https:// URL without query".to_owned(),
+                })
+            }
+        })
+        .transpose()
 }
 
 fn parse_origins(raw: Option<String>) -> Result<Vec<HeaderValue>, ConfigError> {

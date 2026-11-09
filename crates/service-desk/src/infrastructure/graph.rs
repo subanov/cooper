@@ -116,7 +116,10 @@ impl MailboxClient for GraphClient {
         let url = format!("{}/{}/oauth2/v2.0/token", self.login_base, segment(&tenant));
         let delegated = s.auth_mode.as_deref() == Some("delegated");
         let (token, rotated, user) = if delegated {
-            let refresh = creds.refresh_token.clone().unwrap_or_default();
+            let refresh = creds
+                .connected_refresh_token()
+                .map_err(|e| e.to_string())?
+                .to_owned();
             let t = request_token(
                 &self.http,
                 &url,

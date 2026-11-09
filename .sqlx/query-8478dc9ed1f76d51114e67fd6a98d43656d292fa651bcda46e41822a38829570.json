@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE attachments SET extraction_status = $2, extracted_text = $3, extraction_error = $4,\n                        extraction_attempts = $5, extraction_retry_at = $6, extracted_at = $7\n                 WHERE id = $1 AND extraction_status = 'pending'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Int4",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8478dc9ed1f76d51114e67fd6a98d43656d292fa651bcda46e41822a38829570"
+}

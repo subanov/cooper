@@ -12,6 +12,7 @@ use cooper_identity::domain::SessionPolicy;
 use cooper_identity::infrastructure::{IdentityHousekeeping, ReencryptIdentitySecrets};
 use cooper_kernel::{Clock, SystemClock};
 use cooper_notifications::email::{EmailSender, MailTransport, SmtpTransport};
+use cooper_platform::attachments::{AttachmentTextExtraction, BlobOrphanCleanup};
 use cooper_platform::config::{self, ConfigError, DatabaseConfig};
 use cooper_platform::crypto::Keyring;
 use cooper_platform::db;
@@ -34,7 +35,9 @@ struct WorkerConfig {
     system_log_retention_days: u16,
     keyring: Keyring,
     smtp_url: Option<String>,
-    blob_dir: std::path::PathBuf,
+    blobs: cooper_platform::attachments::BlobStore,
+    blob_orphan_grace_hours: u16,
+    public_url: Option<String>,
     log_format: LogFormat,
     metrics_addr: Option<std::net::SocketAddr>,
 }
@@ -55,7 +58,9 @@ impl WorkerConfig {
             log_format: config::parse_or("COOPER_LOG_FORMAT", LogFormat::default())?,
             metrics_addr: cooper_server::config::metrics_addr()?,
             smtp_url: config::var("COOPER_SMTP_URL")?,
-            blob_dir: config::parse_or("COOPER_BLOB_DIR", std::path::PathBuf::from("data/blobs"))?,
+            blobs: cooper_server::config::blob_store()?,
+            blob_orphan_grace_hours: config::parse_or("COOPER_BLOB_ORPHAN_GRACE_HOURS", 24_u16)?,
+            public_url: cooper_server::config::public_url()?,
             keyring: Keyring::parse(&config::required("COOPER_ENCRYPTION_KEYS")?).map_err(|e| {
                 ConfigError::Invalid {
                     name: "COOPER_ENCRYPTION_KEYS",
@@ -116,7 +121,9 @@ async fn main() -> anyhow::Result<()> {
             secure_cookies: true,
             keyring: config.keyring.clone(),
             trusted_proxies: Vec::new(),
-            blob_dir: config.blob_dir.clone(),
+            blobs: config.blobs.clone(),
+            public_url: config.public_url.clone(),
+            mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints::default(),
         },
     )
     .context("failed to initialise application services")?;
@@ -186,6 +193,13 @@ fn with_jobs(
             config.keyring.clone(),
         )))
         .with_job(Arc::new(state.mailbox_poller()))
+        .with_job(Arc::new(AttachmentTextExtraction::new(
+            state.service_desk.blobs.clone(),
+        )))
+        .with_job(Arc::new(BlobOrphanCleanup::new(
+            state.service_desk.blobs.clone(),
+            chrono::Duration::hours(i64::from(config.blob_orphan_grace_hours)),
+        )))
         .with_job(Arc::new(
             cooper_knowledge::infrastructure::KnowledgeReviewJob {
                 service: state.knowledge.service.clone(),
@@ -326,7 +340,9 @@ mod tests {
             system_log_retention_days: 30,
             keyring: Keyring::ephemeral().unwrap(),
             smtp_url: None,
-            blob_dir: std::path::PathBuf::from("data/blobs"),
+            blobs: cooper_platform::attachments::BlobStore::filesystem("data/blobs"),
+            blob_orphan_grace_hours: 24,
+            public_url: None,
             log_format: LogFormat::default(),
             metrics_addr: None,
         }
@@ -348,6 +364,8 @@ mod tests {
         let mut names: Vec<&str> = runner.job_names().collect();
         names.sort_unstable();
         let expected = [
+            "attachment-orphan-cleanup",
+            "attachment-text-extraction",
             "email-sender",
             "identity-housekeeping",
             "identity-secrets-reencrypt",

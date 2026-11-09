@@ -1,5 +1,6 @@
 //! PostgreSQL storage of the service desk.
 
+mod consent;
 mod content;
 #[cfg(feature = "google")]
 mod google;
@@ -16,6 +17,7 @@ mod statistics;
 mod template_mailer;
 mod tickets;
 
+pub use consent::ProviderConsentClient;
 #[cfg(feature = "google")]
 pub use google::GmailClient;
 #[cfg(feature = "graph")]

@@ -146,7 +146,10 @@ impl MailboxClient for GmailClient {
     ) -> Result<Box<dyn MailboxSession>, String> {
         let s = mailbox.settings();
         let creds = OAuthCredentials::parse(s, secret).map_err(|e| e.to_string())?;
-        let refresh = creds.refresh_token.clone().unwrap_or_default();
+        let refresh = creds
+            .connected_refresh_token()
+            .map_err(|e| e.to_string())?
+            .to_owned();
         let t = request_token(
             &self.http,
             &self.token_url,

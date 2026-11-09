@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "cooper",
+      "credentials": [{ "accessKey": "cooper", "secretKey": "cooper-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

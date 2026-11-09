@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM mailbox_consents WHERE state_hash = $1\n             RETURNING state_hash, mailbox_id, analyst_id, pkce_verifier, created_at, expires_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "state_hash",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "mailbox_consents",
+            "name": "state_hash"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "mailbox_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailbox_consents",
+            "name": "mailbox_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "analyst_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "mailbox_consents",
+            "name": "analyst_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "pkce_verifier",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "mailbox_consents",
+            "name": "pkce_verifier"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mailbox_consents",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "expires_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "mailbox_consents",
+            "name": "expires_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "57c31a2d90725b3cab1b445b165564f6fd360a43fe651b49f20ff56cb8a536a0"
+}

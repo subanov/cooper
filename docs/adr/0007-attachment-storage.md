@@ -64,4 +64,4 @@ Option 3.
 
 ## Implementation note
 
-P1 implements the file-system backend ([ADR-0017](0017-outbound-email-and-attachments.md)); the S3 backend and the orphan clean-up job are tracked separately.
+P1 implements the file-system backend ([ADR-0017](0017-outbound-email-and-attachments.md)); the S3 backend and the orphan clean-up job follow in [ADR-0033](0033-attachments-storage-extraction-and-mailbox-consent.md).

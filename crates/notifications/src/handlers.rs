@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use cooper_kernel::{AnalystId, EventEnvelope, TeamId, TenantId, TicketId};
+use cooper_kernel::{AnalystId, EventEnvelope, RequesterId, TeamId, TenantId, TicketId};
 use cooper_platform::outbox::{EventHandler, HandlerError};
 use serde_json::Value;
 use uuid::Uuid;
@@ -28,6 +28,74 @@ pub struct TicketFacts {
     pub assignee: Option<AnalystId>,
     /// Queue.
     pub team: Option<TeamId>,
+    /// Requester.
+    pub requester: Option<RequesterId>,
+}
+
+/// Tells Requesters about their tickets on the Portal (FR-PRT-007): a ticket logged for
+/// them, a Reply or public Note, and closure. Respects their Notification Preferences;
+/// never about their own actions.
+pub struct PortalNotifier {
+    /// The Portal Notifications service.
+    pub notifications: crate::portal::PortalNotifications,
+    /// Tickets.
+    pub tickets: Arc<dyn TicketLookup>,
+}
+
+#[async_trait]
+impl EventHandler for PortalNotifier {
+    fn name(&self) -> &'static str {
+        "portal-notifier"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        matches!(
+            event_type,
+            "ticket.created" | "ticket.reply_sent" | "ticket.note_added" | "ticket.closed"
+        )
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        use crate::portal::{PortalDraft, PortalNotificationKind as Kind};
+        if event.event_type == "ticket.note_added"
+            && field(&event.payload, "is_public").and_then(Value::as_bool) != Some(true)
+        {
+            return Ok(());
+        }
+        let Some(facts) = self
+            .tickets
+            .ticket(TicketId::from_uuid(event.aggregate_id))
+            .await
+            .map_err(handler_error)?
+        else {
+            return Ok(());
+        };
+        let Some(requester) = facts.requester else {
+            return Ok(());
+        };
+        let n = &facts.number;
+        let (kind, title) = match event.event_type.as_str() {
+            "ticket.created" => (Kind::TicketCreated, format!("Ticket {n} was logged")),
+            "ticket.reply_sent" => (Kind::TicketReplied, format!("New reply on ticket {n}")),
+            "ticket.note_added" => (Kind::TicketReplied, format!("New update on ticket {n}")),
+            "ticket.closed" => (Kind::TicketClosed, format!("Ticket {n} was closed")),
+            _ => return Ok(()),
+        };
+        let draft = PortalDraft {
+            kind,
+            tenant_id: facts.tenant_id,
+            requester_id: requester,
+            title,
+            body: facts.subject,
+            ticket_id: Some(TicketId::from_uuid(event.aggregate_id)),
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
+    }
 }
 
 /// Reads tickets (through the service desk's application API).

@@ -140,6 +140,17 @@ impl ServiceDesk {
         let Some(to) = to.filter(|t| !t.trim().is_empty()) else {
             return Ok(None);
         };
+        // The Requester's Notification Preferences (FR-PRT-007).
+        if !event.to_assignee()
+            && let Some(requester) = ticket.details().requester_id
+            && !self
+                .ports
+                .preferences
+                .wants_email(ticket.tenant_id(), requester, event)
+                .await?
+        {
+            return Ok(None);
+        }
         let Some(template) = select_template(&templates, event, &to) else {
             return Ok(None);
         };

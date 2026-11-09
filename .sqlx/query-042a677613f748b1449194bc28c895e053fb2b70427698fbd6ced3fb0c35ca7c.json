@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO portal_notifications (id, tenant_id, requester_id, kind, title, body, ticket_id, source_event_id, created_at)\n             SELECT $1, $2, r.id, $4, $5, $6, $7, $8, $9 FROM requesters r\n             WHERE r.id = $3 AND r.tenant_id = $2 AND r.is_active\n             ON CONFLICT (source_event_id, requester_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "042a677613f748b1449194bc28c895e053fb2b70427698fbd6ced3fb0c35ca7c"
+}

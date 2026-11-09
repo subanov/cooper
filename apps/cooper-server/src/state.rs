@@ -47,8 +47,14 @@ pub struct SecuritySettings {
     pub keyring: Keyring,
     /// Reverse proxies trusted for `X-Forwarded-For` (`COOPER_TRUSTED_PROXIES`).
     pub trusted_proxies: Vec<IpNetwork>,
-    /// Where attachment content is stored (`COOPER_BLOB_DIR`).
-    pub blob_dir: std::path::PathBuf,
+    /// Where attachment content is stored (`COOPER_BLOB_STORE`, `COOPER_BLOB_DIR`,
+    /// `COOPER_S3_*`; ADR-0033).
+    pub blobs: cooper_platform::attachments::BlobStore,
+    /// Cooper's public address (`COOPER_PUBLIC_URL`) for OAuth redirect URIs; the
+    /// `general.base_url` System Setting when unset.
+    pub public_url: Option<String>,
+    /// Microsoft and Google sign-in endpoints for Mailbox Consent.
+    pub mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints,
 }
 
 impl SecuritySettings {
@@ -63,7 +69,11 @@ impl SecuritySettings {
             secure_cookies: true,
             keyring: Keyring::ephemeral()?,
             trusted_proxies: Vec::new(),
-            blob_dir: std::env::temp_dir().join(format!("cooper-blobs-{}", uuid::Uuid::now_v7())),
+            blobs: cooper_platform::attachments::BlobStore::filesystem(
+                std::env::temp_dir().join(format!("cooper-blobs-{}", uuid::Uuid::now_v7())),
+            ),
+            public_url: None,
+            mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints::default(),
         })
     }
 }
@@ -315,12 +325,24 @@ impl AppState {
             }),
         )?;
         let service = IdentityService::new(ports, capability_catalogue(), security.session_policy);
+        let portal_notifications = cooper_notifications::portal::PortalNotifications::new(
+            Arc::new(cooper_notifications::portal::PgPortalNotificationStore::new(pool.clone())),
+            clock.clone(),
+        );
         let desk = ServiceDesk::new(ServiceDeskPorts {
             tickets: Arc::new(PgServiceDeskStore::new(pool.clone())),
             reference: Arc::new(PgServiceDeskStore::new(pool.clone())),
             sla: Arc::new(PgServiceDeskStore::new(pool.clone())),
             content: Arc::new(PgServiceDeskStore::new(pool.clone())),
             mailboxes,
+            consent: Arc::new(
+                cooper_service_desk::infrastructure::ProviderConsentClient::new(
+                    security.mailbox_oauth,
+                ),
+            ),
+            preferences: Arc::new(crate::adapters::PortalPreferences {
+                portal: portal_notifications.clone(),
+            }),
             relations: Arc::new(PgServiceDeskStore::new(pool.clone())),
             statistics: Arc::new(PgServiceDeskStore::new(pool.clone())),
             directory: Arc::new(IdentityDirectory {
@@ -328,6 +350,7 @@ impl AppState {
             }),
             settings: Arc::new(DeskSettings {
                 admin: admin.clone(),
+                public_url: security.public_url.clone(),
             }),
             clock: clock.clone(),
         });
@@ -361,7 +384,7 @@ impl AppState {
                 clock: clock.clone(),
             },
         );
-        let blobs = cooper_platform::attachments::FilesystemBlobStore::new(security.blob_dir);
+        let blobs = security.blobs;
         let change_service = cooper_change_management::application::ChangeService::new(
             cooper_change_management::application::ChangePorts {
                 changes: Arc::new(
@@ -465,6 +488,7 @@ impl AppState {
             blobs: blobs.clone(),
             upload_limit: Arc::new(DeskSettings {
                 admin: admin.clone(),
+                public_url: security.public_url.clone(),
             }),
         };
         let problems = cooper_problem_management::api::ProblemsApi {
@@ -488,6 +512,7 @@ impl AppState {
             },
             notifications: NotificationsApi {
                 service: notifications,
+                portal: portal_notifications,
             },
             problems,
             changes,
@@ -558,6 +583,12 @@ impl AppState {
                 notifications: self.notifications.service.clone(),
                 people: Arc::new(IdentityDirectory {
                     identity: self.identity.service.clone(),
+                }),
+            }),
+            Arc::new(cooper_notifications::handlers::PortalNotifier {
+                notifications: self.notifications.portal.clone(),
+                tickets: Arc::new(DeskTickets {
+                    desk: self.service_desk.service.clone(),
                 }),
             }),
             Arc::new(cooper_service_desk::infrastructure::EmailTemplateMailer {

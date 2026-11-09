@@ -8,6 +8,9 @@
 #   postgres  PostgreSQL 18. Owner role `cooper` (runs migrations), app role `cooper_app`.
 #   mailpit   SMTP capture for outbound mail. Web UI: http://localhost:8025
 #   greenmail IMAP/SMTP test server for mailbox intake. Users are created on first login.
+#   s3        (profile `s3`) SeaweedFS, an S3-compatible blob store, for COOPER_BLOB_STORE=s3
+#             and the S3 test (COOPER_TEST_S3_ENDPOINT=http://localhost:8333, which creates
+#             its bucket). Access key `cooper`, secret `cooper-secret` (deploy/s3/s3.json).
 #   migrate   (profile `app`) applies migrations as the owner role, then exits.
 #   server    (profile `app`) cooper-server on http://localhost:${COOPER_PORT:-8080}.
 #   worker    (profile `app`) cooper-worker background jobs.
@@ -49,6 +52,15 @@ services:
       - "${GREENMAIL_SMTP_PORT:-3025}:3025"
       - "${GREENMAIL_IMAP_PORT:-3143}:3143"
       - "${GREENMAIL_IMAPS_PORT:-3993}:3993"
+
+  s3:
+    profiles: ["s3"]
+    image: chrislusf/seaweedfs:3.80
+    command: ["server", "-s3", "-s3.config=/etc/seaweedfs/s3.json", "-dir=/data"]
+    volumes:
+      - ./deploy/s3/s3.json:/etc/seaweedfs/s3.json:ro
+    ports:
+      - "${S3_PORT:-8333}:8333"
 
   migrate:
     profiles: ["app"]

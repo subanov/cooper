@@ -3939,6 +3939,49 @@
         }
       }
     },
+    "/api/v1/mailboxes/consent/callback": {
+      "get": {
+        "tags": [
+          "Mailboxes"
+        ],
+        "summary": "The provider redirects here after the account consented (or refused). Stores the\nrefresh token, encrypted, and redirects to the console with\n`?mailbox_consent=connected&mailbox=<id>` (needs the same Analyst session that started\nthe consent).",
+        "operationId": "finish_consent",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "description": "The `state` from the consent request.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "description": "The authorization code.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "description": "The provider's error code, when the account refused.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Connected; redirect to the console"
+          }
+        }
+      }
+    },
     "/api/v1/mailboxes/{id}": {
       "put": {
         "tags": [
@@ -3973,6 +4016,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MailboxDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mailboxes/{id}/consent": {
+      "post": {
+        "tags": [
+          "Mailboxes"
+        ],
+        "summary": "Starts Mailbox Consent for a Microsoft `delegated` or Google Mailbox whose client\ncredentials are saved (needs `tickets.configure`, in an Analyst session).",
+        "operationId": "start_consent",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxConsentDto"
                 }
               }
             }
@@ -5218,6 +5292,164 @@
           },
           "401": {
             "description": "Not signed in to the Portal"
+          }
+        }
+      }
+    },
+    "/api/v1/portal/notification-preferences": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "The signed-in Requester's Notification Preferences (all on until changed).",
+        "operationId": "portal_preferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Changes the signed-in Requester's Notification Preferences (audited).",
+        "operationId": "portal_set_preferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationPreferencesDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/notifications": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "The signed-in Requester's Portal Notifications, newest first.",
+        "operationId": "portal_list",
+        "parameters": [
+          {
+            "name": "unread",
+            "in": "query",
+            "description": "Only unread ones.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size, 1 to 200 (default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor from the previous page.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalNotificationPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/notifications/read-all": {
+      "post": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Marks every Portal Notification of the signed-in Requester read.",
+        "operationId": "portal_mark_all_read",
+        "responses": {
+          "204": {
+            "description": "All read"
+          }
+        }
+      }
+    },
+    "/api/v1/portal/notifications/unread-count": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Number of the signed-in Requester's unread Portal Notifications.",
+        "operationId": "portal_unread_count",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/notifications/{id}/read": {
+      "post": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Marks one of the signed-in Requester's Portal Notifications read.",
+        "operationId": "portal_mark_read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Read"
           }
         }
       }
@@ -12054,7 +12286,7 @@
           {
             "name": "q",
             "in": "query",
-            "description": "Search: Ticket Number prefix, subject, description and Notes.",
+            "description": "Search: Ticket Number prefix, subject, description, emails, Notes and text\nextracted from attachments.",
             "required": false,
             "schema": {
               "type": "string"
@@ -13991,6 +14223,7 @@
           "file_name",
           "media_type",
           "size_bytes",
+          "extraction_status",
           "created_at"
         ],
         "properties": {
@@ -13998,6 +14231,10 @@
             "type": "string",
             "format": "date-time",
             "description": "Uploaded."
+          },
+          "extraction_status": {
+            "type": "string",
+            "description": "Text extraction for search (FR-EML-007): `pending`, `extracted`, `truncated`,\n`too_large`, `unsupported` or `failed`."
           },
           "file_name": {
             "type": "string",
@@ -17674,6 +17911,19 @@
           }
         }
       },
+      "MailboxConsentDto": {
+        "type": "object",
+        "description": "Where to send the Administrator's browser to connect a Mailbox.",
+        "required": [
+          "authorization_url"
+        ],
+        "properties": {
+          "authorization_url": {
+            "type": "string",
+            "description": "The provider's sign-in page, with a single-use `state` (valid 10 minutes) and a\nPKCE challenge."
+          }
+        }
+      },
       "MailboxDto": {
         "type": "object",
         "description": "A Mailbox. Secrets are write-only: send `password` (IMAP) or `credentials` (OAuth)\nto set or replace them.",
@@ -18247,6 +18497,45 @@
               "null"
             ],
             "description": "Cursor for the next page."
+          }
+        }
+      },
+      "NotificationPreferenceDto": {
+        "type": "object",
+        "description": "A Notification Preference.",
+        "required": [
+          "kind",
+          "in_app",
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "boolean",
+            "description": "Sent by email (the Email Template of the event)."
+          },
+          "in_app": {
+            "type": "boolean",
+            "description": "Shown on the Portal."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`ticket_created`, `ticket_replied` or `ticket_closed`."
+          }
+        }
+      },
+      "NotificationPreferencesDto": {
+        "type": "object",
+        "description": "Notification Preferences, one per kind.",
+        "required": [
+          "preferences"
+        ],
+        "properties": {
+          "preferences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationPreferenceDto"
+            },
+            "description": "Kinds not given keep their setting."
           }
         }
       },
@@ -19312,6 +19601,80 @@
             "type": "string",
             "format": "date-time",
             "description": "Last changed."
+          }
+        }
+      },
+      "PortalNotificationDto": {
+        "type": "object",
+        "description": "A Portal Notification.",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "created_at"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Longer text (the ticket subject)."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`ticket_created`, `ticket_replied` or `ticket_closed`."
+          },
+          "read_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was read."
+          },
+          "ticket_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Linked ticket (open it with `GET /portal/tickets/{id}`)."
+          },
+          "title": {
+            "type": "string",
+            "description": "Short text."
+          }
+        }
+      },
+      "PortalNotificationPage": {
+        "type": "object",
+        "description": "A page of Portal Notifications.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PortalNotificationDto"
+            },
+            "description": "Newest first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
           }
         }
       },
