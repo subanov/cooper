@@ -2481,6 +2481,732 @@
         }
       }
     },
+    "/api/v1/problem-priorities": {
+      "get": {
+        "tags": [
+          "Problems"
+        ],
+        "operationId": "list_problem_priorities",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProblemLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "operationId": "create_problem_priority",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problem-priorities/{id}": {
+      "put": {
+        "tags": [
+          "Problems"
+        ],
+        "operationId": "update_problem_priority",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problem-statuses": {
+      "get": {
+        "tags": [
+          "Problems"
+        ],
+        "operationId": "list_problem_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProblemLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "operationId": "create_problem_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problem-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Problems"
+        ],
+        "operationId": "update_problem_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems": {
+      "get": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Problems in your Companies, newest activity first (needs `problems.read`).",
+        "operationId": "list_problems",
+        "parameters": [
+          {
+            "name": "open",
+            "in": "path",
+            "description": "Open (`true`) or resolved (`false`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "known_error",
+            "in": "path",
+            "description": "Known Errors only.",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "analyst_id",
+            "in": "path",
+            "description": "Assigned to.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "description": "Problems linked to this ticket (the ticket's side of FR-PRB-003).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "path",
+            "description": "Number prefix or text.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Creates a Problem (needs `problems.create`).",
+        "operationId": "create_problem",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}": {
+      "get": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "One Problem.",
+        "operationId": "get_problem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Edits a Problem: details, Root Cause, Workaround, Known Error (needs `problems.update`).",
+        "operationId": "edit_problem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/assignment": {
+      "put": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Assigns a Problem (needs `problems.update`).",
+        "operationId": "assign_problem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemAssignmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/history": {
+      "get": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "The audit trail of a Problem, oldest first (FR-PRB-007).",
+        "operationId": "problem_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProblemHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/notes": {
+      "get": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Notes, oldest first.",
+        "operationId": "list_problem_notes",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProblemNoteDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Adds a Note (needs `problems.update`).",
+        "operationId": "add_problem_note",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemNoteDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemNoteDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/status": {
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Moves a Problem to another status (needs `problems.update`).",
+        "operationId": "change_problem_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/tickets": {
+      "get": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "The linked tickets you may see (FR-PRB-003). The ticket's side:\n`GET /problems?ticket_id=…`.",
+        "operationId": "list_problem_tickets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProblemTicketDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Links a ticket of the same Company (needs `problems.update`).",
+        "operationId": "link_problem_ticket",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemLinkTicketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemTicketDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/tickets/actions": {
+      "post": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Closes or adds a Note to every linked ticket of a resolved Problem (FR-PRB-006).\nEach ticket goes through the usual service desk checks.",
+        "operationId": "act_on_problem_tickets",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProblemTicketActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProblemTicketOutcomeDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/problems/{id}/tickets/{ticket_id}": {
+      "delete": {
+        "tags": [
+          "Problems"
+        ],
+        "summary": "Unlinks a ticket (needs `problems.update`).",
+        "operationId": "unlink_problem_ticket",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ticket_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Unlinked"
+          }
+        }
+      }
+    },
     "/api/v1/reply-templates": {
       "get": {
         "tags": [
@@ -9640,6 +10366,456 @@
           }
         }
       },
+      "ProblemAssignmentRequest": {
+        "type": "object",
+        "description": "An assignment.",
+        "properties": {
+          "analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Analyst, or null for nobody."
+          }
+        }
+      },
+      "ProblemDto": {
+        "type": "object",
+        "description": "A Problem (FR-PRB-001).",
+        "required": [
+          "id",
+          "number",
+          "company_id",
+          "title",
+          "description",
+          "status_id",
+          "priority_id",
+          "root_cause",
+          "workaround",
+          "is_known_error",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned Analyst."
+          },
+          "closed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was resolved."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_known_error": {
+            "type": "boolean",
+            "description": "Known Error."
+          },
+          "number": {
+            "type": "string",
+            "description": "Problem Number (`PRB-00001`)."
+          },
+          "priority_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Priority."
+          },
+          "root_cause": {
+            "type": "string",
+            "description": "Root Cause."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Status."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "workaround": {
+            "type": "string",
+            "description": "Workaround."
+          }
+        }
+      },
+      "ProblemHistoryDto": {
+        "type": "object",
+        "description": "One change in a Problem's problem_history.",
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created`, `updated`, `deleted` or `restored`."
+          },
+          "actor": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "ProblemLinkTicketRequest": {
+        "type": "object",
+        "description": "Links a ticket.",
+        "required": [
+          "ticket_id"
+        ],
+        "properties": {
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket."
+          }
+        }
+      },
+      "ProblemLookupDto": {
+        "type": "object",
+        "description": "A Problem Status or Priority.",
+        "required": [
+          "id",
+          "name",
+          "is_closed",
+          "is_default",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Closing status (Statuses)."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Default for new Problems."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stable key of seeded rows."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "ProblemLookupRequest": {
+        "type": "object",
+        "description": "Creates or changes a Problem Status or Priority.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Closing status (ignored for Priorities)."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Make it the default."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "ProblemNoteDto": {
+        "type": "object",
+        "description": "A Note.",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "author_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Author (output)."
+          },
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created (output)."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID (output)."
+          }
+        }
+      },
+      "ProblemPage": {
+        "type": "object",
+        "description": "A page of Problems.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProblemDto"
+            },
+            "description": "Problems, newest activity first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "ProblemRequest": {
+        "type": "object",
+        "description": "Creates or edits a Problem.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assigned Analyst (create only; use the assignment endpoint afterwards)."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "is_known_error": {
+            "type": "boolean",
+            "description": "Known Error (needs a Root Cause or Workaround)."
+          },
+          "priority_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Priority (default when absent)."
+          },
+          "root_cause": {
+            "type": "string",
+            "description": "Root Cause."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "workaround": {
+            "type": "string",
+            "description": "Workaround."
+          }
+        }
+      },
+      "ProblemStatusRequest": {
+        "type": "object",
+        "description": "A status change.",
+        "required": [
+          "status_id"
+        ],
+        "properties": {
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The status."
+          }
+        }
+      },
+      "ProblemTicketActionRequest": {
+        "type": "object",
+        "description": "An action for every linked ticket of a resolved Problem (FR-PRB-006).",
+        "required": [
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`close` or `note`."
+          },
+          "body": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Text (`note`)."
+          },
+          "public": {
+            "type": "boolean",
+            "description": "The Note is visible to the Requester (`note`)."
+          },
+          "resolution_code_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Resolution Code (`close`)."
+          }
+        }
+      },
+      "ProblemTicketDto": {
+        "type": "object",
+        "description": "A linked ticket.",
+        "required": [
+          "id",
+          "number",
+          "subject",
+          "is_closed",
+          "linked_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Ticket."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Closed."
+          },
+          "linked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was linked."
+          },
+          "number": {
+            "type": "string",
+            "description": "Ticket Number."
+          },
+          "subject": {
+            "type": "string",
+            "description": "Subject."
+          }
+        }
+      },
+      "ProblemTicketOutcomeDto": {
+        "type": "object",
+        "description": "The outcome on one ticket.",
+        "required": [
+          "ticket_id",
+          "ok"
+        ],
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why it failed."
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "Succeeded."
+          },
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Ticket."
+          }
+        }
+      },
       "RejectedEmailDto": {
         "type": "object",
         "description": "A rejected email.",
@@ -11701,6 +12877,10 @@
     {
       "name": "Ticket reference data",
       "description": "Statuses, Priorities, Types, Origins, Resolution Codes and Categories"
+    },
+    {
+      "name": "Problems",
+      "description": "Problems, Known Errors and their incident tickets"
     },
     {
       "name": "Administration",

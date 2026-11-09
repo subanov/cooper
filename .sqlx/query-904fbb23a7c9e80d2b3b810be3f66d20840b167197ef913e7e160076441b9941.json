@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO problem_tickets (tenant_id, problem_id, ticket_id, linked_by_kind, linked_by_id, linked_at)\n             VALUES ($1, $2, $3, $4, $5, $6)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "904fbb23a7c9e80d2b3b810be3f66d20840b167197ef913e7e160076441b9941"
+}

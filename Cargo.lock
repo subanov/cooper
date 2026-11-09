@@ -643,6 +643,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "cooper-problem-management"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "cooper-http",
+ "cooper-kernel",
+ "cooper-platform",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.21",
+ "tracing",
+ "utoipa",
+ "utoipa-axum",
+ "uuid",
+]
+
+[[package]]
 name = "cooper-server"
 version = "0.1.0"
 dependencies = [
@@ -658,6 +678,7 @@ dependencies = [
  "cooper-kernel",
  "cooper-notifications",
  "cooper-platform",
+ "cooper-problem-management",
  "cooper-service-desk",
  "futures",
  "http",

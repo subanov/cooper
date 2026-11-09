@@ -964,6 +964,233 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/problem-priorities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_problem_priorities"];
+        put?: never;
+        post: operations["create_problem_priority"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problem-priorities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_problem_priority"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problem-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_problem_statuses"];
+        put?: never;
+        post: operations["create_problem_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problem-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_problem_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Problems in your Companies, newest activity first (needs `problems.read`). */
+        get: operations["list_problems"];
+        put?: never;
+        /** Creates a Problem (needs `problems.create`). */
+        post: operations["create_problem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Problem. */
+        get: operations["get_problem"];
+        /** Edits a Problem: details, Root Cause, Workaround, Known Error (needs `problems.update`). */
+        put: operations["edit_problem"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/assignment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Assigns a Problem (needs `problems.update`). */
+        put: operations["assign_problem"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The audit trail of a Problem, oldest first (FR-PRB-007). */
+        get: operations["problem_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notes, oldest first. */
+        get: operations["list_problem_notes"];
+        put?: never;
+        /** Adds a Note (needs `problems.update`). */
+        post: operations["add_problem_note"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Moves a Problem to another status (needs `problems.update`). */
+        post: operations["change_problem_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The linked tickets you may see (FR-PRB-003). The ticket's side:
+         *     `GET /problems?ticket_id=…`.
+         */
+        get: operations["list_problem_tickets"];
+        put?: never;
+        /** Links a ticket of the same Company (needs `problems.update`). */
+        post: operations["link_problem_ticket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/tickets/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Closes or adds a Note to every linked ticket of a resolved Problem (FR-PRB-006).
+         *     Each ticket goes through the usual service desk checks.
+         */
+        post: operations["act_on_problem_tickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/problems/{id}/tickets/{ticket_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unlinks a ticket (needs `problems.update`). */
+        delete: operations["unlink_problem_ticket"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reply-templates": {
         parameters: {
             query?: never;
@@ -3868,6 +4095,242 @@ export interface components {
             /** @description Whether the Analyst is writing a reply or Note. */
             composing?: boolean;
         };
+        /** @description An assignment. */
+        ProblemAssignmentRequest: {
+            /**
+             * Format: uuid
+             * @description The Analyst, or null for nobody.
+             */
+            analyst_id?: string | null;
+        };
+        /** @description A Problem (FR-PRB-001). */
+        ProblemDto: {
+            /**
+             * Format: uuid
+             * @description Assigned Analyst.
+             */
+            analyst_id?: string | null;
+            /**
+             * Format: date-time
+             * @description When it was resolved.
+             */
+            closed_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Known Error. */
+            is_known_error: boolean;
+            /** @description Problem Number (`PRB-00001`). */
+            number: string;
+            /**
+             * Format: uuid
+             * @description Priority.
+             */
+            priority_id: string;
+            /** @description Root Cause. */
+            root_cause: string;
+            /**
+             * Format: uuid
+             * @description Status.
+             */
+            status_id: string;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /** @description Workaround. */
+            workaround: string;
+        };
+        /** @description One change in a Problem's problem_history. */
+        ProblemHistoryDto: {
+            /** @description `created`, `updated`, `deleted` or `restored`. */
+            action: string;
+            /** @description Who (`{kind, id}`). */
+            actor: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /** @description Field. */
+            field?: string | null;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /** @description Links a ticket. */
+        ProblemLinkTicketRequest: {
+            /**
+             * Format: uuid
+             * @description The ticket.
+             */
+            ticket_id: string;
+        };
+        /** @description A Problem Status or Priority. */
+        ProblemLookupDto: {
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Closing status (Statuses). */
+            is_closed: boolean;
+            /** @description Default for new Problems. */
+            is_default: boolean;
+            /** @description Stable key of seeded rows. */
+            key?: string | null;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes a Problem Status or Priority. */
+        ProblemLookupRequest: {
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Closing status (ignored for Priorities). */
+            is_closed?: boolean;
+            /** @description Make it the default. */
+            is_default?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order?: number;
+        };
+        /** @description A Note. */
+        ProblemNoteDto: {
+            /**
+             * Format: uuid
+             * @description Author (output).
+             */
+            author_id?: string | null;
+            /** @description Text. */
+            body: string;
+            /**
+             * Format: date-time
+             * @description Created (output).
+             */
+            created_at?: string;
+            /**
+             * Format: uuid
+             * @description ID (output).
+             */
+            id?: string;
+        };
+        /** @description A page of Problems. */
+        ProblemPage: {
+            /** @description Problems, newest activity first. */
+            items: components["schemas"]["ProblemDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits a Problem. */
+        ProblemRequest: {
+            /**
+             * Format: uuid
+             * @description Assigned Analyst (create only; use the assignment endpoint afterwards).
+             */
+            analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /** @description Known Error (needs a Root Cause or Workaround). */
+            is_known_error?: boolean;
+            /**
+             * Format: uuid
+             * @description Priority (default when absent).
+             */
+            priority_id?: string | null;
+            /** @description Root Cause. */
+            root_cause?: string;
+            /** @description Title. */
+            title: string;
+            /** @description Workaround. */
+            workaround?: string;
+        };
+        /** @description A status change. */
+        ProblemStatusRequest: {
+            /**
+             * Format: uuid
+             * @description The status.
+             */
+            status_id: string;
+        };
+        /** @description An action for every linked ticket of a resolved Problem (FR-PRB-006). */
+        ProblemTicketActionRequest: {
+            /** @description `close` or `note`. */
+            action: string;
+            /** @description Text (`note`). */
+            body?: string | null;
+            /** @description The Note is visible to the Requester (`note`). */
+            public?: boolean;
+            /**
+             * Format: uuid
+             * @description Resolution Code (`close`).
+             */
+            resolution_code_id?: string | null;
+        };
+        /** @description A linked ticket. */
+        ProblemTicketDto: {
+            /**
+             * Format: uuid
+             * @description Ticket.
+             */
+            id: string;
+            /** @description Closed. */
+            is_closed: boolean;
+            /**
+             * Format: date-time
+             * @description When it was linked.
+             */
+            linked_at: string;
+            /** @description Ticket Number. */
+            number: string;
+            /** @description Subject. */
+            subject: string;
+        };
+        /** @description The outcome on one ticket. */
+        ProblemTicketOutcomeDto: {
+            /** @description Why it failed. */
+            error?: string | null;
+            /** @description Succeeded. */
+            ok: boolean;
+            /**
+             * Format: uuid
+             * @description Ticket.
+             */
+            ticket_id: string;
+        };
         /** @description A rejected email. */
         RejectedEmailDto: {
             /** @description Sender. */
@@ -6632,6 +7095,452 @@ export interface operations {
             };
             /** @description Not the Requester's ticket */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_problem_priorities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemLookupDto"][];
+                };
+            };
+        };
+    };
+    create_problem_priority: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemLookupDto"];
+                };
+            };
+        };
+    };
+    update_problem_priority: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemLookupDto"];
+                };
+            };
+        };
+    };
+    list_problem_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemLookupDto"][];
+                };
+            };
+        };
+    };
+    create_problem_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemLookupDto"];
+                };
+            };
+        };
+    };
+    update_problem_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemLookupDto"];
+                };
+            };
+        };
+    };
+    list_problems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Open (`true`) or resolved (`false`). */
+                open: boolean | null;
+                /** @description Known Errors only. */
+                known_error: boolean | null;
+                /** @description Assigned to. */
+                analyst_id: string | null;
+                /** @description Problems linked to this ticket (the ticket's side of FR-PRB-003). */
+                ticket_id: string | null;
+                /** @description Number prefix or text. */
+                q: string | null;
+                /** @description Page size (1 to 200). */
+                limit: number | null;
+                /** @description Cursor. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemPage"];
+                };
+            };
+        };
+    };
+    create_problem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDto"];
+                };
+            };
+        };
+    };
+    get_problem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDto"];
+                };
+            };
+        };
+    };
+    edit_problem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDto"];
+                };
+            };
+        };
+    };
+    assign_problem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemAssignmentRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDto"];
+                };
+            };
+        };
+    };
+    problem_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemHistoryDto"][];
+                };
+            };
+        };
+    };
+    list_problem_notes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemNoteDto"][];
+                };
+            };
+        };
+    };
+    add_problem_note: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemNoteDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemNoteDto"];
+                };
+            };
+        };
+    };
+    change_problem_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemStatusRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDto"];
+                };
+            };
+        };
+    };
+    list_problem_tickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemTicketDto"][];
+                };
+            };
+        };
+    };
+    link_problem_ticket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemLinkTicketRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemTicketDto"];
+                };
+            };
+        };
+    };
+    act_on_problem_tickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProblemTicketActionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemTicketOutcomeDto"][];
+                };
+            };
+        };
+    };
+    unlink_problem_ticket: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unlinked */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM problem_tickets WHERE problem_id = $1 AND ticket_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cbb4004713767e905b8a9d2490dd2d6e39f2feb74f4b2801d7b44d6026a4d0b3"
+}
