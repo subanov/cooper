@@ -1,0 +1,20 @@
+# Reverse proxy with automatic HTTPS (Let's Encrypt) for COOPER_DOMAIN.
+{
+	email {$ACME_EMAIL}
+}
+
+{$COOPER_DOMAIN} {
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+	reverse_proxy server:8080 {
+		# Live Updates (Server-Sent Events) must not be buffered (ADR-0022).
+		flush_interval -1
+		health_uri /health/ready
+		health_interval 10s
+	}
+}

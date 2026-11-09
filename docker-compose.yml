@@ -90,6 +90,8 @@ services:
       context: .
       target: runtime
     command: ["/usr/local/bin/cooper-worker"]
+    healthcheck:
+      disable: true
     environment: *cooper-env
     volumes:
       - blobs:/var/lib/cooper/blobs

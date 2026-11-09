@@ -7,6 +7,11 @@ rust-version.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[features]
+default = ["otlp"]
+## Export traces over OTLP/HTTP when OTEL_EXPORTER_OTLP_ENDPOINT is set (ADR-0023).
+otlp = ["cooper-platform/otlp"]
+
 [dependencies]
 cooper-identity.workspace = true
 cooper-knowledge.workspace = true
@@ -14,8 +19,10 @@ cooper-notifications.workspace = true
 cooper-server = { path = "../cooper-server" }
 cooper-service-desk.workspace = true
 anyhow.workspace = true
+cooper-http.workspace = true
 cooper-kernel.workspace = true
 cooper-platform.workspace = true
+sqlx.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 uuid.workspace = true

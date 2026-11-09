@@ -29,6 +29,55 @@ pub async fn connect(config: &DatabaseConfig) -> Result<PgPool, sqlx::Error> {
         .await
 }
 
+/// Applies pending migrations (`cooper-server migrate`, ADR-0023). Run it as the owner
+/// role (`DATABASE_URL`), once per deployment, before new servers start. A PostgreSQL
+/// advisory lock serialises concurrent runs, so starting it from several places at once
+/// is safe: one applies, the others wait and find nothing left to do.
+///
+/// Returns the versions that were applied.
+///
+/// # Errors
+///
+/// Fails on database errors, a failing migration, or when an applied migration was
+/// changed after it was merged (checksum mismatch).
+pub async fn migrate(pool: &PgPool) -> Result<Vec<i64>, sqlx::migrate::MigrateError> {
+    let mut conn = pool.acquire().await?;
+    // Held for the whole step so the report of what this run applied is exact; sqlx's
+    // own migration lock is taken again (re-entrant) on the same session.
+    sqlx::query("SELECT pg_advisory_lock($1)")
+        .bind(MIGRATE_LOCK)
+        .execute(&mut *conn)
+        .await?;
+    let result = async {
+        let before = applied_versions(&mut conn).await?;
+        MIGRATOR.run(&mut *conn).await?;
+        let after = applied_versions(&mut conn).await?;
+        Ok::<_, sqlx::migrate::MigrateError>(after.difference(&before).copied().collect())
+    }
+    .await;
+    sqlx::query("SELECT pg_advisory_unlock($1)")
+        .bind(MIGRATE_LOCK)
+        .execute(&mut *conn)
+        .await?;
+    result
+}
+
+/// Advisory lock key of [`migrate`] (arbitrary, unique within Cooper).
+const MIGRATE_LOCK: i64 = 0x636f_6f70_6572_6d67; // "coopermg"
+
+async fn applied_versions(conn: &mut sqlx::PgConnection) -> Result<BTreeSet<i64>, sqlx::Error> {
+    let exists: bool = sqlx::query_scalar("SELECT to_regclass('_sqlx_migrations') IS NOT NULL")
+        .fetch_one(&mut *conn)
+        .await?;
+    if !exists {
+        return Ok(BTreeSet::new());
+    }
+    sqlx::query_scalar("SELECT version FROM _sqlx_migrations WHERE success")
+        .fetch_all(&mut *conn)
+        .await
+        .map(|v: Vec<i64>| v.into_iter().collect())
+}
+
 /// Whether the database schema matches the migrations this binary was built with.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MigrationStatus {

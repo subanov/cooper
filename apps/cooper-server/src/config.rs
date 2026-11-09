@@ -27,6 +27,9 @@ pub struct ServerConfig {
     pub log_format: LogFormat,
     /// Sessions, cookies, encryption keys and trusted proxies.
     pub security: SecuritySettings,
+    /// Where to serve Prometheus metrics (`COOPER_METRICS_ADDR`); unset disables them.
+    /// Keep it off the public network (ADR-0023).
+    pub metrics_addr: Option<SocketAddr>,
 }
 
 impl ServerConfig {
@@ -55,8 +58,26 @@ impl ServerConfig {
             },
             log_format: config::parse_or("COOPER_LOG_FORMAT", LogFormat::default())?,
             security: security_from_env()?,
+            metrics_addr: metrics_addr()?,
         })
     }
+}
+
+/// `COOPER_METRICS_ADDR`, for example `0.0.0.0:9100`; unset or empty disables metrics.
+///
+/// # Errors
+///
+/// Fails if the value is not a socket address.
+pub fn metrics_addr() -> Result<Option<SocketAddr>, ConfigError> {
+    config::var("COOPER_METRICS_ADDR")?
+        .filter(|v| !v.trim().is_empty())
+        .map(|v| {
+            v.trim().parse().map_err(|_| ConfigError::Invalid {
+                name: "COOPER_METRICS_ADDR",
+                reason: "expected host:port, for example 0.0.0.0:9100".to_owned(),
+            })
+        })
+        .transpose()
 }
 
 fn security_from_env() -> Result<SecuritySettings, ConfigError> {
