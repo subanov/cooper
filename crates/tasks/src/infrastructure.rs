@@ -14,7 +14,8 @@ use uuid::Uuid;
 
 use crate::domain::{Lookup, LookupKind, Task, TaskDetails, TaskRecord};
 use crate::ports::{
-    LinkKind, Recurrence, RepoError, TaskComment, TaskLink, TaskQuery, TaskRepository, TimeEntry,
+    LinkKind, OpenTaskTally, Recurrence, RepoError, TaskComment, TaskLink, TaskQuery,
+    TaskRepository, TimeEntry, TimeGrouping, TimeTally,
 };
 
 /// sqlx implementation of [`TaskRepository`].
@@ -943,6 +944,88 @@ impl TaskRepository for PgTaskStore {
             .map_err(|e| RepoError::Storage(e.to_string()))?;
         tx.commit().await.map_err(db_err)?;
         Ok(h)
+    }
+
+    async fn open_tally(
+        &self,
+        scope: &TenantScope,
+        analyst: Option<AnalystId>,
+        today: NaiveDate,
+    ) -> Result<OpenTaskTally, RepoError> {
+        let (all, tenants) = ids(scope);
+        let analyst = analyst.map(|a| a.as_uuid());
+        let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
+        let rows = sqlx::query!(
+            r#"SELECT t.status_id, COUNT(*) AS "tasks!",
+                      COUNT(*) FILTER (WHERE t.due_date < $4) AS "overdue!",
+                      COUNT(*) FILTER (WHERE t.due_date = $4) AS "due_today!"
+               FROM tasks t JOIN task_statuses s ON s.id = t.status_id
+               WHERE ($1 OR t.tenant_id = ANY($2)) AND NOT s.is_closed AND t.parent_task_id IS NULL
+                 AND ($3::uuid IS NULL OR t.assigned_analyst_id = $3)
+               GROUP BY t.status_id"#,
+            all,
+            &tenants,
+            analyst,
+            today
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        let n = |v: i64| u64::try_from(v).unwrap_or(0);
+        let mut tally = OpenTaskTally::default();
+        for r in rows {
+            tally.by_status.push((r.status_id, n(r.tasks)));
+            tally.overdue += n(r.overdue);
+            tally.due_today += n(r.due_today);
+        }
+        Ok(tally)
+    }
+
+    async fn time_tally(
+        &self,
+        scope: &TenantScope,
+        group: TimeGrouping,
+        from: NaiveDate,
+        to: NaiveDate,
+    ) -> Result<Vec<TimeTally>, RepoError> {
+        let (all, tenants) = ids(scope);
+        let key = match group {
+            TimeGrouping::Analyst => "analyst",
+            TimeGrouping::Team => "team",
+            TimeGrouping::Company => "company",
+            TimeGrouping::Day => "day",
+            TimeGrouping::Month => "month",
+        };
+        let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
+        let rows = sqlx::query!(
+            r#"SELECT CASE $5 WHEN 'analyst' THEN e.analyst_id WHEN 'team' THEN t.assigned_team_id
+                              WHEN 'company' THEN e.tenant_id END AS id,
+                      CASE $5 WHEN 'day' THEN e.work_date
+                              WHEN 'month' THEN date_trunc('month', e.work_date)::date END AS day,
+                      COALESCE(SUM(e.minutes), 0)::bigint AS "minutes!", COUNT(*) AS "entries!"
+               FROM task_time_entries e JOIN tasks t ON t.id = e.task_id
+               WHERE ($1 OR e.tenant_id = ANY($2)) AND e.work_date >= $3 AND e.work_date <= $4
+               GROUP BY 1, 2"#,
+            all,
+            &tenants,
+            from,
+            to,
+            key
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        Ok(rows
+            .into_iter()
+            .map(|r| TimeTally {
+                id: r.id,
+                date: r.day,
+                minutes: u64::try_from(r.minutes).unwrap_or(0),
+                entries: u64::try_from(r.entries).unwrap_or(0),
+            })
+            .collect())
     }
 }
 

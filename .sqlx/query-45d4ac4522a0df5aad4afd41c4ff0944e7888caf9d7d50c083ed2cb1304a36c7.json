@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM watchtower_items",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "45d4ac4522a0df5aad4afd41c4ff0944e7888caf9d7d50c083ed2cb1304a36c7"
+}

@@ -15,8 +15,8 @@ use crate::domain::{
     Lookup, LookupInput, LookupKind, Moved, Task, TaskAssigned, TaskDetails, TaskError, reorder,
 };
 use crate::ports::{
-    Directory, LinkKind, Recurrence, RepoError, TaskComment, TaskLink, TaskQuery, TaskRepository,
-    TimeEntry,
+    Directory, LinkKind, OpenTaskTally, Recurrence, RepoError, TaskComment, TaskLink, TaskQuery,
+    TaskRepository, TimeEntry, TimeGrouping, TimeTally,
 };
 use crate::recurrence::{RecurrenceRule, RepeatMode};
 
@@ -1107,5 +1107,48 @@ impl TaskService {
     /// Storage failures.
     pub async fn for_notifications(&self, id: Uuid) -> Result<Option<Task>, AppError> {
         Ok(self.ports.tasks.get(&TenantScope::All, id).await?)
+    }
+
+    /// Open top-level Tasks of the caller's Companies (optionally assigned to one
+    /// Analyst), counted per status and against `today` (needs `tasks.read`; ADR-0032).
+    ///
+    /// # Errors
+    ///
+    /// Forbidden.
+    pub async fn open_tally(
+        &self,
+        principal: &Principal,
+        analyst: Option<AnalystId>,
+        today: NaiveDate,
+    ) -> Result<OpenTaskTally, AppError> {
+        require(principal, capabilities::READ)?;
+        Ok(self
+            .ports
+            .tasks
+            .open_tally(principal.scope(), analyst, today)
+            .await?)
+    }
+
+    /// Task Time Entries of the caller's Companies (or one of them) with a work date in
+    /// `from..=to`, per group (needs `tasks.read`; ADR-0032).
+    ///
+    /// # Errors
+    ///
+    /// Forbidden, or a Company outside the caller's scope.
+    pub async fn time_tally(
+        &self,
+        principal: &Principal,
+        group: TimeGrouping,
+        company: Option<TenantId>,
+        from: NaiveDate,
+        to: NaiveDate,
+    ) -> Result<Vec<TimeTally>, AppError> {
+        require(principal, capabilities::READ)?;
+        let scope = match company {
+            None => principal.scope().clone(),
+            Some(t) if principal.scope().allows(t) => TenantScope::single(t),
+            Some(_) => return Err(AppError::NotFound("Company")),
+        };
+        Ok(self.ports.tasks.time_tally(&scope, group, from, to).await?)
     }
 }

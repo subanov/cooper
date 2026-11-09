@@ -2355,6 +2355,214 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/sla": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Response and Resolution met or breached for tickets created in a period, by
+         *     Priority, Queue, Company or period (needs `reporting.read` and `tickets.read`). Each
+         *     ticket counts in the SLA state its own page shows.
+         */
+        get: operations["report_sla_compliance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/sla/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The SLA compliance report as CSV (needs `reporting.read` and `tickets.read`). */
+        get: operations["export_sla_compliance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/ticket-list/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A ticket list (the filters of `GET /tickets`, every page) as CSV, at most 10,000
+         *     tickets (needs `reporting.read` and `tickets.read`). Times are UTC (RFC 3339).
+         */
+        get: operations["export_ticket_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tickets by status, Priority, Department, Ticket Type, Origin, Queue, Assignee or
+         *     Company (needs `reporting.read` and `tickets.read`). Confidential tickets the caller
+         *     may not open are not counted.
+         */
+        get: operations["report_ticket_counts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/tickets/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The ticket count report as CSV (needs `reporting.read` and `tickets.read`). */
+        get: operations["export_ticket_counts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/tickets/first-time-fix": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The First Time Fix rate: the share of tickets closed in the period that were flagged
+         *     First Time Fix (needs `reporting.read` and `tickets.read`).
+         */
+        get: operations["report_first_time_fix"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/tickets/first-time-fix/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The First Time Fix report as CSV (needs `reporting.read` and `tickets.read`). */
+        get: operations["export_first_time_fix"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/tickets/volume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tickets created and closed per day or month, in the instance time zone (needs
+         *     `reporting.read` and `tickets.read`).
+         */
+        get: operations["report_ticket_volume"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/tickets/volume/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Created and closed as CSV (needs `reporting.read` and `tickets.read`). */
+        get: operations["export_ticket_volume"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/time-entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Minutes recorded with a work date in a period, on tickets and (with `tasks.read` and
+         *     the Tasks Module) Tasks, by Analyst, Team, Company or period (needs `reporting.read`
+         *     and `tickets.read`).
+         */
+        get: operations["report_time_entries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/time-entries/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The time-entry report as CSV (needs `reporting.read` and `tickets.read`). */
+        get: operations["export_time_entries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/requesters": {
         parameters: {
             query?: never;
@@ -4336,6 +4544,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/watchtower": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The Watchtower: open tickets per chosen status, high-priority and unassigned
+         *     tickets, open Tasks per status with overdue and due today, and today's Morning
+         *     Checks (needs `reporting.read`; each section also its Module's read Capability).
+         */
+        get: operations["get_watchtower"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/watchtower/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Watchtower Items (needs `reporting.read`). */
+        get: operations["get_watchtower_items"];
+        /**
+         * Replaces the Watchtower Items (needs `reporting.configure`). Values must exist;
+         *     status lists must name open statuses.
+         */
+        put: operations["set_watchtower_items"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5652,6 +5902,31 @@ export interface components {
              */
             sort_order?: number;
         };
+        /** @description The Morning Checks tiles. */
+        CheckTilesDto: {
+            /**
+             * Format: int64
+             * @description Results in a status that needs attention.
+             */
+            attention: number;
+            /** @description Results per Check Status. */
+            by_status: components["schemas"]["TileCountDto"][];
+            /**
+             * Format: date
+             * @description Today's Check Date.
+             */
+            check_date: string;
+            /**
+             * Format: int64
+             * @description Checks in the Round.
+             */
+            checks: number;
+            /**
+             * Format: int64
+             * @description Recorded today.
+             */
+            recorded: number;
+        };
         /** @description Company access of an Analyst or Team. */
         CompanyAccessDto: {
             /** @description Every Company, including future ones. */
@@ -5829,6 +6104,42 @@ export interface components {
         FieldValuesRequest: {
             /** @description Values by field key. */
             fields: Record<string, never>;
+        };
+        /** @description The First Time Fix rate of tickets closed in a period. */
+        FirstTimeFixReportDto: {
+            /** @description The dimension of `rows`, if any. */
+            by?: string | null;
+            /** @description The period of closure. */
+            period: components["schemas"]["PeriodDto"];
+            /** @description Rows (empty without `by`). */
+            rows: components["schemas"]["FirstTimeFixRowDto"][];
+            /** @description Every ticket closed in the period. */
+            total: components["schemas"]["FirstTimeFixRowDto"];
+        };
+        /** @description First Time Fix figures of one group. */
+        FirstTimeFixRowDto: {
+            /**
+             * Format: int64
+             * @description Tickets closed in the period.
+             */
+            closed: number;
+            /**
+             * Format: int64
+             * @description Of which flagged First Time Fix.
+             */
+            first_time_fix: number;
+            /**
+             * Format: uuid
+             * @description The group (`null` for the total and for tickets without a value).
+             */
+            id?: string | null;
+            /** @description Its name. */
+            label: string;
+            /**
+             * Format: double
+             * @description Percent, one decimal; `null` when nothing was closed.
+             */
+            rate?: number | null;
         };
         /** @description Creates a follow-up Task. */
         FollowUpTaskRequest: {
@@ -7047,6 +7358,19 @@ export interface components {
             /** @description Pass as `cursor` to get the next page; absent on the last page. */
             next_cursor?: string | null;
         };
+        /** @description A report period. */
+        PeriodDto: {
+            /**
+             * Format: date
+             * @description First day (instance time zone).
+             */
+            from: string;
+            /**
+             * Format: date
+             * @description Last day, inclusive.
+             */
+            to: string;
+        };
         /** @description A Planned Maintenance (FR-SST-007). */
         PlannedMaintenanceDto: {
             /**
@@ -8194,6 +8518,38 @@ export interface components {
             /** @description Response target. */
             response: components["schemas"]["SlaTargetDto"];
         };
+        /** @description SLA compliance of tickets created in a period. */
+        SlaReportDto: {
+            /** @description The dimension. */
+            by: string;
+            /** @description `day` or `month` (`by=period`). */
+            interval: string;
+            /** @description The period of creation. */
+            period: components["schemas"]["PeriodDto"];
+            /** @description Rows. */
+            rows: components["schemas"]["SlaRowDto"][];
+            /** @description Every ticket created in the period. */
+            total: components["schemas"]["SlaRowDto"];
+        };
+        /** @description SLA results of one group. */
+        SlaRowDto: {
+            /**
+             * Format: uuid
+             * @description The Priority, Queue or Company (`null` for none and for periods and the total).
+             */
+            id?: string | null;
+            /** @description Its name. */
+            label: string;
+            /**
+             * Format: date
+             * @description The day or first day of the month (`by=period`).
+             */
+            period?: string | null;
+            /** @description Resolution target. */
+            resolution: components["schemas"]["TargetResultDto"];
+            /** @description Response target. */
+            response: components["schemas"]["TargetResultDto"];
+        };
         /** @description An SLA Notification Rule. */
         SlaRuleDto: {
             /** @description Also notify these Analysts. */
@@ -8372,6 +8728,44 @@ export interface components {
              * @description One of the session's `requesters`.
              */
             requester_id: string;
+        };
+        /** @description Results of one SLA target. */
+        TargetResultDto: {
+            /**
+             * Format: int64
+             * @description Breached in total (`met_late` + `breached_open`).
+             */
+            breached: number;
+            /**
+             * Format: int64
+             * @description Not satisfied yet and past due.
+             */
+            breached_open: number;
+            /**
+             * Format: double
+             * @description `met / (met + breached)` in percent, one decimal; `null` when nothing is decided.
+             */
+            compliance?: number | null;
+            /**
+             * Format: int64
+             * @description Satisfied in time.
+             */
+            met: number;
+            /**
+             * Format: int64
+             * @description Satisfied after the due time.
+             */
+            met_late: number;
+            /**
+             * Format: int64
+             * @description No target configured.
+             */
+            no_target: number;
+            /**
+             * Format: int64
+             * @description Not satisfied yet, not past due (or paused).
+             */
+            running: number;
         };
         /** @description A Board column. */
         TaskBoardColumnDto: {
@@ -8700,6 +9094,26 @@ export interface components {
             /** @description Title. */
             title: string;
         };
+        /** @description The Task tiles. */
+        TaskTilesDto: {
+            /** @description Open top-level Tasks per chosen open status. */
+            by_status: components["schemas"]["TileCountDto"][];
+            /**
+             * Format: int64
+             * @description Open Tasks due today.
+             */
+            due_today: number;
+            /**
+             * Format: int64
+             * @description Open Tasks due before today.
+             */
+            overdue: number;
+            /**
+             * Format: int64
+             * @description Sum of `by_status`.
+             */
+            total_open: number;
+        };
         /** @description Time spent. */
         TaskTimeEntryDto: {
             /**
@@ -8778,6 +9192,36 @@ export interface components {
             is_active?: boolean;
             /** @description Name. */
             name: string;
+        };
+        /** @description Ticket counts by one dimension: a Dashboard Widget. */
+        TicketCountReportDto: {
+            /** @description The dimension. */
+            by: string;
+            /** @description Open or closed only. */
+            open?: boolean | null;
+            period?: components["schemas"]["PeriodDto"] | null;
+            /** @description Rows: reference data in its order, others by name; `(none)` last. */
+            rows: components["schemas"]["TicketCountRowDto"][];
+            /**
+             * Format: int64
+             * @description Tickets in all rows.
+             */
+            total: number;
+        };
+        /** @description Tickets of one group. */
+        TicketCountRowDto: {
+            /**
+             * Format: uuid
+             * @description The status, Priority, … (`null` for tickets without one).
+             */
+            id?: string | null;
+            /** @description Its name (`(none)` without one). */
+            label: string;
+            /**
+             * Format: int64
+             * @description Tickets.
+             */
+            tickets: number;
         };
         /** @description A ticket. */
         TicketDto: {
@@ -9124,6 +9568,28 @@ export interface components {
              */
             undone_at?: string | null;
         };
+        /** @description The ticket tiles. */
+        TicketTilesDto: {
+            /** @description Open tickets per chosen open status. */
+            by_status: components["schemas"]["TileCountDto"][];
+            /** @description The Priorities counted as high, with their open tickets. */
+            high_priorities: components["schemas"]["TileCountDto"][];
+            /**
+             * Format: int64
+             * @description Open tickets of a high Priority.
+             */
+            high_priority: number;
+            /**
+             * Format: int64
+             * @description Sum of `by_status`.
+             */
+            total_open: number;
+            /**
+             * Format: int64
+             * @description Open tickets without an Assignee (everybody's).
+             */
+            unassigned: number;
+        };
         /** @description Conditions of a Ticket Type Rule; empty lists are ignored. */
         TicketTypeRuleConditionsDto: {
             /**
@@ -9186,6 +9652,25 @@ export interface components {
              */
             ticket_type_id: string;
         };
+        /** @description One value on a Watchtower tile. */
+        TileCountDto: {
+            /** @description Counts towards the tile's "needs attention" figure. */
+            attention: boolean;
+            /** @description `#rrggbb`, where the Module has colours. */
+            colour?: string | null;
+            /**
+             * Format: int64
+             * @description How many.
+             */
+            count: number;
+            /**
+             * Format: uuid
+             * @description The status or Priority.
+             */
+            id: string;
+            /** @description Its name. */
+            name: string;
+        };
         /** @description A Time Entry. */
         TimeEntryDto: {
             /**
@@ -9230,6 +9715,56 @@ export interface components {
              * @description Day worked (today when absent).
              */
             work_date?: string | null;
+        };
+        /** @description Time Entries per Analyst, Team, Company or period. */
+        TimeReportDto: {
+            /** @description The dimension. */
+            by: string;
+            /** @description Whether Task Time Entries are included (Tasks Module on and `tasks.read`). */
+            includes_tasks: boolean;
+            /** @description `day` or `month` (`by=period`). */
+            interval: string;
+            /** @description The period of work dates. */
+            period: components["schemas"]["PeriodDto"];
+            /** @description Rows. */
+            rows: components["schemas"]["TimeRowDto"][];
+            /** @description All time. */
+            total: components["schemas"]["TimeRowDto"];
+        };
+        /** @description Time recorded in one group. */
+        TimeRowDto: {
+            /**
+             * Format: int64
+             * @description Time Entries.
+             */
+            entries: number;
+            /**
+             * Format: uuid
+             * @description The Analyst, Team or Company (`null` for none and for periods and the total).
+             */
+            id?: string | null;
+            /** @description Its name. */
+            label: string;
+            /**
+             * Format: date
+             * @description The day or first day of the month (`by=period`).
+             */
+            period?: string | null;
+            /**
+             * Format: int64
+             * @description Minutes on Tasks.
+             */
+            task_minutes: number;
+            /**
+             * Format: int64
+             * @description Minutes on tickets.
+             */
+            ticket_minutes: number;
+            /**
+             * Format: int64
+             * @description All minutes.
+             */
+            total_minutes: number;
         };
         /** @description One timeline item. */
         TimelineItemDto: {
@@ -9302,6 +9837,76 @@ export interface components {
              * @description Last heartbeat.
              */
             last_seen: string;
+        };
+        /** @description Created and closed per day or month (created vs closed). */
+        VolumeReportDto: {
+            /**
+             * Format: int64
+             * @description Closed in the period.
+             */
+            closed: number;
+            /**
+             * Format: int64
+             * @description Created in the period.
+             */
+            created: number;
+            /** @description `day` or `month`. */
+            interval: string;
+            /** @description The period. */
+            period: components["schemas"]["PeriodDto"];
+            /** @description One row per day or month, empty ones included. */
+            rows: components["schemas"]["VolumeRowDto"][];
+        };
+        /** @description Tickets created and closed in one day or month. */
+        VolumeRowDto: {
+            /**
+             * Format: int64
+             * @description Closed.
+             */
+            closed: number;
+            /**
+             * Format: int64
+             * @description Created.
+             */
+            created: number;
+            /**
+             * Format: date
+             * @description The day, or the first day of the month.
+             */
+            period: string;
+        };
+        /** @description The Watchtower. */
+        WatchtowerDto: {
+            /**
+             * Format: date-time
+             * @description When the figures were taken.
+             */
+            generated_at: string;
+            morning_checks?: components["schemas"]["CheckTilesDto"] | null;
+            /** @description `all` or `mine`. */
+            scope: string;
+            tasks?: components["schemas"]["TaskTilesDto"] | null;
+            tickets?: components["schemas"]["TicketTilesDto"] | null;
+            /**
+             * Format: date
+             * @description Today in the instance time zone.
+             */
+            today: string;
+        };
+        /**
+         * @description The Watchtower Items: which values the Watchtower counts. An empty list means the
+         *     default: every active open status; the Priorities ranked after the default one;
+         *     every Check Status but the first.
+         */
+        WatchtowerItemsDto: {
+            /** @description Check Statuses that need attention. */
+            check_statuses?: string[];
+            /** @description Open Task Statuses counted one by one. */
+            task_statuses?: string[];
+            /** @description Priorities counted as high priority. */
+            ticket_priorities?: string[];
+            /** @description Open Ticket Statuses counted one by one. */
+            ticket_statuses?: string[];
         };
         /** @description A Whitelist entry. */
         WhitelistDto: {
@@ -13691,6 +14296,365 @@ export interface operations {
             };
         };
     };
+    report_sla_compliance: {
+        parameters: {
+            query?: {
+                /** @description `priority` (default), `team`, `company` or `period`. */
+                by?: string;
+                /** @description With `by=period`: `day` (default) or `month`. */
+                interval?: string;
+                /** @description First day of creation (default 29 days, or 11 months by month, before `to`). */
+                from?: string;
+                /** @description Last day of creation (default today). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SlaReportDto"];
+                };
+            };
+        };
+    };
+    export_sla_compliance: {
+        parameters: {
+            query?: {
+                /** @description `priority` (default), `team`, `company` or `period`. */
+                by?: string;
+                /** @description With `by=period`: `day` (default) or `month`. */
+                interval?: string;
+                /** @description First day of creation (default 29 days, or 11 months by month, before `to`). */
+                from?: string;
+                /** @description Last day of creation (default today). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    export_ticket_list: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Built-in view: `mine`, `queue`, `unassigned`, `open`, `snoozed`,
+                 *     `recently_closed` or `deleted` (Administrators).
+                 */
+                view?: string;
+                /** @description Search: Ticket Number prefix, subject, description and Notes. */
+                q?: string;
+                /** @description Companies. */
+                company_id?: string;
+                /** @description Statuses. */
+                status_id?: string;
+                /** @description `true`: open only; `false`: closed only. */
+                open?: boolean;
+                /** @description Priorities. */
+                priority_id?: string;
+                /** @description Ticket Types. */
+                type_id?: string;
+                /** @description Queues. */
+                team_id?: string;
+                /** @description Assignees. */
+                analyst_id?: string;
+                /** @description Only unassigned tickets. */
+                unassigned?: boolean;
+                /** @description Requester. */
+                requester_id?: string;
+                /** @description Department. */
+                department_id?: string;
+                /** @description Category. */
+                category_id?: string;
+                /** @description `normal` or `confidential`. */
+                sensitivity?: string;
+                /** @description `created_at` (default), `updated_at` or `number`. */
+                sort?: string;
+                /** @description `desc` (default) or `asc`. */
+                order?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    report_ticket_counts: {
+        parameters: {
+            query?: {
+                /**
+                 * @description `status` (default), `priority`, `department`, `type`, `origin`, `team`, `analyst`
+                 *     or `company`.
+                 */
+                by?: string;
+                /** @description Only tickets created on or after this day (instance time zone). */
+                from?: string;
+                /** @description Only tickets created on or before this day (default today when `from` is given). */
+                to?: string;
+                /** @description `true`: open tickets only; `false`: closed only. */
+                open?: boolean;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketCountReportDto"];
+                };
+            };
+        };
+    };
+    export_ticket_counts: {
+        parameters: {
+            query?: {
+                /**
+                 * @description `status` (default), `priority`, `department`, `type`, `origin`, `team`, `analyst`
+                 *     or `company`.
+                 */
+                by?: string;
+                /** @description Only tickets created on or after this day (instance time zone). */
+                from?: string;
+                /** @description Only tickets created on or before this day (default today when `from` is given). */
+                to?: string;
+                /** @description `true`: open tickets only; `false`: closed only. */
+                open?: boolean;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    report_first_time_fix: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Also split by `status`, `priority`, `department`, `type`, `origin`, `team`,
+                 *     `analyst` or `company`.
+                 */
+                by?: string;
+                /** @description First day of closure (default 29 days before `to`). */
+                from?: string;
+                /** @description Last day of closure (default today). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FirstTimeFixReportDto"];
+                };
+            };
+        };
+    };
+    export_first_time_fix: {
+        parameters: {
+            query?: {
+                /**
+                 * @description Also split by `status`, `priority`, `department`, `type`, `origin`, `team`,
+                 *     `analyst` or `company`.
+                 */
+                by?: string;
+                /** @description First day of closure (default 29 days before `to`). */
+                from?: string;
+                /** @description Last day of closure (default today). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    report_ticket_volume: {
+        parameters: {
+            query?: {
+                /** @description `day` (default; at most 366 days) or `month` (at most 1,830 days). */
+                interval?: string;
+                /** @description First day (default: 29 days, or 11 months, before `to`). */
+                from?: string;
+                /** @description Last day (default today, instance time zone). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VolumeReportDto"];
+                };
+            };
+        };
+    };
+    export_ticket_volume: {
+        parameters: {
+            query?: {
+                /** @description `day` (default; at most 366 days) or `month` (at most 1,830 days). */
+                interval?: string;
+                /** @description First day (default: 29 days, or 11 months, before `to`). */
+                from?: string;
+                /** @description Last day (default today, instance time zone). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    report_time_entries: {
+        parameters: {
+            query?: {
+                /** @description `analyst` (default), `team`, `company` or `period`. */
+                by?: string;
+                /** @description With `by=period`: `day` (default) or `month`. */
+                interval?: string;
+                /** @description First work date (default 29 days, or 11 months by month, before `to`). */
+                from?: string;
+                /** @description Last work date (default today). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeReportDto"];
+                };
+            };
+        };
+    };
+    export_time_entries: {
+        parameters: {
+            query?: {
+                /** @description `analyst` (default), `team`, `company` or `period`. */
+                by?: string;
+                /** @description With `by=period`: `day` (default) or `month`. */
+                interval?: string;
+                /** @description First work date (default 29 days, or 11 months by month, before `to`). */
+                from?: string;
+                /** @description Last work date (default today). */
+                to?: string;
+                /** @description Only this Company. */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
     list_requesters: {
         parameters: {
             query?: {
@@ -17573,6 +18537,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemberDto"][];
+                };
+            };
+        };
+    };
+    get_watchtower: {
+        parameters: {
+            query?: {
+                /**
+                 * @description `all` (default) or `mine`: tickets and Tasks assigned to me and Checks routed to
+                 *     me (unassigned tickets are always everybody's).
+                 */
+                scope?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchtowerDto"];
+                };
+            };
+        };
+    };
+    get_watchtower_items: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchtowerItemsDto"];
+                };
+            };
+        };
+    };
+    set_watchtower_items: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WatchtowerItemsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchtowerItemsDto"];
                 };
             };
         };

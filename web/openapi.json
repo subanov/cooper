@@ -6679,6 +6679,839 @@
         }
       }
     },
+    "/api/v1/reports/sla": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Response and Resolution met or breached for tickets created in a period, by\nPriority, Queue, Company or period (needs `reporting.read` and `tickets.read`). Each\nticket counts in the SLA state its own page shows.",
+        "operationId": "report_sla_compliance",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "`priority` (default), `team`, `company` or `period`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "description": "With `by=period`: `day` (default) or `month`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day of creation (default 29 days, or 11 months by month, before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day of creation (default today).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlaReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/sla/export": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "The SLA compliance report as CSV (needs `reporting.read` and `tickets.read`).",
+        "operationId": "export_sla_compliance",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "`priority` (default), `team`, `company` or `period`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "description": "With `by=period`: `day` (default) or `month`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day of creation (default 29 days, or 11 months by month, before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day of creation (default today).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/ticket-list/export": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "A ticket list (the filters of `GET /tickets`, every page) as CSV, at most 10,000\ntickets (needs `reporting.read` and `tickets.read`). Times are UTC (RFC 3339).",
+        "operationId": "export_ticket_list",
+        "parameters": [
+          {
+            "name": "view",
+            "in": "query",
+            "description": "Built-in view: `mine`, `queue`, `unassigned`, `open`, `snoozed`,\n`recently_closed` or `deleted` (Administrators).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search: Ticket Number prefix, subject, description and Notes.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Companies.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status_id",
+            "in": "query",
+            "description": "Statuses.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "open",
+            "in": "query",
+            "description": "`true`: open only; `false`: closed only.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "priority_id",
+            "in": "query",
+            "description": "Priorities.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type_id",
+            "in": "query",
+            "description": "Ticket Types.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "team_id",
+            "in": "query",
+            "description": "Queues.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "analyst_id",
+            "in": "query",
+            "description": "Assignees.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unassigned",
+            "in": "query",
+            "description": "Only unassigned tickets.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "requester_id",
+            "in": "query",
+            "description": "Requester.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "description": "Department.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "Category.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sensitivity",
+            "in": "query",
+            "description": "`normal` or `confidential`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "`created_at` (default), `updated_at` or `number`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "`desc` (default) or `asc`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/tickets": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Tickets by status, Priority, Department, Ticket Type, Origin, Queue, Assignee or\nCompany (needs `reporting.read` and `tickets.read`). Confidential tickets the caller\nmay not open are not counted.",
+        "operationId": "report_ticket_counts",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "`status` (default), `priority`, `department`, `type`, `origin`, `team`, `analyst`\nor `company`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Only tickets created on or after this day (instance time zone).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Only tickets created on or before this day (default today when `from` is given).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "open",
+            "in": "query",
+            "description": "`true`: open tickets only; `false`: closed only.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketCountReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/tickets/export": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "The ticket count report as CSV (needs `reporting.read` and `tickets.read`).",
+        "operationId": "export_ticket_counts",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "`status` (default), `priority`, `department`, `type`, `origin`, `team`, `analyst`\nor `company`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Only tickets created on or after this day (instance time zone).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Only tickets created on or before this day (default today when `from` is given).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "open",
+            "in": "query",
+            "description": "`true`: open tickets only; `false`: closed only.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/tickets/first-time-fix": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "The First Time Fix rate: the share of tickets closed in the period that were flagged\nFirst Time Fix (needs `reporting.read` and `tickets.read`).",
+        "operationId": "report_first_time_fix",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "Also split by `status`, `priority`, `department`, `type`, `origin`, `team`,\n`analyst` or `company`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day of closure (default 29 days before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day of closure (default today).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FirstTimeFixReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/tickets/first-time-fix/export": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "The First Time Fix report as CSV (needs `reporting.read` and `tickets.read`).",
+        "operationId": "export_first_time_fix",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "Also split by `status`, `priority`, `department`, `type`, `origin`, `team`,\n`analyst` or `company`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day of closure (default 29 days before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day of closure (default today).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/tickets/volume": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Tickets created and closed per day or month, in the instance time zone (needs\n`reporting.read` and `tickets.read`).",
+        "operationId": "report_ticket_volume",
+        "parameters": [
+          {
+            "name": "interval",
+            "in": "query",
+            "description": "`day` (default; at most 366 days) or `month` (at most 1,830 days).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day (default: 29 days, or 11 months, before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day (default today, instance time zone).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolumeReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/tickets/volume/export": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Created and closed as CSV (needs `reporting.read` and `tickets.read`).",
+        "operationId": "export_ticket_volume",
+        "parameters": [
+          {
+            "name": "interval",
+            "in": "query",
+            "description": "`day` (default; at most 366 days) or `month` (at most 1,830 days).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day (default: 29 days, or 11 months, before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day (default today, instance time zone).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/time-entries": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Minutes recorded with a work date in a period, on tickets and (with `tasks.read` and\nthe Tasks Module) Tasks, by Analyst, Team, Company or period (needs `reporting.read`\nand `tickets.read`).",
+        "operationId": "report_time_entries",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "`analyst` (default), `team`, `company` or `period`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "description": "With `by=period`: `day` (default) or `month`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First work date (default 29 days, or 11 months by month, before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last work date (default today).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeReportDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports/time-entries/export": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "The time-entry report as CSV (needs `reporting.read` and `tickets.read`).",
+        "operationId": "export_time_entries",
+        "parameters": [
+          {
+            "name": "by",
+            "in": "query",
+            "description": "`analyst` (default), `team`, `company` or `period`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "description": "With `by=period`: `day` (default) or `month`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First work date (default 29 days, or 11 months by month, before `to`).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last work date (default today).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/requesters": {
       "get": {
         "tags": [
@@ -12796,6 +13629,85 @@
           }
         }
       }
+    },
+    "/api/v1/watchtower": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "The Watchtower: open tickets per chosen status, high-priority and unassigned\ntickets, open Tasks per status with overdue and due today, and today's Morning\nChecks (needs `reporting.read`; each section also its Module's read Capability).",
+        "operationId": "get_watchtower",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "`all` (default) or `mine`: tickets and Tasks assigned to me and Checks routed to\nme (unassigned tickets are always everybody's).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchtowerDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/watchtower/items": {
+      "get": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "The Watchtower Items (needs `reporting.read`).",
+        "operationId": "get_watchtower_items",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchtowerItemsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Reporting"
+        ],
+        "summary": "Replaces the Watchtower Items (needs `reporting.configure`). Values must exist;\nstatus lists must name open statuses.",
+        "operationId": "set_watchtower_items",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchtowerItemsDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchtowerItemsDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15239,6 +16151,49 @@
           }
         }
       },
+      "CheckTilesDto": {
+        "type": "object",
+        "description": "The Morning Checks tiles.",
+        "required": [
+          "check_date",
+          "checks",
+          "recorded",
+          "by_status",
+          "attention"
+        ],
+        "properties": {
+          "attention": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Results in a status that needs attention.",
+            "minimum": 0
+          },
+          "by_status": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TileCountDto"
+            },
+            "description": "Results per Check Status."
+          },
+          "check_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Today's Check Date."
+          },
+          "checks": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Checks in the Round.",
+            "minimum": 0
+          },
+          "recorded": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Recorded today.",
+            "minimum": 0
+          }
+        }
+      },
       "CompanyAccessDto": {
         "type": "object",
         "description": "Company access of an Analyst or Team.",
@@ -15601,6 +16556,82 @@
           "fields": {
             "type": "object",
             "description": "Values by field key."
+          }
+        }
+      },
+      "FirstTimeFixReportDto": {
+        "type": "object",
+        "description": "The First Time Fix rate of tickets closed in a period.",
+        "required": [
+          "period",
+          "rows",
+          "total"
+        ],
+        "properties": {
+          "by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The dimension of `rows`, if any."
+          },
+          "period": {
+            "$ref": "#/components/schemas/PeriodDto",
+            "description": "The period of closure."
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FirstTimeFixRowDto"
+            },
+            "description": "Rows (empty without `by`)."
+          },
+          "total": {
+            "$ref": "#/components/schemas/FirstTimeFixRowDto",
+            "description": "Every ticket closed in the period."
+          }
+        }
+      },
+      "FirstTimeFixRowDto": {
+        "type": "object",
+        "description": "First Time Fix figures of one group.",
+        "required": [
+          "label",
+          "closed",
+          "first_time_fix"
+        ],
+        "properties": {
+          "closed": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Tickets closed in the period.",
+            "minimum": 0
+          },
+          "first_time_fix": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Of which flagged First Time Fix.",
+            "minimum": 0
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The group (`null` for the total and for tickets without a value)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Its name."
+          },
+          "rate": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Percent, one decimal; `null` when nothing was closed."
           }
         }
       },
@@ -18089,6 +19120,26 @@
           }
         }
       },
+      "PeriodDto": {
+        "type": "object",
+        "description": "A report period.",
+        "required": [
+          "from",
+          "to"
+        ],
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date",
+            "description": "First day (instance time zone)."
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day, inclusive."
+          }
+        }
+      },
       "PlannedMaintenanceDto": {
         "type": "object",
         "description": "A Planned Maintenance (FR-SST-007).",
@@ -20461,6 +21512,81 @@
           }
         }
       },
+      "SlaReportDto": {
+        "type": "object",
+        "description": "SLA compliance of tickets created in a period.",
+        "required": [
+          "by",
+          "interval",
+          "period",
+          "rows",
+          "total"
+        ],
+        "properties": {
+          "by": {
+            "type": "string",
+            "description": "The dimension."
+          },
+          "interval": {
+            "type": "string",
+            "description": "`day` or `month` (`by=period`)."
+          },
+          "period": {
+            "$ref": "#/components/schemas/PeriodDto",
+            "description": "The period of creation."
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SlaRowDto"
+            },
+            "description": "Rows."
+          },
+          "total": {
+            "$ref": "#/components/schemas/SlaRowDto",
+            "description": "Every ticket created in the period."
+          }
+        }
+      },
+      "SlaRowDto": {
+        "type": "object",
+        "description": "SLA results of one group.",
+        "required": [
+          "label",
+          "response",
+          "resolution"
+        ],
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Priority, Queue or Company (`null` for none and for periods and the total)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Its name."
+          },
+          "period": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The day or first day of the month (`by=period`)."
+          },
+          "resolution": {
+            "$ref": "#/components/schemas/TargetResultDto",
+            "description": "Resolution target."
+          },
+          "response": {
+            "$ref": "#/components/schemas/TargetResultDto",
+            "description": "Response target."
+          }
+        }
+      },
       "SlaRuleDto": {
         "type": "object",
         "description": "An SLA Notification Rule.",
@@ -20818,6 +21944,64 @@
             "type": "string",
             "format": "uuid",
             "description": "One of the session's `requesters`."
+          }
+        }
+      },
+      "TargetResultDto": {
+        "type": "object",
+        "description": "Results of one SLA target.",
+        "required": [
+          "met",
+          "breached",
+          "met_late",
+          "breached_open",
+          "running",
+          "no_target"
+        ],
+        "properties": {
+          "breached": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Breached in total (`met_late` + `breached_open`).",
+            "minimum": 0
+          },
+          "breached_open": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Not satisfied yet and past due.",
+            "minimum": 0
+          },
+          "compliance": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "`met / (met + breached)` in percent, one decimal; `null` when nothing is decided."
+          },
+          "met": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Satisfied in time.",
+            "minimum": 0
+          },
+          "met_late": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Satisfied after the due time.",
+            "minimum": 0
+          },
+          "no_target": {
+            "type": "integer",
+            "format": "int64",
+            "description": "No target configured.",
+            "minimum": 0
+          },
+          "running": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Not satisfied yet, not past due (or paused).",
+            "minimum": 0
           }
         }
       },
@@ -21446,6 +22630,43 @@
           }
         }
       },
+      "TaskTilesDto": {
+        "type": "object",
+        "description": "The Task tiles.",
+        "required": [
+          "by_status",
+          "total_open",
+          "overdue",
+          "due_today"
+        ],
+        "properties": {
+          "by_status": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TileCountDto"
+            },
+            "description": "Open top-level Tasks per chosen open status."
+          },
+          "due_today": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Open Tasks due today.",
+            "minimum": 0
+          },
+          "overdue": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Open Tasks due before today.",
+            "minimum": 0
+          },
+          "total_open": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Sum of `by_status`.",
+            "minimum": 0
+          }
+        }
+      },
       "TaskTimeEntryDto": {
         "type": "object",
         "description": "Time spent.",
@@ -21591,6 +22812,80 @@
           "name": {
             "type": "string",
             "description": "Name."
+          }
+        }
+      },
+      "TicketCountReportDto": {
+        "type": "object",
+        "description": "Ticket counts by one dimension: a Dashboard Widget.",
+        "required": [
+          "by",
+          "rows",
+          "total"
+        ],
+        "properties": {
+          "by": {
+            "type": "string",
+            "description": "The dimension."
+          },
+          "open": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Open or closed only."
+          },
+          "period": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PeriodDto",
+                "description": "The period of creation, when one was asked for."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketCountRowDto"
+            },
+            "description": "Rows: reference data in its order, others by name; `(none)` last."
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Tickets in all rows.",
+            "minimum": 0
+          }
+        }
+      },
+      "TicketCountRowDto": {
+        "type": "object",
+        "description": "Tickets of one group.",
+        "required": [
+          "label",
+          "tickets"
+        ],
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The status, Priority, … (`null` for tickets without one)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Its name (`(none)` without one)."
+          },
+          "tickets": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Tickets.",
+            "minimum": 0
           }
         }
       },
@@ -22208,6 +23503,51 @@
           }
         }
       },
+      "TicketTilesDto": {
+        "type": "object",
+        "description": "The ticket tiles.",
+        "required": [
+          "by_status",
+          "total_open",
+          "high_priority",
+          "high_priorities",
+          "unassigned"
+        ],
+        "properties": {
+          "by_status": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TileCountDto"
+            },
+            "description": "Open tickets per chosen open status."
+          },
+          "high_priorities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TileCountDto"
+            },
+            "description": "The Priorities counted as high, with their open tickets."
+          },
+          "high_priority": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Open tickets of a high Priority.",
+            "minimum": 0
+          },
+          "total_open": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Sum of `by_status`.",
+            "minimum": 0
+          },
+          "unassigned": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Open tickets without an Assignee (everybody's).",
+            "minimum": 0
+          }
+        }
+      },
       "TicketTypeRuleConditionsDto": {
         "type": "object",
         "description": "Conditions of a Ticket Type Rule; empty lists are ignored.",
@@ -22312,6 +23652,44 @@
           }
         }
       },
+      "TileCountDto": {
+        "type": "object",
+        "description": "One value on a Watchtower tile.",
+        "required": [
+          "id",
+          "name",
+          "count",
+          "attention"
+        ],
+        "properties": {
+          "attention": {
+            "type": "boolean",
+            "description": "Counts towards the tile's \"needs attention\" figure."
+          },
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`, where the Module has colours."
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "How many.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The status or Priority."
+          },
+          "name": {
+            "type": "string",
+            "description": "Its name."
+          }
+        }
+      },
       "TimeEntryDto": {
         "type": "object",
         "description": "A Time Entry.",
@@ -22380,6 +23758,104 @@
             ],
             "format": "date",
             "description": "Day worked (today when absent)."
+          }
+        }
+      },
+      "TimeReportDto": {
+        "type": "object",
+        "description": "Time Entries per Analyst, Team, Company or period.",
+        "required": [
+          "by",
+          "interval",
+          "period",
+          "includes_tasks",
+          "rows",
+          "total"
+        ],
+        "properties": {
+          "by": {
+            "type": "string",
+            "description": "The dimension."
+          },
+          "includes_tasks": {
+            "type": "boolean",
+            "description": "Whether Task Time Entries are included (Tasks Module on and `tasks.read`)."
+          },
+          "interval": {
+            "type": "string",
+            "description": "`day` or `month` (`by=period`)."
+          },
+          "period": {
+            "$ref": "#/components/schemas/PeriodDto",
+            "description": "The period of work dates."
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeRowDto"
+            },
+            "description": "Rows."
+          },
+          "total": {
+            "$ref": "#/components/schemas/TimeRowDto",
+            "description": "All time."
+          }
+        }
+      },
+      "TimeRowDto": {
+        "type": "object",
+        "description": "Time recorded in one group.",
+        "required": [
+          "label",
+          "ticket_minutes",
+          "task_minutes",
+          "total_minutes",
+          "entries"
+        ],
+        "properties": {
+          "entries": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Time Entries.",
+            "minimum": 0
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Analyst, Team or Company (`null` for none and for periods and the total)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Its name."
+          },
+          "period": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The day or first day of the month (`by=period`)."
+          },
+          "task_minutes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Minutes on Tasks.",
+            "minimum": 0
+          },
+          "ticket_minutes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Minutes on tickets.",
+            "minimum": 0
+          },
+          "total_minutes": {
+            "type": "integer",
+            "format": "int64",
+            "description": "All minutes.",
+            "minimum": 0
           }
         }
       },
@@ -22532,6 +24008,174 @@
           }
         }
       },
+      "VolumeReportDto": {
+        "type": "object",
+        "description": "Created and closed per day or month (created vs closed).",
+        "required": [
+          "interval",
+          "period",
+          "rows",
+          "created",
+          "closed"
+        ],
+        "properties": {
+          "closed": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Closed in the period.",
+            "minimum": 0
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Created in the period.",
+            "minimum": 0
+          },
+          "interval": {
+            "type": "string",
+            "description": "`day` or `month`."
+          },
+          "period": {
+            "$ref": "#/components/schemas/PeriodDto",
+            "description": "The period."
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VolumeRowDto"
+            },
+            "description": "One row per day or month, empty ones included."
+          }
+        }
+      },
+      "VolumeRowDto": {
+        "type": "object",
+        "description": "Tickets created and closed in one day or month.",
+        "required": [
+          "period",
+          "created",
+          "closed"
+        ],
+        "properties": {
+          "closed": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Closed.",
+            "minimum": 0
+          },
+          "created": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Created.",
+            "minimum": 0
+          },
+          "period": {
+            "type": "string",
+            "format": "date",
+            "description": "The day, or the first day of the month."
+          }
+        }
+      },
+      "WatchtowerDto": {
+        "type": "object",
+        "description": "The Watchtower.",
+        "required": [
+          "scope",
+          "generated_at",
+          "today"
+        ],
+        "properties": {
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the figures were taken."
+          },
+          "morning_checks": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CheckTilesDto",
+                "description": "Morning Checks (`null` when the Module is off or without `morning-checks.read`)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "description": "`all` or `mine`."
+          },
+          "tasks": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskTilesDto",
+                "description": "Tasks (`null` when the Tasks Module is off or without `tasks.read`)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tickets": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TicketTilesDto",
+                "description": "Tickets (`null` without `tickets.read`)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "today": {
+            "type": "string",
+            "format": "date",
+            "description": "Today in the instance time zone."
+          }
+        }
+      },
+      "WatchtowerItemsDto": {
+        "type": "object",
+        "description": "The Watchtower Items: which values the Watchtower counts. An empty list means the\ndefault: every active open status; the Priorities ranked after the default one;\nevery Check Status but the first.",
+        "properties": {
+          "check_statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Check Statuses that need attention.",
+            "uniqueItems": true
+          },
+          "task_statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Open Task Statuses counted one by one.",
+            "uniqueItems": true
+          },
+          "ticket_priorities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Priorities counted as high priority.",
+            "uniqueItems": true
+          },
+          "ticket_statuses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Open Ticket Statuses counted one by one.",
+            "uniqueItems": true
+          }
+        }
+      },
       "WhitelistDto": {
         "type": "object",
         "description": "A Whitelist entry.",
@@ -22632,6 +24276,10 @@
     {
       "name": "Morning Checks",
       "description": "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"
+    },
+    {
+      "name": "Reporting",
+      "description": "Dashboard Widgets, SLA compliance, time-entry reports, the Watchtower and CSV exports"
     },
     {
       "name": "Administration",

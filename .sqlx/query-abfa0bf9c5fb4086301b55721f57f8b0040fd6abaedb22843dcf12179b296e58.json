@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT CASE $5 WHEN 'analyst' THEN e.analyst_id WHEN 'team' THEN t.assigned_team_id\n                              WHEN 'company' THEN e.tenant_id END AS id,\n                      CASE $5 WHEN 'day' THEN e.work_date\n                              WHEN 'month' THEN date_trunc('month', e.work_date)::date END AS day,\n                      COALESCE(SUM(e.minutes), 0)::bigint AS \"minutes!\", COUNT(*) AS \"entries!\"\n               FROM task_time_entries e JOIN tasks t ON t.id = e.task_id\n               WHERE ($1 OR e.tenant_id = ANY($2)) AND e.work_date >= $3 AND e.work_date <= $4\n               GROUP BY 1, 2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "day",
+        "type_info": "Date",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "minutes!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 3,
+        "name": "entries!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Date",
+        "Date",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "abfa0bf9c5fb4086301b55721f57f8b0040fd6abaedb22843dcf12179b296e58"
+}

@@ -22,7 +22,7 @@ use crate::domain::{
 };
 use crate::ports::{
     Directory, FollowUpError, FollowUpTask, MorningCheckSettingsProvider, MorningChecksRepository,
-    Reminder, RepoError,
+    Reminder, RepoError, RoundTally,
 };
 
 /// Capabilities Morning Checks checks (FR-IAM-010).
@@ -1472,5 +1472,37 @@ impl MorningChecksService {
     ) -> Result<u32, AppError> {
         let (counts, _) = self.unrecorded(&TenantScope::single(tenant), date).await?;
         Ok(counts.get(&(tenant, group, analyst)).copied().unwrap_or(0))
+    }
+
+    /// Today's Round in the caller's Companies, counted for the Watchtower (needs
+    /// `morning-checks.read`; ADR-0032). With `mine`, only the Checks routed to the
+    /// calling Analyst or their Teams.
+    ///
+    /// # Errors
+    ///
+    /// Forbidden, or `mine` without an Analyst.
+    pub async fn round_tally(
+        &self,
+        principal: &Principal,
+        mine: bool,
+    ) -> Result<RoundTally, AppError> {
+        require(principal, capabilities::READ)?;
+        let today = self.today().await;
+        let me = match (mine, principal.actor()) {
+            (false, _) => None,
+            (true, Actor::Analyst(a)) => Some((a, self.ports.directory.teams_of(a).await?)),
+            (true, _) => {
+                return Err(MorningChecksError::invalid("mine", "needs an Analyst").into());
+            }
+        };
+        Ok(self
+            .ports
+            .store
+            .round_tally(
+                principal.scope(),
+                today,
+                me.as_ref().map(|(a, teams)| (*a, teams)),
+            )
+            .await?)
     }
 }

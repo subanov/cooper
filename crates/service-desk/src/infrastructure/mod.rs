@@ -12,6 +12,7 @@ mod oauth;
 mod reference;
 mod relations;
 mod sla;
+mod statistics;
 mod template_mailer;
 mod tickets;
 

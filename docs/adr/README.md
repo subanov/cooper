@@ -38,3 +38,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0029](0029-tasks-context.md) | Tasks: real occurrences, a pure recurrence engine, and ticket-side related records | Accepted |
 | [0030](0030-service-status-context.md) | Service Status: shared or per-Company Services, a computed Current Status, and a public page read with no Company | Accepted |
 | [0031](0031-morning-checks-context.md) | Morning Checks: per-Company Checks, Check Dates in the instance time zone, and once-only reminders | Accepted |
+| [0032](0032-reporting-context.md) | Reporting: owning contexts count in SQL as the caller, Reporting composes; no read model | Accepted |

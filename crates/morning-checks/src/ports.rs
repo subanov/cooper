@@ -41,6 +41,19 @@ pub struct Reminder {
     pub envelope: EventEnvelope,
 }
 
+/// The day's Round counted for the Watchtower (ADR-0032).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct RoundTally {
+    /// The Check Date.
+    pub check_date: NaiveDate,
+    /// Checks in the Round.
+    pub checks: u64,
+    /// Of which recorded on the date.
+    pub recorded: u64,
+    /// Recorded results per Check Status: `(status, results)`.
+    pub by_status: Vec<(Uuid, u64)>,
+}
+
 /// Morning Checks storage. Every read takes a Tenant Scope.
 #[async_trait]
 pub trait MorningChecksRepository: Send + Sync {
@@ -141,6 +154,16 @@ pub trait MorningChecksRepository: Send + Sync {
         scope: &TenantScope,
         result: CheckResultId,
     ) -> Result<Vec<cooper_platform::audit::AuditEntry>, RepoError>;
+
+    /// The Round on `date` counted in SQL: Checks, recorded results and results per
+    /// status. With `routed_to`, only Checks routed to that Analyst (directly, through
+    /// the group, or through one of the given Teams).
+    async fn round_tally(
+        &self,
+        scope: &TenantScope,
+        date: NaiveDate,
+        routed_to: Option<(AnalystId, &BTreeSet<TeamId>)>,
+    ) -> Result<RoundTally, RepoError>;
 }
 
 /// A follow-up record could not be made.

@@ -160,7 +160,7 @@ pub(super) fn acting_analyst(principal: &Principal) -> Option<AnalystId> {
 
 impl ServiceDesk {
     /// What the caller may see beyond tenant scope.
-    async fn visibility(
+    pub(super) async fn visibility(
         &self,
         principal: &Principal,
         include_deleted: bool,

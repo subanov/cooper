@@ -181,6 +181,8 @@ pub struct AppState {
     pub service_status: cooper_service_status::api::ServiceStatusApi,
     /// Morning Checks API state.
     pub morning_checks: cooper_morning_checks::api::MorningChecksApi,
+    /// Reporting API state.
+    pub reporting: cooper_reporting::api::ReportingApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -199,6 +201,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_tasks::application::capabilities::ALL)
         .chain(cooper_service_status::application::capabilities::ALL)
         .chain(cooper_morning_checks::application::capabilities::ALL)
+        .chain(cooper_reporting::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -254,6 +257,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_morning_checks::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::MorningChecks)),
+        )
+        .chain(
+            cooper_reporting::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Reporting)),
         )
         .collect()
 }
@@ -314,6 +322,7 @@ impl AppState {
             content: Arc::new(PgServiceDeskStore::new(pool.clone())),
             mailboxes,
             relations: Arc::new(PgServiceDeskStore::new(pool.clone())),
+            statistics: Arc::new(PgServiceDeskStore::new(pool.clone())),
             directory: Arc::new(IdentityDirectory {
                 identity: service.clone(),
             }),
@@ -398,6 +407,8 @@ impl AppState {
                 },
             ),
         };
+        // One gate, so a switch changed through the API applies to every cross-Module read.
+        let gate = ModuleGate::new(admin.clone(), module_routes());
         let morning_checks = cooper_morning_checks::api::MorningChecksApi {
             service: cooper_morning_checks::application::MorningChecksService::new(
                 cooper_morning_checks::application::MorningChecksPorts {
@@ -412,11 +423,39 @@ impl AppState {
                         },
                         desk: desk.clone(),
                         tasks: tasks.service.clone(),
-                        gate: ModuleGate::new(admin.clone(), module_routes()),
+                        gate: gate.clone(),
                     }),
                     settings: Arc::new(crate::adapters::MorningCheckSettings {
                         admin: admin.clone(),
                     }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
+        let reporting = cooper_reporting::api::ReportingApi {
+            service: cooper_reporting::application::ReportingService::new(
+                cooper_reporting::application::ReportingPorts {
+                    tickets: Arc::new(crate::reporting::ReportTickets { desk: desk.clone() }),
+                    tasks: Arc::new(crate::reporting::ReportTasks {
+                        tasks: tasks.service.clone(),
+                        gate: gate.clone(),
+                    }),
+                    checks: Arc::new(crate::reporting::ReportChecks {
+                        checks: morning_checks.service.clone(),
+                        gate: gate.clone(),
+                    }),
+                    labels: Arc::new(crate::reporting::ReportLabels {
+                        identity: service.clone(),
+                        desk: desk.clone(),
+                        tasks: tasks.service.clone(),
+                        checks: morning_checks.service.clone(),
+                    }),
+                    settings: Arc::new(crate::reporting::ReportTimeZone {
+                        admin: admin.clone(),
+                    }),
+                    watchtower: Arc::new(cooper_reporting::infrastructure::PgWatchtowerStore::new(
+                        pool.clone(),
+                    )),
                     clock: clock.clone(),
                 },
             ),
@@ -444,7 +483,7 @@ impl AppState {
                 trusted_proxies: Arc::new(security.trusted_proxies),
             },
             administration: AdministrationApi {
-                gate: ModuleGate::new(admin.clone(), module_routes()),
+                gate,
                 service: admin,
             },
             notifications: NotificationsApi {
@@ -456,6 +495,7 @@ impl AppState {
             tasks,
             service_status,
             morning_checks,
+            reporting,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -563,6 +603,12 @@ impl AppState {
     }
 }
 
+impl FromRef<AppState> for cooper_reporting::api::ReportingApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.reporting.clone()
+    }
+}
+
 impl FromRef<AppState> for cooper_morning_checks::api::MorningChecksApi {
     fn from_ref(state: &AppState) -> Self {
         state.morning_checks.clone()
@@ -640,6 +686,7 @@ mod tests {
                 + cooper_tasks::application::capabilities::ALL.len()
                 + cooper_service_status::application::capabilities::ALL.len()
                 + cooper_morning_checks::application::capabilities::ALL.len()
+                + cooper_reporting::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(
