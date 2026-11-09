@@ -15,6 +15,7 @@ use sqlx::{PgConnection, PgPool};
 use thiserror::Error;
 
 use crate::live::{self, LiveChange};
+use crate::metrics::names;
 use crate::tenancy;
 
 /// Error returned by an event handler.
@@ -203,6 +204,8 @@ impl Dispatcher {
                     .execute(&mut *tx)
                     .await?;
                     stats.published += 1;
+                    metrics::counter!(names::OUTBOX_DELIVERIES, "result" => "published")
+                        .increment(1);
                 }
                 Err(error) => {
                     let dead = attempts >= self.max_attempts;
@@ -223,11 +226,14 @@ impl Dispatcher {
                     )
                     .execute(&mut *tx)
                     .await?;
-                    if dead {
+                    let result = if dead {
                         stats.dead += 1;
+                        "dead"
                     } else {
                         stats.retried += 1;
-                    }
+                        "retried"
+                    };
+                    metrics::counter!(names::OUTBOX_DELIVERIES, "result" => result).increment(1);
                 }
             }
         }
@@ -251,6 +257,56 @@ impl Dispatcher {
         } else {
             Err(errors.join("; "))
         }
+    }
+}
+
+/// How much the outbox holds back (metrics, ADR-0023).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Backlog {
+    /// Events waiting for delivery (including those waiting for a retry).
+    pub pending: i64,
+    /// Age of the oldest pending event; zero when none is pending.
+    pub oldest_pending_age: Duration,
+    /// Events that exhausted their attempts.
+    pub dead: i64,
+}
+
+/// Measures the outbox backlog across every Company.
+///
+/// # Errors
+///
+/// Fails on database errors.
+pub async fn backlog(pool: &PgPool, now: DateTime<Utc>) -> Result<Backlog, sqlx::Error> {
+    let mut tx = tenancy::begin(pool, &TenantScope::All).await?;
+    let row = sqlx::query!(
+        r#"
+        SELECT count(*) FILTER (WHERE published_at IS NULL AND dead_at IS NULL) AS "pending!",
+               min(occurred_at) FILTER (WHERE published_at IS NULL AND dead_at IS NULL) AS oldest,
+               count(*) FILTER (WHERE dead_at IS NOT NULL) AS "dead!"
+        FROM outbox_events
+        WHERE published_at IS NULL
+        "#
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Backlog {
+        pending: row.pending,
+        oldest_pending_age: row.oldest.map_or_else(Duration::zero, |oldest| {
+            (now - oldest).max(Duration::zero())
+        }),
+        dead: row.dead,
+    })
+}
+
+/// Records [`backlog`] in the outbox gauges.
+pub fn record_backlog(backlog: &Backlog) {
+    #[allow(clippy::cast_precision_loss)] // counts and seconds far below 2^53
+    {
+        metrics::gauge!(names::OUTBOX_PENDING).set(backlog.pending as f64);
+        metrics::gauge!(names::OUTBOX_DEAD).set(backlog.dead as f64);
+        metrics::gauge!(names::OUTBOX_OLDEST_PENDING_AGE)
+            .set(backlog.oldest_pending_age.num_milliseconds() as f64 / 1000.0);
     }
 }
 

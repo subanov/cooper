@@ -233,7 +233,7 @@ never `use` anything from `infrastructure`, `api`, `sqlx` or `axum`.
 ```bash
 cp .env.example .env                     # DATABASE_URL (owner) and COOPER_DATABASE_URL (app role)
 docker compose up -d --wait postgres     # local database (add mailpit/greenmail with `up -d`)
-cargo sqlx migrate run                   # apply migrations
+cargo sqlx migrate run                   # apply migrations (or: cargo run -p cooper-server -- migrate)
 cargo run -p cooper-server               # start the HTTP server (http://localhost:8080/health/ready)
 cargo run -p cooper-worker               # start background jobs and the outbox dispatcher
 docker compose --profile app up -d --build   # run migrate + server + worker from the Dockerfile
@@ -241,6 +241,8 @@ cargo test --workspace --all-features    # all tests (needs DATABASE_URL)
 cargo fmt --all && cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo sqlx prepare --workspace -- --all-targets --all-features   # refresh .sqlx/ before committing
 scripts/check-migrations.sh origin/main  # merged migrations must not change
+just coverage                            # line coverage like CI (cargo-llvm-cov), domain layers summarised
+just restore-test                        # pgBackRest backup + point-in-time restore (Docker)
 cargo deny check && cargo machete        # advisories, licences, unused dependencies
 just web-install                         # web/: pnpm install --frozen-lockfile (Node in web/.node-version)
 just web-dev                             # Vite dev server :5173, proxies /api to cooper-server

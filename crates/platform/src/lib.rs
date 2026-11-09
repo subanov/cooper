@@ -13,7 +13,8 @@
 //! - [`live`]: Live Updates through PostgreSQL `NOTIFY` (ADR-0022).
 //! - [`jobs`]: background jobs with schedules, single-worker locking and run history
 //!   (FR-SYS-002).
-//! - [`telemetry`]: `tracing` subscriber set-up.
+//! - [`telemetry`]: `tracing` subscriber set-up, with optional OTLP trace export.
+//! - [`metrics`]: Prometheus metric names and recorder (ADR-0023).
 //! - [`system_log`]: warnings and errors stored for the system log viewer (FR-SYS-003).
 //!
 //! This crate is infrastructure: context `domain` modules must not depend on it.
@@ -25,6 +26,7 @@ pub mod crypto;
 pub mod db;
 pub mod jobs;
 pub mod live;
+pub mod metrics;
 pub mod outbox;
 pub mod system_log;
 pub mod telemetry;

@@ -9,6 +9,7 @@
 mod adapters;
 pub mod config;
 mod health;
+pub mod healthcheck;
 pub mod live;
 mod state;
 mod web;
