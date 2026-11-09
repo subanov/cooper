@@ -1345,6 +1345,270 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/morning-checks/checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Checks in your Companies, active or not, in round order (needs `morning-checks.read`). */
+        get: operations["list_checks"];
+        put?: never;
+        /** Creates a Check (needs `morning-checks.configure`). */
+        post: operations["create_check"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/checks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Check (needs `morning-checks.read`). */
+        get: operations["get_check"];
+        /** Changes or deactivates a Check (needs `morning-checks.configure`). */
+        put: operations["update_check"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check Groups in your Companies, in order (needs `morning-checks.read`). */
+        get: operations["list_check_groups"];
+        put?: never;
+        /** Creates a Check Group (needs `morning-checks.configure`). */
+        post: operations["create_check_group"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes or deactivates a Check Group (needs `morning-checks.configure`). */
+        put: operations["update_check_group"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The history grid of Checks × dates, at most 92 days (needs `morning-checks.read`). */
+        get: operations["check_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/history/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recorded Check Results of a range (at most 366 days) as CSV, one row per result
+         *     (needs `morning-checks.read`). Cells a spreadsheet would run as formulas are
+         *     prefixed with `'`.
+         */
+        get: operations["export_check_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The round of a Check Date: every Check in the round with its result (needs
+         *     `morning-checks.read`).
+         */
+        get: operations["check_day"];
+        put?: never;
+        /**
+         * Records the result of a Check for a date, or changes the one already recorded (needs
+         *     `morning-checks.record`). 201 when new, 200 when changed.
+         */
+        post: operations["record_check_result"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/results/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Check Result (needs `morning-checks.read`). */
+        get: operations["get_check_result"];
+        put?: never;
+        post?: never;
+        /**
+         * Clears a Check Result: the Check is unrecorded again for that date, and the result's
+         *     Result Links go (needs `morning-checks.record`).
+         */
+        delete: operations["clear_check_result"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/results/{id}/follow-up-task": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Creates a follow-up Task from a result, routed like the Check and carrying its notes,
+         *     and links it (needs `morning-checks.record` and `tasks.create`).
+         */
+        post: operations["create_follow_up_task"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/results/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who recorded a Check Result and every change since (needs `morning-checks.read`). */
+        get: operations["check_result_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/results/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Follow-up tickets and Tasks of a result that you may see (needs
+         *     `morning-checks.read`).
+         */
+        get: operations["list_result_links"];
+        put?: never;
+        /** Links a follow-up ticket or Task of the same Company (needs `morning-checks.record`). */
+        post: operations["link_check_result"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/results/{id}/links/{kind}/{target_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a Result Link; the ticket or Task stays (needs `morning-checks.record`). */
+        delete: operations["unlink_check_result"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check Statuses in order (needs `morning-checks.read`). */
+        get: operations["list_check_statuses"];
+        put?: never;
+        /** Creates a Check Status (needs `morning-checks.configure`). */
+        post: operations["create_check_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/morning-checks/statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes or deactivates a Check Status (needs `morning-checks.configure`). */
+        put: operations["update_check_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications": {
         parameters: {
             query?: never;
@@ -3843,8 +4107,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Problems, Changes, Tasks and Knowledge Articles linked to a ticket you may see, each
-         *     as far as its Module is on and you may read it (FR-TKT-030).
+         * Problems, Changes, Tasks, Knowledge Articles and Morning Check Results linked to a
+         *     ticket you may see, each as far as its Module is on and you may read it (FR-TKT-030).
          */
         get: operations["ticket_related_records"];
         put?: never;
@@ -5026,6 +5290,368 @@ export interface components {
             /** @description `approve` or `reject`. */
             decision: string;
         };
+        /** @description Who did something (`{kind, id}`). */
+        CheckActorDto: {
+            /**
+             * Format: uuid
+             * @description Their ID.
+             */
+            id?: string | null;
+            /** @description `analyst`, `api_key`, `requester` or `automation`. */
+            kind: string;
+        };
+        /** @description The round of a Check Date. */
+        CheckDayDto: {
+            /**
+             * Format: date
+             * @description The Check Date shown.
+             */
+            check_date: string;
+            /** @description Checks in the round, in order. */
+            items: components["schemas"]["CheckDayItemDto"][];
+            /**
+             * Format: date
+             * @description Today's Check Date (in the instance time zone).
+             */
+            today: string;
+        };
+        /** @description A Check in a day's round, with its result. */
+        CheckDayItemDto: {
+            /** @description The Check. */
+            check: components["schemas"]["CheckDto"];
+            result?: components["schemas"]["CheckResultDto"] | null;
+        };
+        /** @description A Check. */
+        CheckDto: {
+            /**
+             * Format: uuid
+             * @description The Check's own Analyst.
+             */
+            assigned_analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Check Group.
+             */
+            check_group_id?: string | null;
+            /** @description Its name. */
+            check_group_name?: string | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description What to verify. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description In the daily round (active, in an active group or none). */
+            in_round: boolean;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+            /** @description Who it is routed to. */
+            routing: components["schemas"]["CheckRoutingDto"];
+            /**
+             * Format: int32
+             * @description Order within its group.
+             */
+            sort_order: number;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description A Check Group. */
+        CheckGroupDto: {
+            /**
+             * Format: uuid
+             * @description Routed to this Analyst.
+             */
+            assigned_analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Routed to this Team.
+             */
+            assigned_team_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Its Checks are in the daily round. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order: number;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description Creates or changes a Check Group. */
+        CheckGroupRequest: {
+            /**
+             * Format: uuid
+             * @description Route to this Analyst (not with a Team).
+             */
+            assigned_analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Route to this Team (not with an Analyst).
+             */
+            assigned_team_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /** @description Active (deactivate instead of deleting). */
+            is_active?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description One cell of the history grid. */
+        CheckHistoryCellDto: {
+            /**
+             * Format: date
+             * @description Check Date.
+             */
+            check_date: string;
+            /** @description Whether it has notes. */
+            has_notes: boolean;
+            /**
+             * Format: uuid
+             * @description The result (`null`: unrecorded).
+             */
+            result_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Its Check Status (colour-code with the status's `colour`).
+             */
+            status_id?: string | null;
+        };
+        /** @description The history grid: Checks × dates, colour-coded by Check Status. */
+        CheckHistoryDto: {
+            /** @description The dates, oldest first. */
+            dates: string[];
+            /**
+             * Format: date
+             * @description First date.
+             */
+            from: string;
+            /** @description One row per Check in the round or with results in the range. */
+            rows: components["schemas"]["CheckHistoryRowDto"][];
+            /** @description Check Statuses, with their colours. */
+            statuses: components["schemas"]["CheckStatusDto"][];
+            /**
+             * Format: date
+             * @description Last date.
+             */
+            to: string;
+        };
+        /** @description One row of the history grid. */
+        CheckHistoryRowDto: {
+            /** @description One cell per date, oldest first. */
+            cells: components["schemas"]["CheckHistoryCellDto"][];
+            /** @description Its Check Group's name. */
+            check_group_name?: string | null;
+            /**
+             * Format: uuid
+             * @description The Check.
+             */
+            check_id: string;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description Its name. */
+            name: string;
+        };
+        /** @description Creates or changes a Check. */
+        CheckRequest: {
+            /**
+             * Format: uuid
+             * @description The Check's own Analyst.
+             */
+            assigned_analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Check Group (same Company).
+             */
+            check_group_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description What to verify. */
+            description?: string;
+            /** @description Active (deactivate instead of deleting). */
+            is_active?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description A Check Result. */
+        CheckResultDto: {
+            /**
+             * Format: date
+             * @description Check Date.
+             */
+            check_date: string;
+            /**
+             * Format: uuid
+             * @description Check.
+             */
+            check_id: string;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Who last changed it. */
+            modified_by: components["schemas"]["CheckActorDto"];
+            /** @description Notes. */
+            notes: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            recorded_at: string;
+            /** @description Who first recorded it. */
+            recorded_by: components["schemas"]["CheckActorDto"];
+            /**
+             * Format: uuid
+             * @description Check Status.
+             */
+            status_id: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            updated_at: string;
+        };
+        /** @description One audited change of a Check Result. */
+        CheckResultHistoryDto: {
+            /** @description `created`, `updated` or `deleted`. */
+            action: string;
+            /** @description Who. */
+            actor: components["schemas"]["CheckActorDto"];
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /** @description Field. */
+            field?: string | null;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /**
+         * @description Who a Check is routed to: its own Analyst, else its group's Analyst, else its group's
+         *     Team.
+         */
+        CheckRoutingDto: {
+            /**
+             * Format: uuid
+             * @description The Analyst.
+             */
+            analyst_id?: string | null;
+            /** @description `analyst`, `team` or `nobody`. */
+            kind: string;
+            /** @description `check` or `group` (where the routing came from). */
+            source?: string | null;
+            /**
+             * Format: uuid
+             * @description The Team.
+             */
+            team_id?: string | null;
+        };
+        /** @description A Check Status. */
+        CheckStatusDto: {
+            /** @description `#rrggbb`, used to colour-code results. */
+            colour: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Selectable for new results. */
+            is_active: boolean;
+            /** @description Stable key of seeded rows (`green`, `amber`, `red`). */
+            key?: string | null;
+            /** @description Name. */
+            name: string;
+            /** @description Results with this status need notes. */
+            requires_notes: boolean;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes a Check Status. */
+        CheckStatusRequest: {
+            /** @description `#rrggbb`. */
+            colour: string;
+            /** @description Active (deactivate instead of deleting). */
+            is_active?: boolean;
+            /** @description Name. */
+            name: string;
+            /** @description Results with this status need notes. */
+            requires_notes?: boolean;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
         /** @description Company access of an Analyst or Team. */
         CompanyAccessDto: {
             /** @description Every Company, including future ones. */
@@ -5203,6 +5829,11 @@ export interface components {
         FieldValuesRequest: {
             /** @description Values by field key. */
             fields: Record<string, never>;
+        };
+        /** @description Creates a follow-up Task. */
+        FollowUpTaskRequest: {
+            /** @description Title (default: the Check, its status and date). */
+            title?: string | null;
         };
         /** @description Working hours of one day. */
         HoursDto: {
@@ -5983,7 +6614,8 @@ export interface components {
             /**
              * @description `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
              *     `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-             *     `change_scheduled`, `change_completed`, `article_review_due` or `task_assigned`.
+             *     `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or
+             *     `checks_unrecorded`.
              */
             kind: string;
             /**
@@ -7025,6 +7657,26 @@ export interface components {
             /** @description Service name. */
             service: string;
         };
+        /** @description Records a Check Result. */
+        RecordCheckResultRequest: {
+            /**
+             * Format: date
+             * @description Check Date (default today; never after today).
+             */
+            check_date?: string | null;
+            /**
+             * Format: uuid
+             * @description The Check.
+             */
+            check_id: string;
+            /** @description Notes (required when the status requires them). */
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Check Status (active).
+             */
+            status_id: string;
+        };
         /** @description A rejected email. */
         RejectedEmailDto: {
             /** @description Sender. */
@@ -7059,6 +7711,8 @@ export interface components {
             articles: components["schemas"]["RelatedRecordDto"][];
             /** @description Changes (FR-CHG-008). */
             changes: components["schemas"]["RelatedRecordDto"][];
+            /** @description Morning Check Results it follows up (FR-MCK-004), titled by Check and Check Date. */
+            check_results: components["schemas"]["RelatedRecordDto"][];
             /** @description Problems (FR-PRB-003). */
             problems: components["schemas"]["RelatedRecordDto"][];
             /** @description Tasks (FR-TSK-004). */
@@ -7178,6 +7832,35 @@ export interface components {
         ResetRequest: {
             /** @description Username or email address. */
             login: string;
+        };
+        /** @description A Result Link. */
+        ResultLinkDto: {
+            /** @description `ticket` or `task`. */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            linked_at: string;
+            /** @description Who linked it. */
+            linked_by: components["schemas"]["CheckActorDto"];
+            /** @description Its Ticket Number or Task title. */
+            reference: string;
+            /**
+             * Format: uuid
+             * @description The ticket or Task.
+             */
+            target_id: string;
+        };
+        /** @description Links a follow-up record. */
+        ResultLinkRequest: {
+            /** @description `ticket` or `task`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description The ticket or Task (same Company).
+             */
+            target_id: string;
         };
         /** @description A previous Ticket Number (FR-TKT-003). */
         RetiredNumberDto: {
@@ -11163,6 +11846,498 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModuleDto"];
+                };
+            };
+        };
+    };
+    list_checks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Only this Company. */
+                company_id: string | null;
+                /** @description Only this Check Group. */
+                check_group_id: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckDto"][];
+                };
+            };
+        };
+    };
+    create_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckDto"];
+                };
+            };
+        };
+    };
+    get_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckDto"];
+                };
+            };
+        };
+    };
+    update_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckDto"];
+                };
+            };
+        };
+    };
+    list_check_groups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Only this Company. */
+                company_id: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckGroupDto"][];
+                };
+            };
+        };
+    };
+    create_check_group: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckGroupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckGroupDto"];
+                };
+            };
+        };
+    };
+    update_check_group: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckGroupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckGroupDto"];
+                };
+            };
+        };
+    };
+    check_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description First date (default: 30 days before `to`). */
+                from: string | null;
+                /** @description Last date (default today). */
+                to: string | null;
+                /** @description Only this Company. */
+                company_id: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckHistoryDto"];
+                };
+            };
+        };
+    };
+    export_check_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description First date (default: 30 days before `to`). */
+                from: string | null;
+                /** @description Last date (default today). */
+                to: string | null;
+                /** @description Only this Company. */
+                company_id: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    check_day: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Check Date (default today). */
+                date: string | null;
+                /** @description Only this Company. */
+                company_id: string | null;
+                /** @description Only Checks routed to you or one of your Teams. */
+                mine: boolean | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckDayDto"];
+                };
+            };
+        };
+    };
+    record_check_result: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordCheckResultRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckResultDto"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckResultDto"];
+                };
+            };
+        };
+    };
+    get_check_result: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckResultDto"];
+                };
+            };
+        };
+    };
+    clear_check_result: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    create_follow_up_task: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowUpTaskRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultLinkDto"];
+                };
+            };
+        };
+    };
+    check_result_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckResultHistoryDto"][];
+                };
+            };
+        };
+    };
+    list_result_links: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultLinkDto"][];
+                };
+            };
+        };
+    };
+    link_check_result: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResultLinkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultLinkDto"];
+                };
+            };
+        };
+    };
+    unlink_check_result: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                kind: string;
+                target_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_check_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckStatusDto"][];
+                };
+            };
+        };
+    };
+    create_check_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckStatusRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckStatusDto"];
+                };
+            };
+        };
+    };
+    update_check_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckStatusRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckStatusDto"];
                 };
             };
         };

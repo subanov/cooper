@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO check_results (id, tenant_id, check_id, check_date, status_id, notes, recorded_by_kind, recorded_by_id,\n                                        recorded_at, modified_by_kind, modified_by_id, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Date",
+        "Uuid",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0c311c45bac7c749ee0ab2a45baa2d59efef6a911392317e5737af2bae5f7ec7"
+}

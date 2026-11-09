@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE check_results SET status_id = $2, notes = $3, modified_by_kind = $4, modified_by_id = $5, updated_at = $6\n             WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f8b9167b117d8250343e6e57133350b5d8e9a23d03eb2b5d15f663a95a66f846"
+}

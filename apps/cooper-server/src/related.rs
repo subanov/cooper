@@ -1,7 +1,7 @@
 //! Records linked to a ticket from other contexts (FR-TKT-030, ADR-0029).
 //!
 //! Each context owns its links to tickets (Problems, Changes, Tasks, Knowledge
-//! Articles); this composite read asks each one's application API, as the caller, for
+//! Articles, Morning Check Results); this composite read asks each one's application API, as the caller, for
 //! the records linked to a ticket. A context is left out when its Module is off or the
 //! caller lacks its read Capability, so the ticket screen never depends on another
 //! Module being enabled. Assets and CIs join when their contexts exist.
@@ -48,6 +48,8 @@ pub struct RelatedRecordsDto {
     pub tasks: Vec<RelatedRecordDto>,
     /// Knowledge Articles (FR-KNW-008).
     pub articles: Vec<RelatedRecordDto>,
+    /// Morning Check Results it follows up (FR-MCK-004), titled by Check and Check Date.
+    pub check_results: Vec<RelatedRecordDto>,
 }
 
 fn limit() -> Limit {
@@ -62,8 +64,8 @@ fn skipped<E: std::fmt::Display>(what: &str, e: &E) {
     tracing::warn!(error = %e, what, "related records could not be read");
 }
 
-/// Problems, Changes, Tasks and Knowledge Articles linked to a ticket you may see, each
-/// as far as its Module is on and you may read it (FR-TKT-030).
+/// Problems, Changes, Tasks, Knowledge Articles and Morning Check Results linked to a
+/// ticket you may see, each as far as its Module is on and you may read it (FR-TKT-030).
 #[utoipa::path(get, path = "/tickets/{id}/related", tag = "Tickets", params(("id" = Uuid, Path)),
     responses((status = 200, body = RelatedRecordsDto), (status = 404, description = "No such ticket, or not visible")))]
 async fn ticket_related_records(
@@ -196,6 +198,34 @@ async fn ticket_related_records(
                     .collect();
             }
             Err(e) => skipped("articles", &e),
+        }
+    }
+    if on(
+        &state,
+        &p,
+        Module::MorningChecks,
+        cooper_morning_checks::application::capabilities::READ,
+    )
+    .await
+    {
+        match state
+            .morning_checks
+            .service
+            .linked_to(&p, cooper_morning_checks::domain::LinkKind::Ticket, id)
+            .await
+        {
+            Ok(rows) => {
+                out.check_results = rows
+                    .into_iter()
+                    .map(|r| RelatedRecordDto {
+                        id: r.result.id().as_uuid(),
+                        number: None,
+                        title: format!("{} ({})", r.check.details().name, r.result.check_date()),
+                        is_closed: false,
+                    })
+                    .collect();
+            }
+            Err(e) => skipped("check results", &e),
         }
     }
     Json(out).into_response()

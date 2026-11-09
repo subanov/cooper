@@ -4077,6 +4077,813 @@
         }
       }
     },
+    "/api/v1/morning-checks/checks": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Checks in your Companies, active or not, in round order (needs `morning-checks.read`).",
+        "operationId": "list_checks",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "description": "Only this Company.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "check_group_id",
+            "in": "path",
+            "description": "Only this Check Group.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Creates a Check (needs `morning-checks.configure`).",
+        "operationId": "create_check",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/checks/{id}": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "One Check (needs `morning-checks.read`).",
+        "operationId": "get_check",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Changes or deactivates a Check (needs `morning-checks.configure`).",
+        "operationId": "update_check",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/groups": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Check Groups in your Companies, in order (needs `morning-checks.read`).",
+        "operationId": "list_check_groups",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "description": "Only this Company.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckGroupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Creates a Check Group (needs `morning-checks.configure`).",
+        "operationId": "create_check_group",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckGroupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/groups/{id}": {
+      "put": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Changes or deactivates a Check Group (needs `morning-checks.configure`).",
+        "operationId": "update_check_group",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckGroupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/history": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "The history grid of Checks × dates, at most 92 days (needs `morning-checks.read`).",
+        "operationId": "check_history",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "path",
+            "description": "First date (default: 30 days before `to`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "path",
+            "description": "Last date (default today).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "path",
+            "description": "Only this Company.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckHistoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/history/export": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Recorded Check Results of a range (at most 366 days) as CSV, one row per result\n(needs `morning-checks.read`). Cells a spreadsheet would run as formulas are\nprefixed with `'`.",
+        "operationId": "export_check_history",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "path",
+            "description": "First date (default: 30 days before `to`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "path",
+            "description": "Last date (default today).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "path",
+            "description": "Only this Company.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/results": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "The round of a Check Date: every Check in the round with its result (needs\n`morning-checks.read`).",
+        "operationId": "check_day",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "description": "Check Date (default today).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "path",
+            "description": "Only this Company.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mine",
+            "in": "path",
+            "description": "Only Checks routed to you or one of your Teams.",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckDayDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Records the result of a Check for a date, or changes the one already recorded (needs\n`morning-checks.record`). 201 when new, 200 when changed.",
+        "operationId": "record_check_result",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordCheckResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckResultDto"
+                }
+              }
+            }
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/results/{id}": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "One Check Result (needs `morning-checks.read`).",
+        "operationId": "get_check_result",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckResultDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Clears a Check Result: the Check is unrecorded again for that date, and the result's\nResult Links go (needs `morning-checks.record`).",
+        "operationId": "clear_check_result",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/morning-checks/results/{id}/follow-up-task": {
+      "post": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Creates a follow-up Task from a result, routed like the Check and carrying its notes,\nand links it (needs `morning-checks.record` and `tasks.create`).",
+        "operationId": "create_follow_up_task",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUpTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/results/{id}/history": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Who recorded a Check Result and every change since (needs `morning-checks.read`).",
+        "operationId": "check_result_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckResultHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/results/{id}/links": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Follow-up tickets and Tasks of a result that you may see (needs\n`morning-checks.read`).",
+        "operationId": "list_result_links",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultLinkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Links a follow-up ticket or Task of the same Company (needs `morning-checks.record`).",
+        "operationId": "link_check_result",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/results/{id}/links/{kind}/{target_id}": {
+      "delete": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Removes a Result Link; the ticket or Task stays (needs `morning-checks.record`).",
+        "operationId": "unlink_check_result",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/morning-checks/statuses": {
+      "get": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Check Statuses in order (needs `morning-checks.read`).",
+        "operationId": "list_check_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CheckStatusDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Creates a Check Status (needs `morning-checks.configure`).",
+        "operationId": "create_check_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/morning-checks/statuses/{id}": {
+      "put": {
+        "tags": [
+          "Morning Checks"
+        ],
+        "summary": "Changes or deactivates a Check Status (needs `morning-checks.configure`).",
+        "operationId": "update_check_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/notifications": {
       "get": {
         "tags": [
@@ -11391,7 +12198,7 @@
         "tags": [
           "Tickets"
         ],
-        "summary": "Problems, Changes, Tasks and Knowledge Articles linked to a ticket you may see, each\nas far as its Module is on and you may read it (FR-TKT-030).",
+        "summary": "Problems, Changes, Tasks, Knowledge Articles and Morning Check Results linked to a\nticket you may see, each as far as its Module is on and you may read it (FR-TKT-030).",
         "operationId": "ticket_related_records",
         "parameters": [
           {
@@ -13764,6 +14571,674 @@
           }
         }
       },
+      "CheckActorDto": {
+        "type": "object",
+        "description": "Who did something (`{kind, id}`).",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Their ID."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`analyst`, `api_key`, `requester` or `automation`."
+          }
+        }
+      },
+      "CheckDayDto": {
+        "type": "object",
+        "description": "The round of a Check Date.",
+        "required": [
+          "check_date",
+          "today",
+          "items"
+        ],
+        "properties": {
+          "check_date": {
+            "type": "string",
+            "format": "date",
+            "description": "The Check Date shown."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckDayItemDto"
+            },
+            "description": "Checks in the round, in order."
+          },
+          "today": {
+            "type": "string",
+            "format": "date",
+            "description": "Today's Check Date (in the instance time zone)."
+          }
+        }
+      },
+      "CheckDayItemDto": {
+        "type": "object",
+        "description": "A Check in a day's round, with its result.",
+        "required": [
+          "check"
+        ],
+        "properties": {
+          "check": {
+            "$ref": "#/components/schemas/CheckDto",
+            "description": "The Check."
+          },
+          "result": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CheckResultDto",
+                "description": "Its result (`null`: unrecorded)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "CheckDto": {
+        "type": "object",
+        "description": "A Check.",
+        "required": [
+          "id",
+          "company_id",
+          "name",
+          "description",
+          "routing",
+          "sort_order",
+          "is_active",
+          "in_round",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "assigned_analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Check's own Analyst."
+          },
+          "check_group_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Check Group."
+          },
+          "check_group_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its name."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "What to verify."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "in_round": {
+            "type": "boolean",
+            "description": "In the daily round (active, in an active group or none)."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "routing": {
+            "$ref": "#/components/schemas/CheckRoutingDto",
+            "description": "Who it is routed to."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order within its group."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "CheckGroupDto": {
+        "type": "object",
+        "description": "A Check Group.",
+        "required": [
+          "id",
+          "company_id",
+          "name",
+          "description",
+          "sort_order",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "assigned_analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Routed to this Analyst."
+          },
+          "assigned_team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Routed to this Team."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Its Checks are in the daily round."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "CheckGroupRequest": {
+        "type": "object",
+        "description": "Creates or changes a Check Group.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "assigned_analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Route to this Analyst (not with a Team)."
+          },
+          "assigned_team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Route to this Team (not with an Analyst)."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (deactivate instead of deleting)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "CheckHistoryCellDto": {
+        "type": "object",
+        "description": "One cell of the history grid.",
+        "required": [
+          "check_date",
+          "has_notes"
+        ],
+        "properties": {
+          "check_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Check Date."
+          },
+          "has_notes": {
+            "type": "boolean",
+            "description": "Whether it has notes."
+          },
+          "result_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The result (`null`: unrecorded)."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Its Check Status (colour-code with the status's `colour`)."
+          }
+        }
+      },
+      "CheckHistoryDto": {
+        "type": "object",
+        "description": "The history grid: Checks × dates, colour-coded by Check Status.",
+        "required": [
+          "from",
+          "to",
+          "dates",
+          "statuses",
+          "rows"
+        ],
+        "properties": {
+          "dates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "The dates, oldest first."
+          },
+          "from": {
+            "type": "string",
+            "format": "date",
+            "description": "First date."
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckHistoryRowDto"
+            },
+            "description": "One row per Check in the round or with results in the range."
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckStatusDto"
+            },
+            "description": "Check Statuses, with their colours."
+          },
+          "to": {
+            "type": "string",
+            "format": "date",
+            "description": "Last date."
+          }
+        }
+      },
+      "CheckHistoryRowDto": {
+        "type": "object",
+        "description": "One row of the history grid.",
+        "required": [
+          "check_id",
+          "company_id",
+          "name",
+          "cells"
+        ],
+        "properties": {
+          "cells": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckHistoryCellDto"
+            },
+            "description": "One cell per date, oldest first."
+          },
+          "check_group_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Its Check Group's name."
+          },
+          "check_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Check."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "name": {
+            "type": "string",
+            "description": "Its name."
+          }
+        }
+      },
+      "CheckRequest": {
+        "type": "object",
+        "description": "Creates or changes a Check.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "assigned_analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Check's own Analyst."
+          },
+          "check_group_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Check Group (same Company)."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "description": {
+            "type": "string",
+            "description": "What to verify."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (deactivate instead of deleting)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "CheckResultDto": {
+        "type": "object",
+        "description": "A Check Result.",
+        "required": [
+          "id",
+          "company_id",
+          "check_id",
+          "check_date",
+          "status_id",
+          "notes",
+          "recorded_by",
+          "recorded_at",
+          "modified_by",
+          "updated_at"
+        ],
+        "properties": {
+          "check_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Check Date."
+          },
+          "check_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Check."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "modified_by": {
+            "$ref": "#/components/schemas/CheckActorDto",
+            "description": "Who last changed it."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "recorded_by": {
+            "$ref": "#/components/schemas/CheckActorDto",
+            "description": "Who first recorded it."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Check Status."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          }
+        }
+      },
+      "CheckResultHistoryDto": {
+        "type": "object",
+        "description": "One audited change of a Check Result.",
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created`, `updated` or `deleted`."
+          },
+          "actor": {
+            "$ref": "#/components/schemas/CheckActorDto",
+            "description": "Who."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "CheckRoutingDto": {
+        "type": "object",
+        "description": "Who a Check is routed to: its own Analyst, else its group's Analyst, else its group's\nTeam.",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Analyst."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`analyst`, `team` or `nobody`."
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`check` or `group` (where the routing came from)."
+          },
+          "team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Team."
+          }
+        }
+      },
+      "CheckStatusDto": {
+        "type": "object",
+        "description": "A Check Status.",
+        "required": [
+          "id",
+          "name",
+          "colour",
+          "requires_notes",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": "string",
+            "description": "`#rrggbb`, used to colour-code results."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Selectable for new results."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stable key of seeded rows (`green`, `amber`, `red`)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "requires_notes": {
+            "type": "boolean",
+            "description": "Results with this status need notes."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "CheckStatusRequest": {
+        "type": "object",
+        "description": "Creates or changes a Check Status.",
+        "required": [
+          "name",
+          "colour"
+        ],
+        "properties": {
+          "colour": {
+            "type": "string",
+            "description": "`#rrggbb`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (deactivate instead of deleting)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "requires_notes": {
+            "type": "boolean",
+            "description": "Results with this status need notes."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
       "CompanyAccessDto": {
         "type": "object",
         "description": "Company access of an Analyst or Team.",
@@ -14126,6 +15601,19 @@
           "fields": {
             "type": "object",
             "description": "Values by field key."
+          }
+        }
+      },
+      "FollowUpTaskRequest": {
+        "type": "object",
+        "description": "Creates a follow-up Task.",
+        "properties": {
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Title (default: the Check, its status and date)."
           }
         }
       },
@@ -15676,7 +17164,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed`, `article_review_due` or `task_assigned`."
+            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or\n`checks_unrecorded`."
           },
           "read_at": {
             "type": [
@@ -17819,6 +19307,38 @@
           }
         }
       },
+      "RecordCheckResultRequest": {
+        "type": "object",
+        "description": "Records a Check Result.",
+        "required": [
+          "check_id",
+          "status_id"
+        ],
+        "properties": {
+          "check_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Check Date (default today; never after today)."
+          },
+          "check_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Check."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes (required when the status requires them)."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Check Status (active)."
+          }
+        }
+      },
       "RejectedEmailDto": {
         "type": "object",
         "description": "A rejected email.",
@@ -17886,7 +19406,8 @@
           "problems",
           "changes",
           "tasks",
-          "articles"
+          "articles",
+          "check_results"
         ],
         "properties": {
           "articles": {
@@ -17902,6 +19423,13 @@
               "$ref": "#/components/schemas/RelatedRecordDto"
             },
             "description": "Changes (FR-CHG-008)."
+          },
+          "check_results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedRecordDto"
+            },
+            "description": "Morning Check Results it follows up (FR-MCK-004), titled by Check and Check Date."
           },
           "problems": {
             "type": "array",
@@ -18151,6 +19679,60 @@
           "login": {
             "type": "string",
             "description": "Username or email address."
+          }
+        }
+      },
+      "ResultLinkDto": {
+        "type": "object",
+        "description": "A Result Link.",
+        "required": [
+          "kind",
+          "target_id",
+          "reference",
+          "linked_by",
+          "linked_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `task`."
+          },
+          "linked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "linked_by": {
+            "$ref": "#/components/schemas/CheckActorDto",
+            "description": "Who linked it."
+          },
+          "reference": {
+            "type": "string",
+            "description": "Its Ticket Number or Task title."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket or Task."
+          }
+        }
+      },
+      "ResultLinkRequest": {
+        "type": "object",
+        "description": "Links a follow-up record.",
+        "required": [
+          "kind",
+          "target_id"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `task`."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket or Task (same Company)."
           }
         }
       },
@@ -21046,6 +22628,10 @@
     {
       "name": "Service Status",
       "description": "Services, Service Incidents, Incident Updates, Planned Maintenance and the Public Status Page"
+    },
+    {
+      "name": "Morning Checks",
+      "description": "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"
     },
     {
       "name": "Administration",

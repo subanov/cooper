@@ -49,6 +49,7 @@ pub use state::{
         (name = "Knowledge", description = "Knowledge Articles, versions, Folders and access lists"),
         (name = "Tasks", description = "Tasks, Subtasks, the Board and Recurrence"),
         (name = "Service Status", description = "Services, Service Incidents, Incident Updates, Planned Maintenance and the Public Status Page"),
+        (name = "Morning Checks", description = "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
         (name = "Live updates", description = "Server-Sent Events telling the web UI which data changed (ADR-0022)"),
     )
@@ -67,6 +68,7 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_knowledge::api::router())
         .merge(cooper_tasks::api::router())
         .merge(cooper_service_status::api::router())
+        .merge(cooper_morning_checks::api::router())
         .merge(live::router())
         .merge(related::router())
         .split_for_parts()
