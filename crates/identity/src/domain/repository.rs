@@ -346,3 +346,134 @@ pub trait ResetMailer: Send + Sync {
     /// Emails a Portal set-password link (Portal Invitation, reset or Self-Registration).
     async fn send_portal_link(&self, email: &super::PortalLinkEmail) -> Result<(), RepoError>;
 }
+
+/// User Groups and Manager Grants (ADR-0025).
+#[async_trait]
+pub trait GroupRepository: Send + Sync {
+    /// Every User Group.
+    async fn groups(&self) -> Result<Vec<super::UserGroup>, RepoError>;
+    /// Inserts or updates a group.
+    async fn save_group(
+        &self,
+        group: &super::UserGroup,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// The members of a group (expired ones included).
+    async fn members(&self, group: Uuid) -> Result<Vec<super::Membership>, RepoError>;
+    /// Replaces the members of a group.
+    async fn set_members(
+        &self,
+        group: Uuid,
+        members: &[super::Membership],
+        audit: &AuditRecord,
+        now: DateTime<Utc>,
+    ) -> Result<(), RepoError>;
+    /// Current Requester members of every active group.
+    async fn requester_members(
+        &self,
+        now: DateTime<Utc>,
+    ) -> Result<
+        std::collections::BTreeMap<Uuid, std::collections::BTreeSet<cooper_kernel::RequesterId>>,
+        RepoError,
+    >;
+    /// The Manager Grants of a Company.
+    async fn grants(&self, tenant: TenantId) -> Result<Vec<super::ManagerGrant>, RepoError>;
+    /// Stores a grant.
+    async fn add_grant(
+        &self,
+        grant: &super::ManagerGrant,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Removes a grant.
+    async fn remove_grant(
+        &self,
+        grant: &super::ManagerGrant,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Every Requester of a Company, as the Manager rules need them.
+    async fn company_requesters(
+        &self,
+        tenant: TenantId,
+    ) -> Result<Vec<super::RequesterSummary>, RepoError>;
+}
+
+/// What to do with a provider's stored client secret.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SecretChange<'a> {
+    /// Leave it as it is.
+    Keep,
+    /// Replace it.
+    Set(&'a str),
+    /// Remove it (public client with PKCE only).
+    Clear,
+}
+
+/// OIDC providers, sign-ins in progress and linked identities (ADR-0025).
+#[async_trait]
+pub trait SsoRepository: Send + Sync {
+    /// Every provider.
+    async fn providers(&self) -> Result<Vec<super::SsoProvider>, RepoError>;
+    /// Inserts or updates a provider; the secret is encrypted at rest.
+    async fn save_provider(
+        &self,
+        provider: &super::SsoProvider,
+        secret: SecretChange<'_>,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// The decrypted client secret, if any.
+    async fn client_secret(&self, provider: Uuid) -> Result<Option<String>, RepoError>;
+    /// Stores a sign-in in progress.
+    async fn insert_login(&self, login: &super::SsoLogin) -> Result<(), RepoError>;
+    /// Removes and returns a sign-in in progress (single use).
+    async fn take_login(&self, state_hash: &[u8]) -> Result<Option<super::SsoLogin>, RepoError>;
+    /// Who a subject is, if linked.
+    async fn identity(
+        &self,
+        provider: Uuid,
+        audience: super::SsoAudience,
+        subject: &str,
+    ) -> Result<Option<super::SsoIdentity>, RepoError>;
+    /// Links a subject (or records another sign-in of a linked one).
+    async fn link(
+        &self,
+        provider: Uuid,
+        audience: super::SsoAudience,
+        subject: &str,
+        identity: &super::SsoIdentity,
+        now: DateTime<Utc>,
+    ) -> Result<(), RepoError>;
+}
+
+/// Talks to OpenID Connect providers: discovery, the authorization URL, the code
+/// exchange and ID token signature verification (ADR-0025).
+#[async_trait]
+pub trait OidcClient: Send + Sync {
+    /// The URL to send the browser to.
+    async fn authorization_url(
+        &self,
+        provider: &super::SsoProvider,
+        redirect_uri: &str,
+        state: &str,
+        nonce: &str,
+        code_challenge: &str,
+    ) -> Result<String, String>;
+    /// Exchanges the code for tokens and returns the claims of the ID token, whose
+    /// signature has been verified against the provider's keys.
+    async fn exchange(
+        &self,
+        provider: &super::SsoProvider,
+        client_secret: Option<&str>,
+        redirect_uri: &str,
+        code: &str,
+        pkce_verifier: &str,
+    ) -> Result<super::IdClaims, String>;
+}
+
+/// Settings the identity context reads from System Settings.
+#[async_trait]
+pub trait IdentitySettings: Send + Sync {
+    /// The Manager rules.
+    async fn managers(&self) -> super::ManagerSettings;
+    /// Public address of Cooper (`general.base_url`), for the OIDC redirect URI.
+    async fn base_url(&self) -> String;
+}

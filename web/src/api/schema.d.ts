@@ -700,6 +700,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/portal/managed-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tickets of the Requesters the signed-in Requester covers as a Manager (FR-PRT-004),
+         *     newest first. Empty unless Managers are switched on. Open them with
+         *     `GET /portal/tickets/{id}`; replies and attachments stay with each Requester.
+         */
+        get: operations["managed_tickets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portal/password": {
         parameters: {
             query?: never;
@@ -1031,6 +1052,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/requesters/{id}/manager-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Manager Grants of a Requester (needs `requesters.read`). */
+        get: operations["list_grants"];
+        put?: never;
+        /** Adds a Manager Grant or exclusion for a Requester (needs `requesters.manage`). */
+        post: operations["add_grant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/requesters/{id}/manager-grants/{grant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a Manager Grant (needs `requesters.manage`). */
+        delete: operations["remove_grant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/requesters/{id}/portal-invitation": {
         parameters: {
             query?: never;
@@ -1353,6 +1409,95 @@ export interface paths {
         get?: never;
         /** Replaces an SLA Notification Rule. */
         put: operations["update_sla_rule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sso-providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every OIDC provider (Administrators). */
+        get: operations["list_providers"];
+        put?: never;
+        /**
+         * Registers an OIDC provider (Administrators). Register
+         *     `<general.base_url>/api/v1/sso/callback` as its redirect URI.
+         */
+        post: operations["create_provider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sso-providers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes an OIDC provider (Administrators). */
+        put: operations["update_provider"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sso/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Where the provider sends the browser back: signs in and redirects into Cooper. */
+        get: operations["callback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sso/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sign-in buttons for the console (`analysts`) or the Portal (`requesters`). Public. */
+        get: operations["sign_in_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sso/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Starts single sign-on: redirects the browser to the provider. */
+        get: operations["start"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -2195,6 +2340,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every User Group (needs `groups.manage`). */
+        get: operations["list_groups"];
+        put?: never;
+        /** Creates a User Group (needs `groups.manage`). */
+        post: operations["create_group"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes a User Group (needs `groups.manage`). */
+        put: operations["update_group"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-groups/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The members of a User Group, expired ones included. */
+        get: operations["group_members"];
+        /** Replaces the members of a User Group (needs `groups.manage`). */
+        put: operations["set_group_members"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2968,10 +3166,64 @@ export interface components {
              */
             last_success_at?: string | null;
         };
+        /** @description A Manager Grant (FR-IAM-015). */
+        ManagerGrantDto: {
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description An exclusion removes access, whatever granted it. */
+            is_exclusion: boolean;
+            /** @description `everyone`, `requester`, `group`, `cost_centre` or `reports`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description The Requester, User Group or Cost Centre.
+             */
+            target_id?: string | null;
+        };
+        /** @description Adds a Manager Grant or exclusion. */
+        ManagerGrantRequest: {
+            /** @description Exclude instead of grant (`requester`, `group`, `cost_centre` only). */
+            is_exclusion?: boolean;
+            /** @description `everyone`, `requester`, `group`, `cost_centre` or `reports`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description Required for `requester`, `group` and `cost_centre`.
+             */
+            target_id?: string | null;
+        };
+        /** @description One member of a User Group. */
+        MemberDto: {
+            /**
+             * Format: date-time
+             * @description When the membership ends by itself.
+             */
+            expires_at?: string | null;
+            /**
+             * Format: uuid
+             * @description The Analyst or Requester.
+             */
+            id: string;
+            /** @description `analyst` or `requester`. */
+            kind: string;
+        };
         /** @description A set of Analyst IDs. */
         MembersDto: {
             /** @description The members. */
             analyst_ids: string[];
+        };
+        /** @description The new member list of a group. */
+        MembersRequest: {
+            /** @description Members. */
+            members: components["schemas"]["MemberDto"][];
         };
         /** @description Merges this ticket into another. */
         MergeRequest: {
@@ -4003,6 +4255,40 @@ export interface components {
             /** @description Subject of the new ticket (default: the same subject). */
             subject?: string | null;
         };
+        /** @description A sign-in button. */
+        SsoOptionDto: {
+            /** @description Name on the button. */
+            display_name: string;
+            /**
+             * Format: uuid
+             * @description Provider ID (for `/sso/{id}/start`).
+             */
+            id: string;
+        };
+        /** @description An OIDC provider (FR-IAM-012). The client secret is write-only. */
+        SsoProviderDto: {
+            /** @description `analysts`, `requesters` or `both`. */
+            audience: string;
+            /** @description OAuth client ID. */
+            client_id: string;
+            /** @description Name on the sign-in button. */
+            display_name: string;
+            /** @description Whether a secret is stored (output only). */
+            has_client_secret?: boolean;
+            /**
+             * Format: uuid
+             * @description ID (ignored on input).
+             */
+            id?: string;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Issuer URL (`https://…`). */
+            issuer_url: string;
+            /** @description Link a first sign-in by verified email. */
+            link_by_verified_email?: boolean;
+            /** @description Scopes; `openid` is always added. */
+            scopes?: string;
+        };
         /** @description Move a ticket to another status. */
         StatusRequest: {
             /**
@@ -4553,6 +4839,29 @@ export interface components {
              * @description Unread Notifications.
              */
             unread: number;
+        };
+        /** @description A User Group (FR-IAM-016). */
+        UserGroupDto: {
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Inactive groups grant nothing. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+        };
+        /** @description Creates or changes a User Group. */
+        UserGroupRequest: {
+            /** @description Description. */
+            description?: string;
+            /** @description Active (default true). */
+            is_active?: boolean;
+            /** @description Name. */
+            name: string;
         };
         /** @description Another Analyst who has the ticket open (FR-TKT-025). */
         ViewerDto: {
@@ -5786,6 +6095,39 @@ export interface operations {
             };
         };
     };
+    managed_tickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description `true` for open tickets, `false` for closed ones; both when absent. */
+                open: boolean | null;
+                /** @description Page size, 1 to 200 (default 50). */
+                limit: number | null;
+                /** @description Cursor from the previous page. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalTicketPage"];
+                };
+            };
+            /** @description Not signed in to the Portal */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     set_portal_password: {
         parameters: {
             query?: never;
@@ -6486,6 +6828,73 @@ export interface operations {
             };
         };
     };
+    list_grants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerGrantDto"][];
+                };
+            };
+        };
+    };
+    add_grant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManagerGrantRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerGrantDto"];
+                };
+            };
+        };
+    };
+    remove_grant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                grant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     invite_to_portal: {
         parameters: {
             query?: never;
@@ -7155,6 +7564,153 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SlaRuleDto"];
                 };
+            };
+        };
+    };
+    list_providers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoProviderDto"][];
+                };
+            };
+        };
+    };
+    create_provider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SsoProviderDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoProviderDto"];
+                };
+            };
+        };
+    };
+    update_provider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SsoProviderDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoProviderDto"];
+                };
+            };
+        };
+    };
+    callback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Authorization code. */
+                code: string | null;
+                /** @description The state Cooper sent. */
+                state: string | null;
+                /** @description Set when the provider refused. */
+                error: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Signed in; to the page the sign-in started from */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Single sign-on failed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    sign_in_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description `analysts` (default) or `requesters`. */
+                audience: string | null;
+                /** @description Where to go afterwards: a path on this site (default `/` or `/portal`). */
+                return_to: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoOptionDto"][];
+                };
+            };
+        };
+    };
+    start: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                /** @description `analysts` (default) or `requesters`. */
+                audience: string | null;
+                /** @description Where to go afterwards: a path on this site (default `/` or `/portal`). */
+                return_to: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description To the provider */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8728,6 +9284,119 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TimelineItemDto"][];
+                };
+            };
+        };
+    };
+    list_groups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGroupDto"][];
+                };
+            };
+        };
+    };
+    create_group: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserGroupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGroupDto"];
+                };
+            };
+        };
+    };
+    update_group: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserGroupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGroupDto"];
+                };
+            };
+        };
+    };
+    group_members: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberDto"][];
+                };
+            };
+        };
+    };
+    set_group_members: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MembersRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberDto"][];
                 };
             };
         };

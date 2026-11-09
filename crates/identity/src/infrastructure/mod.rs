@@ -3,13 +3,16 @@
 
 mod api_keys;
 mod companies;
+mod groups;
 mod housekeeping;
+mod oidc;
 mod people;
 mod portal;
 mod protection;
 mod requesters;
 mod security;
 mod sessions;
+mod sso;
 
 use std::sync::Arc;
 
@@ -19,6 +22,7 @@ use cooper_platform::db::Tx;
 use sqlx::PgPool;
 
 pub use housekeeping::{IdentityHousekeeping, ReencryptIdentitySecrets};
+pub use oidc::{HttpOidcClient, Jwk, VerifyError, verify_id_token};
 pub use security::{Argon2Hasher, OsTokenGenerator};
 
 use crate::application::IdentityPorts;
@@ -50,6 +54,7 @@ impl PgIdentityStore {
         keyring: Keyring,
         policy: Arc<dyn SecurityPolicyProvider>,
         reset_mailer: Arc<dyn crate::domain::ResetMailer>,
+        settings: Arc<dyn crate::domain::IdentitySettings>,
     ) -> Result<IdentityPorts, RepoError> {
         let store = Arc::new(Self::new(pool, keyring));
         Ok(IdentityPorts {
@@ -67,6 +72,10 @@ impl PgIdentityStore {
             throttle: store.clone(),
             api_keys: store.clone(),
             resets: store.clone(),
+            groups: store.clone(),
+            sso: store.clone(),
+            oidc: Arc::new(HttpOidcClient::new().map_err(RepoError::Storage)?),
+            settings,
             portal: store,
             reset_mailer,
             policy,
@@ -124,6 +133,25 @@ pub struct FixedSecurityPolicy(pub crate::domain::SecurityPolicy);
 impl SecurityPolicyProvider for FixedSecurityPolicy {
     async fn policy(&self) -> crate::domain::SecurityPolicy {
         self.0
+    }
+}
+
+/// Fixed identity settings (tests and tools).
+#[derive(Debug, Clone, Default)]
+pub struct FixedIdentitySettings {
+    /// Manager rules.
+    pub managers: crate::domain::ManagerSettings,
+    /// Public address.
+    pub base_url: String,
+}
+
+#[async_trait::async_trait]
+impl crate::domain::IdentitySettings for FixedIdentitySettings {
+    async fn managers(&self) -> crate::domain::ManagerSettings {
+        self.managers
+    }
+    async fn base_url(&self) -> String {
+        self.base_url.clone()
     }
 }
 

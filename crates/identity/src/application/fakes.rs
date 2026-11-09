@@ -11,6 +11,7 @@ use cooper_kernel::{
     AnalystId, ApiKeyId, AuditRecord, Capability, DepartmentId, FixedClock, RequesterId, TeamId,
     TenantId, TenantScope,
 };
+use uuid::Uuid;
 
 use super::{FirstRunSetup, IdentityPorts, IdentityService, SignIn, SignedIn, capabilities};
 use crate::domain::{
@@ -104,6 +105,10 @@ impl Fakes {
             policy: me.clone(),
             resets: me.clone(),
             portal: me.clone(),
+            groups: me.clone(),
+            sso: me.clone(),
+            oidc: me.clone(),
+            settings: me.clone(),
             reset_mailer: me.clone(),
             hasher: me.clone(),
             tokens: me,
@@ -835,5 +840,139 @@ impl crate::domain::PortalRepository for Fakes {
             .portal_sessions
             .insert(session.token_hash().to_vec(), session.clone());
         Ok(())
+    }
+}
+
+// --- Stubs for ports the unit tests here do not exercise (covered end to end). -------
+
+#[async_trait]
+impl crate::domain::GroupRepository for Fakes {
+    async fn groups(&self) -> Result<Vec<crate::domain::UserGroup>, RepoError> {
+        Ok(Vec::new())
+    }
+    async fn save_group(
+        &self,
+        _: &crate::domain::UserGroup,
+        _: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        Ok(())
+    }
+    async fn members(&self, _: Uuid) -> Result<Vec<crate::domain::Membership>, RepoError> {
+        Ok(Vec::new())
+    }
+    async fn set_members(
+        &self,
+        _: Uuid,
+        _: &[crate::domain::Membership],
+        _: &AuditRecord,
+        _: DateTime<Utc>,
+    ) -> Result<(), RepoError> {
+        Ok(())
+    }
+    async fn requester_members(
+        &self,
+        _: DateTime<Utc>,
+    ) -> Result<std::collections::BTreeMap<Uuid, BTreeSet<cooper_kernel::RequesterId>>, RepoError>
+    {
+        Ok(std::collections::BTreeMap::new())
+    }
+    async fn grants(&self, _: TenantId) -> Result<Vec<crate::domain::ManagerGrant>, RepoError> {
+        Ok(Vec::new())
+    }
+    async fn add_grant(
+        &self,
+        _: &crate::domain::ManagerGrant,
+        _: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        Ok(())
+    }
+    async fn remove_grant(
+        &self,
+        _: &crate::domain::ManagerGrant,
+        _: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        Ok(())
+    }
+    async fn company_requesters(
+        &self,
+        _: TenantId,
+    ) -> Result<Vec<crate::domain::RequesterSummary>, RepoError> {
+        Ok(Vec::new())
+    }
+}
+
+#[async_trait]
+impl crate::domain::SsoRepository for Fakes {
+    async fn providers(&self) -> Result<Vec<crate::domain::SsoProvider>, RepoError> {
+        Ok(Vec::new())
+    }
+    async fn save_provider(
+        &self,
+        _: &crate::domain::SsoProvider,
+        _: crate::domain::SecretChange<'_>,
+        _: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        Ok(())
+    }
+    async fn client_secret(&self, _: Uuid) -> Result<Option<String>, RepoError> {
+        Ok(None)
+    }
+    async fn insert_login(&self, _: &crate::domain::SsoLogin) -> Result<(), RepoError> {
+        Ok(())
+    }
+    async fn take_login(&self, _: &[u8]) -> Result<Option<crate::domain::SsoLogin>, RepoError> {
+        Ok(None)
+    }
+    async fn identity(
+        &self,
+        _: Uuid,
+        _: crate::domain::SsoAudience,
+        _: &str,
+    ) -> Result<Option<crate::domain::SsoIdentity>, RepoError> {
+        Ok(None)
+    }
+    async fn link(
+        &self,
+        _: Uuid,
+        _: crate::domain::SsoAudience,
+        _: &str,
+        _: &crate::domain::SsoIdentity,
+        _: DateTime<Utc>,
+    ) -> Result<(), RepoError> {
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl crate::domain::OidcClient for Fakes {
+    async fn authorization_url(
+        &self,
+        _: &crate::domain::SsoProvider,
+        _: &str,
+        _: &str,
+        _: &str,
+        _: &str,
+    ) -> Result<String, String> {
+        Err("no OIDC in unit tests".into())
+    }
+    async fn exchange(
+        &self,
+        _: &crate::domain::SsoProvider,
+        _: Option<&str>,
+        _: &str,
+        _: &str,
+        _: &str,
+    ) -> Result<crate::domain::IdClaims, String> {
+        Err("no OIDC in unit tests".into())
+    }
+}
+
+#[async_trait]
+impl crate::domain::IdentitySettings for Fakes {
+    async fn managers(&self) -> crate::domain::ManagerSettings {
+        crate::domain::ManagerSettings::default()
+    }
+    async fn base_url(&self) -> String {
+        "http://localhost:8080".into()
     }
 }

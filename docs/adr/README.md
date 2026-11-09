@@ -31,3 +31,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0022](0022-live-updates-over-server-sent-events.md) | Live Updates: PostgreSQL `NOTIFY` in the writing transaction, Server-Sent Events that only invalidate caches | Accepted |
 | [0023](0023-deployment-observability-and-release-pipeline.md) | Signed multi-arch image, separate migrate step, pgBackRest PITR, Prometheus metrics and OTLP traces, release pipeline | Accepted |
 | [0024](0024-ticket-relations-merge-split-fields-and-presence.md) | Ticket relations: Links, Merge and Split with undo, Number History, Type Rules, Ticket Fields and Presence | Accepted |
+| [0025](0025-user-groups-manager-grants-and-oidc.md) | User Groups, Manager Grants for the Portal, and OIDC single sign-on verified with ring | Accepted |

@@ -1856,6 +1856,69 @@
         }
       }
     },
+    "/api/v1/portal/managed-tickets": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Tickets of the Requesters the signed-in Requester covers as a Manager (FR-PRT-004),\nnewest first. Empty unless Managers are switched on. Open them with\n`GET /portal/tickets/{id}`; replies and attachments stay with each Requester.",
+        "operationId": "managed_tickets",
+        "parameters": [
+          {
+            "name": "open",
+            "in": "path",
+            "description": "`true` for open tickets, `false` for closed ones; both when absent.",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size, 1 to 200 (default 50).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor from the previous page.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalTicketPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in to the Portal"
+          }
+        }
+      }
+    },
     "/api/v1/portal/password": {
       "post": {
         "tags": [
@@ -2718,6 +2781,113 @@
         }
       }
     },
+    "/api/v1/requesters/{id}/manager-grants": {
+      "get": {
+        "tags": [
+          "Requesters"
+        ],
+        "summary": "The Manager Grants of a Requester (needs `requesters.read`).",
+        "operationId": "list_grants",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ManagerGrantDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Requesters"
+        ],
+        "summary": "Adds a Manager Grant or exclusion for a Requester (needs `requesters.manage`).",
+        "operationId": "add_grant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManagerGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagerGrantDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/requesters/{id}/manager-grants/{grant_id}": {
+      "delete": {
+        "tags": [
+          "Requesters"
+        ],
+        "summary": "Removes a Manager Grant (needs `requesters.manage`).",
+        "operationId": "remove_grant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "grant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Removed"
+          }
+        }
+      }
+    },
     "/api/v1/requesters/{id}/portal-invitation": {
       "post": {
         "tags": [
@@ -3554,6 +3724,251 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/sso-providers": {
+      "get": {
+        "tags": [
+          "Setup and session"
+        ],
+        "summary": "Every OIDC provider (Administrators).",
+        "operationId": "list_providers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SsoProviderDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Setup and session"
+        ],
+        "summary": "Registers an OIDC provider (Administrators). Register\n`<general.base_url>/api/v1/sso/callback` as its redirect URI.",
+        "operationId": "create_provider",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SsoProviderDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SsoProviderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sso-providers/{id}": {
+      "put": {
+        "tags": [
+          "Setup and session"
+        ],
+        "summary": "Changes an OIDC provider (Administrators).",
+        "operationId": "update_provider",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SsoProviderDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SsoProviderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sso/callback": {
+      "get": {
+        "tags": [
+          "Setup and session"
+        ],
+        "summary": "Where the provider sends the browser back: signs in and redirects into Cooper.",
+        "operationId": "callback",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "Authorization code.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "state",
+            "in": "path",
+            "description": "The state Cooper sent.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "error",
+            "in": "path",
+            "description": "Set when the provider refused.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "Signed in; to the page the sign-in started from"
+          },
+          "401": {
+            "description": "Single sign-on failed"
+          }
+        }
+      }
+    },
+    "/api/v1/sso/providers": {
+      "get": {
+        "tags": [
+          "Setup and session"
+        ],
+        "summary": "Sign-in buttons for the console (`analysts`) or the Portal (`requesters`). Public.",
+        "operationId": "sign_in_options",
+        "parameters": [
+          {
+            "name": "audience",
+            "in": "path",
+            "description": "`analysts` (default) or `requesters`.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "return_to",
+            "in": "path",
+            "description": "Where to go afterwards: a path on this site (default `/` or `/portal`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SsoOptionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sso/{id}/start": {
+      "get": {
+        "tags": [
+          "Setup and session"
+        ],
+        "summary": "Starts single sign-on: redirects the browser to the provider.",
+        "operationId": "start",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "audience",
+            "in": "path",
+            "description": "`analysts` (default) or `requesters`.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "return_to",
+            "in": "path",
+            "description": "Where to go afterwards: a path on this site (default `/` or `/portal`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "303": {
+            "description": "To the provider"
           }
         }
       }
@@ -6037,6 +6452,174 @@
           }
         }
       }
+    },
+    "/api/v1/user-groups": {
+      "get": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Every User Group (needs `groups.manage`).",
+        "operationId": "list_groups",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserGroupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Creates a User Group (needs `groups.manage`).",
+        "operationId": "create_group",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGroupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user-groups/{id}": {
+      "put": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Changes a User Group (needs `groups.manage`).",
+        "operationId": "update_group",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserGroupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGroupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user-groups/{id}/members": {
+      "get": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "The members of a User Group, expired ones included.",
+        "operationId": "group_members",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Teams"
+        ],
+        "summary": "Replaces the members of a User Group (needs `groups.manage`).",
+        "operationId": "set_group_members",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MembersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MemberDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7549,6 +8132,96 @@
           }
         }
       },
+      "ManagerGrantDto": {
+        "type": "object",
+        "description": "A Manager Grant (FR-IAM-015).",
+        "required": [
+          "id",
+          "kind",
+          "is_exclusion",
+          "created_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_exclusion": {
+            "type": "boolean",
+            "description": "An exclusion removes access, whatever granted it."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`everyone`, `requester`, `group`, `cost_centre` or `reports`."
+          },
+          "target_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Requester, User Group or Cost Centre."
+          }
+        }
+      },
+      "ManagerGrantRequest": {
+        "type": "object",
+        "description": "Adds a Manager Grant or exclusion.",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "is_exclusion": {
+            "type": "boolean",
+            "description": "Exclude instead of grant (`requester`, `group`, `cost_centre` only)."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`everyone`, `requester`, `group`, `cost_centre` or `reports`."
+          },
+          "target_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Required for `requester`, `group` and `cost_centre`."
+          }
+        }
+      },
+      "MemberDto": {
+        "type": "object",
+        "description": "One member of a User Group.",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "properties": {
+          "expires_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the membership ends by itself."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Analyst or Requester."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`analyst` or `requester`."
+          }
+        }
+      },
       "MembersDto": {
         "type": "object",
         "description": "A set of Analyst IDs.",
@@ -7563,6 +8236,22 @@
               "format": "uuid"
             },
             "description": "The members."
+          }
+        }
+      },
+      "MembersRequest": {
+        "type": "object",
+        "description": "The new member list of a group.",
+        "required": [
+          "members"
+        ],
+        "properties": {
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberDto"
+            },
+            "description": "Members."
           }
         }
       },
@@ -9801,6 +10490,74 @@
           }
         }
       },
+      "SsoOptionDto": {
+        "type": "object",
+        "description": "A sign-in button.",
+        "required": [
+          "id",
+          "display_name"
+        ],
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "description": "Name on the button."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Provider ID (for `/sso/{id}/start`)."
+          }
+        }
+      },
+      "SsoProviderDto": {
+        "type": "object",
+        "description": "An OIDC provider (FR-IAM-012). The client secret is write-only.",
+        "required": [
+          "display_name",
+          "issuer_url",
+          "client_id",
+          "audience"
+        ],
+        "properties": {
+          "audience": {
+            "type": "string",
+            "description": "`analysts`, `requesters` or `both`."
+          },
+          "client_id": {
+            "type": "string",
+            "description": "OAuth client ID."
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Name on the sign-in button."
+          },
+          "has_client_secret": {
+            "type": "boolean",
+            "description": "Whether a secret is stored (output only)."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID (ignored on input)."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "issuer_url": {
+            "type": "string",
+            "description": "Issuer URL (`https://…`)."
+          },
+          "link_by_verified_email": {
+            "type": "boolean",
+            "description": "Link a first sign-in by verified email."
+          },
+          "scopes": {
+            "type": "string",
+            "description": "Scopes; `openid` is always added."
+          }
+        }
+      },
       "StatusRequest": {
         "type": "object",
         "description": "Move a ticket to another status.",
@@ -10790,6 +11547,56 @@
             "type": "integer",
             "format": "int64",
             "description": "Unread Notifications."
+          }
+        }
+      },
+      "UserGroupDto": {
+        "type": "object",
+        "description": "A User Group (FR-IAM-016).",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "is_active"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Inactive groups grant nothing."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
+      "UserGroupRequest": {
+        "type": "object",
+        "description": "Creates or changes a User Group.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (default true)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
           }
         }
       },

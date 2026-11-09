@@ -42,6 +42,8 @@ rust-embed.workspace = true
 
 [dev-dependencies]
 base64.workspace = true
+ring.workspace = true
+sha2.workspace = true
 lettre.workspace = true
 chrono-tz.workspace = true
 uuid.workspace = true

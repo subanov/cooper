@@ -44,8 +44,8 @@ pub use merge::{
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{
     AnalystProfile, AttachmentInfo, ContentRepository, DepartmentInfo, Directory, ListFilter,
-    MailboxRepository, ReferenceData, RepoError, RequesterContact, RetiredNumber, SlaRepository,
-    SortField, TicketListQuery, TicketRelations, TicketRepository, TicketSettings,
+    MailboxRepository, ManagedTickets, ReferenceData, RepoError, RequesterContact, RetiredNumber,
+    SlaRepository, SortField, TicketListQuery, TicketRelations, TicketRepository, TicketSettings,
     TicketSettingsProvider, TicketSummary, TicketView, Visibility,
 };
 pub use sla::{

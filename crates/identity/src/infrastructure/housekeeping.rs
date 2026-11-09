@@ -73,7 +73,7 @@ impl Job for IdentityHousekeeping {
     }
 }
 
-/// Re-encrypts two-factor secrets written with an older key after a key rotation
+/// Re-encrypts two-factor secrets and SSO client secrets written with an older key after a key rotation
 /// (ADR-0013). Runs every 10 minutes by default; idle when every value uses the active
 /// key.
 #[derive(Debug, Clone)]
@@ -132,6 +132,30 @@ impl Job for ReencryptIdentitySecrets {
             .await?;
             updated += 1;
         }
-        Ok(Some(format!("re-encrypted secrets of {updated} Analysts")))
+        // SSO client secrets (ADR-0025).
+        let providers = sqlx::query!(
+            r#"SELECT id, client_secret_enc AS "secret!" FROM sso_providers
+               WHERE client_secret_enc IS NOT NULL AND client_secret_enc NOT LIKE $1 LIMIT 500"#,
+            active
+        )
+        .fetch_all(&ctx.pool)
+        .await?;
+        let mut sso = 0_u32;
+        for row in providers {
+            let purpose = format!("sso_providers.client_secret:{}", row.id);
+            let plain = self.keyring.decrypt(&purpose, &row.secret)?;
+            let fresh = self.keyring.encrypt(&purpose, &plain)?;
+            sqlx::query!(
+                "UPDATE sso_providers SET client_secret_enc = $2 WHERE id = $1",
+                row.id,
+                fresh
+            )
+            .execute(&ctx.pool)
+            .await?;
+            sso += 1;
+        }
+        Ok(Some(format!(
+            "re-encrypted secrets of {updated} Analysts and {sso} SSO providers"
+        )))
     }
 }

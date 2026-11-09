@@ -2,6 +2,7 @@
 //! Departments, Roles, Requesters and Cost Centres, plus the authentication middleware
 //! every `/api/v1` request passes through (ADR-0011).
 
+mod directory;
 pub mod dto;
 mod handlers;
 mod portal;
@@ -53,7 +54,9 @@ where
     S: Clone + Send + Sync + 'static,
     IdentityApi: FromRef<S>,
 {
-    handlers::router().merge(portal::router())
+    handlers::router()
+        .merge(directory::router())
+        .merge(portal::router())
 }
 
 /// Authentication middleware for `/api/v1`.
@@ -220,7 +223,7 @@ pub(crate) fn cookie(headers: &HeaderMap, name: &str) -> Option<SessionToken> {
 }
 
 /// `Set-Cookie` value that stores `token` until `max_age_secs`.
-fn set_session_cookie(
+pub(super) fn set_session_cookie(
     token: &SessionToken,
     max_age_secs: i64,
     secure: bool,
@@ -373,6 +376,13 @@ impl IntoResponse for ApiError {
                 "setup-completed",
                 "Setup already completed",
                 detail,
+            ),
+            AppError::SsoFailed => typed(
+                StatusCode::UNAUTHORIZED,
+                "sso-failed",
+                "Single sign-on failed",
+                "Single sign-on did not complete. Try again or contact your administrator."
+                    .to_owned(),
             ),
             AppError::Internal => Problem::internal(),
         };

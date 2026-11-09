@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, client_secret_enc AS \"secret!\" FROM sso_providers\n               WHERE client_secret_enc IS NOT NULL AND client_secret_enc NOT LIKE $1 LIMIT 500",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "sso_providers",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "secret!",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "sso_providers",
+            "name": "client_secret_enc"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "79bcbcb27a4f29b7b6271f004d3512fe9b9b544a7ba46c8980474fdf9e43c5ab"
+}

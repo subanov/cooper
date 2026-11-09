@@ -77,7 +77,10 @@ impl PortalSignedIn {
 
 impl IdentityService {
     /// Active Requesters with `email` in active Companies, oldest first.
-    async fn portal_identities(&self, email: &str) -> Result<Vec<PortalIdentity>, AppError> {
+    pub(super) async fn portal_identities(
+        &self,
+        email: &str,
+    ) -> Result<Vec<PortalIdentity>, AppError> {
         let mut identities = Vec::new();
         for requester in self
             .ports
@@ -501,7 +504,7 @@ impl IdentityService {
 }
 
 /// Orders the identities current-first and builds the Requester principal.
-fn signed_in(
+pub(super) fn signed_in(
     session: PortalSession,
     token: Option<SessionToken>,
     email: EmailAddress,

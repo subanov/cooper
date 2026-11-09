@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO sso_identities (provider_id, subject, audience, analyst_id, portal_email, linked_at, last_login_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $6)\n             ON CONFLICT (provider_id, audience, subject) DO UPDATE SET last_login_at = EXCLUDED.last_login_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "223ae2062dc920bbcac47330969689253320031fc3937d9116659d95f9233d71"
+}
