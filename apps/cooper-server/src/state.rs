@@ -177,6 +177,8 @@ pub struct AppState {
     pub knowledge: cooper_knowledge::api::KnowledgeApi,
     /// Tasks API state.
     pub tasks: cooper_tasks::api::TasksApi,
+    /// Service Status API state.
+    pub service_status: cooper_service_status::api::ServiceStatusApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -193,6 +195,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_change_management::application::capabilities::ALL)
         .chain(cooper_knowledge::application::capabilities::ALL)
         .chain(cooper_tasks::application::capabilities::ALL)
+        .chain(cooper_service_status::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -205,6 +208,7 @@ pub fn setting_catalogue() -> Vec<SettingDefinition> {
         .chain(identity_settings::ALL)
         .chain(desk_settings::ALL)
         .chain(cooper_notifications::email::settings::ALL)
+        .chain(cooper_service_status::application::settings::ALL)
         .copied()
         .collect()
 }
@@ -236,6 +240,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_tasks::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Tasks)),
+        )
+        .chain(
+            cooper_service_status::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::ServiceStatus)),
         )
         .collect()
 }
@@ -365,6 +374,21 @@ impl AppState {
                 },
             ),
         };
+        let service_status = cooper_service_status::api::ServiceStatusApi {
+            service: cooper_service_status::application::ServiceStatusService::new(
+                cooper_service_status::application::ServiceStatusPorts {
+                    store: Arc::new(
+                        cooper_service_status::infrastructure::PgServiceStatusStore::new(
+                            pool.clone(),
+                        ),
+                    ),
+                    settings: Arc::new(crate::adapters::StatusPublication {
+                        admin: admin.clone(),
+                    }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let changes = cooper_change_management::api::ChangesApi {
             service: change_service,
             blobs: blobs.clone(),
@@ -398,6 +422,7 @@ impl AppState {
             changes,
             knowledge,
             tasks,
+            service_status,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -499,6 +524,12 @@ impl AppState {
     }
 }
 
+impl FromRef<AppState> for cooper_service_status::api::ServiceStatusApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.service_status.clone()
+    }
+}
+
 impl FromRef<AppState> for cooper_tasks::api::TasksApi {
     fn from_ref(state: &AppState) -> Self {
         state.tasks.clone()
@@ -562,6 +593,7 @@ mod tests {
                 + cooper_change_management::application::capabilities::ALL.len()
                 + cooper_knowledge::application::capabilities::ALL.len()
                 + cooper_tasks::application::capabilities::ALL.len()
+                + cooper_service_status::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

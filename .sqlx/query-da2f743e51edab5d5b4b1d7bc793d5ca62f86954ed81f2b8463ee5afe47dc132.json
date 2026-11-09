@@ -1,0 +1,139 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, incident_id, status_id, body, is_public, author_kind, author_id, posted_at, edited_at\n             FROM status_incident_updates\n             WHERE incident_id = ANY($1) AND (NOT $2 OR is_public) AND ($3 OR tenant_id IS NULL OR tenant_id = ANY($4))\n             ORDER BY posted_at, id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "incident_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "incident_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "body",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "is_public",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "is_public"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "author_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "author_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "author_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "author_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "posted_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "posted_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "edited_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "status_incident_updates",
+            "name": "edited_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray",
+        "Bool",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "da2f743e51edab5d5b4b1d7bc793d5ca62f86954ed81f2b8463ee5afe47dc132"
+}

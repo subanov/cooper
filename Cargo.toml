@@ -21,6 +21,7 @@ cooper-notifications = { path = "crates/notifications" }
 cooper-change-management = { path = "crates/change-management" }
 cooper-knowledge = { path = "crates/knowledge" }
 cooper-tasks = { path = "crates/tasks" }
+cooper-service-status = { path = "crates/service-status" }
 cooper-problem-management = { path = "crates/problem-management" }
 
 # Runtime and web

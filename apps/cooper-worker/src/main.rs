@@ -141,6 +141,11 @@ async fn main() -> anyhow::Result<()> {
                 cooper_knowledge::infrastructure::KnowledgeReviewJob {
                     service: state.knowledge.service.clone(),
                 },
+            ))
+            .with_job(Arc::new(
+                cooper_service_status::infrastructure::PlannedMaintenanceJob {
+                    service: state.service_status.service.clone(),
+                },
             )),
     );
     runner

@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO planned_maintenance_services (tenant_id, planned_maintenance_id, service_id, impact_level_id)\n         SELECT $1, $2, s, l FROM UNNEST($3::uuid[], $4::uuid[]) AS x(s, l)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "UuidArray",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0274a02b4503c7e5ea1449be8badd71c4345282ca57c9127dd6c94afd23c361a"
+}

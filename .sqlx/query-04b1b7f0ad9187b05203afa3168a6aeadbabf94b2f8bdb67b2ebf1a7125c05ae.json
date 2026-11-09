@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE status_incident_updates SET body = $2, is_public = $3, edited_at = $4 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bool",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "04b1b7f0ad9187b05203afa3168a6aeadbabf94b2f8bdb67b2ebf1a7125c05ae"
+}

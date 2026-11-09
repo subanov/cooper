@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM planned_maintenance_services WHERE planned_maintenance_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3c4edb8355c16831d37dded9a17c59eb09a41db38ae9578bd09d2d35e620e174"
+}

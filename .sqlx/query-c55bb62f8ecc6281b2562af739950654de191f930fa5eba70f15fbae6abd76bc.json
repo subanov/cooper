@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT x.service_id, x.impact_level_id\n             FROM status_incident_services x\n             JOIN status_incidents i ON i.id = x.incident_id\n             JOIN service_incident_statuses s ON s.id = i.status_id\n             WHERE NOT s.is_resolved AND ($1 OR i.tenant_id IS NULL OR i.tenant_id = ANY($2))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "service_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_services",
+            "name": "service_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "impact_level_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_services",
+            "name": "impact_level_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "c55bb62f8ecc6281b2562af739950654de191f930fa5eba70f15fbae6abd76bc"
+}

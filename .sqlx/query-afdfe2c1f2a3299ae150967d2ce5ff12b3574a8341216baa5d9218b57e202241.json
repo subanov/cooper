@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT planned_maintenance_id AS \"owner!\", service_id, impact_level_id FROM planned_maintenance_services\n           WHERE planned_maintenance_id = ANY($1)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "owner!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "planned_maintenance_services",
+            "name": "planned_maintenance_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "service_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "planned_maintenance_services",
+            "name": "service_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "impact_level_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "planned_maintenance_services",
+            "name": "impact_level_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "afdfe2c1f2a3299ae150967d2ce5ff12b3574a8341216baa5d9218b57e202241"
+}

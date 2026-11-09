@@ -4499,6 +4499,26 @@
         }
       }
     },
+    "/api/v1/portal/service-status": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "Service Status on the Portal (FR-PRT-006): shared Services and those of your Company,\nPlanned Maintenance and, when shown, Incidents with their public updates.",
+        "operationId": "portal_service_status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusPageDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/portal/session": {
       "get": {
         "tags": [
@@ -5737,6 +5757,29 @@
         }
       }
     },
+    "/api/v1/public/service-status": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "The Public Status Page (FR-SST-009): no sign-in, shared records only, `404` unless\n`service_status.public_page` is on.",
+        "operationId": "public_service_status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusPageDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The page is off"
+          }
+        }
+      }
+    },
     "/api/v1/reply-templates": {
       "get": {
         "tags": [
@@ -6488,6 +6531,847 @@
         "responses": {
           "204": {
             "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/v1/service-status": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "The board: active Services with their Current Status (FR-SST-006).",
+        "operationId": "get_service_status_board",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceStatusRowDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/impact-levels": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Impact Levels, worst first.",
+        "operationId": "list_impact_levels",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ImpactLevelDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Creates an Impact Level (needs `service-status.configure`).",
+        "operationId": "create_impact_level",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImpactLevelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactLevelDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/impact-levels/{id}": {
+      "put": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Changes an Impact Level (needs `service-status.configure`).",
+        "operationId": "update_impact_level",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImpactLevelRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImpactLevelDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/incident-statuses": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Incident Statuses in order.",
+        "operationId": "list_service_incident_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceIncidentStatusDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Creates an Incident Status (needs `service-status.configure`).",
+        "operationId": "create_service_incident_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceIncidentStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceIncidentStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/incident-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Changes an Incident Status (needs `service-status.configure`).",
+        "operationId": "update_service_incident_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceIncidentStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceIncidentStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/incidents": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Service Incidents you can see, newest first.",
+        "operationId": "list_service_incidents",
+        "parameters": [
+          {
+            "name": "open",
+            "in": "path",
+            "description": "Unresolved (`true`) or resolved (`false`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "service_id",
+            "in": "path",
+            "description": "Affecting this Service.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceIncidentPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Opens a Service Incident (needs `service-status.update`).",
+        "operationId": "open_service_incident",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenServiceIncidentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceIncidentDetailDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/incidents/{id}": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "One Service Incident with every update.",
+        "operationId": "get_service_incident",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceIncidentDetailDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Changes the title of a Service Incident (needs `service-status.update`).",
+        "operationId": "retitle_service_incident",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetitleServiceIncidentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceIncidentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/incidents/{id}/updates": {
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Posts an Incident Update (needs `service-status.update`); it must say something new.",
+        "operationId": "post_incident_update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostIncidentUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostedIncidentUpdateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/incidents/{id}/updates/{update_id}": {
+      "put": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Corrects the wording and visibility of an Incident Update (needs\n`service-status.update`); its status and impact snapshot stay as they were.",
+        "operationId": "correct_incident_update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "update_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectIncidentUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentUpdateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/planned-maintenance": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Planned Maintenance you can see, soonest first.",
+        "operationId": "list_planned_maintenance",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "path",
+            "description": "Comma-separated states (default: `scheduled,started`).",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "path",
+            "description": "Page size (1 to 200).",
+            "required": true,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "path",
+            "description": "Cursor.",
+            "required": true,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMaintenancePage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Schedules Planned Maintenance (needs `service-status.update`).",
+        "operationId": "schedule_planned_maintenance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlannedMaintenanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMaintenanceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/planned-maintenance/{id}": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "One Planned Maintenance.",
+        "operationId": "get_planned_maintenance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMaintenanceDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Changes scheduled Planned Maintenance (needs `service-status.update`).",
+        "operationId": "edit_planned_maintenance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlannedMaintenanceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMaintenanceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/planned-maintenance/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Cancels scheduled Planned Maintenance (needs `service-status.update`).",
+        "operationId": "cancel_planned_maintenance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMaintenanceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/planned-maintenance/{id}/finish": {
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Finishes started Planned Maintenance now, resolving its Service Incident unless\nsomeone already did (needs `service-status.update`).",
+        "operationId": "finish_planned_maintenance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMaintenanceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/planned-maintenance/{id}/start": {
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Starts scheduled Planned Maintenance now, opening its Service Incident (needs\n`service-status.update`).",
+        "operationId": "start_planned_maintenance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMaintenanceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/services": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Services you can see, active or not.",
+        "operationId": "list_status_services",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StatusServiceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Creates a Service (needs `service-status.configure`; shared ones need every Company).",
+        "operationId": "create_status_service",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusServiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusServiceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/service-status/services/{id}": {
+      "get": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "One Service.",
+        "operationId": "get_status_service",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusServiceDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Service Status"
+        ],
+        "summary": "Changes or deactivates a Service (needs `service-status.configure`).",
+        "operationId": "update_status_service",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusServiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusServiceDto"
+                }
+              }
+            }
           }
         }
       }
@@ -12980,6 +13864,24 @@
           }
         }
       },
+      "CorrectIncidentUpdateRequest": {
+        "type": "object",
+        "description": "Corrects a posted update.",
+        "required": [
+          "body",
+          "is_public"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "is_public": {
+            "type": "boolean",
+            "description": "Public."
+          }
+        }
+      },
       "CostCentreDto": {
         "type": "object",
         "description": "A Cost Centre.",
@@ -13242,6 +14144,155 @@
           "start": {
             "type": "string",
             "description": "Start, `HH:MM`."
+          }
+        }
+      },
+      "ImpactLevelDto": {
+        "type": "object",
+        "description": "An Impact Level (FR-SST-002).",
+        "required": [
+          "id",
+          "name",
+          "severity_order",
+          "counts_as_downtime",
+          "is_default",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`."
+          },
+          "counts_as_downtime": {
+            "type": "boolean",
+            "description": "Counts towards downtime."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "The all-clear."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stable key of seeded rows."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "severity_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "1 is the worst."
+          }
+        }
+      },
+      "ImpactLevelRequest": {
+        "type": "object",
+        "description": "Creates or changes an Impact Level.",
+        "required": [
+          "name",
+          "severity_order"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`."
+          },
+          "counts_as_downtime": {
+            "type": "boolean",
+            "description": "Counts towards downtime."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "The all-clear."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "severity_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "1 is the worst; unique."
+          }
+        }
+      },
+      "IncidentUpdateDto": {
+        "type": "object",
+        "description": "An Incident Update (FR-SST-005).",
+        "required": [
+          "id",
+          "status_id",
+          "services",
+          "body",
+          "is_public",
+          "author",
+          "posted_at"
+        ],
+        "properties": {
+          "author": {
+            "type": "object",
+            "description": "Who posted it (`{kind, id}`)."
+          },
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "edited_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was last corrected."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_public": {
+            "type": "boolean",
+            "description": "Shown to Requesters and on the Public Status Page."
+          },
+          "posted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it took effect."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceImpactDto"
+            },
+            "description": "The Impact Level on each Service at the time."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Incident Status at the time."
           }
         }
       },
@@ -14680,6 +15731,51 @@
           }
         }
       },
+      "OpenServiceIncidentRequest": {
+        "type": "object",
+        "description": "Opens a Service Incident.",
+        "required": [
+          "title",
+          "services"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Text of the opening update."
+          },
+          "is_public": {
+            "type": "boolean",
+            "description": "Whether the opening update is public (internal by default)."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceImpactDto"
+            },
+            "description": "Affected Services with Impact Levels (all of one Company, or all shared)."
+          },
+          "started_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When the disruption began (now when absent; never in the future)."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Incident Status (default when absent)."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          }
+        }
+      },
       "PageDto_AnalystDto": {
         "type": "object",
         "description": "A page of results with an opaque cursor for the next page.",
@@ -15505,6 +16601,143 @@
           }
         }
       },
+      "PlannedMaintenanceDto": {
+        "type": "object",
+        "description": "A Planned Maintenance (FR-SST-007).",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "planned_start",
+          "planned_end",
+          "state",
+          "services",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company of its Services (`null`: shared)."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Public description, posted when it starts."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "incident_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Service Incident it became."
+          },
+          "planned_end": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Planned end."
+          },
+          "planned_start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Planned start."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceImpactDto"
+            },
+            "description": "Affected Services with Impact Levels."
+          },
+          "state": {
+            "type": "string",
+            "description": "`scheduled`, `started`, `finished` or `cancelled`."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "PlannedMaintenancePage": {
+        "type": "object",
+        "description": "A page of Planned Maintenance.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlannedMaintenanceDto"
+            },
+            "description": "Planned Maintenance, soonest first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "PlannedMaintenanceRequest": {
+        "type": "object",
+        "description": "Schedules or changes Planned Maintenance.",
+        "required": [
+          "title",
+          "planned_start",
+          "planned_end",
+          "services"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Public description."
+          },
+          "planned_end": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Planned end (after the start, in the future)."
+          },
+          "planned_start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Planned start (a start already passed starts it at once)."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceImpactDto"
+            },
+            "description": "Affected Services with Impact Levels (all of one Company, or all shared)."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          }
+        }
+      },
       "PortalArticleDto": {
         "type": "object",
         "description": "An Article as the Portal shows it.",
@@ -15854,6 +17087,56 @@
           "kind": {
             "type": "string",
             "description": "`note` (a public Note from the service desk) or `message` (a reply)."
+          }
+        }
+      },
+      "PostIncidentUpdateRequest": {
+        "type": "object",
+        "description": "Posts an Incident Update.",
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "is_public": {
+            "type": "boolean",
+            "description": "Public (internal by default)."
+          },
+          "services": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ServiceImpactDto"
+            },
+            "description": "New impacts, replacing all (absent: unchanged)."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "New Incident Status."
+          }
+        }
+      },
+      "PostedIncidentUpdateDto": {
+        "type": "object",
+        "description": "The Incident after an update, and the update.",
+        "required": [
+          "incident",
+          "update"
+        ],
+        "properties": {
+          "incident": {
+            "$ref": "#/components/schemas/ServiceIncidentDto",
+            "description": "The Incident now."
+          },
+          "update": {
+            "$ref": "#/components/schemas/IncidentUpdateDto",
+            "description": "The update."
           }
         }
       },
@@ -16331,6 +17614,211 @@
           }
         }
       },
+      "PublicImpactDto": {
+        "type": "object",
+        "description": "An Impact Level as Requesters and the public see it.",
+        "required": [
+          "name",
+          "severity_order"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "severity_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "1 is the worst."
+          }
+        }
+      },
+      "PublicIncidentDto": {
+        "type": "object",
+        "description": "A Service Incident with its public updates, oldest first.",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "is_resolved",
+          "started_at",
+          "services",
+          "updates"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_resolved": {
+            "type": "boolean",
+            "description": "Whether it is over."
+          },
+          "resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Resolved."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicServiceImpactDto"
+            },
+            "description": "Affected Services."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Started."
+          },
+          "status": {
+            "type": "string",
+            "description": "Incident Status name."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicIncidentUpdateDto"
+            },
+            "description": "Public updates."
+          }
+        }
+      },
+      "PublicIncidentUpdateDto": {
+        "type": "object",
+        "description": "A public Incident Update: no author, no internal text.",
+        "required": [
+          "posted_at",
+          "status",
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "Text."
+          },
+          "posted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "status": {
+            "type": "string",
+            "description": "Incident Status name at the time."
+          }
+        }
+      },
+      "PublicMaintenanceDto": {
+        "type": "object",
+        "description": "Scheduled or started Planned Maintenance.",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "planned_start",
+          "planned_end",
+          "state",
+          "services"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "planned_end": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Planned end."
+          },
+          "planned_start": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Planned start."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicServiceImpactDto"
+            },
+            "description": "Affected Services."
+          },
+          "state": {
+            "type": "string",
+            "description": "`scheduled` or `started`."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          }
+        }
+      },
+      "PublicServiceDto": {
+        "type": "object",
+        "description": "A Service with its Current Status, as Requesters and the public see it.",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "status"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "status": {
+            "$ref": "#/components/schemas/PublicImpactDto",
+            "description": "Current Status."
+          }
+        }
+      },
+      "PublicServiceImpactDto": {
+        "type": "object",
+        "description": "The impact on one Service, by name.",
+        "required": [
+          "service",
+          "impact"
+        ],
+        "properties": {
+          "impact": {
+            "$ref": "#/components/schemas/PublicImpactDto",
+            "description": "Impact Level."
+          },
+          "service": {
+            "type": "string",
+            "description": "Service name."
+          }
+        }
+      },
       "RejectedEmailDto": {
         "type": "object",
         "description": "A rejected email.",
@@ -16690,6 +18178,19 @@
           }
         }
       },
+      "RetitleServiceIncidentRequest": {
+        "type": "object",
+        "description": "Renames a Service Incident.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title."
+          }
+        }
+      },
       "RoleDto": {
         "type": "object",
         "description": "A Role.",
@@ -16801,6 +18302,259 @@
           "kind": {
             "type": "string",
             "description": "`interval`, `daily` or `off`."
+          }
+        }
+      },
+      "ServiceImpactDto": {
+        "type": "object",
+        "description": "The Impact Level on one Service.",
+        "required": [
+          "service_id",
+          "impact_level_id"
+        ],
+        "properties": {
+          "impact_level_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Its Impact Level."
+          },
+          "service_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Service."
+          }
+        }
+      },
+      "ServiceIncidentDetailDto": {
+        "type": "object",
+        "description": "A Service Incident with its updates, oldest first.",
+        "required": [
+          "incident",
+          "updates"
+        ],
+        "properties": {
+          "incident": {
+            "$ref": "#/components/schemas/ServiceIncidentDto",
+            "description": "The Incident."
+          },
+          "updates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncidentUpdateDto"
+            },
+            "description": "Its updates."
+          }
+        }
+      },
+      "ServiceIncidentDto": {
+        "type": "object",
+        "description": "A Service Incident (FR-SST-004).",
+        "required": [
+          "id",
+          "title",
+          "status_id",
+          "is_resolved",
+          "services",
+          "started_at",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company of its Services (`null`: shared)."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_resolved": {
+            "type": "boolean",
+            "description": "Whether the status is resolved."
+          },
+          "planned_maintenance_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Planned Maintenance it came from."
+          },
+          "resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was resolved."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceImpactDto"
+            },
+            "description": "The Impact Level on each affected Service now."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the disruption began."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Incident Status."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "ServiceIncidentPage": {
+        "type": "object",
+        "description": "A page of Service Incidents.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceIncidentDto"
+            },
+            "description": "Incidents, newest first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "ServiceIncidentStatusDto": {
+        "type": "object",
+        "description": "An Incident Status (FR-SST-003).",
+        "required": [
+          "id",
+          "name",
+          "is_resolved",
+          "is_default",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Status of new Incidents."
+          },
+          "is_resolved": {
+            "type": "boolean",
+            "description": "The Incident is over."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Stable key of seeded rows."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "ServiceIncidentStatusRequest": {
+        "type": "object",
+        "description": "Creates or changes an Incident Status.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`#rrggbb`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Default."
+          },
+          "is_resolved": {
+            "type": "boolean",
+            "description": "Resolved."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "ServiceStatusRowDto": {
+        "type": "object",
+        "description": "A Service with its Current Status.",
+        "required": [
+          "service",
+          "status"
+        ],
+        "properties": {
+          "service": {
+            "$ref": "#/components/schemas/StatusServiceDto",
+            "description": "The Service."
+          },
+          "status": {
+            "$ref": "#/components/schemas/ImpactLevelDto",
+            "description": "Its Current Status: the worst unresolved impact, or the default (FR-SST-006)."
           }
         }
       },
@@ -17320,6 +19074,38 @@
           }
         }
       },
+      "StatusPageDto": {
+        "type": "object",
+        "description": "A status page (Portal or public).",
+        "required": [
+          "services",
+          "incidents",
+          "planned_maintenance"
+        ],
+        "properties": {
+          "incidents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicIncidentDto"
+            },
+            "description": "Incidents with public updates (only when shown; FR-PRT-006)."
+          },
+          "planned_maintenance": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicMaintenanceDto"
+            },
+            "description": "Scheduled and started Planned Maintenance, soonest first."
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicServiceDto"
+            },
+            "description": "Active Services with their Current Status, in order."
+          }
+        }
+      },
       "StatusRequest": {
         "type": "object",
         "description": "Move a ticket to another status.",
@@ -17347,6 +19133,95 @@
             "type": "string",
             "format": "uuid",
             "description": "New status."
+          }
+        }
+      },
+      "StatusServiceDto": {
+        "type": "object",
+        "description": "A Service (FR-SST-001).",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "sort_order",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (`null`: shared with every Company)."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Shown and selectable."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "StatusServiceRequest": {
+        "type": "object",
+        "description": "Creates or changes a Service.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only; absent: shared with every Company)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Shown and selectable (deactivate instead of deleting)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
           }
         }
       },
@@ -19167,6 +21042,10 @@
     {
       "name": "Tasks",
       "description": "Tasks, Subtasks, the Board and Recurrence"
+    },
+    {
+      "name": "Service Status",
+      "description": "Services, Service Incidents, Incident Updates, Planned Maintenance and the Public Status Page"
     },
     {
       "name": "Administration",

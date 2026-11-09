@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO impact_levels (id, key, name, colour, severity_order, counts_as_downtime, is_default, is_active,\n                                        created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, colour = EXCLUDED.colour,\n                 severity_order = EXCLUDED.severity_order, counts_as_downtime = EXCLUDED.counts_as_downtime,\n                 is_default = EXCLUDED.is_default, is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Int4",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "2eaf53adc3066586d030b17c0ea45624ac6a6d56dcc93500ae6c47e76ca20b44"
+}

@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE planned_maintenances SET title = $2, description = $3, planned_start = $4, planned_end = $5, state = $6,\n                    incident_id = $7, updated_at = $8\n             WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "eac723a1c9ee672e6b4fc0882ae12422add7f062cae781732967ccef14d0e473"
+}
