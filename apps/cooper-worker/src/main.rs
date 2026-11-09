@@ -120,39 +120,12 @@ async fn main() -> anyhow::Result<()> {
         },
     )
     .context("failed to initialise application services")?;
-    let runner = Arc::new(
-        JobRunner::new(pool.clone(), clock.clone(), worker_id.clone())
-            .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days)))
-            .with_job(Arc::new(PruneSystemLog::new(
-                config.system_log_retention_days,
-            )))
-            .with_job(Arc::new(IdentityHousekeeping))
-            .with_job(Arc::new(SlaMonitor))
-            .with_job(Arc::new(PrunePresence))
-            .with_job(Arc::new(EmailSender::new(transport)))
-            .with_job(Arc::new(ReencryptIdentitySecrets::new(
-                config.keyring.clone(),
-            )))
-            .with_job(Arc::new(ReencryptMailboxSecrets::new(
-                config.keyring.clone(),
-            )))
-            .with_job(Arc::new(state.mailbox_poller()))
-            .with_job(Arc::new(
-                cooper_knowledge::infrastructure::KnowledgeReviewJob {
-                    service: state.knowledge.service.clone(),
-                },
-            ))
-            .with_job(Arc::new(
-                cooper_service_status::infrastructure::PlannedMaintenanceJob {
-                    service: state.service_status.service.clone(),
-                },
-            ))
-            .with_job(Arc::new(
-                cooper_morning_checks::infrastructure::MorningCheckReminderJob {
-                    service: state.morning_checks.service.clone(),
-                },
-            )),
-    );
+    let runner = Arc::new(with_jobs(
+        JobRunner::new(pool.clone(), clock.clone(), worker_id.clone()),
+        &state,
+        &config,
+        transport,
+    ));
     runner
         .register_all()
         .await
@@ -188,6 +161,49 @@ async fn main() -> anyhow::Result<()> {
     while tasks.join_next().await.is_some() {}
     tracing::info!("cooper-worker stopped");
     Ok(())
+}
+
+/// Adds every Background Job the worker runs to `runner`.
+fn with_jobs(
+    runner: JobRunner,
+    state: &AppState,
+    config: &WorkerConfig,
+    transport: Option<Arc<dyn MailTransport>>,
+) -> JobRunner {
+    runner
+        .with_job(Arc::new(PruneJobRuns::new(config.job_run_retention_days)))
+        .with_job(Arc::new(PruneSystemLog::new(
+            config.system_log_retention_days,
+        )))
+        .with_job(Arc::new(IdentityHousekeeping))
+        .with_job(Arc::new(SlaMonitor))
+        .with_job(Arc::new(PrunePresence))
+        .with_job(Arc::new(EmailSender::new(transport)))
+        .with_job(Arc::new(ReencryptIdentitySecrets::new(
+            config.keyring.clone(),
+        )))
+        .with_job(Arc::new(ReencryptMailboxSecrets::new(
+            config.keyring.clone(),
+        )))
+        .with_job(Arc::new(state.mailbox_poller()))
+        .with_job(Arc::new(
+            cooper_knowledge::infrastructure::KnowledgeReviewJob {
+                service: state.knowledge.service.clone(),
+            },
+        ))
+        .with_job(Arc::new(
+            cooper_service_status::infrastructure::PlannedMaintenanceJob {
+                service: state.service_status.service.clone(),
+            },
+        ))
+        .with_job(Arc::new(cooper_tasks::infrastructure::TaskRecurrenceJob {
+            service: state.tasks.service.clone(),
+        }))
+        .with_job(Arc::new(
+            cooper_morning_checks::infrastructure::MorningCheckReminderJob {
+                service: state.morning_checks.service.clone(),
+            },
+        ))
 }
 
 async fn job_loop(
@@ -292,4 +308,60 @@ async fn shutdown_signal() {
         () = terminate => {},
     }
     tracing::info!("shutdown signal received");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_config() -> WorkerConfig {
+        WorkerConfig {
+            database: DatabaseConfig {
+                url: config::Secret::new("postgres://localhost/unused".to_owned()),
+                max_connections: 1,
+            },
+            tick: Duration::from_secs(1),
+            outbox_batch_size: 100,
+            job_run_retention_days: 30,
+            system_log_retention_days: 30,
+            keyring: Keyring::ephemeral().unwrap(),
+            smtp_url: None,
+            blob_dir: std::path::PathBuf::from("data/blobs"),
+            log_format: LogFormat::default(),
+            metrics_addr: None,
+        }
+    }
+
+    /// Regression: `task-recurrence` was defined but never registered, so recurring
+    /// Tasks were never made (FR-TSK-006).
+    #[tokio::test]
+    async fn worker_registers_every_background_job() {
+        let pool = sqlx::PgPool::connect_lazy("postgres://localhost/unused").unwrap();
+        let state = AppState::new(pool.clone()).unwrap();
+        let clock: Arc<dyn Clock> = Arc::new(SystemClock);
+        let runner = with_jobs(
+            JobRunner::new(pool, clock, "test"),
+            &state,
+            &test_config(),
+            None,
+        );
+        let mut names: Vec<&str> = runner.job_names().collect();
+        names.sort_unstable();
+        let expected = [
+            "email-sender",
+            "identity-housekeeping",
+            "identity-secrets-reencrypt",
+            "job-run-history-prune",
+            "knowledge-review",
+            "mailbox-poll",
+            "mailbox-secrets-reencrypt",
+            "morning-check-reminders",
+            "planned-maintenance",
+            "sla-monitor",
+            "system-log-prune",
+            "task-recurrence",
+            "ticket-presence-prune",
+        ];
+        assert_eq!(names, expected);
+    }
 }
