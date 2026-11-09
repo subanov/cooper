@@ -1,0 +1,135 @@
+# Single-host production deployment of Cooper (ADR-0023, docs/runbooks/deployment.md).
+#
+#   cp .env.example .env && $EDITOR .env      # domain, passwords, encryption key, version
+#   docker compose up -d --build              # Caddy (HTTPS) → server, worker, PostgreSQL
+#   scripts/backup.sh                         # schedule daily (docs/runbooks/backup-and-restore.md)
+#
+# Services:
+#   caddy     reverse proxy with automatic Let's Encrypt certificates (ports 80 and 443).
+#   postgres  PostgreSQL 18 with pgBackRest WAL archiving (point-in-time recovery).
+#   migrate   `cooper-server migrate` as the owner role; runs to completion before
+#             server and worker start, on every `up` (a no-op when nothing is pending).
+#   server    cooper-server, reachable only through Caddy.
+#   worker    cooper-worker (background jobs, outbox, mailbox polling).
+#
+# Only Caddy publishes ports. Metrics (COOPER_METRICS_ADDR) stay on the internal network.
+name: cooper
+
+x-cooper-image: &cooper-image ${COOPER_IMAGE:-ghcr.io/subanov/cooper}:${COOPER_VERSION:?set COOPER_VERSION}
+
+x-cooper-env: &cooper-env
+  COOPER_DATABASE_URL: postgres://cooper_app:${COOPER_APP_DB_PASSWORD:?}@postgres:5432/cooper
+  COOPER_DATABASE_MAX_CONNECTIONS: ${COOPER_DATABASE_MAX_CONNECTIONS:-10}
+  COOPER_ENCRYPTION_KEYS: ${COOPER_ENCRYPTION_KEYS:?set COOPER_ENCRYPTION_KEYS}
+  COOPER_SECURE_COOKIES: "true"
+  # Caddy's address on the internal network; X-Forwarded-For from it is trusted.
+  COOPER_TRUSTED_PROXIES: 172.30.0.0/24
+  COOPER_BLOB_DIR: /var/lib/cooper/blobs
+  COOPER_SMTP_URL: ${COOPER_SMTP_URL:-}
+  COOPER_LOG_FORMAT: json
+  COOPER_METRICS_ADDR: ${COOPER_METRICS_ADDR:-}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  RUST_LOG: ${RUST_LOG:-info,sqlx=warn}
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    environment:
+      COOPER_DOMAIN: ${COOPER_DOMAIN:?set COOPER_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      cooper:
+        ipv4_address: 172.30.0.10
+    depends_on:
+      server:
+        condition: service_healthy
+
+  postgres:
+    build: ./postgres
+    image: cooper-postgres:18
+    restart: unless-stopped
+    shm_size: 256mb
+    environment:
+      POSTGRES_USER: cooper
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: cooper
+      COOPER_APP_DB_PASSWORD: ${COOPER_APP_DB_PASSWORD:?set COOPER_APP_DB_PASSWORD}
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=pgbackrest --stanza=cooper archive-push %p
+      - -c
+      - archive_timeout=300
+      - -c
+      - max_wal_senders=3
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - pgbackrest:/var/lib/pgbackrest
+    networks: [cooper]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cooper -d cooper"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  migrate:
+    image: *cooper-image
+    command: ["/usr/local/bin/cooper-server", "migrate"]
+    environment:
+      DATABASE_URL: postgres://cooper:${POSTGRES_PASSWORD:?}@postgres:5432/cooper
+      COOPER_LOG_FORMAT: json
+    networks: [cooper]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  server:
+    image: *cooper-image
+    restart: unless-stopped
+    environment: *cooper-env
+    volumes:
+      - blobs:/var/lib/cooper/blobs
+    networks: [cooper]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  worker:
+    image: *cooper-image
+    restart: unless-stopped
+    command: ["/usr/local/bin/cooper-worker"]
+    healthcheck:
+      disable: true
+    environment: *cooper-env
+    volumes:
+      - blobs:/var/lib/cooper/blobs
+    networks: [cooper]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+networks:
+  cooper:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+
+volumes:
+  pgdata:
+  pgbackrest:
+  blobs:
+  caddy-data:
+  caddy-config:

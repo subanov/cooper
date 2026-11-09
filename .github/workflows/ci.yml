@@ -48,6 +48,9 @@ jobs:
   test:
     name: Test (PostgreSQL 18)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     services:
       postgres:
         image: postgres:18-alpine
@@ -80,9 +83,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          components: llvm-tools-preview
       - uses: taiki-e/install-action@v2
         with:
-          tool: cargo-nextest
+          tool: cargo-nextest,cargo-llvm-cov
       - name: Install sqlx-cli
         run: |
           if ! sqlx --version 2>/dev/null | grep -q "$SQLX_CLI_VERSION"; then
@@ -95,8 +100,25 @@ jobs:
         run: for i in $(seq 1 60); do (echo > /dev/tcp/localhost/3143) 2>/dev/null && exit 0; sleep 1; done; exit 1
       - name: Check .sqlx offline data is up to date
         run: cargo sqlx prepare --workspace --check -- --all-targets --all-features
-      - name: Tests
-        run: cargo nextest run --workspace --all-features --locked --no-fail-fast
+      - name: Tests (with coverage, #84)
+        run: |
+          cargo llvm-cov nextest --workspace --all-features --locked --no-fail-fast \
+            --lcov --output-path lcov.info
+      - name: Coverage summary
+        if: always() && hashFiles('lcov.info') != ''
+        run: scripts/coverage-summary.sh lcov.info | tee coverage.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Coverage comment on the pull request
+        if: always() && hashFiles('coverage.md') != '' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: marocchino/sticky-pull-request-comment@v3.0.5
+        with:
+          header: coverage
+          path: coverage.md
+      - uses: actions/upload-artifact@v7
+        if: always() && hashFiles('lcov.info') != ''
+        with:
+          name: coverage-lcov
+          path: lcov.info
+          retention-days: 14
       - name: Doc tests
         run: cargo test --workspace --all-features --locked --doc
 
@@ -130,8 +152,12 @@ jobs:
         run: cargo machete
 
   docker:
-    name: Docker image builds
+    name: Docker image (build, smoke test, Trivy scan)
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
@@ -140,7 +166,8 @@ jobs:
         with:
           context: .
           target: runtime
-          push: false
+          load: true
+          tags: cooper:ci
           cache-from: type=gha,scope=runtime
           cache-to: type=gha,scope=runtime,mode=max
       - name: Build migrate image
@@ -149,8 +176,76 @@ jobs:
           context: .
           target: migrate
           push: false
-          cache-from: type=gha,scope=migrate
-          cache-to: type=gha,scope=migrate,mode=max
+          cache-from: type=gha,scope=runtime
+      - name: Smoke test (binaries run in distroless, OCI labels present)
+        run: |
+          docker run --rm cooper:ci /usr/local/bin/cooper-server openapi > /dev/null
+          docker inspect cooper:ci --format '{{ index .Config.Labels "org.opencontainers.image.source" }}' | grep -q github.com
+          docker inspect cooper:ci --format '{{ json .Config.Healthcheck }}' | grep -q healthcheck
+      # Third-party action with access to the image: pinned to a commit, not a tag.
+      - name: Scan image for vulnerabilities (#90)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: cooper:ci
+          format: sarif
+          output: trivy.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+      - name: Upload scan results to code scanning
+        # Needs code scanning (GitHub Advanced Security on a private repository); the
+        # table scan below enforces the same severity gate without it.
+        if: always() && vars.CODE_SCANNING_ENABLED == 'true' && hashFiles('trivy.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy.sarif
+          category: trivy-image
+      - name: Fail on fixable critical or high vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: cooper:ci
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          skip-setup-trivy: true
+
+  sbom:
+    name: SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          cache: false
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-cyclonedx
+      - name: Generate SBOMs for the binaries (#90)
+        run: |
+          cargo cyclonedx --format json --all-features --spec-version 1.5 \
+            --manifest-path apps/cooper-server/Cargo.toml
+          cargo cyclonedx --format json --all-features --spec-version 1.5 \
+            --manifest-path apps/cooper-worker/Cargo.toml
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sbom-cyclonedx
+          path: apps/*/*.cdx.json
+          retention-days: 30
+
+  backup-restore:
+    name: Backup and point-in-time restore (pgBackRest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate the single-host compose file
+        working-directory: deploy/single-host
+        run: |
+          cp .env.example .env
+          sed -i 's/^POSTGRES_PASSWORD=$/POSTGRES_PASSWORD=x/; s/^COOPER_APP_DB_PASSWORD=$/COOPER_APP_DB_PASSWORD=x/; s/^COOPER_ENCRYPTION_KEYS=$/COOPER_ENCRYPTION_KEYS=x/' .env
+          docker compose config --quiet
+          rm .env
+      - name: Back up, then restore to a point in time (#93)
+        run: deploy/single-host/scripts/test-restore.sh
 
   # --- Web UI (web/, ADR-0010) ---------------------------------------------------------------
 
