@@ -845,6 +845,7 @@ dependencies = [
  "cooper-server",
  "cooper-service-desk",
  "cooper-service-status",
+ "cooper-tasks",
  "sqlx",
  "tokio",
  "tracing",
