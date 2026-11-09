@@ -82,6 +82,7 @@ pub async fn authenticate(
     if let Some(key) = bearer_key(request.headers()) {
         return match api.service.authenticate_api_key(&key).await {
             Ok(principal) => {
+                record_actor(&principal);
                 request.extensions_mut().insert(principal);
                 next.run(request).await
             }
@@ -104,6 +105,7 @@ pub async fn authenticate(
             if totp_enrollment_required && !enrollment_allowed(request.uri().path()) {
                 return enrollment_problem().into_response();
             }
+            record_actor(&principal);
             request.extensions_mut().insert(principal);
             request.extensions_mut().insert(CurrentSession(session));
             request
@@ -114,6 +116,16 @@ pub async fn authenticate(
         Err(AppError::Unauthenticated) => next.run(request).await,
         Err(err) => ApiError(err).into_response(),
     }
+}
+
+/// Records who is calling on the request span (`kind:id`, never names; ADR-0023).
+fn record_actor(principal: &cooper_kernel::Principal) {
+    let actor = principal.actor();
+    let value = actor.id().map_or_else(
+        || actor.kind().to_string(),
+        |id| format!("{}:{id}", actor.kind()),
+    );
+    tracing::Span::current().record("actor", value);
 }
 
 /// Resolves the Portal session cookie; Analyst sessions and API keys are ignored here.
@@ -132,6 +144,7 @@ async fn authenticate_portal(api: &IdentityApi, mut request: Request, next: Next
             {
                 return csrf_problem().into_response();
             }
+            record_actor(&signed_in.principal);
             request.extensions_mut().insert(signed_in.principal.clone());
             request
                 .extensions_mut()

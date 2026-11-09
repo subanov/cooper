@@ -35,9 +35,9 @@ image tag="cooper:dev":
 db:
     docker compose up -d --wait postgres
 
-# Apply migrations.
+# Apply migrations (as production does: `cooper-server migrate` with DATABASE_URL).
 migrate:
-    cargo sqlx migrate run
+    cargo run -q -p cooper-server -- migrate
 
 # Refresh offline query data (.sqlx/). Commit the result.
 prepare:
@@ -58,6 +58,16 @@ server:
 # Run background jobs.
 worker:
     cargo run -p cooper-worker
+
+# Test coverage like CI (cargo-llvm-cov + nextest): HTML report in target/llvm-cov/html.
+coverage:
+    cargo llvm-cov nextest --workspace --all-features --html
+    cargo llvm-cov report --lcov --output-path lcov.info
+    scripts/coverage-summary.sh lcov.info
+
+# Back up and restore PostgreSQL to a point in time with pgBackRest (needs Docker).
+restore-test:
+    deploy/single-host/scripts/test-restore.sh
 
 # Licence, advisory and source checks.
 deny:

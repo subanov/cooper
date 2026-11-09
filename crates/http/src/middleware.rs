@@ -45,7 +45,7 @@ impl Default for HttpConfig {
 }
 
 /// Wraps `router` in the standard stack, outermost first: request ID → tracing →
-/// request ID propagation → panic → problem+json for bare errors → CORS → compression →
+/// request ID propagation → metrics → panic → problem+json for bare errors → CORS → compression →
 /// timeout → body limit.
 pub fn apply<S>(router: Router<S>, config: &HttpConfig) -> Router<S>
 where
@@ -72,15 +72,20 @@ where
                         .get(REQUEST_ID_HEADER)
                         .and_then(|v| v.to_str().ok())
                         .unwrap_or("");
+                    // `actor` and `tenant` are filled in once known (authentication,
+                    // tenant-scoped transactions); they are IDs, never names or emails.
                     tracing::info_span!(
                         "http_request",
                         method = %req.method(),
                         path = %req.uri().path(),
                         request_id,
+                        actor = tracing::field::Empty,
+                        tenant = tracing::field::Empty,
                     )
                 }),
             )
             .layer(PropagateRequestIdLayer::new(request_id))
+            .layer(axum::middleware::from_fn(crate::metrics::record))
             .layer(CatchPanicLayer::custom(panic_response))
             .layer(axum::middleware::map_response(problem_for_bare_errors))
             .layer(cors)

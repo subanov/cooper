@@ -1,23 +1,49 @@
-name: Release images
+name: Release
 
-# Publishes the runtime and migrate images to GitHub Container Registry when a `v*` tag is pushed.
+# Runs when a `vX.Y.Z` tag is pushed (docs/runbooks/releasing.md, #86):
+#   1. checks the tag matches the workspace version in Cargo.toml;
+#   2. builds the runtime and migrate images for linux/amd64 and linux/arm64, pushes them
+#      to GitHub Container Registry with an SBOM and provenance attestation, and signs them
+#      with cosign (keyless, GitHub OIDC);
+#   3. creates the GitHub release with notes from git-cliff and the CycloneDX SBOMs.
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["v*.*.*"]
 
 permissions:
   contents: read
-  packages: write
 
 env:
   REGISTRY: ghcr.io
   IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
-  publish:
-    name: Publish ${{ matrix.target }}
+  verify:
+    name: Tag matches the workspace version
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n1)"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::tag v$tag does not match Cargo.toml version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  images:
+    name: Publish ${{ matrix.target }} image
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # cosign keyless signing
     strategy:
       matrix:
         include:
@@ -28,6 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
+      - uses: sigstore/cosign-installer@v4.1.3
       - uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
@@ -40,12 +67,67 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-      - uses: docker/build-push-action@v7
+      - id: created
+        run: echo "at=$(git log -1 --format=%cI)" >> "$GITHUB_OUTPUT"
+      - id: build
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: ${{ matrix.target }}
+          # The Dockerfile cross-compiles, so arm64 needs no emulation.
+          platforms: linux/amd64,linux/arm64
           push: true
+          sbom: true
+          provenance: mode=max
+          build-args: |
+            VERSION=${{ needs.verify.outputs.version }}
+            REVISION=${{ github.sha }}
+            CREATED=${{ steps.created.outputs.at }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.target }}
-          cache-to: type=gha,scope=${{ matrix.target }},mode=max
+          cache-from: type=gha,scope=release-${{ matrix.target }}
+          cache-to: type=gha,scope=release-${{ matrix.target }},mode=max
+      - name: Sign the image (keyless)
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          for tag in $TAGS; do
+            cosign sign --yes "${tag%%:*}@${DIGEST}"
+          done
+
+  github-release:
+    name: GitHub release
+    needs: [verify, images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          cache: false
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-cyclonedx
+      - name: SBOMs (CycloneDX)
+        run: |
+          for app in cooper-server cooper-worker; do
+            cargo cyclonedx --format json --all-features --spec-version 1.5 \
+              --manifest-path "apps/$app/Cargo.toml"
+            cp "apps/$app/$app.cdx.json" "$app-${{ needs.verify.outputs.version }}.cdx.json"
+          done
+      - name: Release notes
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: RELEASE_NOTES.md
+      - uses: softprops/action-gh-release@v3
+        with:
+          body_path: RELEASE_NOTES.md
+          files: "*.cdx.json"
+          prerelease: ${{ contains(github.ref_name, '-') }}
