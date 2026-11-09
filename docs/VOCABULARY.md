@@ -62,6 +62,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 |---|---|---|---|
 | **Ticket** | The core record of a request for help or report of a fault. The Ticket Type classifies it (incident, service request, …). | `Ticket`, `tickets` | case, issue, call, job |
 | **Ticket Number** | The human-readable, unique reference of a ticket, built from the `tickets.number_format` setting (tokens `{COMPANY}`, `{TYPE}`, `{YEAR}`, `{SEQ:n}`; one sequence per Company). Old numbers remain valid after renumbering (Ticket Number History). | `NumberFormat`, `tickets.ticket_number` | ref, ID (ID is the internal UUID) |
+| **Ticket Number History** | Numbers a ticket had before it was renumbered. They still find the ticket (by number, in search and in SDREF replies). | `RetiredNumber`, `ticket_number_history` | old reference |
 | **SDREF** | The tag `[SDREF:<ticket number>]` placed in the subject of outbound emails. When a reply arrives, Cooper uses this tag to thread it onto the existing ticket. | `SdRef` | |
 | **Ticket Status** | Lifecycle state of a ticket. Flags: `is_closed`, `pauses_sla`, `is_default`. Seed: **Open** (default), **In Progress**, **On Hold** (pauses SLA), **Awaiting Response** (pauses SLA), **Closed** (closed). | `TicketStatus`, `ticket_statuses` | state, stage |
 | **Ticket Priority** | Urgency of a ticket. Carries the SLA targets: response minutes, resolution minutes and SLA Calendar. Seed: **Low**, **Normal** (default), **High**, **Critical**, **Urgent**. | `TicketPriority`, `ticket_priorities` | severity (Severity is used for monitoring events) |
@@ -79,9 +80,9 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Reply** | An outbound message to the Requester on a ticket (email or chat). | `Reply` | response |
 | **Time Entry** | Minutes an Analyst spent on a ticket (or task). | `TimeEntry` | timesheet line |
 | **Snooze** | Hide a ticket from active views until a set time, with a reason. | `Ticket::snooze()` | park, defer |
-| **Merge** | Combine one ticket into another (`merged_into_id`). Can be undone. | `TicketMerge` | |
-| **Split** | Create a new ticket from part of an existing one. Can be undone. | `TicketSplit` | |
-| **Ticket Link** | A relationship between tickets. Relation type (fixed): `related`, `duplicate`, `parent`. | `TicketLink` | |
+| **Merge** | Combine one ticket into another (the survivor): its emails, Notes, Time Entries and attachments move, it is closed as a duplicate, keeps its number and points at the survivor (`merged_into_id`). Can be undone. | `TicketMerge`, `ticket_merges` | |
+| **Split** | Move selected emails and Notes of a ticket to a new ticket; a Note on the original says where they went. Can be undone until the new ticket has activity of its own. | `TicketSplit`, `ticket_splits` | |
+| **Ticket Link** | A relationship between tickets of one Company. Stored kind (fixed): `related`, `duplicate`, `parent`; seen from a ticket as `related`, `duplicate_of`, `duplicated_by`, `parent_of` or `child_of`. | `TicketLink`, `LinkRelation` | |
 | **First Time Fix** | Flag: the ticket was resolved on first contact. | `Ticket::first_time_fix` | FCR |
 | **Training Provided** | Flag: IT training was given as part of the ticket. | `Ticket::it_training_provided` | |
 | **Ticket Field** | An administrator-defined custom field on tickets. Can be required on create or on close, and can be asked of the Requester. | `TicketField` | custom attribute |

@@ -1461,7 +1461,7 @@
           "Live updates"
         ],
         "summary": "Live Updates for the signed-in Analyst (Server-Sent Events, ADR-0022).",
-        "description": "Events: `ready` once changes are being received (refetch on every `ready` after the\nfirst: changes may have been missed while disconnected); `invalidate` with\n`{\"topic\":\"ticket\",\"id\":\"…\"}` when a ticket the Analyst may see changed; `resync`\nwhen everything should be read again. Events never contain record data.\n\nNeeds the Analyst session cookie; API keys and Portal sessions are refused.",
+        "description": "Events: `ready` once changes are being received (refetch on every `ready` after the\nfirst: changes may have been missed while disconnected); `invalidate` with\n`{\"topic\":\"ticket\"|\"ticket_presence\",\"id\":\"…\"}` when a ticket the Analyst may see\n(or who has it open) changed; `resync`\nwhen everything should be read again. Events never contain record data.\n\nNeeds the Analyst session cookie; API keys and Portal sessions are refused.",
         "operationId": "live_updates",
         "responses": {
           "200": {
@@ -2058,6 +2058,32 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/ticket-fields": {
+      "get": {
+        "tags": [
+          "Portal"
+        ],
+        "summary": "The Ticket Fields to ask on the new ticket form (FR-TKT-029). Send answers in\n`fields` by key; fields marked `required_on_create` must be answered.",
+        "operationId": "portal_ticket_fields",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketFieldDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in to the Portal"
           }
         }
       }
@@ -3993,6 +4019,129 @@
         }
       }
     },
+    "/api/v1/ticket-fields": {
+      "get": {
+        "tags": [
+          "Ticket reference data"
+        ],
+        "summary": "Every Ticket Field, active and retired (needs `tickets.read`).",
+        "operationId": "list_fields",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketFieldDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ticket reference data"
+        ],
+        "summary": "Defines a Ticket Field (needs `tickets.configure`).",
+        "operationId": "create_field",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketFieldDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketFieldDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ticket-fields/{id}": {
+      "put": {
+        "tags": [
+          "Ticket reference data"
+        ],
+        "summary": "Changes a Ticket Field; key and type never change (needs `tickets.configure`).",
+        "operationId": "update_field",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketFieldDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketFieldDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ticket-merges/{id}/undo": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Undoes a merge (needs `tickets.merge`).",
+        "operationId": "undo_merge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketMergeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ticket-origins": {
       "get": {
         "tags": [
@@ -4171,6 +4320,37 @@
         }
       }
     },
+    "/api/v1/ticket-splits/{id}/undo": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Undoes a split (needs `tickets.merge`); refused once the new ticket has activity of\nits own.",
+        "operationId": "undo_split",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketSplitDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ticket-statuses": {
       "get": {
         "tags": [
@@ -4256,6 +4436,121 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/ticket-type-rules": {
+      "get": {
+        "tags": [
+          "Ticket reference data"
+        ],
+        "summary": "Ticket Type Rules in evaluation order (needs `tickets.configure`).",
+        "operationId": "list_type_rules",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketTypeRuleDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ticket reference data"
+        ],
+        "summary": "Creates a Ticket Type Rule (needs `tickets.configure`).",
+        "operationId": "create_type_rule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketTypeRuleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeRuleDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ticket-type-rules/{id}": {
+      "put": {
+        "tags": [
+          "Ticket reference data"
+        ],
+        "summary": "Changes a Ticket Type Rule (needs `tickets.configure`).",
+        "operationId": "update_type_rule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TicketTypeRuleDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeRuleDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Ticket reference data"
+        ],
+        "summary": "Deletes a Ticket Type Rule (needs `tickets.configure`).",
+        "operationId": "delete_type_rule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
           }
         }
       }
@@ -4559,6 +4854,39 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TicketDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/bulk": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Applies one action to up to 100 tickets (FR-TKT-042). Each ticket is changed on its\nown with the usual checks; the result lists the outcome per ticket.",
+        "operationId": "bulk",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BulkResultDto"
+                  }
                 }
               }
             }
@@ -4876,6 +5204,264 @@
         }
       }
     },
+    "/api/v1/tickets/{id}/fields": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "The Ticket Fields of a ticket with their values.",
+        "operationId": "get_ticket_fields",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldValueDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Sets or clears Ticket Field values by key (needs `tickets.update`).",
+        "operationId": "set_ticket_fields",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldValuesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldValueDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/links": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "The links of a ticket, from its side (needs `tickets.read`). Links to tickets you may\nnot see are left out.",
+        "operationId": "list_links",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketLinkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Links the ticket to another ticket of the same Company (needs `tickets.update`).",
+        "operationId": "add_link",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/links/{link_id}": {
+      "delete": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Removes a link of the ticket (needs `tickets.update`).",
+        "operationId": "remove_link",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "link_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Removed"
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/merge": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Merges the ticket into another (needs `tickets.merge`). Its emails, Notes, Time\nEntries and attachments move; it is closed as a duplicate, keeps its number and\npoints at the survivor (FR-TKT-026).",
+        "operationId": "merge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketMergeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/merges": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "The merges the ticket took part in, newest first.",
+        "operationId": "list_merges",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketMergeDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tickets/{id}/notes": {
       "post": {
         "tags": [
@@ -4910,6 +5496,170 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NoteDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/number-history": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "The ticket's previous numbers, newest first (FR-TKT-003).",
+        "operationId": "number_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RetiredNumberDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/presence": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "The other Analysts who have the ticket open now.",
+        "operationId": "viewers",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ViewerDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "TicketPresence heartbeat: the signed-in Analyst has the ticket open (send every ~10 s).\nReturns the other Analysts who do (FR-TKT-025).",
+        "operationId": "heartbeat",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ViewerDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "The signed-in Analyst closed the ticket.",
+        "operationId": "leave",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Left"
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/renumber": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Gives the ticket a new number from the current format (needs `tickets.configure`).\nThe old number keeps finding the ticket (FR-TKT-003).",
+        "operationId": "renumber",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketDto"
                 }
               }
             }
@@ -5092,6 +5842,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TicketDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/split": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Moves emails and Notes to a new ticket with the same details (needs\n`tickets.merge`, FR-TKT-027).",
+        "operationId": "split",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SplitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketSplitDto"
                 }
               }
             }
@@ -5554,6 +6345,117 @@
             "type": "integer",
             "format": "int64",
             "description": "Size in bytes."
+          }
+        }
+      },
+      "BulkRequest": {
+        "type": "object",
+        "description": "One action for many tickets (FR-TKT-042). Set `action` and the fields it uses.",
+        "required": [
+          "ticket_ids",
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`assign`, `status`, `priority`, `close` or `merge`."
+          },
+          "analyst_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Assignee (`assign`)."
+          },
+          "closure_category_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Closure Category (`close`, `status`)."
+          },
+          "priority_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Priority (`priority`)."
+          },
+          "resolution_code_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Resolution Code (`close`, or `status` when closing)."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Status (`status`)."
+          },
+          "target_ticket_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The survivor (`merge`); it may also be among `ticket_ids`, and is then skipped."
+          },
+          "team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Queue (`assign`)."
+          },
+          "ticket_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Tickets (1 to 100)."
+          }
+        }
+      },
+      "BulkResultDto": {
+        "type": "object",
+        "description": "The outcome for one ticket of a bulk action.",
+        "required": [
+          "ticket_id",
+          "ok",
+          "status"
+        ],
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why it failed."
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "Whether the action succeeded on it."
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "description": "HTTP status the same change on its own would have returned.",
+            "minimum": 0
+          },
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket."
           }
         }
       },
@@ -6024,6 +6926,37 @@
           "ticket_closed"
         ]
       },
+      "FieldValueDto": {
+        "type": "object",
+        "description": "A Ticket Field with its value on a ticket.",
+        "required": [
+          "field",
+          "value"
+        ],
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/TicketFieldDto",
+            "description": "The field."
+          },
+          "value": {
+            "type": "object",
+            "description": "Its value (`null` when empty)."
+          }
+        }
+      },
+      "FieldValuesRequest": {
+        "type": "object",
+        "description": "Ticket Field values to set, by key; `null` clears a value.",
+        "required": [
+          "fields"
+        ],
+        "properties": {
+          "fields": {
+            "type": "object",
+            "description": "Values by field key."
+          }
+        }
+      },
       "HoursDto": {
         "type": "object",
         "description": "Working hours of one day.",
@@ -6159,6 +7092,63 @@
           "worker_id": {
             "type": "string",
             "description": "Worker."
+          }
+        }
+      },
+      "LinkRequest": {
+        "type": "object",
+        "description": "Links a ticket to another.",
+        "required": [
+          "ticket_id",
+          "relation"
+        ],
+        "properties": {
+          "relation": {
+            "type": "string",
+            "description": "`related`, `duplicate_of`, `duplicated_by`, `parent_of` or `child_of`, from this\nticket's side."
+          },
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The other ticket."
+          }
+        }
+      },
+      "LinkedTicketDto": {
+        "type": "object",
+        "description": "The ticket at the other end of a link.",
+        "required": [
+          "id",
+          "number",
+          "subject",
+          "status_id"
+        ],
+        "properties": {
+          "closed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was closed."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "number": {
+            "type": "string",
+            "description": "Ticket Number."
+          },
+          "status_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Status."
+          },
+          "subject": {
+            "type": "string",
+            "description": "Subject."
           }
         }
       },
@@ -6576,6 +7566,20 @@
           }
         }
       },
+      "MergeRequest": {
+        "type": "object",
+        "description": "Merges this ticket into another.",
+        "required": [
+          "target_ticket_id"
+        ],
+        "properties": {
+          "target_ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The survivor; must be open and in the same Company."
+          }
+        }
+      },
       "ModuleDto": {
         "type": "object",
         "description": "A Module and whether it is on.",
@@ -6622,6 +7626,50 @@
           "is_enabled": {
             "type": "boolean",
             "description": "`true` to turn it on."
+          }
+        }
+      },
+      "MovedRowsDto": {
+        "type": "object",
+        "description": "Rows that moved between tickets.",
+        "required": [
+          "email_ids",
+          "note_ids",
+          "time_entry_ids",
+          "attachment_ids"
+        ],
+        "properties": {
+          "attachment_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Attachments."
+          },
+          "email_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Emails."
+          },
+          "note_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Notes."
+          },
+          "time_entry_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Time Entries."
           }
         }
       },
@@ -7854,6 +8902,10 @@
             "type": "string",
             "description": "Description."
           },
+          "fields": {
+            "type": "object",
+            "description": "Answers to the Ticket Fields the Portal asks (`GET /portal/ticket-fields`), by\nkey (FR-TKT-029)."
+          },
           "subject": {
             "type": "string",
             "description": "Subject."
@@ -7886,6 +8938,16 @@
           "kind": {
             "type": "string",
             "description": "`note` (a public Note from the service desk) or `message` (a reply)."
+          }
+        }
+      },
+      "PresenceRequest": {
+        "type": "object",
+        "description": "A presence heartbeat.",
+        "properties": {
+          "composing": {
+            "type": "boolean",
+            "description": "Whether the Analyst is writing a reply or Note."
           }
         }
       },
@@ -8150,6 +9212,30 @@
           "login": {
             "type": "string",
             "description": "Username or email address."
+          }
+        }
+      },
+      "RetiredNumberDto": {
+        "type": "object",
+        "description": "A previous Ticket Number (FR-TKT-003).",
+        "required": [
+          "number",
+          "reason",
+          "retired_at"
+        ],
+        "properties": {
+          "number": {
+            "type": "string",
+            "description": "The number; it still finds the ticket."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why it changed (`renumbered`)."
+          },
+          "retired_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it stopped being the ticket's number."
           }
         }
       },
@@ -8686,6 +9772,35 @@
           }
         }
       },
+      "SplitRequest": {
+        "type": "object",
+        "description": "Splits emails and Notes off a ticket.",
+        "properties": {
+          "email_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Emails to move."
+          },
+          "note_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Notes to move."
+          },
+          "subject": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Subject of the new ticket (default: the same subject)."
+          }
+        }
+      },
       "StatusRequest": {
         "type": "object",
         "description": "Move a ticket to another status.",
@@ -8905,6 +10020,14 @@
             "format": "uuid",
             "description": "ID."
           },
+          "merged_into_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The ticket this one was merged into (FR-TKT-026)."
+          },
           "number": {
             "type": "string",
             "description": "Ticket Number."
@@ -8952,6 +10075,22 @@
               "null"
             ],
             "description": "Snooze reason."
+          },
+          "snoozed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was snoozed."
+          },
+          "snoozed_by_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Who snoozed it (FR-TKT-012)."
           },
           "snoozed_until": {
             "type": [
@@ -9075,6 +10214,149 @@
           }
         }
       },
+      "TicketFieldDto": {
+        "type": "object",
+        "description": "A custom Ticket Field (FR-TKT-029).",
+        "required": [
+          "key",
+          "label",
+          "field_type"
+        ],
+        "properties": {
+          "ask_requester": {
+            "type": "boolean",
+            "description": "Asked of the Requester on the Portal."
+          },
+          "field_type": {
+            "type": "string",
+            "description": "`text`, `long_text`, `number`, `date`, `dropdown` or `checkbox`; never changes."
+          },
+          "help_text": {
+            "type": "string",
+            "description": "Help text."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID (ignored on input)."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Retired fields are inactive."
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable machine key (`lower_snake_case`); never changes."
+          },
+          "label": {
+            "type": "string",
+            "description": "Label."
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Options of a dropdown."
+          },
+          "required_on_close": {
+            "type": "boolean",
+            "description": "Required before a ticket can be closed."
+          },
+          "required_on_create": {
+            "type": "boolean",
+            "description": "Required when a ticket is created by an Analyst or on the Portal."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          },
+          "type_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Ticket Types it applies to; empty for every type."
+          }
+        }
+      },
+      "TicketLinkDto": {
+        "type": "object",
+        "description": "A Ticket Link seen from one ticket (FR-TKT-028).",
+        "required": [
+          "id",
+          "relation",
+          "ticket",
+          "created_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the tickets were linked."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Link ID."
+          },
+          "relation": {
+            "type": "string",
+            "description": "`related`, `duplicate_of`, `duplicated_by`, `parent_of` or `child_of`, from the\nrequested ticket's side."
+          },
+          "ticket": {
+            "$ref": "#/components/schemas/LinkedTicketDto",
+            "description": "The other ticket."
+          }
+        }
+      },
+      "TicketMergeDto": {
+        "type": "object",
+        "description": "A merge of one ticket into another (FR-TKT-026).",
+        "required": [
+          "id",
+          "source_ticket_id",
+          "target_ticket_id",
+          "moved",
+          "merged_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID (use it to undo the merge)."
+          },
+          "merged_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "moved": {
+            "$ref": "#/components/schemas/MovedRowsDto",
+            "description": "What moved to the survivor."
+          },
+          "source_ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The merged-away ticket."
+          },
+          "target_ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The survivor."
+          },
+          "undone_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was undone."
+          }
+        }
+      },
       "TicketPage": {
         "type": "object",
         "description": "A page of tickets.",
@@ -9141,6 +10423,10 @@
             "type": "string",
             "description": "Description."
           },
+          "fields": {
+            "type": "object",
+            "description": "Ticket Field values by key (create only; use `PUT /tickets/{id}/fields`\nafterwards). FR-TKT-029."
+          },
           "first_time_fix": {
             "type": "boolean",
             "description": "First Time Fix flag."
@@ -9199,6 +10485,166 @@
             ],
             "format": "uuid",
             "description": "Ticket Type."
+          }
+        }
+      },
+      "TicketSplitDto": {
+        "type": "object",
+        "description": "A split (FR-TKT-027).",
+        "required": [
+          "id",
+          "source_ticket_id",
+          "new_ticket_id",
+          "moved",
+          "split_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID (use it to undo the split)."
+          },
+          "moved": {
+            "$ref": "#/components/schemas/MovedRowsDto",
+            "description": "What moved."
+          },
+          "new_ticket": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TicketDto",
+                "description": "The new ticket (only right after splitting)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "new_ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket the split created."
+          },
+          "source_ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket the rows came from."
+          },
+          "split_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "undone_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was undone."
+          }
+        }
+      },
+      "TicketTypeRuleConditionsDto": {
+        "type": "object",
+        "description": "Conditions of a Ticket Type Rule; empty lists are ignored.",
+        "properties": {
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "`email`, `portal` or `analyst`.",
+            "default": []
+          },
+          "company_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Companies.",
+            "default": []
+          },
+          "department_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Departments.",
+            "default": []
+          },
+          "mailbox_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Mailboxes.",
+            "default": []
+          },
+          "origin_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Origins.",
+            "default": []
+          },
+          "requester_domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Requester email domains; subdomains match too.",
+            "default": []
+          },
+          "subject_keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Words or phrases; any one in the subject matches (ignoring case).",
+            "default": []
+          }
+        }
+      },
+      "TicketTypeRuleDto": {
+        "type": "object",
+        "description": "A Ticket Type Rule (FR-TKT-011).",
+        "required": [
+          "name",
+          "ticket_type_id",
+          "conditions"
+        ],
+        "properties": {
+          "conditions": {
+            "$ref": "#/components/schemas/TicketTypeRuleConditionsDto",
+            "description": "Conditions; all non-empty ones must match."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID (ignored on input)."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Inactive rules are skipped."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Evaluation order (lowest first)."
+          },
+          "ticket_type_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Ticket Type it sets."
           }
         }
       },
@@ -9344,6 +10790,31 @@
             "type": "integer",
             "format": "int64",
             "description": "Unread Notifications."
+          }
+        }
+      },
+      "ViewerDto": {
+        "type": "object",
+        "description": "Another Analyst who has the ticket open (FR-TKT-025).",
+        "required": [
+          "analyst_id",
+          "is_composing",
+          "last_seen"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Analyst."
+          },
+          "is_composing": {
+            "type": "boolean",
+            "description": "Writing a reply or Note."
+          },
+          "last_seen": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last heartbeat."
           }
         }
       },

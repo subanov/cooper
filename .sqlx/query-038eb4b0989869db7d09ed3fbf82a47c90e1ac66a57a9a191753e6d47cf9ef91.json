@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_type_rules (id, name, ticket_type_id, conditions, sort_order, is_active, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, ticket_type_id = EXCLUDED.ticket_type_id,\n                 conditions = EXCLUDED.conditions, sort_order = EXCLUDED.sort_order,\n                 is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Jsonb",
+        "Int4",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "038eb4b0989869db7d09ed3fbf82a47c90e1ac66a57a9a191753e6d47cf9ef91"
+}

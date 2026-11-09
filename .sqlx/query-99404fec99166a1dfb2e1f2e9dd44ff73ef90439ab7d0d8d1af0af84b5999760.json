@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE ticket_splits SET undone_by_kind = $2, undone_by_id = $3, undone_at = $4 WHERE id = $1 AND undone_at IS NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "99404fec99166a1dfb2e1f2e9dd44ff73ef90439ab7d0d8d1af0af84b5999760"
+}

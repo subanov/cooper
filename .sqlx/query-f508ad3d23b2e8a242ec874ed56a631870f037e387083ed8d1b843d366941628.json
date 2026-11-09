@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tickets SET subject = $3, description = $4, requester_id = $5, department_id = $6, type_id = $7,\n                    category_id = $8, priority_id = $9, status_id = $10, origin_id = $11, assigned_team_id = $12,\n                    assigned_analyst_id = $13, sensitivity = $14, first_time_fix = $15, training_provided = $16,\n                    resolution_code_id = $17, closure_category_id = $18, closed_at = $19, snoozed_until = $20,\n                    snooze_reason = $21, deleted_at = $22, updated_at = $23, sla_calendar_id = $24,\n                    response_minutes = $25, resolution_minutes = $26, response_due_at = $27, resolution_due_at = $28,\n                    response_warning_at = $29, resolution_warning_at = $30, responded_at = $31, sla_paused_at = $32,\n                    sla_paused_minutes = $33, ticket_number = $34, snoozed_by_id = $35, snoozed_at = $36,\n                    merged_into_id = $37\n             WHERE id = $1 AND tenant_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Bool",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Timestamptz",
+        "Timestamptz",
+        "Uuid",
+        "Int4",
+        "Int4",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz",
+        "Int8",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f508ad3d23b2e8a242ec874ed56a631870f037e387083ed8d1b843d366941628"
+}

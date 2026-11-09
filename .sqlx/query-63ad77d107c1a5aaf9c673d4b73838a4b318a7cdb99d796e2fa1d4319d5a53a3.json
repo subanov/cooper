@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_field_values (tenant_id, ticket_id, field_id, value, updated_at)\n                     VALUES ($1, $2, $3, $4, $5)\n                     ON CONFLICT (ticket_id, field_id) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Jsonb",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "63ad77d107c1a5aaf9c673d4b73838a4b318a7cdb99d796e2fa1d4319d5a53a3"
+}

@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_presence (tenant_id, ticket_id, analyst_id, is_composing, last_seen) VALUES ($1, $2, $3, $4, $5)\n             ON CONFLICT (ticket_id, analyst_id) DO UPDATE SET is_composing = EXCLUDED.is_composing, last_seen = EXCLUDED.last_seen",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f5084666eb3130ada1365ceedea737f551798c9254cbc641682b571df2c85f84"
+}

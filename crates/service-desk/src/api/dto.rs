@@ -243,6 +243,12 @@ pub struct TicketDto {
     pub snoozed_until: Option<DateTime<Utc>>,
     /// Snooze reason.
     pub snooze_reason: Option<String>,
+    /// Who snoozed it (FR-TKT-012).
+    pub snoozed_by_id: Option<Uuid>,
+    /// When it was snoozed.
+    pub snoozed_at: Option<DateTime<Utc>>,
+    /// The ticket this one was merged into (FR-TKT-026).
+    pub merged_into_id: Option<Uuid>,
     /// When it was deleted (Administrators only see deleted tickets).
     pub deleted_at: Option<DateTime<Utc>>,
     /// Total minutes of Time Entries (single-ticket responses only).
@@ -281,6 +287,9 @@ impl From<Ticket> for TicketDto {
             closed_at: t.closed_at(),
             snoozed_until: t.snoozed_until(),
             snooze_reason: t.snooze_reason().map(str::to_owned),
+            snoozed_by_id: t.snoozed_by().map(|a| a.as_uuid()),
+            snoozed_at: t.snoozed_at(),
+            merged_into_id: t.merged_into().map(|m| m.as_uuid()),
             deleted_at: t.deleted_at(),
             total_minutes: None,
             sla: SlaDto::default(),
@@ -398,6 +407,11 @@ pub struct TicketRequest {
     pub team_id: Option<Uuid>,
     /// Assignee (create only).
     pub analyst_id: Option<Uuid>,
+    /// Ticket Field values by key (create only; use `PUT /tickets/{id}/fields`
+    /// afterwards). FR-TKT-029.
+    #[serde(default)]
+    #[schema(value_type = Object)]
+    pub fields: std::collections::BTreeMap<String, serde_json::Value>,
 }
 
 impl TicketRequest {

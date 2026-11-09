@@ -26,6 +26,10 @@ export function applyLiveEvent(queryClient: QueryClient, event: string, data: st
   } catch {
     return;
   }
+  if (change.topic === "ticket_presence" && typeof change.id === "string") {
+    void queryClient.invalidateQueries({ queryKey: ["tickets", "presence", change.id] });
+    return;
+  }
   if (change.topic === "ticket" && typeof change.id === "string") {
     void queryClient.invalidateQueries({ queryKey: ["tickets", "list"] });
     void queryClient.invalidateQueries({ queryKey: ["tickets", "detail", change.id] });

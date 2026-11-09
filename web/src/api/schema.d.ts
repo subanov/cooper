@@ -471,7 +471,8 @@ export interface paths {
          * Live Updates for the signed-in Analyst (Server-Sent Events, ADR-0022).
          * @description Events: `ready` once changes are being received (refetch on every `ready` after the
          *     first: changes may have been missed while disconnected); `invalidate` with
-         *     `{"topic":"ticket","id":"…"}` when a ticket the Analyst may see changed; `resync`
+         *     `{"topic":"ticket"|"ticket_presence","id":"…"}` when a ticket the Analyst may see
+         *     (or who has it open) changed; `resync`
          *     when everything should be read again. Events never contain record data.
          *
          *     Needs the Analyst session cookie; API keys and Portal sessions are refused.
@@ -804,6 +805,26 @@ export interface paths {
         };
         /** What the Portal sign-in screen offers (Self-Registration on or off). Needs no session. */
         get: operations["portal_sign_in_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/ticket-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The Ticket Fields to ask on the new ticket form (FR-TKT-029). Send answers in
+         *     `fields` by key; fields marked `required_on_create` must be answered.
+         */
+        get: operations["portal_ticket_fields"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1478,6 +1499,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ticket-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every Ticket Field, active and retired (needs `tickets.read`). */
+        get: operations["list_fields"];
+        put?: never;
+        /** Defines a Ticket Field (needs `tickets.configure`). */
+        post: operations["create_field"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ticket-fields/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes a Ticket Field; key and type never change (needs `tickets.configure`). */
+        put: operations["update_field"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ticket-merges/{id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undoes a merge (needs `tickets.merge`). */
+        post: operations["undo_merge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ticket-origins": {
         parameters: {
             query?: never;
@@ -1542,6 +1615,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ticket-splits/{id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undoes a split (needs `tickets.merge`); refused once the new ticket has activity of
+         *     its own.
+         */
+        post: operations["undo_split"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ticket-statuses": {
         parameters: {
             query?: never;
@@ -1569,6 +1662,42 @@ export interface paths {
         put: operations["update_status"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ticket-type-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket Type Rules in evaluation order (needs `tickets.configure`). */
+        get: operations["list_type_rules"];
+        put?: never;
+        /** Creates a Ticket Type Rule (needs `tickets.configure`). */
+        post: operations["create_type_rule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ticket-type-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes a Ticket Type Rule (needs `tickets.configure`). */
+        put: operations["update_type_rule"];
+        post?: never;
+        /** Deletes a Ticket Type Rule (needs `tickets.configure`). */
+        delete: operations["delete_type_rule"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1618,6 +1747,26 @@ export interface paths {
         put?: never;
         /** Creates a ticket (needs `tickets.create`; `tickets.assign` to set Queue or Assignee). */
         post: operations["create_ticket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Applies one action to up to 100 tickets (FR-TKT-042). Each ticket is changed on its
+         *     own with the usual checks; the result lists the outcome per ticket.
+         */
+        post: operations["bulk"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1732,6 +1881,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tickets/{id}/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Ticket Fields of a ticket with their values. */
+        get: operations["get_ticket_fields"];
+        /** Sets or clears Ticket Field values by key (needs `tickets.update`). */
+        put: operations["set_ticket_fields"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The links of a ticket, from its side (needs `tickets.read`). Links to tickets you may
+         *     not see are left out.
+         */
+        get: operations["list_links"];
+        put?: never;
+        /** Links the ticket to another ticket of the same Company (needs `tickets.update`). */
+        post: operations["add_link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/links/{link_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a link of the ticket (needs `tickets.update`). */
+        delete: operations["remove_link"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Merges the ticket into another (needs `tickets.merge`). Its emails, Notes, Time
+         *     Entries and attachments move; it is closed as a duplicate, keeps its number and
+         *     points at the survivor (FR-TKT-026).
+         */
+        post: operations["merge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/merges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The merges the ticket took part in, newest first. */
+        get: operations["list_merges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tickets/{id}/notes": {
         parameters: {
             query?: never;
@@ -1743,6 +1986,65 @@ export interface paths {
         put?: never;
         /** Adds a Note (internal unless `is_public`). */
         post: operations["add_note"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/number-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The ticket's previous numbers, newest first (FR-TKT-003). */
+        get: operations["number_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/presence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The other Analysts who have the ticket open now. */
+        get: operations["viewers"];
+        /**
+         * TicketPresence heartbeat: the signed-in Analyst has the ticket open (send every ~10 s).
+         *     Returns the other Analysts who do (FR-TKT-025).
+         */
+        put: operations["heartbeat"];
+        post?: never;
+        /** The signed-in Analyst closed the ticket. */
+        delete: operations["leave"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/renumber": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Gives the ticket a new number from the current format (needs `tickets.configure`).
+         *     The old number keeps finding the ticket (FR-TKT-003).
+         */
+        post: operations["renumber"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1813,6 +2115,26 @@ export interface paths {
         post?: never;
         /** Ends a snooze. */
         delete: operations["unsnooze_ticket"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Moves emails and Notes to a new ticket with the same details (needs
+         *     `tickets.merge`, FR-TKT-027).
+         */
+        post: operations["split"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2037,6 +2359,65 @@ export interface components {
              * @description Size in bytes.
              */
             size_bytes: number;
+        };
+        /** @description One action for many tickets (FR-TKT-042). Set `action` and the fields it uses. */
+        BulkRequest: {
+            /** @description `assign`, `status`, `priority`, `close` or `merge`. */
+            action: string;
+            /**
+             * Format: uuid
+             * @description Assignee (`assign`).
+             */
+            analyst_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Closure Category (`close`, `status`).
+             */
+            closure_category_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Priority (`priority`).
+             */
+            priority_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Resolution Code (`close`, or `status` when closing).
+             */
+            resolution_code_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Status (`status`).
+             */
+            status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The survivor (`merge`); it may also be among `ticket_ids`, and is then skipped.
+             */
+            target_ticket_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Queue (`assign`).
+             */
+            team_id?: string | null;
+            /** @description Tickets (1 to 100). */
+            ticket_ids: string[];
+        };
+        /** @description The outcome for one ticket of a bulk action. */
+        BulkResultDto: {
+            /** @description Why it failed. */
+            error?: string | null;
+            /** @description Whether the action succeeded on it. */
+            ok: boolean;
+            /**
+             * Format: int32
+             * @description HTTP status the same change on its own would have returned.
+             */
+            status: number;
+            /**
+             * Format: uuid
+             * @description The ticket.
+             */
+            ticket_id: string;
         };
         /** @description An entry of the Portal Catalogue. */
         CatalogueEntryDto: {
@@ -2276,6 +2657,18 @@ export interface components {
          * @enum {string}
          */
         EmailTemplateEventDto: "ticket_created" | "ticket_assigned" | "ticket_replied" | "ticket_closed";
+        /** @description A Ticket Field with its value on a ticket. */
+        FieldValueDto: {
+            /** @description The field. */
+            field: components["schemas"]["TicketFieldDto"];
+            /** @description Its value (`null` when empty). */
+            value: Record<string, never>;
+        };
+        /** @description Ticket Field values to set, by key; `null` clears a value. */
+        FieldValuesRequest: {
+            /** @description Values by field key. */
+            fields: Record<string, never>;
+        };
         /** @description Working hours of one day. */
         HoursDto: {
             /** @description End, `HH:MM`. */
@@ -2342,6 +2735,41 @@ export interface components {
             started_at: string;
             /** @description Worker. */
             worker_id: string;
+        };
+        /** @description Links a ticket to another. */
+        LinkRequest: {
+            /**
+             * @description `related`, `duplicate_of`, `duplicated_by`, `parent_of` or `child_of`, from this
+             *     ticket's side.
+             */
+            relation: string;
+            /**
+             * Format: uuid
+             * @description The other ticket.
+             */
+            ticket_id: string;
+        };
+        /** @description The ticket at the other end of a link. */
+        LinkedTicketDto: {
+            /**
+             * Format: date-time
+             * @description When it was closed.
+             */
+            closed_at?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Ticket Number. */
+            number: string;
+            /**
+             * Format: uuid
+             * @description Status.
+             */
+            status_id: string;
+            /** @description Subject. */
+            subject: string;
         };
         /** @description A system log entry. */
         LogEntryDto: {
@@ -2545,6 +2973,14 @@ export interface components {
             /** @description The members. */
             analyst_ids: string[];
         };
+        /** @description Merges this ticket into another. */
+        MergeRequest: {
+            /**
+             * Format: uuid
+             * @description The survivor; must be open and in the same Company.
+             */
+            target_ticket_id: string;
+        };
         /** @description A Module and whether it is on. */
         ModuleDto: {
             /** @description Whether it can be turned off. */
@@ -2565,6 +3001,17 @@ export interface components {
         ModuleRequest: {
             /** @description `true` to turn it on. */
             is_enabled: boolean;
+        };
+        /** @description Rows that moved between tickets. */
+        MovedRowsDto: {
+            /** @description Attachments. */
+            attachment_ids: string[];
+            /** @description Emails. */
+            email_ids: string[];
+            /** @description Notes. */
+            note_ids: string[];
+            /** @description Time Entries. */
+            time_entry_ids: string[];
         };
         /** @description A Note. */
         NoteDto: {
@@ -3142,6 +3589,11 @@ export interface components {
             category_id?: string | null;
             /** @description Description. */
             description?: string;
+            /**
+             * @description Answers to the Ticket Fields the Portal asks (`GET /portal/ticket-fields`), by
+             *     key (FR-TKT-029).
+             */
+            fields?: Record<string, never>;
             /** @description Subject. */
             subject: string;
         };
@@ -3158,6 +3610,11 @@ export interface components {
             from_requester: boolean;
             /** @description `note` (a public Note from the service desk) or `message` (a reply). */
             kind: string;
+        };
+        /** @description A presence heartbeat. */
+        PresenceRequest: {
+            /** @description Whether the Analyst is writing a reply or Note. */
+            composing?: boolean;
         };
         /** @description A rejected email. */
         RejectedEmailDto: {
@@ -3287,6 +3744,18 @@ export interface components {
         ResetRequest: {
             /** @description Username or email address. */
             login: string;
+        };
+        /** @description A previous Ticket Number (FR-TKT-003). */
+        RetiredNumberDto: {
+            /** @description The number; it still finds the ticket. */
+            number: string;
+            /** @description Why it changed (`renumbered`). */
+            reason: string;
+            /**
+             * Format: date-time
+             * @description When it stopped being the ticket's number.
+             */
+            retired_at: string;
         };
         /** @description A Role. */
         RoleDto: {
@@ -3525,6 +3994,15 @@ export interface components {
              */
             until: string;
         };
+        /** @description Splits emails and Notes off a ticket. */
+        SplitRequest: {
+            /** @description Emails to move. */
+            email_ids?: string[];
+            /** @description Notes to move. */
+            note_ids?: string[];
+            /** @description Subject of the new ticket (default: the same subject). */
+            subject?: string | null;
+        };
         /** @description Move a ticket to another status. */
         StatusRequest: {
             /**
@@ -3641,6 +4119,11 @@ export interface components {
              * @description ID.
              */
             id: string;
+            /**
+             * Format: uuid
+             * @description The ticket this one was merged into (FR-TKT-026).
+             */
+            merged_into_id?: string | null;
             /** @description Ticket Number. */
             number: string;
             /**
@@ -3669,6 +4152,16 @@ export interface components {
             sla: components["schemas"]["SlaDto"];
             /** @description Snooze reason. */
             snooze_reason?: string | null;
+            /**
+             * Format: date-time
+             * @description When it was snoozed.
+             */
+            snoozed_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Who snoozed it (FR-TKT-012).
+             */
+            snoozed_by_id?: string | null;
             /**
              * Format: date-time
              * @description Snoozed until.
@@ -3736,6 +4229,89 @@ export interface components {
             /** @description `To`. */
             to: string[];
         };
+        /** @description A custom Ticket Field (FR-TKT-029). */
+        TicketFieldDto: {
+            /** @description Asked of the Requester on the Portal. */
+            ask_requester?: boolean;
+            /** @description `text`, `long_text`, `number`, `date`, `dropdown` or `checkbox`; never changes. */
+            field_type: string;
+            /** @description Help text. */
+            help_text?: string;
+            /**
+             * Format: uuid
+             * @description ID (ignored on input).
+             */
+            id?: string;
+            /** @description Retired fields are inactive. */
+            is_active?: boolean;
+            /** @description Stable machine key (`lower_snake_case`); never changes. */
+            key: string;
+            /** @description Label. */
+            label: string;
+            /** @description Options of a dropdown. */
+            options?: string[];
+            /** @description Required before a ticket can be closed. */
+            required_on_close?: boolean;
+            /** @description Required when a ticket is created by an Analyst or on the Portal. */
+            required_on_create?: boolean;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order?: number;
+            /** @description Ticket Types it applies to; empty for every type. */
+            type_ids?: string[];
+        };
+        /** @description A Ticket Link seen from one ticket (FR-TKT-028). */
+        TicketLinkDto: {
+            /**
+             * Format: date-time
+             * @description When the tickets were linked.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description Link ID.
+             */
+            id: string;
+            /**
+             * @description `related`, `duplicate_of`, `duplicated_by`, `parent_of` or `child_of`, from the
+             *     requested ticket's side.
+             */
+            relation: string;
+            /** @description The other ticket. */
+            ticket: components["schemas"]["LinkedTicketDto"];
+        };
+        /** @description A merge of one ticket into another (FR-TKT-026). */
+        TicketMergeDto: {
+            /**
+             * Format: uuid
+             * @description ID (use it to undo the merge).
+             */
+            id: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            merged_at: string;
+            /** @description What moved to the survivor. */
+            moved: components["schemas"]["MovedRowsDto"];
+            /**
+             * Format: uuid
+             * @description The merged-away ticket.
+             */
+            source_ticket_id: string;
+            /**
+             * Format: uuid
+             * @description The survivor.
+             */
+            target_ticket_id: string;
+            /**
+             * Format: date-time
+             * @description When it was undone.
+             */
+            undone_at?: string | null;
+        };
         /** @description A page of tickets. */
         TicketPage: {
             /** @description The tickets. */
@@ -3767,6 +4343,11 @@ export interface components {
             department_id?: string | null;
             /** @description Description. */
             description?: string;
+            /**
+             * @description Ticket Field values by key (create only; use `PUT /tickets/{id}/fields`
+             *     afterwards). FR-TKT-029.
+             */
+            fields?: Record<string, never>;
             /** @description First Time Fix flag. */
             first_time_fix?: boolean;
             /**
@@ -3800,6 +4381,99 @@ export interface components {
              * @description Ticket Type.
              */
             type_id?: string | null;
+        };
+        /** @description A split (FR-TKT-027). */
+        TicketSplitDto: {
+            /**
+             * Format: uuid
+             * @description ID (use it to undo the split).
+             */
+            id: string;
+            /** @description What moved. */
+            moved: components["schemas"]["MovedRowsDto"];
+            new_ticket?: components["schemas"]["TicketDto"] | null;
+            /**
+             * Format: uuid
+             * @description The ticket the split created.
+             */
+            new_ticket_id: string;
+            /**
+             * Format: uuid
+             * @description The ticket the rows came from.
+             */
+            source_ticket_id: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            split_at: string;
+            /**
+             * Format: date-time
+             * @description When it was undone.
+             */
+            undone_at?: string | null;
+        };
+        /** @description Conditions of a Ticket Type Rule; empty lists are ignored. */
+        TicketTypeRuleConditionsDto: {
+            /**
+             * @description `email`, `portal` or `analyst`.
+             * @default []
+             */
+            channels: string[];
+            /**
+             * @description Companies.
+             * @default []
+             */
+            company_ids: string[];
+            /**
+             * @description Departments.
+             * @default []
+             */
+            department_ids: string[];
+            /**
+             * @description Mailboxes.
+             * @default []
+             */
+            mailbox_ids: string[];
+            /**
+             * @description Origins.
+             * @default []
+             */
+            origin_ids: string[];
+            /**
+             * @description Requester email domains; subdomains match too.
+             * @default []
+             */
+            requester_domains: string[];
+            /**
+             * @description Words or phrases; any one in the subject matches (ignoring case).
+             * @default []
+             */
+            subject_keywords: string[];
+        };
+        /** @description A Ticket Type Rule (FR-TKT-011). */
+        TicketTypeRuleDto: {
+            /** @description Conditions; all non-empty ones must match. */
+            conditions: components["schemas"]["TicketTypeRuleConditionsDto"];
+            /**
+             * Format: uuid
+             * @description ID (ignored on input).
+             */
+            id?: string;
+            /** @description Inactive rules are skipped. */
+            is_active?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Evaluation order (lowest first).
+             */
+            sort_order?: number;
+            /**
+             * Format: uuid
+             * @description The Ticket Type it sets.
+             */
+            ticket_type_id: string;
         };
         /** @description A Time Entry. */
         TimeEntryDto: {
@@ -3879,6 +4553,21 @@ export interface components {
              * @description Unread Notifications.
              */
             unread: number;
+        };
+        /** @description Another Analyst who has the ticket open (FR-TKT-025). */
+        ViewerDto: {
+            /**
+             * Format: uuid
+             * @description Analyst.
+             */
+            analyst_id: string;
+            /** @description Writing a reply or Note. */
+            is_composing: boolean;
+            /**
+             * Format: date-time
+             * @description Last heartbeat.
+             */
+            last_seen: string;
         };
         /** @description A Whitelist entry. */
         WhitelistDto: {
@@ -5321,6 +6010,32 @@ export interface operations {
             };
         };
     };
+    portal_ticket_fields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketFieldDto"][];
+                };
+            };
+            /** @description Not signed in to the Portal */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     my_tickets: {
         parameters: {
             query?: never;
@@ -6716,6 +7431,94 @@ export interface operations {
             };
         };
     };
+    list_fields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketFieldDto"][];
+                };
+            };
+        };
+    };
+    create_field: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketFieldDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketFieldDto"];
+                };
+            };
+        };
+    };
+    update_field: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketFieldDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketFieldDto"];
+                };
+            };
+        };
+    };
+    undo_merge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketMergeDto"];
+                };
+            };
+        };
+    };
     list_origins: {
         parameters: {
             query?: never;
@@ -6850,6 +7653,27 @@ export interface operations {
             };
         };
     };
+    undo_split: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketSplitDto"];
+                };
+            };
+        };
+    };
     list_statuses: {
         parameters: {
             query?: never;
@@ -6914,6 +7738,93 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["LookupDto"];
                 };
+            };
+        };
+    };
+    list_type_rules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketTypeRuleDto"][];
+                };
+            };
+        };
+    };
+    create_type_rule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketTypeRuleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketTypeRuleDto"];
+                };
+            };
+        };
+    };
+    update_type_rule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketTypeRuleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketTypeRuleDto"];
+                };
+            };
+        };
+    };
+    delete_type_rule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -7062,6 +7973,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TicketDto"];
+                };
+            };
+        };
+    };
+    bulk: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkResultDto"][];
                 };
             };
         };
@@ -7275,6 +8209,165 @@ export interface operations {
             };
         };
     };
+    get_ticket_fields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldValueDto"][];
+                };
+            };
+        };
+    };
+    set_ticket_fields: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldValuesRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldValueDto"][];
+                };
+            };
+        };
+    };
+    list_links: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLinkDto"][];
+                };
+            };
+        };
+    };
+    add_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketLinkDto"];
+                };
+            };
+        };
+    };
+    remove_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    merge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergeRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketMergeDto"];
+                };
+            };
+        };
+    };
+    list_merges: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketMergeDto"][];
+                };
+            };
+        };
+    };
     add_note: {
         parameters: {
             query?: never;
@@ -7296,6 +8389,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NoteDto"];
+                };
+            };
+        };
+    };
+    number_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetiredNumberDto"][];
+                };
+            };
+        };
+    };
+    viewers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerDto"][];
+                };
+            };
+        };
+    };
+    heartbeat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresenceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerDto"][];
+                };
+            };
+        };
+    };
+    leave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Left */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    renumber: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDto"];
                 };
             };
         };
@@ -7410,6 +8611,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TicketDto"];
+                };
+            };
+        };
+    };
+    split: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SplitRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketSplitDto"];
                 };
             };
         };

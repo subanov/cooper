@@ -78,6 +78,10 @@ export const en = {
   "ticket.changeStatus": "Change Status",
   "ticket.description": "Description",
 
+  "presence.label": "Other Analysts on this ticket",
+  "presence.viewing": "{name} is viewing this ticket",
+  "presence.composing": "{name} is writing a reply or Note",
+  "presence.someone": "Another Analyst",
   "composer.title": "Reply or add a Note",
   "composer.mode": "What to write",
   "composer.reply": "Reply to Requester",
