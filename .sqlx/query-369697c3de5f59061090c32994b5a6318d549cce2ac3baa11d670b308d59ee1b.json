@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM task_links WHERE task_id = $1 AND kind = $2 AND target_id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "369697c3de5f59061090c32994b5a6318d549cce2ac3baa11d670b308d59ee1b"
+}

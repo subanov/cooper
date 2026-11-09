@@ -824,3 +824,93 @@ impl cooper_notifications::handlers::ArticleLookup for ArticleFactsLookup {
             }))
     }
 }
+
+/// Tasks' view of tickets, Changes, Analysts and Teams, through their application APIs
+/// (ADR-0029).
+pub struct TaskDirectory {
+    /// Analysts and Teams.
+    pub identity: IdentityDirectory,
+    /// Tickets.
+    pub desk: cooper_service_desk::application::ServiceDesk,
+    /// Changes.
+    pub changes: cooper_change_management::application::ChangeService,
+}
+
+fn task_err(e: impl std::fmt::Display) -> cooper_tasks::ports::RepoError {
+    cooper_tasks::ports::RepoError::Storage(e.to_string())
+}
+
+#[async_trait]
+impl cooper_tasks::ports::Directory for TaskDirectory {
+    async fn ticket(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_tasks::ports::RepoError> {
+        use cooper_service_desk::application::AppError;
+        match self
+            .desk
+            .ticket(principal, cooper_kernel::TicketId::from_uuid(id))
+            .await
+        {
+            Ok(d) => Ok(Some((d.ticket.tenant_id(), d.ticket.number().to_owned()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(task_err(e)),
+        }
+    }
+
+    async fn change(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_tasks::ports::RepoError> {
+        use cooper_change_management::application::AppError;
+        match self.changes.get(principal, id).await {
+            Ok(c) => Ok(Some((c.tenant_id(), c.number().to_owned()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(task_err(e)),
+        }
+    }
+
+    async fn analyst_active(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<bool, cooper_tasks::ports::RepoError> {
+        Directory::analyst_is_active(&self.identity, analyst)
+            .await
+            .map_err(task_err)
+    }
+
+    async fn team_exists(&self, team: TeamId) -> Result<bool, cooper_tasks::ports::RepoError> {
+        Ok(Directory::team_members(&self.identity, team)
+            .await
+            .map_err(task_err)?
+            .is_some())
+    }
+}
+
+/// Task facts for assignment Notifications.
+pub struct TaskFactsLookup {
+    /// Tasks.
+    pub tasks: cooper_tasks::application::TaskService,
+}
+
+#[async_trait]
+impl cooper_notifications::handlers::TaskLookup for TaskFactsLookup {
+    async fn task(
+        &self,
+        id: uuid::Uuid,
+    ) -> Result<Option<cooper_notifications::handlers::TaskFacts>, String> {
+        Ok(self
+            .tasks
+            .for_notifications(id)
+            .await
+            .map_err(|e| e.to_string())?
+            .map(|t| cooper_notifications::handlers::TaskFacts {
+                title: t.details().title.clone(),
+                tenant_id: t.tenant_id(),
+                assignee: t.details().assigned_analyst,
+                is_closed: t.is_closed(),
+            }))
+    }
+}

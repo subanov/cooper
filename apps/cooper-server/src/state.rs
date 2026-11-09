@@ -175,6 +175,8 @@ pub struct AppState {
     pub changes: cooper_change_management::api::ChangesApi,
     /// Knowledge API state.
     pub knowledge: cooper_knowledge::api::KnowledgeApi,
+    /// Tasks API state.
+    pub tasks: cooper_tasks::api::TasksApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -190,6 +192,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_problem_management::application::capabilities::ALL)
         .chain(cooper_change_management::application::capabilities::ALL)
         .chain(cooper_knowledge::application::capabilities::ALL)
+        .chain(cooper_tasks::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -228,6 +231,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_knowledge::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Knowledge)),
+        )
+        .chain(
+            cooper_tasks::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Tasks)),
         )
         .collect()
 }
@@ -327,22 +335,38 @@ impl AppState {
             },
         );
         let blobs = cooper_platform::attachments::FilesystemBlobStore::new(security.blob_dir);
-        let changes = cooper_change_management::api::ChangesApi {
-            service: cooper_change_management::application::ChangeService::new(
-                cooper_change_management::application::ChangePorts {
-                    changes: Arc::new(
-                        cooper_change_management::infrastructure::PgChangeStore::new(pool.clone()),
-                    ),
-                    directory: Arc::new(crate::adapters::ChangeDirectory {
+        let change_service = cooper_change_management::application::ChangeService::new(
+            cooper_change_management::application::ChangePorts {
+                changes: Arc::new(
+                    cooper_change_management::infrastructure::PgChangeStore::new(pool.clone()),
+                ),
+                directory: Arc::new(crate::adapters::ChangeDirectory {
+                    identity: IdentityDirectory {
+                        identity: service.clone(),
+                    },
+                    desk: desk.clone(),
+                    problems: problem_service.clone(),
+                }),
+                clock: clock.clone(),
+            },
+        );
+        let tasks = cooper_tasks::api::TasksApi {
+            service: cooper_tasks::application::TaskService::new(
+                cooper_tasks::application::TaskPorts {
+                    tasks: Arc::new(cooper_tasks::infrastructure::PgTaskStore::new(pool.clone())),
+                    directory: Arc::new(crate::adapters::TaskDirectory {
                         identity: IdentityDirectory {
                             identity: service.clone(),
                         },
                         desk: desk.clone(),
-                        problems: problem_service.clone(),
+                        changes: change_service.clone(),
                     }),
                     clock: clock.clone(),
                 },
             ),
+        };
+        let changes = cooper_change_management::api::ChangesApi {
+            service: change_service,
             blobs: blobs.clone(),
             upload_limit: Arc::new(DeskSettings {
                 admin: admin.clone(),
@@ -373,6 +397,7 @@ impl AppState {
             problems,
             changes,
             knowledge,
+            tasks,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -417,6 +442,12 @@ impl AppState {
                 notifications: self.notifications.service.clone(),
                 articles: Arc::new(crate::adapters::ArticleFactsLookup {
                     knowledge: self.knowledge.service.clone(),
+                }),
+            }),
+            Arc::new(cooper_notifications::handlers::TaskNotifier {
+                notifications: self.notifications.service.clone(),
+                tasks: Arc::new(crate::adapters::TaskFactsLookup {
+                    tasks: self.tasks.service.clone(),
                 }),
             }),
             Arc::new(cooper_notifications::handlers::MailboxAlerts {
@@ -465,6 +496,12 @@ impl AppState {
             Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
         }
         poller
+    }
+}
+
+impl FromRef<AppState> for cooper_tasks::api::TasksApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.tasks.clone()
     }
 }
 
@@ -524,6 +561,7 @@ mod tests {
                 + cooper_problem_management::application::capabilities::ALL.len()
                 + cooper_change_management::application::capabilities::ALL.len()
                 + cooper_knowledge::application::capabilities::ALL.len()
+                + cooper_tasks::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

@@ -108,6 +108,7 @@ impl TicketNotifier {
             ticket_id: Some(TicketId::from_uuid(event.aggregate_id)),
             change_id: None,
             article_id: None,
+            task_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -280,6 +281,7 @@ impl EventHandler for MailboxAlerts {
             ticket_id: None,
             change_id: None,
             article_id: None,
+            task_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -384,6 +386,7 @@ impl EventHandler for ChangeNotifier {
             ticket_id: None,
             change_id: Some(event.aggregate_id),
             article_id: None,
+            task_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -450,10 +453,84 @@ impl EventHandler for ArticleReviewNotifier {
             ticket_id: None,
             change_id: None,
             article_id: Some(event.aggregate_id),
+            task_id: None,
             source_event_id: event.id,
         };
         self.notifications
             .send(draft, BTreeSet::from([owner]), event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
+    }
+}
+
+/// What an assignment Notification needs to know about a Task.
+#[derive(Debug, Clone)]
+pub struct TaskFacts {
+    /// Title.
+    pub title: String,
+    /// Company.
+    pub tenant_id: TenantId,
+    /// Assigned Analyst now.
+    pub assignee: Option<AnalystId>,
+    /// Closed.
+    pub is_closed: bool,
+}
+
+/// Reads Tasks (through the Tasks application API).
+#[async_trait]
+pub trait TaskLookup: Send + Sync {
+    /// A Task.
+    async fn task(&self, id: Uuid) -> Result<Option<TaskFacts>, String>;
+}
+
+/// Tells an Analyst a Task was assigned to them (FR-TSK-001), unless it has moved on
+/// since (reassigned or closed).
+pub struct TaskNotifier {
+    /// The notifications service.
+    pub notifications: Notifications,
+    /// Tasks.
+    pub tasks: Arc<dyn TaskLookup>,
+}
+
+#[async_trait]
+impl EventHandler for TaskNotifier {
+    fn name(&self) -> &'static str {
+        "task-notifier"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        event_type == "task.assigned"
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        let Some(to) = uuid(&event.payload, "analyst_id").map(AnalystId::from_uuid) else {
+            return Ok(());
+        };
+        let Some(facts) = self
+            .tasks
+            .task(event.aggregate_id)
+            .await
+            .map_err(handler_error)?
+        else {
+            return Ok(());
+        };
+        if facts.is_closed || facts.assignee != Some(to) {
+            return Ok(());
+        }
+        let draft = Draft {
+            kind: NotificationKind::TaskAssigned,
+            tenant_id: Some(facts.tenant_id),
+            title: format!("Task assigned: {}", facts.title),
+            body: String::new(),
+            ticket_id: None,
+            change_id: None,
+            article_id: None,
+            task_id: Some(event.aggregate_id),
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, BTreeSet::from([to]), event.actor)
             .await
             .map(|_| ())
             .map_err(|e| handler_error(e.to_string()))
