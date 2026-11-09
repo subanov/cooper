@@ -12,6 +12,7 @@ mod merge;
 mod number;
 mod ports;
 mod sla;
+mod statistics;
 mod ticket;
 mod type_rules;
 
@@ -51,6 +52,10 @@ pub use ports::{
 pub use sla::{
     DayHours, RuleTarget, SlaCalendar, SlaCalendarInput, SlaNotificationRule, SlaRuleInput,
     SlaTarget, SlaTrigger, TargetState, WorkingTime,
+};
+pub use statistics::{
+    GroupValue, Interval, SlaTally, StatisticsFilter, TargetTally, TicketGrouping,
+    TicketStatistics, TicketTally, TimeGrouping, TimeTally,
 };
 pub use ticket::{
     NewTicket, Note, SlaTargets, StatusTransition, Ticket, TicketDetails, TicketSla, TimeEntry,

@@ -8,6 +8,7 @@ mod portal;
 mod reference;
 mod relations;
 mod sla;
+mod statistics;
 mod tickets;
 
 use std::sync::Arc;
@@ -17,7 +18,7 @@ use thiserror::Error;
 
 use crate::domain::{
     ContentRepository, Directory, MailboxRepository, ReferenceData, RepoError, SlaRepository,
-    TicketError, TicketRelations, TicketRepository, TicketSettingsProvider,
+    TicketError, TicketRelations, TicketRepository, TicketSettingsProvider, TicketStatistics,
 };
 
 pub use configuration::FieldValue;
@@ -195,6 +196,8 @@ pub struct ServiceDeskPorts {
     pub mailboxes: Arc<dyn MailboxRepository>,
     /// Links, merges, splits, number history, presence and field values.
     pub relations: Arc<dyn TicketRelations>,
+    /// Aggregate figures for reports (ADR-0032).
+    pub statistics: Arc<dyn TicketStatistics>,
     /// The identity context.
     pub directory: Arc<dyn Directory>,
     /// Settings.

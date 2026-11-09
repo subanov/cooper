@@ -161,7 +161,7 @@ const COLUMNS: &str = "t.id, t.tenant_id, t.ticket_number, t.subject, t.descript
 
 /// Appends the tenant, deletion and Confidential predicates (FR-GEN-002, FR-GEN-004,
 /// FR-TKT-014) to a query that already has a `WHERE`.
-fn push_visibility(q: &mut QueryBuilder<Postgres>, scope: &TenantScope, v: &Visibility) {
+pub(super) fn push_visibility(q: &mut QueryBuilder<Postgres>, scope: &TenantScope, v: &Visibility) {
     let (all, ids) = scope_params(scope);
     q.push(" AND (")
         .push_bind(all)

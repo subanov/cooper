@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT item, member_id FROM watchtower_items",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "item",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "watchtower_items",
+            "name": "item"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "member_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "watchtower_items",
+            "name": "member_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "0ddf2d87578cdd902ff6e988e238b050b15e3f8831321d05ae8da9a4bb244bbb"
+}

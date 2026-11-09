@@ -161,6 +161,45 @@ pub struct TaskQuery {
     pub after: Option<(DateTime<Utc>, Uuid)>,
 }
 
+/// What Task Time Entries are grouped by in reports (ADR-0032).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TimeGrouping {
+    /// The Analyst who spent the time.
+    Analyst,
+    /// The Task's assigned Team.
+    Team,
+    /// Company.
+    Company,
+    /// Work date.
+    Day,
+    /// Month of the work date (keyed by its first day).
+    Month,
+}
+
+/// Time recorded on Tasks in one group.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TimeTally {
+    /// The Analyst, Team or Company of the group (`None` for no Team or a date group).
+    pub id: Option<Uuid>,
+    /// The day or first day of the month (date groups).
+    pub date: Option<NaiveDate>,
+    /// Total minutes.
+    pub minutes: u64,
+    /// Number of Time Entries.
+    pub entries: u64,
+}
+
+/// Open top-level Tasks counted for the Watchtower (ADR-0032).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct OpenTaskTally {
+    /// Per open status: `(status, Tasks)`.
+    pub by_status: Vec<(Uuid, u64)>,
+    /// Due before today.
+    pub overdue: u64,
+    /// Due today.
+    pub due_today: u64,
+}
+
 /// Task storage.
 #[async_trait]
 pub trait TaskRepository: Send + Sync {
@@ -291,6 +330,22 @@ pub trait TaskRepository: Send + Sync {
         scope: &TenantScope,
         task: Uuid,
     ) -> Result<Vec<cooper_platform::audit::AuditEntry>, RepoError>;
+    /// Open top-level Tasks in `scope` (optionally assigned to one Analyst), counted per
+    /// status and against `today`'s due dates, in SQL.
+    async fn open_tally(
+        &self,
+        scope: &TenantScope,
+        analyst: Option<AnalystId>,
+        today: NaiveDate,
+    ) -> Result<OpenTaskTally, RepoError>;
+    /// Task Time Entries in `scope` with a work date in `from..=to`, per group, in SQL.
+    async fn time_tally(
+        &self,
+        scope: &TenantScope,
+        group: TimeGrouping,
+        from: NaiveDate,
+        to: NaiveDate,
+    ) -> Result<Vec<TimeTally>, RepoError>;
 }
 
 /// The rest of Cooper, through application APIs.

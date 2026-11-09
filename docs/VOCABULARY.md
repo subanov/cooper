@@ -356,7 +356,11 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
 | **Dashboard** | A per-module set of **Widgets** (for example Tickets by status, First time fix rate, Created vs closed monthly). | `Dashboard`, `DashboardWidget` | |
-| **Watchtower** | The cross-module overview showing counts of selected ticket statuses, priorities, task statuses and morning check statuses. | `WatchtowerItem` | home, overview |
+| **Dashboard Widget** | One figure of a Dashboard: tickets counted by a dimension (status, Priority, Department, Ticket Type, Origin, Queue, Assignee, Company), the First Time Fix Rate, or tickets created and closed per day or month. Served by the reports API (`/reports/tickets…`). | `TicketCountReport`, `VolumeReport` | chart, tile |
+| **First Time Fix Rate** | The share of tickets closed in a period whose First Time Fix flag is set. No rate (not 0 %) when nothing was closed. | `first_time_fix_rate` | FCR rate |
+| **SLA Compliance** | Of the tickets created in a period whose Response (or Resolution) target is met or breached, the share met. Tickets still running or without a target do not count. Uses the SLA state each ticket shows. | `TargetResult::compliance` | SLA score |
+| **Watchtower** | The cross-module overview showing counts of selected ticket statuses, priorities, task statuses and morning check statuses. | `Watchtower` | home, overview |
+| **Watchtower Item** | A value a Watchtower count includes: an open Ticket Status or Task Status counted on its own, a Priority counted as high priority, or a Check Status that needs attention. Instance-wide; an empty selection means the default rule. | `WatchtowerItems`, `watchtower_items` | |
 | **Report Pack** | A saved, shareable report design. | `ReportPack` | |
 | **Table View** | A saved column and filter configuration of a list. | `TableView` | saved filter |
 

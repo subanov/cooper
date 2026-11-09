@@ -738,6 +738,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "cooper-reporting"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "axum",
+ "chrono",
+ "chrono-tz",
+ "cooper-http",
+ "cooper-kernel",
+ "cooper-platform",
+ "proptest",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "utoipa",
+ "utoipa-axum",
+ "uuid",
+]
+
+[[package]]
 name = "cooper-server"
 version = "0.1.0"
 dependencies = [
@@ -757,6 +779,7 @@ dependencies = [
  "cooper-notifications",
  "cooper-platform",
  "cooper-problem-management",
+ "cooper-reporting",
  "cooper-service-desk",
  "cooper-service-status",
  "cooper-tasks",

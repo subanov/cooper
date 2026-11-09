@@ -12,6 +12,7 @@ mod health;
 pub mod healthcheck;
 pub mod live;
 mod related;
+mod reporting;
 mod state;
 mod web;
 
@@ -50,6 +51,7 @@ pub use state::{
         (name = "Tasks", description = "Tasks, Subtasks, the Board and Recurrence"),
         (name = "Service Status", description = "Services, Service Incidents, Incident Updates, Planned Maintenance and the Public Status Page"),
         (name = "Morning Checks", description = "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"),
+        (name = "Reporting", description = "Dashboard Widgets, SLA compliance, time-entry reports, the Watchtower and CSV exports"),
         (name = "Administration", description = "Modules, System Settings, Background Jobs and the system log"),
         (name = "Live updates", description = "Server-Sent Events telling the web UI which data changed (ADR-0022)"),
     )
@@ -69,6 +71,7 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_tasks::api::router())
         .merge(cooper_service_status::api::router())
         .merge(cooper_morning_checks::api::router())
+        .merge(cooper_reporting::api::router())
         .merge(live::router())
         .merge(related::router())
         .split_for_parts()

@@ -15,7 +15,7 @@ use crate::domain::{
     Check, CheckAssignee, CheckDetails, CheckGroup, CheckGroupId, CheckId, CheckResult,
     CheckResultId, CheckResultRecord, CheckStatus, GroupDetails, LinkKind, ResultLink,
 };
-use crate::ports::{MorningChecksRepository, Reminder, RepoError};
+use crate::ports::{MorningChecksRepository, Reminder, RepoError, RoundTally};
 
 /// Live Updates topic of Morning Checks: a Check Result changed.
 const TOPIC: &str = "check_result";
@@ -665,6 +665,55 @@ impl MorningChecksRepository for PgMorningChecksStore {
             .map_err(|e| RepoError::Storage(e.to_string()))?;
         tx.commit().await.map_err(db_err)?;
         Ok(h)
+    }
+
+    async fn round_tally(
+        &self,
+        scope: &TenantScope,
+        date: NaiveDate,
+        routed_to: Option<(AnalystId, &std::collections::BTreeSet<TeamId>)>,
+    ) -> Result<RoundTally, RepoError> {
+        let (all, tenants) = ids(scope);
+        let analyst = routed_to.map(|(a, _)| a.as_uuid());
+        let teams: Vec<Uuid> = routed_to
+            .map(|(_, t)| t.iter().map(|t| t.as_uuid()).collect())
+            .unwrap_or_default();
+        let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
+        // The Round: active Checks whose group, if any, is active. Routing as in
+        // `domain::routing`: the Check's Analyst, else its group's Analyst or Team.
+        let rows = sqlx::query!(
+            r#"SELECT r.status_id AS "status_id?", COUNT(*) AS "checks!"
+               FROM checks c
+               LEFT JOIN check_groups g ON g.id = c.check_group_id
+               LEFT JOIN check_results r ON r.check_id = c.id AND r.check_date = $3
+               WHERE ($1 OR c.tenant_id = ANY($2)) AND c.is_active AND (g.id IS NULL OR g.is_active)
+                 AND ($4::uuid IS NULL OR c.assigned_analyst_id = $4
+                      OR (c.assigned_analyst_id IS NULL
+                          AND (g.assigned_analyst_id = $4 OR g.assigned_team_id = ANY($5))))
+               GROUP BY r.status_id"#,
+            all,
+            &tenants,
+            date,
+            analyst,
+            &teams
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        let mut tally = RoundTally {
+            check_date: date,
+            ..RoundTally::default()
+        };
+        for r in rows {
+            let n = u64::try_from(r.checks).unwrap_or(0);
+            tally.checks += n;
+            if let Some(status) = r.status_id {
+                tally.recorded += n;
+                tally.by_status.push((status, n));
+            }
+        }
+        Ok(tally)
     }
 }
 

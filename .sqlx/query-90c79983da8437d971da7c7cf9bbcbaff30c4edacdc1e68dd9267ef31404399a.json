@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO watchtower_items (item, member_id, created_at)\n                 SELECT $1, m, $3 FROM unnest($2::uuid[]) AS m",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "UuidArray",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "90c79983da8437d971da7c7cf9bbcbaff30c4edacdc1e68dd9267ef31404399a"
+}
