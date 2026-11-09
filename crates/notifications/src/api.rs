@@ -1,4 +1,5 @@
-//! HTTP API of the notifications context: the signed-in Analyst's bell.
+//! HTTP API of the notifications context: the signed-in Analyst's bell, and the
+//! signed-in Requester's Portal Notifications and Notification Preferences (FR-PRT-007).
 
 use axum::Json;
 use axum::extract::{FromRef, Path, Query, State};
@@ -14,6 +15,9 @@ use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
 use uuid::Uuid;
 
+use crate::portal::{
+    NotificationPreference, PortalNotification, PortalNotificationKind, PortalNotifications,
+};
 use crate::{AppError, Notification, Notifications};
 
 /// State the handlers need.
@@ -21,6 +25,8 @@ use crate::{AppError, Notification, Notifications};
 pub struct NotificationsApi {
     /// The service.
     pub service: Notifications,
+    /// Portal Notifications (FR-PRT-007).
+    pub portal: PortalNotifications,
 }
 
 /// The notification routes, to be nested under `/api/v1`.
@@ -34,6 +40,11 @@ where
         .routes(routes!(unread_count))
         .routes(routes!(mark_read))
         .routes(routes!(mark_all_read))
+        .routes(routes!(portal_list))
+        .routes(routes!(portal_unread_count))
+        .routes(routes!(portal_mark_read))
+        .routes(routes!(portal_mark_all_read))
+        .routes(routes!(portal_preferences, portal_set_preferences))
 }
 
 struct ApiError(AppError);
@@ -186,4 +197,188 @@ async fn mark_all_read(
 ) -> Result<StatusCode, ApiError> {
     api.service.mark_read(&p, None).await?;
     Ok(StatusCode::NO_CONTENT)
+}
+
+// ----- Portal (FR-PRT-007) ----------------------------------------------------------------
+
+/// A Portal Notification.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PortalNotificationDto {
+    /// ID.
+    pub id: Uuid,
+    /// `ticket_created`, `ticket_replied` or `ticket_closed`.
+    pub kind: String,
+    /// Short text.
+    pub title: String,
+    /// Longer text (the ticket subject).
+    pub body: String,
+    /// Linked ticket (open it with `GET /portal/tickets/{id}`).
+    pub ticket_id: Option<Uuid>,
+    /// Created.
+    pub created_at: DateTime<Utc>,
+    /// When it was read.
+    pub read_at: Option<DateTime<Utc>>,
+}
+
+impl From<PortalNotification> for PortalNotificationDto {
+    fn from(n: PortalNotification) -> Self {
+        Self {
+            id: n.id,
+            kind: n.kind.as_str().to_owned(),
+            title: n.title,
+            body: n.body,
+            ticket_id: n.ticket_id.map(|t| t.as_uuid()),
+            created_at: n.created_at,
+            read_at: n.read_at,
+        }
+    }
+}
+
+/// A page of Portal Notifications.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PortalNotificationPage {
+    /// Newest first.
+    pub items: Vec<PortalNotificationDto>,
+    /// Cursor for the next page.
+    pub next_cursor: Option<String>,
+}
+
+/// A Notification Preference.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct NotificationPreferenceDto {
+    /// `ticket_created`, `ticket_replied` or `ticket_closed`.
+    pub kind: String,
+    /// Shown on the Portal.
+    pub in_app: bool,
+    /// Sent by email (the Email Template of the event).
+    pub email: bool,
+}
+
+impl From<NotificationPreference> for NotificationPreferenceDto {
+    fn from(p: NotificationPreference) -> Self {
+        Self {
+            kind: p.kind.as_str().to_owned(),
+            in_app: p.in_app,
+            email: p.email,
+        }
+    }
+}
+
+/// Notification Preferences, one per kind.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct NotificationPreferencesDto {
+    /// Kinds not given keep their setting.
+    pub preferences: Vec<NotificationPreferenceDto>,
+}
+
+fn invalid_kind(kind: &str) -> Response {
+    Problem::new(StatusCode::UNPROCESSABLE_ENTITY)
+        .with_detail(format!(
+            "kind {kind:?} must be ticket_created, ticket_replied or ticket_closed"
+        ))
+        .with_extension("field", "kind")
+        .into_response()
+}
+
+/// The signed-in Requester's Portal Notifications, newest first.
+#[utoipa::path(get, path = "/portal/notifications", tag = "Portal", params(ListParams), responses((status = 200, body = PortalNotificationPage)))]
+async fn portal_list(
+    State(api): State<NotificationsApi>,
+    Authenticated(p): Authenticated,
+    Query(q): Query<ListParams>,
+) -> Result<Json<PortalNotificationPage>, ApiError> {
+    let limit = q
+        .limit
+        .map_or(Ok(Limit::DEFAULT), Limit::new)
+        .map_err(|_| AppError::InvalidCursor)?;
+    let cursor = q.cursor.map(Cursor::from_client);
+    let page = api
+        .portal
+        .mine(&p, q.unread, limit, cursor.as_ref())
+        .await?;
+    Ok(Json(PortalNotificationPage {
+        items: page
+            .items
+            .into_iter()
+            .map(PortalNotificationDto::from)
+            .collect(),
+        next_cursor: page.next_cursor.map(|c| c.as_str().to_owned()),
+    }))
+}
+
+/// Number of the signed-in Requester's unread Portal Notifications.
+#[utoipa::path(get, path = "/portal/notifications/unread-count", tag = "Portal", responses((status = 200, body = UnreadDto)))]
+async fn portal_unread_count(
+    State(api): State<NotificationsApi>,
+    Authenticated(p): Authenticated,
+) -> Result<Json<UnreadDto>, ApiError> {
+    Ok(Json(UnreadDto {
+        unread: api.portal.unread_count(&p).await?,
+    }))
+}
+
+/// Marks one of the signed-in Requester's Portal Notifications read.
+#[utoipa::path(post, path = "/portal/notifications/{id}/read", tag = "Portal", params(("id" = Uuid, Path)), responses((status = 204, description = "Read")))]
+async fn portal_mark_read(
+    State(api): State<NotificationsApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> Result<StatusCode, ApiError> {
+    api.portal.mark_read(&p, Some(id)).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// Marks every Portal Notification of the signed-in Requester read.
+#[utoipa::path(post, path = "/portal/notifications/read-all", tag = "Portal", responses((status = 204, description = "All read")))]
+async fn portal_mark_all_read(
+    State(api): State<NotificationsApi>,
+    Authenticated(p): Authenticated,
+) -> Result<StatusCode, ApiError> {
+    api.portal.mark_read(&p, None).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// The signed-in Requester's Notification Preferences (all on until changed).
+#[utoipa::path(get, path = "/portal/notification-preferences", tag = "Portal", responses((status = 200, body = NotificationPreferencesDto)))]
+async fn portal_preferences(
+    State(api): State<NotificationsApi>,
+    Authenticated(p): Authenticated,
+) -> Result<Json<NotificationPreferencesDto>, ApiError> {
+    Ok(Json(NotificationPreferencesDto {
+        preferences: api
+            .portal
+            .preferences(&p)
+            .await?
+            .into_iter()
+            .map(NotificationPreferenceDto::from)
+            .collect(),
+    }))
+}
+
+/// Changes the signed-in Requester's Notification Preferences (audited).
+#[utoipa::path(put, path = "/portal/notification-preferences", tag = "Portal", request_body = NotificationPreferencesDto, responses((status = 200, body = NotificationPreferencesDto)))]
+async fn portal_set_preferences(
+    State(api): State<NotificationsApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<NotificationPreferencesDto>,
+) -> Result<Response, ApiError> {
+    let mut changes = Vec::new();
+    for d in body.preferences {
+        let Some(kind) = PortalNotificationKind::parse(&d.kind) else {
+            return Ok(invalid_kind(&d.kind));
+        };
+        changes.push(NotificationPreference {
+            kind,
+            in_app: d.in_app,
+            email: d.email,
+        });
+    }
+    let saved = api.portal.set_preferences(&p, &changes).await?;
+    Ok(Json(NotificationPreferencesDto {
+        preferences: saved
+            .into_iter()
+            .map(NotificationPreferenceDto::from)
+            .collect(),
+    })
+    .into_response())
 }

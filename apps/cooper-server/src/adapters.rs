@@ -262,6 +262,37 @@ impl Directory for IdentityDirectory {
 /// The service desk's settings, read from System Settings.
 pub struct DeskSettings {
     pub admin: AdministrationService,
+    /// `COOPER_PUBLIC_URL`, which wins over the `general.base_url` setting.
+    pub public_url: Option<String>,
+}
+
+/// Requesters' Notification Preferences for Email Templates (FR-PRT-007).
+pub struct PortalPreferences {
+    pub portal: cooper_notifications::portal::PortalNotifications,
+}
+
+#[async_trait]
+impl cooper_service_desk::domain::RequesterNotificationPreferences for PortalPreferences {
+    async fn wants_email(
+        &self,
+        tenant: cooper_kernel::TenantId,
+        requester: cooper_kernel::RequesterId,
+        event: cooper_service_desk::domain::EmailTemplateEvent,
+    ) -> Result<bool, cooper_service_desk::domain::RepoError> {
+        use cooper_notifications::portal::PortalNotificationKind as Kind;
+        use cooper_service_desk::domain::EmailTemplateEvent as Event;
+        let kind = match event {
+            Event::TicketCreated => Kind::TicketCreated,
+            Event::TicketReplied => Kind::TicketReplied,
+            Event::TicketClosed => Kind::TicketClosed,
+            // Sent to the Assignee, not the Requester.
+            Event::TicketAssigned => return Ok(true),
+        };
+        self.portal
+            .wants_email(tenant, requester, kind)
+            .await
+            .map_err(|e| cooper_service_desk::domain::RepoError::Storage(e.to_string()))
+    }
 }
 
 #[async_trait]
@@ -298,6 +329,13 @@ impl TicketSettingsProvider for DeskSettings {
                 .and_then(|v| v.as_u64())
                 .and_then(|v| u8::try_from(v).ok())
                 .unwrap_or(defaults.sla_warning_percent),
+            public_url: match &self.public_url {
+                Some(url) => url.clone(),
+                None => value(cooper_administration::application::settings::BASE_URL.key)
+                    .await
+                    .and_then(|v| v.as_str().map(str::to_owned))
+                    .unwrap_or(defaults.public_url),
+            },
         }
     }
 }
@@ -321,6 +359,7 @@ impl cooper_notifications::handlers::TicketLookup for DeskTickets {
                     tenant_id: d.ticket.tenant_id(),
                     assignee: d.ticket.assigned_analyst_id(),
                     team: d.ticket.assigned_team_id(),
+                    requester: d.ticket.details().requester_id,
                 }))
             }
             Ok(_) | Err(cooper_service_desk::application::AppError::NotFound(_)) => Ok(None),

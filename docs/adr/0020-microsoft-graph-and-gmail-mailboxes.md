@@ -50,7 +50,8 @@ disabled. FreeITSM reads Microsoft 365 Mailboxes through Graph with `delegated` 
 
 - Deviation from FreeITSM: Cooper does not yet run the OAuth consent (authorization code)
   flow itself; Administrators paste a refresh token obtained from the provider. The
-  consent flow comes with the Mailbox administration screens (#247).
+  consent flow comes with the Mailbox administration screens (#247). Update: Mailbox
+  Consent shipped in [ADR-0033](0033-attachments-storage-extraction-and-mailbox-consent.md).
 - Google service accounts with domain-wide delegation are not supported; one consenting
   account per Mailbox is.
 - Sending from Microsoft or Google Mailboxes (Graph `sendMail`, Gmail `send`) is not part

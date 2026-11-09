@@ -269,7 +269,7 @@ impl ContentRepository for PgServiceDeskStore {
                 media_type: a.media_type.clone(),
                 size_bytes: a.size_bytes,
                 sha256: a.sha256.clone(),
-                extraction_status: "pending".into(),
+                extraction_status: a.extraction_status.clone(),
                 created_by: a.created_by,
                 created_at: a.created_at,
             },
@@ -301,6 +301,7 @@ impl ContentRepository for PgServiceDeskStore {
                 media_type: a.media_type,
                 size_bytes: a.size_bytes,
                 sha256: a.sha256,
+                extraction_status: a.extraction_status,
                 created_by: a.created_by,
                 created_at: a.created_at,
             })

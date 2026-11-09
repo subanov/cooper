@@ -1,0 +1,89 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, sha256, size_bytes, media_type, file_name, extraction_attempts FROM attachments\n             WHERE extraction_status = 'pending' AND (extraction_retry_at IS NULL OR extraction_retry_at <= $1)\n             ORDER BY created_at, id LIMIT $2 FOR UPDATE SKIP LOCKED",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "sha256",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "sha256"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "size_bytes",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "size_bytes"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "media_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "media_type"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "file_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "file_name"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "extraction_attempts",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "attachments",
+            "name": "extraction_attempts"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "05c099783fd91051ad32d88e0d3f670a82925960668732d30cd1ce2f216889a1"
+}

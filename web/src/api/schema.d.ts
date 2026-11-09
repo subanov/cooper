@@ -1274,6 +1274,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mailboxes/consent/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The provider redirects here after the account consented (or refused). Stores the
+         *     refresh token, encrypted, and redirects to the console with
+         *     `?mailbox_consent=connected&mailbox=<id>` (needs the same Analyst session that started
+         *     the consent).
+         */
+        get: operations["finish_consent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/mailboxes/{id}": {
         parameters: {
             query?: never;
@@ -1288,6 +1310,26 @@ export interface paths {
          */
         put: operations["update_mailbox"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mailboxes/{id}/consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Starts Mailbox Consent for a Microsoft `delegated` or Google Mailbox whose client
+         *     credentials are saved (needs `tickets.configure`, in an Analyst session).
+         */
+        post: operations["start_consent"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1783,6 +1825,92 @@ export interface paths {
         get: operations["managed_tickets"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/notification-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in Requester's Notification Preferences (all on until changed). */
+        get: operations["portal_preferences"];
+        /** Changes the signed-in Requester's Notification Preferences (audited). */
+        put: operations["portal_set_preferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in Requester's Portal Notifications, newest first. */
+        get: operations["portal_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marks every Portal Notification of the signed-in Requester read. */
+        post: operations["portal_mark_all_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Number of the signed-in Requester's unread Portal Notifications. */
+        get: operations["portal_unread_count"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marks one of the signed-in Requester's Portal Notifications read. */
+        post: operations["portal_mark_read"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4736,6 +4864,11 @@ export interface components {
              * @description Uploaded.
              */
             created_at: string;
+            /**
+             * @description Text extraction for search (FR-EML-007): `pending`, `extracted`, `truncated`,
+             *     `too_large`, `unsupported` or `failed`.
+             */
+            extraction_status: string;
             /** @description File name. */
             file_name: string;
             /**
@@ -6678,6 +6811,14 @@ export interface components {
              */
             sort_order?: number;
         };
+        /** @description Where to send the Administrator's browser to connect a Mailbox. */
+        MailboxConsentDto: {
+            /**
+             * @description The provider's sign-in page, with a single-use `state` (valid 10 minutes) and a
+             *     PKCE challenge.
+             */
+            authorization_url: string;
+        };
         /**
          * @description A Mailbox. Secrets are write-only: send `password` (IMAP) or `credentials` (OAuth)
          *     to set or replace them.
@@ -6953,6 +7094,20 @@ export interface components {
             items: components["schemas"]["NotificationDto"][];
             /** @description Cursor for the next page. */
             next_cursor?: string | null;
+        };
+        /** @description A Notification Preference. */
+        NotificationPreferenceDto: {
+            /** @description Sent by email (the Email Template of the event). */
+            email: boolean;
+            /** @description Shown on the Portal. */
+            in_app: boolean;
+            /** @description `ticket_created`, `ticket_replied` or `ticket_closed`. */
+            kind: string;
+        };
+        /** @description Notification Preferences, one per kind. */
+        NotificationPreferencesDto: {
+            /** @description Kinds not given keep their setting. */
+            preferences: components["schemas"]["NotificationPreferenceDto"][];
         };
         /** @description Opens a Service Incident. */
         OpenServiceIncidentRequest: {
@@ -7461,6 +7616,42 @@ export interface components {
              * @description Last changed.
              */
             updated_at: string;
+        };
+        /** @description A Portal Notification. */
+        PortalNotificationDto: {
+            /** @description Longer text (the ticket subject). */
+            body: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description `ticket_created`, `ticket_replied` or `ticket_closed`. */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When it was read.
+             */
+            read_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Linked ticket (open it with `GET /portal/tickets/{id}`).
+             */
+            ticket_id?: string | null;
+            /** @description Short text. */
+            title: string;
+        };
+        /** @description A page of Portal Notifications. */
+        PortalNotificationPage: {
+            /** @description Newest first. */
+            items: components["schemas"]["PortalNotificationDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
         };
         /** @description Set a Portal password with an emailed link. */
         PortalPasswordRequest: {
@@ -12365,6 +12556,31 @@ export interface operations {
             };
         };
     };
+    finish_consent: {
+        parameters: {
+            query: {
+                /** @description The `state` from the consent request. */
+                state: string;
+                /** @description The authorization code. */
+                code?: string;
+                /** @description The provider's error code, when the account refused. */
+                error?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connected; redirect to the console */
+            303: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     update_mailbox: {
         parameters: {
             query?: never;
@@ -12386,6 +12602,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MailboxDto"];
+                };
+            };
+        };
+    };
+    start_consent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MailboxConsentDto"];
                 };
             };
         };
@@ -13192,6 +13429,131 @@ export interface operations {
             };
             /** @description Not signed in to the Portal */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    portal_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferencesDto"];
+                };
+            };
+        };
+    };
+    portal_set_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NotificationPreferencesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPreferencesDto"];
+                };
+            };
+        };
+    };
+    portal_list: {
+        parameters: {
+            query?: {
+                /** @description Only unread ones. */
+                unread?: boolean;
+                /** @description Page size, 1 to 200 (default 50). */
+                limit?: number;
+                /** @description Cursor from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalNotificationPage"];
+                };
+            };
+        };
+    };
+    portal_mark_all_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All read */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    portal_unread_count: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadDto"];
+                };
+            };
+        };
+    };
+    portal_mark_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Read */
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -17571,7 +17933,10 @@ export interface operations {
                  *     `recently_closed` or `deleted` (Administrators).
                  */
                 view?: string;
-                /** @description Search: Ticket Number prefix, subject, description and Notes. */
+                /**
+                 * @description Search: Ticket Number prefix, subject, description, emails, Notes and text
+                 *     extracted from attachments.
+                 */
                 q?: string;
                 /** @description Companies. */
                 company_id?: string;

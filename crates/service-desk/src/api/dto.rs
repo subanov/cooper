@@ -610,7 +610,8 @@ pub struct TicketListParams {
     /// Built-in view: `mine`, `queue`, `unassigned`, `open`, `snoozed`,
     /// `recently_closed` or `deleted` (Administrators).
     pub view: Option<String>,
-    /// Search: Ticket Number prefix, subject, description and Notes.
+    /// Search: Ticket Number prefix, subject, description, emails, Notes and text
+    /// extracted from attachments.
     pub q: Option<String>,
     /// Companies.
     pub company_id: Option<String>,
@@ -1078,6 +1079,9 @@ pub struct AttachmentDto {
     pub media_type: String,
     /// Size in bytes.
     pub size_bytes: i64,
+    /// Text extraction for search (FR-EML-007): `pending`, `extracted`, `truncated`,
+    /// `too_large`, `unsupported` or `failed`.
+    pub extraction_status: String,
     /// Uploaded.
     pub created_at: DateTime<Utc>,
 }
@@ -1089,6 +1093,7 @@ impl From<crate::domain::AttachmentInfo> for AttachmentDto {
             file_name: a.file_name,
             media_type: a.media_type,
             size_bytes: a.size_bytes,
+            extraction_status: a.extraction_status,
             created_at: a.created_at,
         }
     }

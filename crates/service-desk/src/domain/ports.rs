@@ -314,6 +314,9 @@ pub struct TicketSettings {
     pub from_address: String,
     /// Largest attachment in bytes (FR-GEN-007).
     pub max_attachment_bytes: u64,
+    /// Cooper's public address (`COOPER_PUBLIC_URL`, else `general.base_url`), for the
+    /// Mailbox Consent redirect URI.
+    pub public_url: String,
 }
 
 impl Default for TicketSettings {
@@ -325,6 +328,7 @@ impl Default for TicketSettings {
             sla_warning_percent: 80,
             from_address: "Cooper <cooper@localhost>".to_owned(),
             max_attachment_bytes: 25 * 1024 * 1024,
+            public_url: "http://localhost:8080".to_owned(),
         }
     }
 }
@@ -374,6 +378,8 @@ pub struct AttachmentInfo {
     pub size_bytes: i64,
     /// Content hash.
     pub sha256: String,
+    /// Text extraction status for search (FR-EML-007).
+    pub extraction_status: String,
     /// Who uploaded it.
     pub created_by: cooper_kernel::Actor,
     /// When.
@@ -491,6 +497,48 @@ pub trait MailboxRepository: Send + Sync {
         mailbox: Uuid,
         limit: i64,
     ) -> Result<Vec<(String, String, String, DateTime<Utc>)>, RepoError>;
+    /// Stores a Mailbox Consent request (and forgets expired ones).
+    async fn insert_consent(&self, consent: &super::MailboxConsent) -> Result<(), RepoError>;
+    /// Removes and returns the consent request with this state hash: a state works once.
+    async fn take_consent(
+        &self,
+        state_hash: &[u8],
+    ) -> Result<Option<super::MailboxConsent>, RepoError>;
+}
+
+/// The provider side of Mailbox Consent (ADR-0033).
+#[async_trait]
+pub trait MailboxConsentClient: Send + Sync {
+    /// The providers' endpoints.
+    fn endpoints(&self) -> &super::OAuthEndpoints;
+    /// A fresh random URL-safe token (consent `state`, PKCE verifier).
+    ///
+    /// # Errors
+    ///
+    /// No randomness available.
+    fn random_token(&self) -> Result<String, String>;
+    /// Exchanges an authorization code for the account's refresh token.
+    async fn exchange_code(
+        &self,
+        mailbox: &super::Mailbox,
+        credentials: &super::OAuthCredentials,
+        redirect_uri: &str,
+        code: &str,
+        pkce_verifier: &str,
+    ) -> Result<String, String>;
+}
+
+/// A Requester's Notification Preferences for automated email (FR-PRT-007), owned by
+/// the notifications context.
+#[async_trait]
+pub trait RequesterNotificationPreferences: Send + Sync {
+    /// Whether the Requester wants the Email Template sent on `event`.
+    async fn wants_email(
+        &self,
+        tenant: TenantId,
+        requester: RequesterId,
+        event: super::EmailTemplateEvent,
+    ) -> Result<bool, RepoError>;
 }
 
 /// A retired Ticket Number (FR-TKT-003).

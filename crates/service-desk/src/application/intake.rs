@@ -111,7 +111,7 @@ impl ServiceDesk {
         Ok(self.ports.mailboxes.rejected(id, 100).await?)
     }
 
-    async fn mailbox(&self, id: Uuid) -> Result<Mailbox, AppError> {
+    pub(super) async fn mailbox(&self, id: Uuid) -> Result<Mailbox, AppError> {
         self.ports
             .mailboxes
             .mailboxes()

@@ -8,7 +8,7 @@ use std::task::{Context, Poll};
 use async_trait::async_trait;
 use chrono::{TimeZone, Utc};
 use cooper_kernel::Principal;
-use cooper_platform::attachments::{FilesystemBlobStore, clean_file_name};
+use cooper_platform::attachments::{BlobStore, clean_file_name};
 use cooper_platform::jobs::{Job, JobContext, JobError, Schedule};
 use futures::TryStreamExt;
 use mail_parser::MessageParser;
@@ -401,7 +401,7 @@ fn strip_html(html: &str) -> String {
 /// time (job lock).
 pub struct MailboxPoller {
     desk: ServiceDesk,
-    blobs: FilesystemBlobStore,
+    blobs: BlobStore,
     clients: Vec<(Provider, Arc<dyn MailboxClient>)>,
 }
 
@@ -412,11 +412,7 @@ impl MailboxPoller {
     /// A poller using `imap` for IMAP Mailboxes. Add other providers with
     /// [`MailboxPoller::with_client`].
     #[must_use]
-    pub fn new(
-        desk: ServiceDesk,
-        blobs: FilesystemBlobStore,
-        imap: Arc<dyn MailboxClient>,
-    ) -> Self {
+    pub fn new(desk: ServiceDesk, blobs: BlobStore, imap: Arc<dyn MailboxClient>) -> Self {
         Self {
             desk,
             blobs,

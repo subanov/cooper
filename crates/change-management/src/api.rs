@@ -32,7 +32,7 @@ pub struct ChangesApi {
     /// The service.
     pub service: ChangeService,
     /// Where uploaded files are stored.
-    pub blobs: cooper_platform::attachments::FilesystemBlobStore,
+    pub blobs: cooper_platform::attachments::BlobStore,
     /// Largest accepted upload.
     pub upload_limit: std::sync::Arc<dyn crate::ports::UploadLimit>,
 }

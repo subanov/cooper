@@ -2,14 +2,14 @@
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use cooper_kernel::{AuditRecord, DepartmentId, EventEnvelope, TeamId, TenantId};
+use cooper_kernel::{AnalystId, AuditRecord, DepartmentId, EventEnvelope, TeamId, TenantId};
 use cooper_platform::crypto::Keyring;
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use super::{db_err, record};
 use crate::domain::{
-    AfterImport, AfterReject, ImapSettings, InboundEmail, Mailbox, MailboxHealth,
+    AfterImport, AfterReject, ImapSettings, InboundEmail, Mailbox, MailboxConsent, MailboxHealth,
     MailboxRepository, MailboxSettings, Provider, RepoError, Security, WhitelistEntry,
 };
 
@@ -304,6 +304,50 @@ impl MailboxRepository for PgMailboxStore {
             .map(|r| (r.from_address, r.subject, r.reason, r.received_at))
             .collect())
     }
+
+    async fn insert_consent(&self, c: &MailboxConsent) -> Result<(), RepoError> {
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        sqlx::query!(
+            "DELETE FROM mailbox_consents WHERE expires_at < $1",
+            c.created_at
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        sqlx::query!(
+            "INSERT INTO mailbox_consents (state_hash, mailbox_id, analyst_id, pkce_verifier, created_at, expires_at)
+             VALUES ($1, $2, $3, $4, $5, $6)",
+            c.state_hash,
+            c.mailbox_id,
+            c.analyst_id.as_uuid(),
+            c.pkce_verifier,
+            c.created_at,
+            c.expires_at
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn take_consent(&self, state_hash: &[u8]) -> Result<Option<MailboxConsent>, RepoError> {
+        let row = sqlx::query!(
+            "DELETE FROM mailbox_consents WHERE state_hash = $1
+             RETURNING state_hash, mailbox_id, analyst_id, pkce_verifier, created_at, expires_at",
+            state_hash
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(db_err)?;
+        Ok(row.map(|r| MailboxConsent {
+            state_hash: r.state_hash,
+            mailbox_id: r.mailbox_id,
+            analyst_id: AnalystId::from_uuid(r.analyst_id),
+            pkce_verifier: r.pkce_verifier,
+            created_at: r.created_at,
+            expires_at: r.expires_at,
+        }))
+    }
 }
 
 /// Re-encrypts Mailbox secrets written with an older key after a key rotation
@@ -351,5 +395,27 @@ impl cooper_platform::jobs::Job for ReencryptMailboxSecrets {
             .await?;
         }
         Ok(Some(format!("re-encrypted {} Mailbox secrets", rows.len())))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A secret is bound to its Mailbox: another Mailbox's purpose cannot decrypt it, so
+    /// a copied ciphertext is useless (ADR-0013).
+    #[test]
+    fn credentials_are_encrypted_for_one_mailbox() {
+        let keyring = Keyring::ephemeral().unwrap();
+        let (a, b) = (Uuid::now_v7(), Uuid::now_v7());
+        let secret = r#"{"client_id":"c","client_secret":"s","refresh_token":"rt-123"}"#;
+        let stored = keyring.encrypt(&purpose(a), secret.as_bytes()).unwrap();
+        assert!(!stored.contains("rt-123"));
+        assert_eq!(
+            keyring.decrypt(&purpose(a), &stored).unwrap(),
+            secret.as_bytes()
+        );
+        assert!(keyring.decrypt(&purpose(b), &stored).is_err());
+        assert_eq!(purpose(a), format!("mailbox.secret:{a}"));
     }
 }

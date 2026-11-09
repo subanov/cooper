@@ -132,6 +132,8 @@ where
         .routes(routes!(download_attachment))
         .routes(routes!(list_mailboxes, create_mailbox))
         .routes(routes!(update_mailbox))
+        .routes(routes!(start_consent))
+        .routes(routes!(finish_consent))
         .routes(routes!(list_rejected))
         .routes(routes!(list_calendars, create_calendar))
         .routes(routes!(update_calendar))
@@ -892,6 +894,63 @@ async fn update_mailbox(
             .await?
             .into(),
     ))
+}
+
+/// Where to send the Administrator's browser to connect a Mailbox.
+#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct MailboxConsentDto {
+    /// The provider's sign-in page, with a single-use `state` (valid 10 minutes) and a
+    /// PKCE challenge.
+    pub authorization_url: String,
+}
+
+/// Starts Mailbox Consent for a Microsoft `delegated` or Google Mailbox whose client
+/// credentials are saved (needs `tickets.configure`, in an Analyst session).
+#[utoipa::path(post, path = "/mailboxes/{id}/consent", tag = "Mailboxes", params(("id" = Uuid, Path)), responses((status = 200, body = MailboxConsentDto)))]
+async fn start_consent(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<MailboxConsentDto>> {
+    Ok(Json(MailboxConsentDto {
+        authorization_url: api.service.start_mailbox_consent(&p, id).await?,
+    }))
+}
+
+/// What the provider sends back.
+#[derive(Debug, serde::Deserialize, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
+pub struct ConsentCallbackParams {
+    /// The `state` from the consent request.
+    pub state: String,
+    /// The authorization code.
+    pub code: Option<String>,
+    /// The provider's error code, when the account refused.
+    pub error: Option<String>,
+}
+
+/// The provider redirects here after the account consented (or refused). Stores the
+/// refresh token, encrypted, and redirects to the console with
+/// `?mailbox_consent=connected&mailbox=<id>` (needs the same Analyst session that started
+/// the consent).
+#[utoipa::path(get, path = "/mailboxes/consent/callback", tag = "Mailboxes", params(ConsentCallbackParams), responses((status = 303, description = "Connected; redirect to the console")))]
+async fn finish_consent(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Query(q): Query<ConsentCallbackParams>,
+) -> ApiResult<Response> {
+    let mailbox = api
+        .service
+        .finish_mailbox_consent(&p, &q.state, q.code.as_deref(), q.error.as_deref())
+        .await?;
+    Ok((
+        StatusCode::SEE_OTHER,
+        [(
+            http::header::LOCATION,
+            format!("/?mailbox_consent=connected&mailbox={mailbox}"),
+        )],
+    )
+        .into_response())
 }
 
 /// Recent Rejected Emails of a Mailbox (Whitelist, unknown senders, loop protection).

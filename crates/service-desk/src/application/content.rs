@@ -320,6 +320,7 @@ impl ServiceDesk {
             media_type: file.media_type,
             size_bytes: i64::try_from(file.size_bytes).unwrap_or(i64::MAX),
             sha256: file.sha256,
+            extraction_status: "pending".to_owned(),
             created_by: principal.actor(),
             created_at: now,
         };

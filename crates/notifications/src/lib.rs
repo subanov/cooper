@@ -8,6 +8,7 @@
 pub mod api;
 pub mod email;
 pub mod handlers;
+pub mod portal;
 
 use std::collections::BTreeSet;
 use std::sync::Arc;

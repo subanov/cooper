@@ -29,7 +29,7 @@ pub struct ServiceDeskApi {
     /// The application service.
     pub service: ServiceDesk,
     /// Where attachment content is stored.
-    pub blobs: cooper_platform::attachments::FilesystemBlobStore,
+    pub blobs: cooper_platform::attachments::BlobStore,
 }
 
 /// The service desk routes, to be nested under `/api/v1`.

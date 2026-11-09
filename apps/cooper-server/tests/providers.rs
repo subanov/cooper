@@ -198,7 +198,7 @@ async fn credentials_are_checked_and_never_returned(pool: PgPool) {
         .post(
             "/api/v1/mailboxes",
             json!({ "name": "Desk", "address": "desk@acme.example", "company_id": company, "provider": "microsoft",
-                    "auth_mode": "delegated", "credentials": { "tenant": "t", "client_id": "c", "client_secret": "s" } }),
+                    "auth_mode": "delegated", "credentials": { "client_id": "c", "client_secret": "s" } }),
         )
         .await;
     assert_eq!(
@@ -207,12 +207,7 @@ async fn credentials_are_checked_and_never_returned(pool: PgPool) {
         "{:?}",
         bad.body
     );
-    assert!(
-        bad.body["detail"]
-            .as_str()
-            .unwrap()
-            .contains("refresh_token")
-    );
+    assert!(bad.body["detail"].as_str().unwrap().contains("tenant"));
     mailbox(
         &admin,
         &pool,
@@ -412,5 +407,313 @@ async fn graph_app_only_mailbox_reads_the_users_mailbox(pool: PgPool) {
             ),
             ("list".into(), "desk@acme.example".into()),
         ]
+    );
+}
+
+// ----- Mailbox Consent (FR-EML-001, FR-EML-012, ADR-0033) ---------------------------------
+
+/// A fake Microsoft and Google token endpoint for the authorization code exchange. It
+/// records `(grant_type code redirect_uri, verifier)` and answers with a refresh token.
+fn consent_fake(calls: Calls) -> Router {
+    let token = |State(c): State<Calls>, Form(f): Form<HashMap<String, String>>| async move {
+        c.push(
+            "token",
+            format!(
+                "{} {} {}",
+                f["grant_type"],
+                f.get("code").cloned().unwrap_or_default(),
+                f.get("redirect_uri").cloned().unwrap_or_default()
+            ),
+        );
+        c.push(
+            "verifier",
+            f.get("code_verifier").cloned().unwrap_or_default(),
+        );
+        if f.get("code").map(String::as_str) != Some("good-code") {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(
+                    json!({ "error": "invalid_grant", "error_description": "AADSTS70000: bad code" }),
+                ),
+            );
+        }
+        (
+            StatusCode::OK,
+            Json(
+                json!({ "access_token": "at", "refresh_token": "consented-rt", "token_type": "Bearer" }),
+            ),
+        )
+    };
+    Router::new()
+        .route("/ms/{tenant}/oauth2/v2.0/token", post(token))
+        .route("/google/token", post(token))
+        .with_state(calls)
+}
+
+/// An Administrator on a server whose Mailbox Consent talks to `base`.
+async fn consent_admin(pool: &PgPool, base: &str) -> Client {
+    let settings = cooper_server::SecuritySettings {
+        secure_cookies: false,
+        public_url: Some("https://desk.example".into()),
+        mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints {
+            microsoft_login: format!("{base}/ms"),
+            google_authorize: format!("{base}/google/auth"),
+            google_token: format!("{base}/google/token"),
+        },
+        ..common::test_settings()
+    };
+    let state = AppState::with_settings(pool.clone(), Arc::new(SystemClock), settings).unwrap();
+    let anon = Client {
+        app: cooper_server::router(state, &cooper_http::HttpConfig::default()),
+        cookie: None,
+        csrf: None,
+        peer: None,
+        headers: Vec::new(),
+    };
+    let reply = anon
+        .post(
+            "/api/v1/setup",
+            json!({
+                "company_name": "Default Company", "ticket_code": "DEF", "sender_domains": ["default.example"],
+                "username": "admin", "email": "admin@default.example", "full_name": "Ada Admin",
+                "password": common::ADMIN_PASSWORD
+            }),
+        )
+        .await;
+    assert_eq!(reply.status, StatusCode::CREATED, "{:?}", reply.body);
+    anon.sign_in("admin", common::ADMIN_PASSWORD).await
+}
+
+fn query_param(url: &str, name: &str) -> String {
+    url.split_once('?')
+        .unwrap()
+        .1
+        .split('&')
+        .find_map(|p| p.strip_prefix(&format!("{name}=")))
+        .unwrap_or_else(|| panic!("{name} in {url}"))
+        .to_owned()
+}
+
+async fn start_consent(admin: &Client, id: &str) -> (StatusCode, Value) {
+    let r = admin
+        .post(&format!("/api/v1/mailboxes/{id}/consent"), json!({}))
+        .await;
+    (r.status, r.body)
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn mailbox_consent_stores_the_refresh_token_once_per_state(pool: PgPool) {
+    let calls = Calls::default();
+    let base = serve(consent_fake(calls.clone())).await;
+    let admin = consent_admin(&pool, &base).await;
+    // Saved without a refresh token: it comes from the consent.
+    let id = mailbox(
+        &admin,
+        &pool,
+        json!({ "provider": "microsoft", "auth_mode": "delegated", "credentials": { "tenant": "contoso.example", "client_id": "app", "client_secret": "s" } }),
+    )
+    .await;
+
+    let (status, body) = start_consent(&admin, &id).await;
+    assert_eq!(status, StatusCode::OK, "{body:?}");
+    let url = body["authorization_url"].as_str().unwrap();
+    assert!(
+        url.starts_with(&format!(
+            "{base}/ms/contoso.example/oauth2/v2.0/authorize?client_id=app&"
+        )),
+        "{url}"
+    );
+    assert_eq!(
+        query_param(url, "redirect_uri"),
+        "https%3A%2F%2Fdesk.example%2Fapi%2Fv1%2Fmailboxes%2Fconsent%2Fcallback",
+        "from configuration, never from the request"
+    );
+    assert_eq!(query_param(url, "code_challenge_method"), "S256");
+    let state = query_param(url, "state");
+    let challenge = query_param(url, "code_challenge");
+    let stored: Vec<u8> = sqlx::query_scalar("SELECT state_hash FROM mailbox_consents")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_ne!(stored, state.as_bytes(), "the state is stored hashed");
+
+    let callback =
+        |state: &str, rest: &str| format!("/api/v1/mailboxes/consent/callback?state={state}{rest}");
+    // Only a signed-in Administrator finishes it, and only with a known state.
+    assert_eq!(
+        Client::anonymous(&pool)
+            .get(&callback(&state, "&code=good-code"))
+            .await
+            .status,
+        StatusCode::UNAUTHORIZED
+    );
+    assert_eq!(
+        admin
+            .get(&callback("forged", "&code=good-code"))
+            .await
+            .status,
+        StatusCode::UNPROCESSABLE_ENTITY
+    );
+
+    let done = admin.get(&callback(&state, "&code=good-code")).await;
+    assert_eq!(done.status, StatusCode::SEE_OTHER, "{:?}", done.body);
+    assert_eq!(
+        done.headers[http::header::LOCATION],
+        format!("/?mailbox_consent=connected&mailbox={id}").as_str()
+    );
+    let seen = calls.all();
+    assert_eq!(
+        seen[0],
+        (
+            "token".into(),
+            "authorization_code good-code https://desk.example/api/v1/mailboxes/consent/callback"
+                .into()
+        )
+    );
+    let verifier = &seen[1].1;
+    assert_eq!(
+        base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(<sha2::Sha256 as sha2::Digest>::digest(verifier.as_bytes())),
+        challenge,
+        "PKCE: the verifier matches the challenge"
+    );
+
+    // Stored encrypted with the Mailbox's purpose, never returned.
+    let secret = state_of(&pool)
+        .service_desk
+        .service
+        .mailbox_secret(id.parse().unwrap())
+        .await
+        .unwrap()
+        .unwrap();
+    let creds: Value = serde_json::from_str(&secret).unwrap();
+    assert_eq!(creds["refresh_token"], "consented-rt");
+    assert_eq!(creds["client_id"], "app");
+    let encrypted: String = sqlx::query_scalar("SELECT secret_encrypted FROM mailboxes")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert!(!encrypted.contains("consented-rt"));
+    assert!(
+        !admin
+            .get("/api/v1/mailboxes")
+            .await
+            .body
+            .to_string()
+            .contains("consented-rt")
+    );
+    let audited: i64 = sqlx::query_scalar(
+        "SELECT count(*) FROM audit_entries WHERE aggregate_type = 'mailbox' AND field = 'secret'
+           AND new_value = '\"(account connected by consent)\"'::jsonb AND actor_kind = 'analyst'",
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+    assert_eq!(audited, 1);
+
+    // A state works once.
+    assert_eq!(
+        admin.get(&callback(&state, "&code=good-code")).await.status,
+        StatusCode::UNPROCESSABLE_ENTITY
+    );
+    // A refused consent or a bad code changes nothing.
+    let (_, body) = start_consent(&admin, &id).await;
+    let again = query_param(body["authorization_url"].as_str().unwrap(), "state");
+    let refused = admin.get(&callback(&again, "&error=access_denied")).await;
+    assert_eq!(refused.status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert!(
+        refused.body["detail"]
+            .as_str()
+            .unwrap()
+            .contains("access_denied")
+    );
+    let (_, body) = start_consent(&admin, &id).await;
+    let third = query_param(body["authorization_url"].as_str().unwrap(), "state");
+    let bad = admin.get(&callback(&third, "&code=bad-code")).await;
+    assert_eq!(bad.status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert!(
+        bad.body["detail"]
+            .as_str()
+            .unwrap()
+            .contains("invalid_grant")
+    );
+}
+
+fn state_of(pool: &PgPool) -> AppState {
+    state(pool)
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn only_delegated_and_google_mailboxes_are_connected_by_consent(pool: PgPool) {
+    let calls = Calls::default();
+    let base = serve(consent_fake(calls.clone())).await;
+    let admin = consent_admin(&pool, &base).await;
+    let app_only = mailbox(
+        &admin,
+        &pool,
+        json!({ "provider": "microsoft", "auth_mode": "app_only", "credentials": { "tenant": "t", "client_id": "app", "client_secret": "s" } }),
+    )
+    .await;
+    assert_eq!(
+        start_consent(&admin, &app_only).await.0,
+        StatusCode::UNPROCESSABLE_ENTITY
+    );
+    let google = mailbox(
+        &admin,
+        &pool,
+        json!({ "name": "Gmail", "address": "help@acme.example", "provider": "google",
+                "credentials": { "client_id": "gc", "client_secret": "gs" } }),
+    )
+    .await;
+    let (status, body) = start_consent(&admin, &google).await;
+    assert_eq!(status, StatusCode::OK, "{body:?}");
+    let url = body["authorization_url"].as_str().unwrap();
+    assert!(
+        url.starts_with(&format!("{base}/google/auth?client_id=gc&")),
+        "{url}"
+    );
+    assert_eq!(query_param(url, "access_type"), "offline");
+    let consent_state = query_param(url, "state");
+    let done = admin
+        .get(&format!(
+            "/api/v1/mailboxes/consent/callback?state={consent_state}&code=good-code"
+        ))
+        .await;
+    assert_eq!(done.status, StatusCode::SEE_OTHER, "{:?}", done.body);
+    assert_eq!(
+        calls.all()[0].1.split(' ').next(),
+        Some("authorization_code")
+    );
+
+    // An unconnected delegated Mailbox reports it in its health instead of polling.
+    let unconnected = mailbox(
+        &admin,
+        &pool,
+        json!({ "name": "Later", "address": "later@acme.example", "provider": "microsoft", "auth_mode": "delegated",
+                "credentials": { "tenant": "t", "client_id": "app", "client_secret": "s" } }),
+    )
+    .await;
+    let graph = GraphClient::with_endpoints(&format!("{base}/ms"), &base).unwrap();
+    let poller = MailboxPoller::new(
+        state(&pool).service_desk.service.clone(),
+        state(&pool).service_desk.blobs.clone(),
+        Arc::new(ImapClient),
+    )
+    .with_client(Provider::Microsoft, Arc::new(graph));
+    poll(&pool, poller).await;
+    let listed = admin.get("/api/v1/mailboxes").await.body;
+    let health = listed
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|m| m["id"] == unconnected.as_str())
+        .unwrap()["health"]
+        .clone();
+    assert!(
+        health["last_error"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("not connected"),
+        "{health:?}"
     );
 }

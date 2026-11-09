@@ -1,6 +1,7 @@
 //! Service desk domain. Pure Rust: no I/O.
 
 mod catalogue;
+mod consent;
 mod email;
 mod email_template;
 mod events;
@@ -17,6 +18,10 @@ mod ticket;
 mod type_rules;
 
 pub use catalogue::{portal_catalogue, portal_ticket_type};
+pub use consent::{
+    CONSENT_CALLBACK_PATH, CONSENT_LIFETIME_MINUTES, GOOGLE_SCOPES, MICROSOFT_SCOPES,
+    MailboxConsent, OAuthEndpoints, authorization_url, pkce_challenge, state_hash,
+};
 pub use email::{
     Direction, PLACEHOLDERS, Placeholders, PortalReplyDraft, ReplyDraft, ReplyTemplate,
     TicketEmail, parse_sdref, sdref_subject,
@@ -45,9 +50,10 @@ pub use merge::{
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{
     AnalystProfile, AttachmentInfo, ContentRepository, DepartmentInfo, Directory, ListFilter,
-    MailboxRepository, ManagedTickets, ReferenceData, RepoError, RequesterContact, RetiredNumber,
-    SlaRepository, SortField, TicketListQuery, TicketRelations, TicketRepository, TicketSettings,
-    TicketSettingsProvider, TicketSummary, TicketView, Visibility,
+    MailboxConsentClient, MailboxRepository, ManagedTickets, ReferenceData, RepoError,
+    RequesterContact, RequesterNotificationPreferences, RetiredNumber, SlaRepository, SortField,
+    TicketListQuery, TicketRelations, TicketRepository, TicketSettings, TicketSettingsProvider,
+    TicketSummary, TicketView, Visibility,
 };
 pub use sla::{
     DayHours, RuleTarget, SlaCalendar, SlaCalendarInput, SlaNotificationRule, SlaRuleInput,

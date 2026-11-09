@@ -104,9 +104,10 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 |---|---|---|---|
 | **Mailbox** (Target Mailbox) | An email account that Cooper polls to create and update tickets and sends replies from. Provider: `microsoft` (Graph), `google`, `imap`. Auth mode for Graph: `delegated` or `app_only`. | `Mailbox`, `target_mailboxes` | inbox, email account |
 | **Email** | An inbound or outbound message stored against a ticket. Direction (fixed): `Inbound`, `Outbound`. Status starts at `New`. | `Email`, `emails` | message (generic) |
+| **Mailbox Consent** | Connecting a Microsoft `delegated` or Google Mailbox: an Administrator signs in to the account at the provider (OAuth authorization code with PKCE) and Cooper stores the refresh token, encrypted. The request's state works once, for ten minutes. | `MailboxConsent`, `mailbox_consents` | OAuth dance, authorisation (in UI copy say "Connect account") |
 | **Mailbox Whitelist** | Addresses or domains allowed (or blocked) from creating tickets. | `MailboxWhitelistEntry` | allow-list |
 | **Rejected Email** | An inbound email that did not pass the whitelist or rules. The default action is delete. | — | spam |
-| **Attachment** | A file attached to an email or ticket. Cooper extracts its text for search. Extraction status (fixed): `pending`, `extracted`, `truncated`, `too_large`, `unsupported`, `failed`. | `Attachment` | |
+| **Attachment** | A file attached to an email or ticket. Cooper extracts its text for search. Extraction status (fixed): `pending`, `extracted`, `truncated`, `too_large`, `unsupported`, `failed`. Its content lives in the **Blob Store** (file system or an S3-compatible bucket), stored once per SHA-256. | `Attachment`, `BlobStore`, `ExtractionStatus` | |
 | **Channel** | A non-email intake: WhatsApp, Telegram, Slack, Microsoft Teams, Web Chat. | `MessagingChannel` | |
 | **Web Chat Widget** | An embeddable chat for websites. AI mode (fixed): `assist`, `deflect`. Message sender (fixed): `visitor`, `ai`, `agent`, `system`. | `WebchatWidget` | |
 | **Sender Domain** | An email domain mapped to a Company, used to set the tenant on inbound tickets. | `TenantDomain` | |
@@ -347,6 +348,8 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Portal Catalogue** | The Categories and Forms a Requester can choose from to raise a ticket: active and marked `portal_visible`, with every parent Category also active and visible. | `portal_catalogue` | service catalog |
 | **Portal Account** | The Portal sign-in of one email address: a password that acts for every active Requester with that address, in any Company. Created when the person first sets a password through an emailed link (invitation, reset or Self-Registration). | `PortalAccount`, `portal_accounts` | user account, login |
 | **Portal Invitation** | An email an Analyst sends a Requester with a link to set a Portal password (valid 7 days). | `PortalLinkPurpose::Invitation` | |
+| **Portal Notification** | An entry in a Requester's notifications on the Portal, about one of their own tickets. Kinds (fixed): `ticket_created`, `ticket_replied`, `ticket_closed`. | `PortalNotification`, `portal_notifications` | alert, message, notification (alone, that is the Analyst's bell) |
+| **Notification Preference** | A Requester's choice, per Portal Notification kind, to get it in-app and/or by email (the Email Template of that event). Everything is on until changed. | `NotificationPreference`, `portal_notification_preferences` | subscription, opt-out |
 | **Self-Registration** | A person whose email belongs to a Company's Sender Domain asks for a Portal Account; the emailed link confirms the address, sets the password and creates the Requester. Off by default (`portal.self_registration`). | `PortalLinkPurpose::Registration` | sign-up |
 
 ---

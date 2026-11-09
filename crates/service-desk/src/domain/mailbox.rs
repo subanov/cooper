@@ -156,39 +156,47 @@ impl std::fmt::Debug for OAuthCredentials {
 }
 
 impl OAuthCredentials {
-    /// Parses and checks the credentials JSON for a Mailbox's provider and auth mode:
-    /// Microsoft needs `tenant`; `delegated` and Google need a `refresh_token`.
+    /// Parses and checks the credentials JSON for a Mailbox's provider: Microsoft needs
+    /// `tenant`. The `refresh_token` of `delegated` and Google Mailboxes is optional
+    /// here: the Mailbox Consent flow adds it (ADR-0033), or it can be pasted.
     ///
     /// # Errors
     ///
     /// Not JSON, missing fields, or an IMAP Mailbox.
     pub fn parse(settings: &MailboxSettings, secret: &str) -> Result<Self, TicketError> {
         let invalid = |reason: &str| TicketError::invalid("credentials", reason.to_owned());
-        let c: Self = serde_json::from_str(secret).map_err(|_| {
+        let mut c: Self = serde_json::from_str(secret).map_err(|_| {
             invalid("must be an object with client_id, client_secret and, as needed, tenant and refresh_token")
         })?;
         let blank = |v: &str| v.trim().is_empty();
         if blank(&c.client_id) || blank(&c.client_secret) {
             return Err(invalid("client_id and client_secret are required"));
         }
-        let has_refresh = c.refresh_token.as_deref().is_some_and(|t| !blank(t));
+        if c.refresh_token.as_deref().is_some_and(blank) {
+            c.refresh_token = None;
+        }
         match settings.provider {
             Provider::Imap => return Err(invalid("are for Microsoft and Google Mailboxes")),
-            Provider::Microsoft => {
-                if c.tenant.as_deref().is_none_or(blank) {
-                    return Err(invalid("tenant is required for Microsoft"));
-                }
-                if settings.auth_mode.as_deref() == Some("delegated") && !has_refresh {
-                    return Err(invalid("refresh_token is required for delegated access"));
-                }
+            Provider::Microsoft if c.tenant.as_deref().is_none_or(blank) => {
+                return Err(invalid("tenant is required for Microsoft"));
             }
-            Provider::Google => {
-                if !has_refresh {
-                    return Err(invalid("refresh_token is required for Google"));
-                }
-            }
+            Provider::Microsoft | Provider::Google => {}
         }
         Ok(c)
+    }
+
+    /// The refresh token a `delegated` or Google Mailbox signs in with.
+    ///
+    /// # Errors
+    ///
+    /// The account has not been connected yet.
+    pub fn connected_refresh_token(&self) -> Result<&str, TicketError> {
+        self.refresh_token.as_deref().ok_or_else(|| {
+            TicketError::invalid(
+                "credentials",
+                "the account is not connected yet: connect it (Mailbox Consent) or paste a refresh_token",
+            )
+        })
     }
 
     /// The JSON stored as the Mailbox secret.
@@ -601,14 +609,24 @@ mod tests {
         let app = r#"{"tenant":"contoso.example","client_id":"c","client_secret":"s"}"#;
         let full = r#"{"tenant":"t","client_id":"c","client_secret":"s","refresh_token":"r"}"#;
         assert!(OAuthCredentials::parse(&ms("app_only"), app).is_ok());
-        assert!(OAuthCredentials::parse(&ms("delegated"), app).is_err());
+        let unconnected = OAuthCredentials::parse(&ms("delegated"), app).unwrap();
+        assert!(
+            unconnected.connected_refresh_token().is_err(),
+            "saved, then connected by consent"
+        );
         assert!(OAuthCredentials::parse(&ms("delegated"), full).is_ok());
         assert!(
             OAuthCredentials::parse(&ms("app_only"), r#"{"client_id":"c","client_secret":"s"}"#)
                 .is_err()
         );
         assert!(
-            OAuthCredentials::parse(&google, r#"{"client_id":"c","client_secret":"s"}"#).is_err()
+            OAuthCredentials::parse(
+                &google,
+                r#"{"client_id":"c","client_secret":"s","refresh_token":" "}"#
+            )
+            .unwrap()
+            .refresh_token
+            .is_none()
         );
         assert!(
             OAuthCredentials::parse(
