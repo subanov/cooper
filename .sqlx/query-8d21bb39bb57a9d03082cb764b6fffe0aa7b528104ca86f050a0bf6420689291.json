@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE service_incident_statuses SET is_default = false WHERE is_default AND id <> $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8d21bb39bb57a9d03082cb764b6fffe0aa7b528104ca86f050a0bf6420689291"
+}

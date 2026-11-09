@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT incident_id AS \"owner!\", service_id, impact_level_id FROM status_incident_services WHERE incident_id = ANY($1)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "owner!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_services",
+            "name": "incident_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "service_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_services",
+            "name": "service_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "impact_level_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incident_services",
+            "name": "impact_level_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b04904144aa967742d6ee9335d93de22a535af82e21fe8a630b845691c589e18"
+}

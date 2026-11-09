@@ -914,3 +914,37 @@ impl cooper_notifications::handlers::TaskLookup for TaskFactsLookup {
             }))
     }
 }
+
+/// Service Status publication settings, read from System Settings (FR-SST-009,
+/// FR-PRT-006).
+pub struct StatusPublication {
+    /// Administration.
+    pub admin: AdministrationService,
+}
+
+#[async_trait]
+impl cooper_service_status::ports::PublicationSettingsProvider for StatusPublication {
+    async fn settings(&self) -> cooper_service_status::ports::PublicationSettings {
+        use cooper_service_status::application::settings;
+        let defaults = cooper_service_status::ports::PublicationSettings::default();
+        let value = |key: &'static str| {
+            let admin = self.admin.clone();
+            async move { admin.setting_value(key).await.ok().flatten() }
+        };
+        cooper_service_status::ports::PublicationSettings {
+            public_page: value(settings::PUBLIC_PAGE.key)
+                .await
+                .and_then(|v| v.as_bool())
+                .unwrap_or(defaults.public_page),
+            show_incidents: value(settings::SHOW_INCIDENTS.key)
+                .await
+                .and_then(|v| v.as_bool())
+                .unwrap_or(defaults.show_incidents),
+            recent_days: value(settings::RECENT_DAYS.key)
+                .await
+                .and_then(|v| v.as_u64())
+                .and_then(|v| u32::try_from(v).ok())
+                .unwrap_or(defaults.recent_days),
+        }
+    }
+}

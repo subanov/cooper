@@ -32,6 +32,7 @@ cooper-platform.workspace = true
 cooper-change-management.workspace = true
 cooper-knowledge.workspace = true
 cooper-tasks.workspace = true
+cooper-service-status.workspace = true
 cooper-problem-management.workspace = true
 cooper-service-desk.workspace = true
 futures.workspace = true

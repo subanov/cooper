@@ -1,0 +1,163 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.id, i.tenant_id, i.title, i.status_id, s.is_resolved, i.started_at, i.resolved_at, i.planned_maintenance_id,\n                    i.created_by_kind, i.created_by_id, i.created_at, i.updated_at\n             FROM status_incidents i JOIN service_incident_statuses s ON s.id = i.status_id\n             WHERE ($1 OR i.tenant_id IS NULL OR i.tenant_id = ANY($2))\n               AND (NOT s.is_resolved OR i.resolved_at >= $3)\n               AND EXISTS (SELECT 1 FROM status_incident_updates u WHERE u.incident_id = i.id AND u.is_public)\n             ORDER BY i.started_at DESC, i.id DESC\n             LIMIT $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_resolved",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "service_incident_statuses",
+            "name": "is_resolved"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "started_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "started_at"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "resolved_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "resolved_at"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "planned_maintenance_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "planned_maintenance_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "status_incidents",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "90d224c286f7ab8744d63a9c13ecd9cbf2acf77aa0f1d26229d91dcf6e8c6318"
+}

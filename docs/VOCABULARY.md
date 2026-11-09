@@ -259,14 +259,15 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
-| **Service** | A business or IT service whose status is published. | `StatusService` | system |
-| **Service Incident** | A published disruption that affects one or more Services. Separate from a Ticket. | `StatusIncident` | outage (Outage is an impact level) |
-| **Incident Status** | Seed: **Investigating** (default), **Identified**, **Monitoring**, **3rd Party**, **Resolved** (resolved). | `ServiceIncidentStatus` | |
-| **Impact Level** | Effect on a Service, ordered by severity. Seed: **Major Outage** (1, downtime), **Partial Outage** (2, downtime), **Degraded** (3, downtime), **Maintenance** (4), **Operational** (5, default), **No Disruption** (6). | `ImpactLevel` | |
+| **Service** | A business or IT service whose status is published. Belongs to one Company, or is **shared** (no Company) and shown to every Company and on the Public Status Page. | `StatusService`, `status_services` | system |
+| **Service Incident** | A published disruption that affects one or more Services, each with an Impact Level. Separate from a Ticket. Its Company is that of its Services (all of one Company, or all shared). | `StatusIncident`, `status_incidents` | outage (Outage is an impact level) |
+| **Incident Status** | Lifecycle state of a Service Incident. Flags: `is_resolved`, `is_default`. Seed: **Investigating** (default), **Identified**, **Monitoring**, **3rd Party**, **Resolved** (resolved). | `ServiceIncidentStatus`, `service_incident_statuses` | state |
+| **Impact Level** | Effect on a Service, ordered by severity (1 is the worst). Seed: **Major Outage** (1, downtime), **Partial Outage** (2, downtime), **Degraded** (3, downtime), **Maintenance** (4), **Operational** (5, default), **No Disruption** (6). The default is the all-clear. | `ImpactLevel`, `impact_levels` | |
 | **Counts as Downtime** | Impact Level flag used for availability reporting. | `ImpactLevel::counts_as_downtime` | |
-| **Incident Update** | A timestamped update on a Service Incident, with a snapshot of the affected services. Internal by default. | `StatusIncidentUpdate` | post |
-| **Planned Maintenance** | A scheduled service window. State (fixed): `scheduled`, `started`, `finished`, `cancelled`. Becomes an Incident when it starts. | `PlannedMaintenance` | |
-
+| **Current Status** | The status a Service shows now: the worst Impact Level among its unresolved Service Incidents, or the default Impact Level (Operational) when it has none. Computed, never stored. | `current_status()` | health |
+| **Incident Update** | A timestamped update on a Service Incident, with a snapshot of its Incident Status and the Impact Level on each affected Service. Internal by default; public ones are shown to Requesters. | `StatusIncidentUpdate`, `status_incident_updates` | post |
+| **Planned Maintenance** | A scheduled service window with a planned start and end and affected Services. State (fixed): `scheduled`, `started`, `finished`, `cancelled`. Becomes a Service Incident when it starts. | `PlannedMaintenance`, `planned_maintenances` | |
+| **Public Status Page** | The optional page anyone can read without signing in: shared Services, their Current Status, public Incident Updates and Planned Maintenance. Off by default. | `/api/v1/public/service-status` | status site |
 ---
 
 ## 11. Morning Checks

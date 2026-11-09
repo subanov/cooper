@@ -1585,6 +1585,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/portal/service-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Service Status on the Portal (FR-PRT-006): shared Services and those of your Company,
+         *     Planned Maintenance and, when shown, Incidents with their public updates.
+         */
+        get: operations["portal_service_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portal/session": {
         parameters: {
             query?: never;
@@ -2016,6 +2036,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/service-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The Public Status Page (FR-SST-009): no sign-in, shared records only, `404` unless
+         *     `service_status.public_page` is on.
+         */
+        get: operations["public_service_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reply-templates": {
         parameters: {
             query?: never;
@@ -2237,6 +2277,295 @@ export interface paths {
         post?: never;
         /** Deletes a Role and its assignments. */
         delete: operations["delete_role"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The board: active Services with their Current Status (FR-SST-006). */
+        get: operations["get_service_status_board"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/impact-levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Impact Levels, worst first. */
+        get: operations["list_impact_levels"];
+        put?: never;
+        /** Creates an Impact Level (needs `service-status.configure`). */
+        post: operations["create_impact_level"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/impact-levels/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes an Impact Level (needs `service-status.configure`). */
+        put: operations["update_impact_level"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/incident-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incident Statuses in order. */
+        get: operations["list_service_incident_statuses"];
+        put?: never;
+        /** Creates an Incident Status (needs `service-status.configure`). */
+        post: operations["create_service_incident_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/incident-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes an Incident Status (needs `service-status.configure`). */
+        put: operations["update_service_incident_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Service Incidents you can see, newest first. */
+        get: operations["list_service_incidents"];
+        put?: never;
+        /** Opens a Service Incident (needs `service-status.update`). */
+        post: operations["open_service_incident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/incidents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Service Incident with every update. */
+        get: operations["get_service_incident"];
+        /** Changes the title of a Service Incident (needs `service-status.update`). */
+        put: operations["retitle_service_incident"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/incidents/{id}/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Posts an Incident Update (needs `service-status.update`); it must say something new. */
+        post: operations["post_incident_update"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/incidents/{id}/updates/{update_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Corrects the wording and visibility of an Incident Update (needs
+         *     `service-status.update`); its status and impact snapshot stay as they were.
+         */
+        put: operations["correct_incident_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/planned-maintenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Planned Maintenance you can see, soonest first. */
+        get: operations["list_planned_maintenance"];
+        put?: never;
+        /** Schedules Planned Maintenance (needs `service-status.update`). */
+        post: operations["schedule_planned_maintenance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/planned-maintenance/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Planned Maintenance. */
+        get: operations["get_planned_maintenance"];
+        /** Changes scheduled Planned Maintenance (needs `service-status.update`). */
+        put: operations["edit_planned_maintenance"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/planned-maintenance/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancels scheduled Planned Maintenance (needs `service-status.update`). */
+        post: operations["cancel_planned_maintenance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/planned-maintenance/{id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finishes started Planned Maintenance now, resolving its Service Incident unless
+         *     someone already did (needs `service-status.update`).
+         */
+        post: operations["finish_planned_maintenance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/planned-maintenance/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Starts scheduled Planned Maintenance now, opening its Service Incident (needs
+         *     `service-status.update`).
+         */
+        post: operations["start_planned_maintenance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Services you can see, active or not. */
+        get: operations["list_status_services"];
+        put?: never;
+        /** Creates a Service (needs `service-status.configure`; shared ones need every Company). */
+        post: operations["create_status_service"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/service-status/services/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Service. */
+        get: operations["get_status_service"];
+        /** Changes or deactivates a Service (needs `service-status.configure`). */
+        put: operations["update_status_service"];
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4741,6 +5070,13 @@ export interface components {
             /** @description Ticket Code. */
             ticket_code: string;
         };
+        /** @description Corrects a posted update. */
+        CorrectIncidentUpdateRequest: {
+            /** @description Text. */
+            body: string;
+            /** @description Public. */
+            is_public: boolean;
+        };
         /** @description A Cost Centre. */
         CostCentreDto: {
             /** @description Code. */
@@ -4874,6 +5210,80 @@ export interface components {
             end: string;
             /** @description Start, `HH:MM`. */
             start: string;
+        };
+        /** @description An Impact Level (FR-SST-002). */
+        ImpactLevelDto: {
+            /** @description `#rrggbb`. */
+            colour?: string | null;
+            /** @description Counts towards downtime. */
+            counts_as_downtime: boolean;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description The all-clear. */
+            is_default: boolean;
+            /** @description Stable key of seeded rows. */
+            key?: string | null;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description 1 is the worst.
+             */
+            severity_order: number;
+        };
+        /** @description Creates or changes an Impact Level. */
+        ImpactLevelRequest: {
+            /** @description `#rrggbb`. */
+            colour?: string | null;
+            /** @description Counts towards downtime. */
+            counts_as_downtime?: boolean;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description The all-clear. */
+            is_default?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description 1 is the worst; unique.
+             */
+            severity_order: number;
+        };
+        /** @description An Incident Update (FR-SST-005). */
+        IncidentUpdateDto: {
+            /** @description Who posted it (`{kind, id}`). */
+            author: Record<string, never>;
+            /** @description Text. */
+            body: string;
+            /**
+             * Format: date-time
+             * @description When it was last corrected.
+             */
+            edited_at?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Shown to Requesters and on the Public Status Page. */
+            is_public: boolean;
+            /**
+             * Format: date-time
+             * @description When it took effect.
+             */
+            posted_at: string;
+            /** @description The Impact Level on each Service at the time. */
+            services: components["schemas"]["ServiceImpactDto"][];
+            /**
+             * Format: uuid
+             * @description Incident Status at the time.
+             */
+            status_id: string;
         };
         /** @description A newly created API key. `key` is shown only in this response. */
         IssuedApiKeyDto: {
@@ -5601,6 +6011,27 @@ export interface components {
             /** @description Cursor for the next page. */
             next_cursor?: string | null;
         };
+        /** @description Opens a Service Incident. */
+        OpenServiceIncidentRequest: {
+            /** @description Text of the opening update. */
+            body?: string;
+            /** @description Whether the opening update is public (internal by default). */
+            is_public?: boolean;
+            /** @description Affected Services with Impact Levels (all of one Company, or all shared). */
+            services: components["schemas"]["ServiceImpactDto"][];
+            /**
+             * Format: date-time
+             * @description When the disruption began (now when absent; never in the future).
+             */
+            started_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Incident Status (default when absent).
+             */
+            status_id?: string | null;
+            /** @description Title. */
+            title: string;
+        };
         /** @description A page of results with an opaque cursor for the next page. */
         PageDto_AnalystDto: {
             /** @description The items. */
@@ -5984,6 +6415,78 @@ export interface components {
             /** @description Pass as `cursor` to get the next page; absent on the last page. */
             next_cursor?: string | null;
         };
+        /** @description A Planned Maintenance (FR-SST-007). */
+        PlannedMaintenanceDto: {
+            /**
+             * Format: uuid
+             * @description Company of its Services (`null`: shared).
+             */
+            company_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Public description, posted when it starts. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description The Service Incident it became.
+             */
+            incident_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Planned end.
+             */
+            planned_end: string;
+            /**
+             * Format: date-time
+             * @description Planned start.
+             */
+            planned_start: string;
+            /** @description Affected Services with Impact Levels. */
+            services: components["schemas"]["ServiceImpactDto"][];
+            /** @description `scheduled`, `started`, `finished` or `cancelled`. */
+            state: string;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description A page of Planned Maintenance. */
+        PlannedMaintenancePage: {
+            /** @description Planned Maintenance, soonest first. */
+            items: components["schemas"]["PlannedMaintenanceDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Schedules or changes Planned Maintenance. */
+        PlannedMaintenanceRequest: {
+            /** @description Public description. */
+            description?: string;
+            /**
+             * Format: date-time
+             * @description Planned end (after the start, in the future).
+             */
+            planned_end: string;
+            /**
+             * Format: date-time
+             * @description Planned start (a start already passed starts it at once).
+             */
+            planned_start: string;
+            /** @description Affected Services with Impact Levels (all of one Company, or all shared). */
+            services: components["schemas"]["ServiceImpactDto"][];
+            /** @description Title. */
+            title: string;
+        };
         /** @description An Article as the Portal shows it. */
         PortalArticleDto: {
             /** @description Sanitised HTML. */
@@ -6152,6 +6655,27 @@ export interface components {
             from_requester: boolean;
             /** @description `note` (a public Note from the service desk) or `message` (a reply). */
             kind: string;
+        };
+        /** @description Posts an Incident Update. */
+        PostIncidentUpdateRequest: {
+            /** @description Text. */
+            body?: string;
+            /** @description Public (internal by default). */
+            is_public?: boolean;
+            /** @description New impacts, replacing all (absent: unchanged). */
+            services?: components["schemas"]["ServiceImpactDto"][] | null;
+            /**
+             * Format: uuid
+             * @description New Incident Status.
+             */
+            status_id?: string | null;
+        };
+        /** @description The Incident after an update, and the update. */
+        PostedIncidentUpdateDto: {
+            /** @description The Incident now. */
+            incident: components["schemas"]["ServiceIncidentDto"];
+            /** @description The update. */
+            update: components["schemas"]["IncidentUpdateDto"];
         };
         /** @description A presence heartbeat. */
         PresenceRequest: {
@@ -6402,6 +6926,105 @@ export interface components {
              */
             ticket_id: string;
         };
+        /** @description An Impact Level as Requesters and the public see it. */
+        PublicImpactDto: {
+            /** @description `#rrggbb`. */
+            colour?: string | null;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description 1 is the worst.
+             */
+            severity_order: number;
+        };
+        /** @description A Service Incident with its public updates, oldest first. */
+        PublicIncidentDto: {
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Whether it is over. */
+            is_resolved: boolean;
+            /**
+             * Format: date-time
+             * @description Resolved.
+             */
+            resolved_at?: string | null;
+            /** @description Affected Services. */
+            services: components["schemas"]["PublicServiceImpactDto"][];
+            /**
+             * Format: date-time
+             * @description Started.
+             */
+            started_at: string;
+            /** @description Incident Status name. */
+            status: string;
+            /** @description Title. */
+            title: string;
+            /** @description Public updates. */
+            updates: components["schemas"]["PublicIncidentUpdateDto"][];
+        };
+        /** @description A public Incident Update: no author, no internal text. */
+        PublicIncidentUpdateDto: {
+            /** @description Text. */
+            body: string;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            posted_at: string;
+            /** @description Incident Status name at the time. */
+            status: string;
+        };
+        /** @description Scheduled or started Planned Maintenance. */
+        PublicMaintenanceDto: {
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: date-time
+             * @description Planned end.
+             */
+            planned_end: string;
+            /**
+             * Format: date-time
+             * @description Planned start.
+             */
+            planned_start: string;
+            /** @description Affected Services. */
+            services: components["schemas"]["PublicServiceImpactDto"][];
+            /** @description `scheduled` or `started`. */
+            state: string;
+            /** @description Title. */
+            title: string;
+        };
+        /** @description A Service with its Current Status, as Requesters and the public see it. */
+        PublicServiceDto: {
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Name. */
+            name: string;
+            /** @description Current Status. */
+            status: components["schemas"]["PublicImpactDto"];
+        };
+        /** @description The impact on one Service, by name. */
+        PublicServiceImpactDto: {
+            /** @description Impact Level. */
+            impact: components["schemas"]["PublicImpactDto"];
+            /** @description Service name. */
+            service: string;
+        };
         /** @description A rejected email. */
         RejectedEmailDto: {
             /** @description Sender. */
@@ -6568,6 +7191,11 @@ export interface components {
              */
             retired_at: string;
         };
+        /** @description Renames a Service Incident. */
+        RetitleServiceIncidentRequest: {
+            /** @description Title. */
+            title: string;
+        };
         /** @description A Role. */
         RoleDto: {
             /** @description Capabilities (`<module>.<action>`). */
@@ -6617,6 +7245,132 @@ export interface components {
             interval_seconds?: number | null;
             /** @description `interval`, `daily` or `off`. */
             kind: string;
+        };
+        /** @description The Impact Level on one Service. */
+        ServiceImpactDto: {
+            /**
+             * Format: uuid
+             * @description Its Impact Level.
+             */
+            impact_level_id: string;
+            /**
+             * Format: uuid
+             * @description The Service.
+             */
+            service_id: string;
+        };
+        /** @description A Service Incident with its updates, oldest first. */
+        ServiceIncidentDetailDto: {
+            /** @description The Incident. */
+            incident: components["schemas"]["ServiceIncidentDto"];
+            /** @description Its updates. */
+            updates: components["schemas"]["IncidentUpdateDto"][];
+        };
+        /** @description A Service Incident (FR-SST-004). */
+        ServiceIncidentDto: {
+            /**
+             * Format: uuid
+             * @description Company of its Services (`null`: shared).
+             */
+            company_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Whether the status is resolved. */
+            is_resolved: boolean;
+            /**
+             * Format: uuid
+             * @description The Planned Maintenance it came from.
+             */
+            planned_maintenance_id?: string | null;
+            /**
+             * Format: date-time
+             * @description When it was resolved.
+             */
+            resolved_at?: string | null;
+            /** @description The Impact Level on each affected Service now. */
+            services: components["schemas"]["ServiceImpactDto"][];
+            /**
+             * Format: date-time
+             * @description When the disruption began.
+             */
+            started_at: string;
+            /**
+             * Format: uuid
+             * @description Incident Status.
+             */
+            status_id: string;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description A page of Service Incidents. */
+        ServiceIncidentPage: {
+            /** @description Incidents, newest first. */
+            items: components["schemas"]["ServiceIncidentDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description An Incident Status (FR-SST-003). */
+        ServiceIncidentStatusDto: {
+            /** @description `#rrggbb`. */
+            colour?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Status of new Incidents. */
+            is_default: boolean;
+            /** @description The Incident is over. */
+            is_resolved: boolean;
+            /** @description Stable key of seeded rows. */
+            key?: string | null;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes an Incident Status. */
+        ServiceIncidentStatusRequest: {
+            /** @description `#rrggbb`. */
+            colour?: string | null;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Default. */
+            is_default?: boolean;
+            /** @description Resolved. */
+            is_resolved?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description A Service with its Current Status. */
+        ServiceStatusRowDto: {
+            /** @description The Service. */
+            service: components["schemas"]["StatusServiceDto"];
+            /** @description Its Current Status: the worst unresolved impact, or the default (FR-SST-006). */
+            status: components["schemas"]["ImpactLevelDto"];
         };
         /** @description The signed-in session. */
         SessionDto: {
@@ -6848,6 +7602,15 @@ export interface components {
             /** @description Scopes; `openid` is always added. */
             scopes?: string;
         };
+        /** @description A status page (Portal or public). */
+        StatusPageDto: {
+            /** @description Incidents with public updates (only when shown; FR-PRT-006). */
+            incidents: components["schemas"]["PublicIncidentDto"][];
+            /** @description Scheduled and started Planned Maintenance, soonest first. */
+            planned_maintenance: components["schemas"]["PublicMaintenanceDto"][];
+            /** @description Active Services with their Current Status, in order. */
+            services: components["schemas"]["PublicServiceDto"][];
+        };
         /** @description Move a ticket to another status. */
         StatusRequest: {
             /**
@@ -6865,6 +7628,59 @@ export interface components {
              * @description New status.
              */
             status_id: string;
+        };
+        /** @description A Service (FR-SST-001). */
+        StatusServiceDto: {
+            /**
+             * Format: uuid
+             * @description Company (`null`: shared with every Company).
+             */
+            company_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Description. */
+            description: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Shown and selectable. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description Creates or changes a Service. */
+        StatusServiceRequest: {
+            /**
+             * Format: uuid
+             * @description Company (create only; absent: shared with every Company).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /** @description Shown and selectable (deactivate instead of deleting). */
+            is_active?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order?: number;
         };
         /** @description Switch the Requester a Portal session acts as. */
         SwitchRequesterRequest: {
@@ -10697,6 +11513,25 @@ export interface operations {
             };
         };
     };
+    portal_service_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusPageDto"];
+                };
+            };
+        };
+    };
     current_portal_session: {
         parameters: {
             query?: never;
@@ -11588,6 +12423,32 @@ export interface operations {
             };
         };
     };
+    public_service_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusPageDto"];
+                };
+            };
+            /** @description The page is off */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_templates: {
         parameters: {
             query?: never;
@@ -12077,6 +12938,553 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    get_service_status_board: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceStatusRowDto"][];
+                };
+            };
+        };
+    };
+    list_impact_levels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImpactLevelDto"][];
+                };
+            };
+        };
+    };
+    create_impact_level: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImpactLevelRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImpactLevelDto"];
+                };
+            };
+        };
+    };
+    update_impact_level: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImpactLevelRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImpactLevelDto"];
+                };
+            };
+        };
+    };
+    list_service_incident_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceIncidentStatusDto"][];
+                };
+            };
+        };
+    };
+    create_service_incident_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceIncidentStatusRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceIncidentStatusDto"];
+                };
+            };
+        };
+    };
+    update_service_incident_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceIncidentStatusRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceIncidentStatusDto"];
+                };
+            };
+        };
+    };
+    list_service_incidents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unresolved (`true`) or resolved (`false`). */
+                open: boolean | null;
+                /** @description Affecting this Service. */
+                service_id: string | null;
+                /** @description Page size (1 to 200). */
+                limit: number | null;
+                /** @description Cursor. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceIncidentPage"];
+                };
+            };
+        };
+    };
+    open_service_incident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenServiceIncidentRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceIncidentDetailDto"];
+                };
+            };
+        };
+    };
+    get_service_incident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceIncidentDetailDto"];
+                };
+            };
+        };
+    };
+    retitle_service_incident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetitleServiceIncidentRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceIncidentDto"];
+                };
+            };
+        };
+    };
+    post_incident_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostIncidentUpdateRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PostedIncidentUpdateDto"];
+                };
+            };
+        };
+    };
+    correct_incident_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                update_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectIncidentUpdateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentUpdateDto"];
+                };
+            };
+        };
+    };
+    list_planned_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Comma-separated states (default: `scheduled,started`). */
+                state: string | null;
+                /** @description Page size (1 to 200). */
+                limit: number | null;
+                /** @description Cursor. */
+                cursor: string | null;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannedMaintenancePage"];
+                };
+            };
+        };
+    };
+    schedule_planned_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlannedMaintenanceRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannedMaintenanceDto"];
+                };
+            };
+        };
+    };
+    get_planned_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannedMaintenanceDto"];
+                };
+            };
+        };
+    };
+    edit_planned_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlannedMaintenanceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannedMaintenanceDto"];
+                };
+            };
+        };
+    };
+    cancel_planned_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannedMaintenanceDto"];
+                };
+            };
+        };
+    };
+    finish_planned_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannedMaintenanceDto"];
+                };
+            };
+        };
+    };
+    start_planned_maintenance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlannedMaintenanceDto"];
+                };
+            };
+        };
+    };
+    list_status_services: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusServiceDto"][];
+                };
+            };
+        };
+    };
+    create_status_service: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusServiceRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusServiceDto"];
+                };
+            };
+        };
+    };
+    get_status_service: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusServiceDto"];
+                };
+            };
+        };
+    };
+    update_status_service: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusServiceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusServiceDto"];
+                };
             };
         };
     };

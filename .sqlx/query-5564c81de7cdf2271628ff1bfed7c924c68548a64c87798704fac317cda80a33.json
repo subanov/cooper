@@ -1,0 +1,134 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, key, name, colour, severity_order, counts_as_downtime, is_default, is_active, created_at, updated_at\n             FROM impact_levels",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "key",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "key"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "colour",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "colour"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "severity_order",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "severity_order"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "counts_as_downtime",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "counts_as_downtime"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "is_default",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "is_default"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "impact_levels",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "5564c81de7cdf2271628ff1bfed7c924c68548a64c87798704fac317cda80a33"
+}

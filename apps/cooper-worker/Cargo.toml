@@ -18,6 +18,7 @@ cooper-knowledge.workspace = true
 cooper-notifications.workspace = true
 cooper-server = { path = "../cooper-server" }
 cooper-service-desk.workspace = true
+cooper-service-status.workspace = true
 anyhow.workspace = true
 cooper-http.workspace = true
 cooper-kernel.workspace = true

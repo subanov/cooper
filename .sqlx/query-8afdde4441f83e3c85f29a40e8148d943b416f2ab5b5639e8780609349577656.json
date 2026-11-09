@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO service_incident_statuses (id, key, name, colour, is_resolved, is_default, sort_order, is_active,\n                                                    created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, colour = EXCLUDED.colour, is_resolved = EXCLUDED.is_resolved,\n                 is_default = EXCLUDED.is_default, sort_order = EXCLUDED.sort_order, is_active = EXCLUDED.is_active,\n                 updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Int4",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8afdde4441f83e3c85f29a40e8148d943b416f2ab5b5639e8780609349577656"
+}
