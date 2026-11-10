@@ -271,6 +271,7 @@ pub struct ProblemPage {
 
 /// Filters.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct ProblemListParams {
     /// Open (`true`) or resolved (`false`).
     pub open: Option<bool>,

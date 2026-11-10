@@ -331,6 +331,7 @@ impl CheckGroupRequest {
 
 /// Filters by Company.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct CompanyParams {
     /// Only this Company.
     pub company_id: Option<Uuid>,
@@ -524,6 +525,7 @@ impl CheckRequest {
 
 /// Filters Checks.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct CheckListParams {
     /// Only this Company.
     pub company_id: Option<Uuid>,
@@ -679,6 +681,7 @@ impl From<Day> for CheckDayDto {
 
 /// Picks the day.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct CheckDayParams {
     /// Check Date (default today).
     pub date: Option<NaiveDate>,
@@ -1011,6 +1014,7 @@ impl From<HistoryGrid> for CheckHistoryDto {
 
 /// Picks the range.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct CheckHistoryParams {
     /// First date (default: 30 days before `to`).
     pub from: Option<NaiveDate>,

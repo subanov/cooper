@@ -427,6 +427,7 @@ pub struct KnowledgeArticlePage {
 
 /// Filters.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct KnowledgeListParams {
     /// Full-text search (web search syntax: words, "phrases", -exclusions).
     pub q: Option<String>,
@@ -834,6 +835,7 @@ impl From<KnowledgeArticle> for PortalArticleDto {
 
 /// A Portal search.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct PortalKnowledgeParams {
     /// Full-text search; without it, the newest Articles.
     pub q: Option<String>,

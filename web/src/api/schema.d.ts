@@ -10587,14 +10587,14 @@ export interface operations {
     };
     change_calendar: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 /** @description Start (inclusive). */
                 from: string;
                 /** @description End (exclusive; at most 366 days after `from`). */
                 to: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -11055,26 +11055,26 @@ export interface operations {
     };
     list_changes: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Comma-separated stages (`draft,awaiting`). */
-                stage: string | null;
+                stage?: string;
                 /** @description Assigned To. */
-                assigned_to_id: string | null;
+                assigned_to_id?: string;
                 /** @description Waiting for my vote (Approver or CAB member of the open round). */
-                awaiting_my_vote: boolean | null;
+                awaiting_my_vote?: boolean;
                 /** @description Linked to this ticket. */
-                ticket_id: string | null;
+                ticket_id?: string;
                 /** @description Linked to this Problem. */
-                problem_id: string | null;
+                problem_id?: string;
                 /** @description Number or title text. */
-                q: string | null;
+                q?: string;
                 /** @description Page size (1 to 200). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -11533,15 +11533,16 @@ export interface operations {
     };
     compare_change_revisions: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                field: string;
+            query: {
                 /** @description Older revision. */
                 from: string;
                 /** @description Newer revision. */
                 to: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+                field: string;
             };
             cookie?: never;
         };
@@ -11584,12 +11585,13 @@ export interface operations {
     };
     list_change_votes: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Approval Round (default: the current one). */
+                round?: number;
+            };
             header?: never;
             path: {
                 id: string;
-                /** @description Approval Round (default: the current one). */
-                round: number | null;
             };
             cookie?: never;
         };
@@ -12044,33 +12046,33 @@ export interface operations {
     };
     list_knowledge_articles: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Full-text search (web search syntax: words, "phrases", -exclusions). */
-                q: string | null;
+                q?: string;
                 /**
                  * @description `live` (default), `current` (with unpublished) or `archived`; the last two need
                  *     `knowledge.write`.
                  */
-                state: string | null;
+                state?: string;
                 /** @description Audience. */
-                audience: string | null;
+                audience?: string;
                 /** @description Folder. */
-                folder_id: string | null;
+                folder_id?: string;
                 /** @description Tag. */
-                tag: string | null;
+                tag?: string;
                 /** @description Owner (`me` is accepted). */
-                owner: string | null;
+                owner?: string;
                 /** @description Only Articles whose Review Date has come. */
-                review_due: boolean | null;
+                review_due?: boolean;
                 /** @description Linked to this ticket (the ticket's side of FR-KNW-008). */
-                ticket_id: string | null;
+                ticket_id?: string;
                 /** @description Page size (1 to 200). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -12694,14 +12696,14 @@ export interface operations {
     };
     list_checks: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Only this Company. */
-                company_id: string | null;
+                company_id?: string;
                 /** @description Only this Check Group. */
-                check_group_id: string | null;
+                check_group_id?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -12787,12 +12789,12 @@ export interface operations {
     };
     list_check_groups: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Only this Company. */
-                company_id: string | null;
+                company_id?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -12857,16 +12859,16 @@ export interface operations {
     };
     check_history: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description First date (default: 30 days before `to`). */
-                from: string | null;
+                from?: string;
                 /** @description Last date (default today). */
-                to: string | null;
+                to?: string;
                 /** @description Only this Company. */
-                company_id: string | null;
+                company_id?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -12883,16 +12885,16 @@ export interface operations {
     };
     export_check_history: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description First date (default: 30 days before `to`). */
-                from: string | null;
+                from?: string;
                 /** @description Last date (default today). */
-                to: string | null;
+                to?: string;
                 /** @description Only this Company. */
-                company_id: string | null;
+                company_id?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -12909,16 +12911,16 @@ export interface operations {
     };
     check_day: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Check Date (default today). */
-                date: string | null;
+                date?: string;
                 /** @description Only this Company. */
-                company_id: string | null;
+                company_id?: string;
                 /** @description Only Checks routed to you or one of your Teams. */
-                mine: boolean | null;
+                mine?: boolean;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -13346,14 +13348,14 @@ export interface operations {
     };
     search_portal_knowledge: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Full-text search; without it, the newest Articles. */
-                q: string | null;
+                q?: string;
                 /** @description Page size (1 to 200). */
-                limit: number | null;
+                limit?: number;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -13405,16 +13407,16 @@ export interface operations {
     };
     managed_tickets: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description `true` for open tickets, `false` for closed ones; both when absent. */
-                open: boolean | null;
+                open?: boolean;
                 /** @description Page size, 1 to 200 (default 50). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor from the previous page. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -13832,16 +13834,16 @@ export interface operations {
     };
     my_tickets: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description `true` for open tickets, `false` for closed ones; both when absent. */
-                open: boolean | null;
+                open?: boolean;
                 /** @description Page size, 1 to 200 (default 50). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor from the previous page. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -14227,24 +14229,24 @@ export interface operations {
     };
     list_problems: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Open (`true`) or resolved (`false`). */
-                open: boolean | null;
+                open?: boolean;
                 /** @description Known Errors only. */
-                known_error: boolean | null;
+                known_error?: boolean;
                 /** @description Assigned to. */
-                analyst_id: string | null;
+                analyst_id?: string;
                 /** @description Problems linked to this ticket (the ticket's side of FR-PRB-003). */
-                ticket_id: string | null;
+                ticket_id?: string;
                 /** @description Number prefix or text. */
-                q: string | null;
+                q?: string;
                 /** @description Page size (1 to 200). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -15597,18 +15599,18 @@ export interface operations {
     };
     list_service_incidents: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Unresolved (`true`) or resolved (`false`). */
-                open: boolean | null;
+                open?: boolean;
                 /** @description Affecting this Service. */
-                service_id: string | null;
+                service_id?: string;
                 /** @description Page size (1 to 200). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -15745,16 +15747,16 @@ export interface operations {
     };
     list_planned_maintenance: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Comma-separated states (default: `scheduled,started`). */
-                state: string | null;
+                state?: string;
                 /** @description Page size (1 to 200). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -16494,16 +16496,16 @@ export interface operations {
     };
     callback: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Authorization code. */
-                code: string | null;
+                code?: string;
                 /** @description The state Cooper sent. */
-                state: string | null;
+                state?: string;
                 /** @description Set when the provider refused. */
-                error: string | null;
+                error?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -16526,14 +16528,14 @@ export interface operations {
     };
     sign_in_options: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description `analysts` (default) or `requesters`. */
-                audience: string | null;
+                audience?: string;
                 /** @description Where to go afterwards: a path on this site (default `/` or `/portal`). */
-                return_to: string | null;
+                return_to?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -16550,14 +16552,15 @@ export interface operations {
     };
     start: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description `analysts` (default) or `requesters`. */
+                audience?: string;
+                /** @description Where to go afterwards: a path on this site (default `/` or `/portal`). */
+                return_to?: string;
+            };
             header?: never;
             path: {
                 id: string;
-                /** @description `analysts` (default) or `requesters`. */
-                audience: string | null;
-                /** @description Where to go afterwards: a path on this site (default `/` or `/portal`). */
-                return_to: string | null;
             };
             cookie?: never;
         };
@@ -16738,38 +16741,38 @@ export interface operations {
     };
     list_tasks: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Open (`true`) or closed (`false`). */
-                open: boolean | null;
+                open?: boolean;
                 /** @description Status. */
-                status_id: string | null;
+                status_id?: string;
                 /** @description Assigned Analyst (`me` is accepted). */
-                assignee: string | null;
+                assignee?: string;
                 /** @description Assigned Team. */
-                team_id: string | null;
+                team_id?: string;
                 /** @description Collaborator (`me` is accepted). */
-                collaborator: string | null;
+                collaborator?: string;
                 /** @description Tag. */
-                tag: string | null;
+                tag?: string;
                 /** @description Subtasks of this Task. */
-                parent_task_id: string | null;
+                parent_task_id?: string;
                 /** @description Top-level Tasks only. */
-                top_level: boolean | null;
+                top_level?: boolean;
                 /** @description Due on or before. */
-                due_by: string | null;
+                due_by?: string;
                 /** @description Linked to this ticket. */
-                ticket_id: string | null;
+                ticket_id?: string;
                 /** @description Linked to this Change. */
-                change_id: string | null;
+                change_id?: string;
                 /** @description Title text. */
-                q: string | null;
+                q?: string;
                 /** @description Page size (1 to 200; per column on the Board). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -16809,38 +16812,38 @@ export interface operations {
     };
     task_board: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query?: {
                 /** @description Open (`true`) or closed (`false`). */
-                open: boolean | null;
+                open?: boolean;
                 /** @description Status. */
-                status_id: string | null;
+                status_id?: string;
                 /** @description Assigned Analyst (`me` is accepted). */
-                assignee: string | null;
+                assignee?: string;
                 /** @description Assigned Team. */
-                team_id: string | null;
+                team_id?: string;
                 /** @description Collaborator (`me` is accepted). */
-                collaborator: string | null;
+                collaborator?: string;
                 /** @description Tag. */
-                tag: string | null;
+                tag?: string;
                 /** @description Subtasks of this Task. */
-                parent_task_id: string | null;
+                parent_task_id?: string;
                 /** @description Top-level Tasks only. */
-                top_level: boolean | null;
+                top_level?: boolean;
                 /** @description Due on or before. */
-                due_by: string | null;
+                due_by?: string;
                 /** @description Linked to this ticket. */
-                ticket_id: string | null;
+                ticket_id?: string;
                 /** @description Linked to this Change. */
-                change_id: string | null;
+                change_id?: string;
                 /** @description Title text. */
-                q: string | null;
+                q?: string;
                 /** @description Page size (1 to 200; per column on the Board). */
-                limit: number | null;
+                limit?: number;
                 /** @description Cursor. */
-                cursor: string | null;
+                cursor?: string;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;

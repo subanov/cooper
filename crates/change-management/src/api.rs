@@ -822,6 +822,7 @@ pub struct ChangePage {
 
 /// Filters.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct ChangeListParams {
     /// Comma-separated stages (`draft,awaiting`).
     pub stage: Option<String>,
@@ -981,6 +982,7 @@ async fn move_change(
 
 /// The period.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct ChangeCalendarParams {
     /// Start (inclusive).
     pub from: DateTime<Utc>,
@@ -1127,6 +1129,7 @@ impl From<Vote> for ChangeVoteDto {
 
 /// Which round.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct ChangeVoteParams {
     /// Approval Round (default: the current one).
     pub round: Option<i32>,
@@ -1465,6 +1468,7 @@ async fn list_change_revisions(
 
 /// Two revisions to compare.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct ChangeCompareParams {
     /// Older revision.
     pub from: Uuid,
