@@ -9,6 +9,11 @@ import {
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
+import { AdministrationLayout } from "./routes/analyst/administration/AdministrationLayout";
+import { JobsPage } from "./routes/analyst/administration/JobsPage";
+import { ModulesPage } from "./routes/analyst/administration/ModulesPage";
+import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
+import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
 import { Home } from "./routes/analyst/Home";
 import { TicketDetail } from "./routes/analyst/tickets/TicketDetail";
@@ -110,7 +115,35 @@ const ticketRoute = createRoute({
 const administrationRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/administration",
-  component: () => <ComingSoon section="nav.administration" />,
+  component: AdministrationLayout,
+});
+
+const administrationIndexRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/administration/settings" });
+  },
+});
+const administrationSettingsRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: "/settings",
+  component: SettingsPage,
+});
+const administrationModulesRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: "/modules",
+  component: ModulesPage,
+});
+const administrationJobsRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: "/jobs",
+  component: JobsPage,
+});
+const administrationLogRoute = createRoute({
+  getParentRoute: () => administrationRoute,
+  path: "/log",
+  component: SystemLogPage,
 });
 
 const portalSignInRoute = createRoute({
@@ -180,7 +213,13 @@ export const routeTree = rootRoute.addChildren([
   analystRoute.addChildren([
     homeRoute,
     ticketsRoute.addChildren([ticketRoute]),
-    administrationRoute,
+    administrationRoute.addChildren([
+      administrationIndexRoute,
+      administrationSettingsRoute,
+      administrationModulesRoute,
+      administrationJobsRoute,
+      administrationLogRoute,
+    ]),
   ]),
   portalSignInRoute,
   portalResetRoute,
