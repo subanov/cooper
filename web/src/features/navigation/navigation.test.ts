@@ -22,6 +22,7 @@ describe("navigation", () => {
     expect(paths(session([], true), modules({ tickets: true }))).toEqual([
       "/",
       "/tickets",
+      "/users",
       "/administration",
     ]);
   });
