@@ -231,6 +231,7 @@ pub struct SsoOptionDto {
 
 /// Who is signing in.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct AudienceParams {
     /// `analysts` (default) or `requesters`.
     pub audience: Option<String>,
@@ -250,6 +251,7 @@ fn who(audience: Option<&str>) -> Result<SsoAudience, ApiError> {
 
 /// The provider's answer.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct CallbackParams {
     /// Authorization code.
     pub code: Option<String>,

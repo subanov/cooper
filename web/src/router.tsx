@@ -24,6 +24,18 @@ import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
 import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
 import { Home } from "./routes/analyst/Home";
+import { ArticlePage } from "./routes/analyst/knowledge/ArticlePage";
+import { KnowledgePage } from "./routes/analyst/knowledge/KnowledgePage";
+import { ChecksPage } from "./routes/analyst/morning-checks/ChecksPage";
+import { MorningChecksLayout } from "./routes/analyst/morning-checks/MorningChecksLayout";
+import { TodayPage } from "./routes/analyst/morning-checks/TodayPage";
+import { IncidentEditor } from "./routes/analyst/service-status/IncidentEditor";
+import { IncidentsPage } from "./routes/analyst/service-status/IncidentsPage";
+import { OverviewPage } from "./routes/analyst/service-status/OverviewPage";
+import { ServiceStatusLayout } from "./routes/analyst/service-status/ServiceStatusLayout";
+import { ServicesPage } from "./routes/analyst/service-status/ServicesPage";
+import { TaskEditor } from "./routes/analyst/tasks/TaskEditor";
+import { TasksPage } from "./routes/analyst/tasks/TasksPage";
 import { NewTicket } from "./routes/analyst/tickets/NewTicket";
 import { TicketDetail } from "./routes/analyst/tickets/TicketDetail";
 import { TicketsPage } from "./routes/analyst/tickets/TicketsPage";
@@ -131,6 +143,108 @@ const newTicketRoute = createRoute({
   getParentRoute: () => ticketsRoute,
   path: "new",
   component: NewTicket,
+});
+
+const tasksRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/tasks",
+  component: TasksPage,
+});
+const newTaskRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/tasks/new",
+  component: () => <TaskEditor />,
+});
+const taskByIdRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/tasks/$id",
+  component: function TaskRoute() {
+    const { id } = taskByIdRoute.useParams();
+    return <TaskEditor key={id} id={id} />;
+  },
+});
+
+const knowledgeRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/knowledge",
+  component: KnowledgePage,
+});
+const newArticleRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/knowledge/new",
+  component: () => <ArticlePage />,
+});
+const articleByIdRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/knowledge/$id",
+  component: function ArticleRoute() {
+    const { id } = articleByIdRoute.useParams();
+    return <ArticlePage key={id} id={id} />;
+  },
+});
+
+const serviceStatusRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/service-status",
+  component: ServiceStatusLayout,
+});
+const serviceStatusIndexRoute = createRoute({
+  getParentRoute: () => serviceStatusRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/service-status/overview" });
+  },
+});
+const statusOverviewRoute = createRoute({
+  getParentRoute: () => serviceStatusRoute,
+  path: "/overview",
+  component: OverviewPage,
+});
+const statusIncidentsRoute = createRoute({
+  getParentRoute: () => serviceStatusRoute,
+  path: "/incidents",
+  component: IncidentsPage,
+});
+const statusNewIncidentRoute = createRoute({
+  getParentRoute: () => serviceStatusRoute,
+  path: "/incidents/new",
+  component: () => <IncidentEditor />,
+});
+const statusIncidentRoute = createRoute({
+  getParentRoute: () => serviceStatusRoute,
+  path: "/incidents/$id",
+  component: function IncidentRoute() {
+    const { id } = statusIncidentRoute.useParams();
+    return <IncidentEditor key={id} id={id} />;
+  },
+});
+const statusServicesRoute = createRoute({
+  getParentRoute: () => serviceStatusRoute,
+  path: "/services",
+  component: ServicesPage,
+});
+
+const morningChecksRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/morning-checks",
+  component: MorningChecksLayout,
+});
+const morningChecksIndexRoute = createRoute({
+  getParentRoute: () => morningChecksRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/morning-checks/today" });
+  },
+});
+const checksTodayRoute = createRoute({
+  getParentRoute: () => morningChecksRoute,
+  path: "/today",
+  component: TodayPage,
+});
+const checksListRoute = createRoute({
+  getParentRoute: () => morningChecksRoute,
+  path: "/checks",
+  component: ChecksPage,
 });
 
 const usersRoute = createRoute({
@@ -302,6 +416,21 @@ export const routeTree = rootRoute.addChildren([
   analystRoute.addChildren([
     homeRoute,
     ticketsRoute.addChildren([newTicketRoute, ticketRoute]),
+    tasksRoute,
+    newTaskRoute,
+    taskByIdRoute,
+    knowledgeRoute,
+    newArticleRoute,
+    articleByIdRoute,
+    serviceStatusRoute.addChildren([
+      serviceStatusIndexRoute,
+      statusOverviewRoute,
+      statusIncidentsRoute,
+      statusNewIncidentRoute,
+      statusIncidentRoute,
+      statusServicesRoute,
+    ]),
+    morningChecksRoute.addChildren([morningChecksIndexRoute, checksTodayRoute, checksListRoute]),
     usersRoute.addChildren([
       usersIndexRoute,
       analystsRoute,

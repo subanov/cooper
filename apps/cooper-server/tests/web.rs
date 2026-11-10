@@ -21,6 +21,32 @@ fn committed_openapi_document_is_current() {
     );
 }
 
+/// Regression: query structs without `#[into_params(parameter_in = Query)]` were documented
+/// as path parameters, so the generated TypeScript client could not send their filters.
+#[test]
+fn every_path_parameter_appears_in_its_url_template() {
+    let doc = serde_json::to_value(cooper_server::openapi()).unwrap();
+    let mut wrong = Vec::new();
+    for (url, item) in doc["paths"].as_object().unwrap() {
+        for (method, operation) in item.as_object().unwrap() {
+            let Some(parameters) = operation["parameters"].as_array() else {
+                continue;
+            };
+            for parameter in parameters.iter().filter(|p| p["in"] == "path") {
+                let name = parameter["name"].as_str().unwrap();
+                if !url.contains(&format!("{{{name}}}")) {
+                    wrong.push(format!("{method} {url}: `{name}` is not in the URL"));
+                }
+            }
+        }
+    }
+    assert!(
+        wrong.is_empty(),
+        "add #[into_params(parameter_in = Query)] to these query structs:\n{}",
+        wrong.join("\n")
+    );
+}
+
 #[sqlx::test(migrations = "../../migrations")]
 async fn api_paths_never_fall_back_to_the_spa(pool: PgPool) {
     let state = cooper_server::AppState::new(pool).unwrap();
