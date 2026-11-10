@@ -10,9 +10,15 @@ export function useInvalidateAdmin() {
   const queryClient = useQueryClient();
   return async () => {
     await Promise.all(
-      ["administration", "lookups", "users"].map((key) =>
-        queryClient.invalidateQueries({ queryKey: [key] }),
-      ),
+      [
+        "administration",
+        "lookups",
+        "users",
+        "service-status",
+        "morning-checks",
+        "tasks",
+        "knowledge",
+      ].map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
     );
   };
 }
