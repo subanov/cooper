@@ -52,12 +52,12 @@ export function ModulesPage() {
                 className="ml-auto"
                 size="sm"
                 variant="outline"
-                aria-label={t("admin.modules.toggle", { name: module.name })}
-                aria-pressed={module.is_enabled}
                 disabled={toggle.isPending}
                 onClick={() => toggle.mutate({ key: module.key, enabled: !module.is_enabled })}
               >
-                {t(module.is_enabled ? "admin.modules.off" : "admin.modules.on")}
+                {t(module.is_enabled ? "admin.modules.turnOff" : "admin.modules.turnOn", {
+                  name: module.name,
+                })}
               </Button>
             ) : (
               <span className="ml-auto text-sm text-muted-foreground">

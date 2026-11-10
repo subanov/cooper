@@ -122,10 +122,10 @@ describe("Administration", () => {
     const { container } = renderApp("/administration/modules");
 
     expect(await screen.findByText("Core Module")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: /^Module / })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Turn (on|off) / })).toHaveLength(1);
     expect(await axeViolations(container)).toEqual([]);
 
-    await user.click(screen.getByRole("button", { name: "Module Assets" }));
+    await user.click(screen.getByRole("button", { name: "Turn on Assets" }));
     await waitFor(() =>
       expect(calls.find((c) => c.method === "PUT")?.body).toEqual({ is_enabled: true }),
     );
