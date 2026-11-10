@@ -780,7 +780,7 @@
         "parameters": [
           {
             "name": "from",
-            "in": "path",
+            "in": "query",
             "description": "Start (inclusive).",
             "required": true,
             "schema": {
@@ -790,7 +790,7 @@
           },
           {
             "name": "to",
-            "in": "path",
+            "in": "query",
             "description": "End (exclusive; at most 366 days after `from`).",
             "required": true,
             "schema": {
@@ -1416,103 +1416,79 @@
         "parameters": [
           {
             "name": "stage",
-            "in": "path",
+            "in": "query",
             "description": "Comma-separated stages (`draft,awaiting`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "assigned_to_id",
-            "in": "path",
+            "in": "query",
             "description": "Assigned To.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "awaiting_my_vote",
-            "in": "path",
+            "in": "query",
             "description": "Waiting for my vote (Approver or CAB member of the open round).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "ticket_id",
-            "in": "path",
+            "in": "query",
             "description": "Linked to this ticket.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "problem_id",
-            "in": "path",
+            "in": "query",
             "description": "Linked to this Problem.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "q",
-            "in": "path",
+            "in": "query",
             "description": "Number or title text.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -2261,7 +2237,7 @@
           },
           {
             "name": "from",
-            "in": "path",
+            "in": "query",
             "description": "Older revision.",
             "required": true,
             "schema": {
@@ -2271,7 +2247,7 @@
           },
           {
             "name": "to",
-            "in": "path",
+            "in": "query",
             "description": "Newer revision.",
             "required": true,
             "schema": {
@@ -2356,14 +2332,11 @@
           },
           {
             "name": "round",
-            "in": "path",
+            "in": "query",
             "description": "Approval Round (default: the current one).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32"
             }
           }
@@ -3118,126 +3091,96 @@
         "parameters": [
           {
             "name": "q",
-            "in": "path",
+            "in": "query",
             "description": "Full-text search (web search syntax: words, \"phrases\", -exclusions).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "state",
-            "in": "path",
+            "in": "query",
             "description": "`live` (default), `current` (with unpublished) or `archived`; the last two need\n`knowledge.write`.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "audience",
-            "in": "path",
+            "in": "query",
             "description": "Audience.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "folder_id",
-            "in": "path",
+            "in": "query",
             "description": "Folder.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "tag",
-            "in": "path",
+            "in": "query",
             "description": "Tag.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "owner",
-            "in": "path",
+            "in": "query",
             "description": "Owner (`me` is accepted).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "review_due",
-            "in": "path",
+            "in": "query",
             "description": "Only Articles whose Review Date has come.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "ticket_id",
-            "in": "path",
+            "in": "query",
             "description": "Linked to this ticket (the ticket's side of FR-KNW-008).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -4161,27 +4104,21 @@
         "parameters": [
           {
             "name": "company_id",
-            "in": "path",
+            "in": "query",
             "description": "Only this Company.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "check_group_id",
-            "in": "path",
+            "in": "query",
             "description": "Only this Check Group.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           }
@@ -4310,14 +4247,11 @@
         "parameters": [
           {
             "name": "company_id",
-            "in": "path",
+            "in": "query",
             "description": "Only this Company.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           }
@@ -4417,40 +4351,31 @@
         "parameters": [
           {
             "name": "from",
-            "in": "path",
+            "in": "query",
             "description": "First date (default: 30 days before `to`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "date"
             }
           },
           {
             "name": "to",
-            "in": "path",
+            "in": "query",
             "description": "Last date (default today).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "date"
             }
           },
           {
             "name": "company_id",
-            "in": "path",
+            "in": "query",
             "description": "Only this Company.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           }
@@ -4478,40 +4403,31 @@
         "parameters": [
           {
             "name": "from",
-            "in": "path",
+            "in": "query",
             "description": "First date (default: 30 days before `to`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "date"
             }
           },
           {
             "name": "to",
-            "in": "path",
+            "in": "query",
             "description": "Last date (default today).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "date"
             }
           },
           {
             "name": "company_id",
-            "in": "path",
+            "in": "query",
             "description": "Only this Company.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           }
@@ -4539,40 +4455,31 @@
         "parameters": [
           {
             "name": "date",
-            "in": "path",
+            "in": "query",
             "description": "Check Date (default today).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "date"
             }
           },
           {
             "name": "company_id",
-            "in": "path",
+            "in": "query",
             "description": "Only this Company.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "mine",
-            "in": "path",
+            "in": "query",
             "description": "Only Checks routed to you or one of your Teams.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           }
         ],
@@ -5155,26 +5062,20 @@
         "parameters": [
           {
             "name": "q",
-            "in": "path",
+            "in": "query",
             "description": "Full-text search; without it, the newest Articles.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
@@ -5243,40 +5144,31 @@
         "parameters": [
           {
             "name": "open",
-            "in": "path",
+            "in": "query",
             "description": "`true` for open tickets, `false` for closed ones; both when absent.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size, 1 to 200 (default 50).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor from the previous page.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -5716,40 +5608,31 @@
         "parameters": [
           {
             "name": "open",
-            "in": "path",
+            "in": "query",
             "description": "`true` for open tickets, `false` for closed ones; both when absent.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size, 1 to 200 (default 50).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor from the previous page.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -6224,90 +6107,69 @@
         "parameters": [
           {
             "name": "open",
-            "in": "path",
+            "in": "query",
             "description": "Open (`true`) or resolved (`false`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "known_error",
-            "in": "path",
+            "in": "query",
             "description": "Known Errors only.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "analyst_id",
-            "in": "path",
+            "in": "query",
             "description": "Assigned to.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "ticket_id",
-            "in": "path",
+            "in": "query",
             "description": "Problems linked to this ticket (the ticket's side of FR-PRB-003).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "q",
-            "in": "path",
+            "in": "query",
             "description": "Number prefix or text.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -8624,53 +8486,41 @@
         "parameters": [
           {
             "name": "open",
-            "in": "path",
+            "in": "query",
             "description": "Unresolved (`true`) or resolved (`false`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "service_id",
-            "in": "path",
+            "in": "query",
             "description": "Affecting this Service.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -8886,40 +8736,31 @@
         "parameters": [
           {
             "name": "state",
-            "in": "path",
+            "in": "query",
             "description": "Comma-separated states (default: `scheduled,started`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -9842,38 +9683,29 @@
         "parameters": [
           {
             "name": "code",
-            "in": "path",
+            "in": "query",
             "description": "Authorization code.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "state",
-            "in": "path",
+            "in": "query",
             "description": "The state Cooper sent.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "error",
-            "in": "path",
+            "in": "query",
             "description": "Set when the provider refused.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -9897,26 +9729,20 @@
         "parameters": [
           {
             "name": "audience",
-            "in": "path",
+            "in": "query",
             "description": "`analysts` (default) or `requesters`.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "return_to",
-            "in": "path",
+            "in": "query",
             "description": "Where to go afterwards: a path on this site (default `/` or `/portal`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -9955,26 +9781,20 @@
           },
           {
             "name": "audience",
-            "in": "path",
+            "in": "query",
             "description": "`analysts` (default) or `requesters`.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "return_to",
-            "in": "path",
+            "in": "query",
             "description": "Where to go afterwards: a path on this site (default `/` or `/portal`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -10242,178 +10062,136 @@
         "parameters": [
           {
             "name": "open",
-            "in": "path",
+            "in": "query",
             "description": "Open (`true`) or closed (`false`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "status_id",
-            "in": "path",
+            "in": "query",
             "description": "Status.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "assignee",
-            "in": "path",
+            "in": "query",
             "description": "Assigned Analyst (`me` is accepted).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "team_id",
-            "in": "path",
+            "in": "query",
             "description": "Assigned Team.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "collaborator",
-            "in": "path",
+            "in": "query",
             "description": "Collaborator (`me` is accepted).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "tag",
-            "in": "path",
+            "in": "query",
             "description": "Tag.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "parent_task_id",
-            "in": "path",
+            "in": "query",
             "description": "Subtasks of this Task.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "top_level",
-            "in": "path",
+            "in": "query",
             "description": "Top-level Tasks only.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "due_by",
-            "in": "path",
+            "in": "query",
             "description": "Due on or before.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "date"
             }
           },
           {
             "name": "ticket_id",
-            "in": "path",
+            "in": "query",
             "description": "Linked to this ticket.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "change_id",
-            "in": "path",
+            "in": "query",
             "description": "Linked to this Change.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "q",
-            "in": "path",
+            "in": "query",
             "description": "Title text.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200; per column on the Board).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],
@@ -10468,178 +10246,136 @@
         "parameters": [
           {
             "name": "open",
-            "in": "path",
+            "in": "query",
             "description": "Open (`true`) or closed (`false`).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "status_id",
-            "in": "path",
+            "in": "query",
             "description": "Status.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "assignee",
-            "in": "path",
+            "in": "query",
             "description": "Assigned Analyst (`me` is accepted).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "team_id",
-            "in": "path",
+            "in": "query",
             "description": "Assigned Team.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "collaborator",
-            "in": "path",
+            "in": "query",
             "description": "Collaborator (`me` is accepted).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "tag",
-            "in": "path",
+            "in": "query",
             "description": "Tag.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "parent_task_id",
-            "in": "path",
+            "in": "query",
             "description": "Subtasks of this Task.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "top_level",
-            "in": "path",
+            "in": "query",
             "description": "Top-level Tasks only.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "boolean",
-                "null"
-              ]
+              "type": "boolean"
             }
           },
           {
             "name": "due_by",
-            "in": "path",
+            "in": "query",
             "description": "Due on or before.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "date"
             }
           },
           {
             "name": "ticket_id",
-            "in": "path",
+            "in": "query",
             "description": "Linked to this ticket.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "change_id",
-            "in": "path",
+            "in": "query",
             "description": "Linked to this Change.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ],
+              "type": "string",
               "format": "uuid"
             }
           },
           {
             "name": "q",
-            "in": "path",
+            "in": "query",
             "description": "Title text.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           },
           {
             "name": "limit",
-            "in": "path",
+            "in": "query",
             "description": "Page size (1 to 200; per column on the Board).",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "integer",
-                "null"
-              ],
+              "type": "integer",
               "format": "int32",
               "minimum": 0
             }
           },
           {
             "name": "cursor",
-            "in": "path",
+            "in": "query",
             "description": "Cursor.",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": [
-                "string",
-                "null"
-              ]
+              "type": "string"
             }
           }
         ],

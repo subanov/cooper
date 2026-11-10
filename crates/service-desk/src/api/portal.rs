@@ -134,6 +134,7 @@ pub struct PortalTicketPage {
 
 /// Filters for "my tickets".
 #[derive(Debug, Deserialize, utoipa::IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct PortalTicketParams {
     /// `true` for open tickets, `false` for closed ones; both when absent.
     pub open: Option<bool>,
