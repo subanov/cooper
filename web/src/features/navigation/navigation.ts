@@ -4,7 +4,15 @@ import type { Schemas } from "@/lib/api";
 /** One entry of the Analyst navigation and command palette. */
 export interface NavItem {
   /** Route path. */
-  to: "/" | "/tickets" | "/administration";
+  to:
+    | "/"
+    | "/tickets"
+    | "/tasks"
+    | "/knowledge"
+    | "/service-status"
+    | "/morning-checks"
+    | "/users"
+    | "/administration";
   /** Catalogue id of the label. */
   label: MessageId;
   /** The Module that must be on, if any (FR-GEN-005). */
@@ -27,6 +35,34 @@ export const NAV_ITEMS: readonly NavItem[] = [
     module: "tickets",
     capability: "tickets.read",
     shortcut: "t",
+  },
+  { to: "/tasks", label: "nav.tasks", module: "tasks", capability: "tasks.read", shortcut: "w" },
+  {
+    to: "/knowledge",
+    label: "nav.knowledge",
+    module: "knowledge",
+    capability: "knowledge.read",
+    shortcut: "k",
+  },
+  {
+    to: "/service-status",
+    label: "nav.serviceStatus",
+    module: "service-status",
+    capability: "service-status.read",
+    shortcut: "s",
+  },
+  {
+    to: "/morning-checks",
+    label: "nav.morningChecks",
+    module: "morning-checks",
+    capability: "morning-checks.read",
+    shortcut: "m",
+  },
+  {
+    to: "/users",
+    label: "nav.users",
+    capability: "analysts.manage",
+    shortcut: "u",
   },
   {
     to: "/administration",

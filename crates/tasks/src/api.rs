@@ -366,6 +366,7 @@ pub struct TaskPage {
 
 /// Filters (also for the Board).
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct TaskListParams {
     /// Open (`true`) or closed (`false`).
     pub open: Option<bool>,

@@ -684,6 +684,7 @@ pub struct ServiceIncidentPage {
 
 /// Incident filters.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct ServiceIncidentListParams {
     /// Unresolved (`true`) or resolved (`false`).
     pub open: Option<bool>,
@@ -980,6 +981,7 @@ pub struct PlannedMaintenancePage {
 
 /// Planned Maintenance filters.
 #[derive(Debug, Deserialize, IntoParams)]
+#[into_params(parameter_in = Query)]
 pub struct PlannedMaintenanceListParams {
     /// Comma-separated states (default: `scheduled,started`).
     pub state: Option<String>,
