@@ -6,12 +6,20 @@ import {
   Outlet,
   redirect,
 } from "@tanstack/react-router";
+import type { LookupKind } from "./features/administration/resources";
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
 import { AdministrationLayout } from "./routes/analyst/administration/AdministrationLayout";
 import { JobsPage } from "./routes/analyst/administration/JobsPage";
 import { ModulesPage } from "./routes/analyst/administration/ModulesPage";
+import { CategoriesPage } from "./routes/analyst/administration/resources/CategoriesPage";
+import { CompaniesPage } from "./routes/analyst/administration/resources/CompaniesPage";
+import { CostCentresPage } from "./routes/analyst/administration/resources/CostCentresPage";
+import { DepartmentsPage } from "./routes/analyst/administration/resources/DepartmentsPage";
+import { LookupAdminPage } from "./routes/analyst/administration/resources/LookupAdminPage";
+import { RolesPage } from "./routes/analyst/administration/resources/RolesPage";
+import { TeamsPage } from "./routes/analyst/administration/resources/TeamsPage";
 import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
 import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
@@ -208,6 +216,25 @@ const administrationLogRoute = createRoute({
   component: SystemLogPage,
 });
 
+/** An Administration page for ticket reference data or an organisation list. */
+function adminPage<P extends string>(path: P, component: () => React.JSX.Element) {
+  return createRoute({ getParentRoute: () => administrationRoute, path, component });
+}
+const lookupPage = (kind: LookupKind) => () => <LookupAdminPage kind={kind} />;
+const adminReferenceRoutes = [
+  adminPage("/ticket-statuses", lookupPage("ticket-statuses")),
+  adminPage("/ticket-priorities", lookupPage("ticket-priorities")),
+  adminPage("/ticket-types", lookupPage("ticket-types")),
+  adminPage("/ticket-origins", lookupPage("ticket-origins")),
+  adminPage("/resolution-codes", lookupPage("resolution-codes")),
+  adminPage("/ticket-categories", CategoriesPage),
+  adminPage("/companies", CompaniesPage),
+  adminPage("/teams", TeamsPage),
+  adminPage("/departments", DepartmentsPage),
+  adminPage("/cost-centres", CostCentresPage),
+  adminPage("/roles", RolesPage),
+] as const;
+
 const portalSignInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal/sign-in",
@@ -290,6 +317,7 @@ export const routeTree = rootRoute.addChildren([
       administrationModulesRoute,
       administrationJobsRoute,
       administrationLogRoute,
+      ...adminReferenceRoutes,
     ]),
   ]),
   portalSignInRoute,
