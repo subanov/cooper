@@ -16,8 +16,14 @@ import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
 import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
 import { Home } from "./routes/analyst/Home";
+import { NewTicket } from "./routes/analyst/tickets/NewTicket";
 import { TicketDetail } from "./routes/analyst/tickets/TicketDetail";
 import { TicketsPage } from "./routes/analyst/tickets/TicketsPage";
+import { AnalystEditor } from "./routes/analyst/users/AnalystEditor";
+import { AnalystsPage } from "./routes/analyst/users/AnalystsPage";
+import { RequesterEditor } from "./routes/analyst/users/RequesterEditor";
+import { RequestersPage } from "./routes/analyst/users/RequestersPage";
+import { UsersLayout } from "./routes/analyst/users/UsersLayout";
 import { ResetPasswordPage } from "./routes/auth/ResetPassword";
 import { SignInPage } from "./routes/auth/SignIn";
 import { TwoFactorSetupPage } from "./routes/auth/TwoFactorSetup";
@@ -109,6 +115,62 @@ const ticketRoute = createRoute({
   component: function TicketRoute() {
     const { ticketId } = ticketRoute.useParams();
     return <TicketDetail key={ticketId} ticketId={ticketId} />;
+  },
+});
+
+/** The New ticket form, in the split pane beside the list. */
+const newTicketRoute = createRoute({
+  getParentRoute: () => ticketsRoute,
+  path: "new",
+  component: NewTicket,
+});
+
+const usersRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/users",
+  component: UsersLayout,
+});
+const usersIndexRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: "/",
+  beforeLoad: () => {
+    throw redirect({ to: "/users/analysts" });
+  },
+});
+const analystsRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: "/analysts",
+  component: AnalystsPage,
+});
+const newAnalystRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: "/analysts/new",
+  component: () => <AnalystEditor />,
+});
+const analystRouteById = createRoute({
+  getParentRoute: () => usersRoute,
+  path: "/analysts/$id",
+  component: function AnalystRoute() {
+    const { id } = analystRouteById.useParams();
+    return <AnalystEditor key={id} id={id} />;
+  },
+});
+const requestersRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: "/requesters",
+  component: RequestersPage,
+});
+const newRequesterRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: "/requesters/new",
+  component: () => <RequesterEditor />,
+});
+const requesterRouteById = createRoute({
+  getParentRoute: () => usersRoute,
+  path: "/requesters/$id",
+  component: function RequesterRoute() {
+    const { id } = requesterRouteById.useParams();
+    return <RequesterEditor key={id} id={id} />;
   },
 });
 
@@ -212,7 +274,16 @@ export const routeTree = rootRoute.addChildren([
   twoFactorRoute,
   analystRoute.addChildren([
     homeRoute,
-    ticketsRoute.addChildren([ticketRoute]),
+    ticketsRoute.addChildren([newTicketRoute, ticketRoute]),
+    usersRoute.addChildren([
+      usersIndexRoute,
+      analystsRoute,
+      newAnalystRoute,
+      analystRouteById,
+      requestersRoute,
+      newRequesterRoute,
+      requesterRouteById,
+    ]),
     administrationRoute.addChildren([
       administrationIndexRoute,
       administrationSettingsRoute,

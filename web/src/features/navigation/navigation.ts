@@ -4,7 +4,7 @@ import type { Schemas } from "@/lib/api";
 /** One entry of the Analyst navigation and command palette. */
 export interface NavItem {
   /** Route path. */
-  to: "/" | "/tickets" | "/administration";
+  to: "/" | "/tickets" | "/users" | "/administration";
   /** Catalogue id of the label. */
   label: MessageId;
   /** The Module that must be on, if any (FR-GEN-005). */
@@ -27,6 +27,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
     module: "tickets",
     capability: "tickets.read",
     shortcut: "t",
+  },
+  {
+    to: "/users",
+    label: "nav.users",
+    capability: "analysts.manage",
+    shortcut: "u",
   },
   {
     to: "/administration",
