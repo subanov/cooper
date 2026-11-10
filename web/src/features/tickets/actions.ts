@@ -35,3 +35,8 @@ export function addNote(id: string, body: Schemas["NoteRequest"]): Promise<Resul
 export function sendReply(id: string, body: Schemas["ReplyRequest"]): Promise<Result<unknown>> {
   return result(api.POST("/api/v1/tickets/{id}/replies", { params: { path: { id } }, body }));
 }
+
+/** Creates a ticket. Only the subject is required; the server applies defaults. */
+export function createTicket(body: Schemas["TicketRequest"]): Promise<Result<Ticket>> {
+  return result(api.POST("/api/v1/tickets", { body }));
+}

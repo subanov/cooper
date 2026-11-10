@@ -129,3 +129,47 @@ export function namesById<T extends { id: string }>(
 ): Map<string, string> {
   return new Map((rows ?? []).map((r) => [r.id, name(r)]));
 }
+
+/** Ticket Types (reference data). */
+export const typesQuery = queryOptions({
+  queryKey: ["lookups", "types"],
+  queryFn: () => ok(api.GET("/api/v1/ticket-types"), "ticket types"),
+  ...LOOKUP,
+});
+
+/** Ticket Origins (reference data). */
+export const originsQuery = queryOptions({
+  queryKey: ["lookups", "origins"],
+  queryFn: () => ok(api.GET("/api/v1/ticket-origins"), "ticket origins"),
+  ...LOOKUP,
+});
+
+/** Ticket Categories (reference data). */
+export const categoriesQuery = queryOptions({
+  queryKey: ["lookups", "categories"],
+  queryFn: () => ok(api.GET("/api/v1/ticket-categories"), "ticket categories"),
+  ...LOOKUP,
+});
+
+/** Requesters matching a search, optionally of one Company (for the Requester picker). */
+export function requesterSearchQuery(q: string, companyId: string | undefined) {
+  return queryOptions({
+    queryKey: ["lookups", "requester-search", q, companyId ?? null],
+    queryFn: async () =>
+      (
+        await ok(
+          api.GET("/api/v1/requesters", {
+            params: {
+              query: {
+                limit: 20,
+                ...(q ? { q } : {}),
+                ...(companyId ? { company_id: companyId } : {}),
+              },
+            },
+          }),
+          "requesters",
+        )
+      ).items,
+    ...LOOKUP,
+  });
+}
