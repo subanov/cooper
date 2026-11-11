@@ -604,6 +604,844 @@
         }
       }
     },
+    "/api/v1/asset-locations": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "list_asset_locations",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "create_asset_location",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-locations/{id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "update_asset_location",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-statuses": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "list_asset_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "create_asset_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "update_asset_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-types": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "list_asset_types",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "create_asset_type",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-types/{id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "update_asset_type",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Assets in your Companies, newest first; retired Assets only when asked for (needs\n`assets.read`).",
+        "operationId": "list_assets",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "One Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset_type_id",
+            "in": "query",
+            "description": "Asset Type.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset_status_id",
+            "in": "query",
+            "description": "Asset Status.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "location_id",
+            "in": "query",
+            "description": "Location (and the Locations below it).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "holder_kind",
+            "in": "query",
+            "description": "Holder kind (`requester` or `analyst`), with `holder_id`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "holder_id",
+            "in": "query",
+            "description": "Holder, with `holder_kind`.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "checked_out",
+            "in": "query",
+            "description": "Checked out (`true`) or available (`false`).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "include_retired",
+            "in": "query",
+            "description": "Include retired Assets (left out by default).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "retired_only",
+            "in": "query",
+            "description": "Retired Assets only.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Hostname, Asset Tag or Service Tag contains.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Registers an Asset (needs `assets.create`).",
+        "operationId": "create_asset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/summary": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Active and retired Asset counts, active Assets per type and status (needs\n`assets.read`; FR-AST-005).",
+        "operationId": "asset_summary",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "One Company (default: all of yours).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "One Asset.",
+        "operationId": "get_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Edits an Asset (needs `assets.update`).",
+        "operationId": "edit_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/check-in": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Checks an Asset back in (needs `assets.update`).",
+        "operationId": "check_in_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetCheckInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/check-out": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Checks an Asset out to a Requester or Analyst (needs `assets.update`). A retired or\nalready checked-out Asset cannot be checked out.",
+        "operationId": "check_out_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetCheckOutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/checkouts": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "The Check Out log of an Asset, newest first.",
+        "operationId": "list_asset_checkouts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetCheckoutDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/history": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "The full history of an Asset: edits, Check Outs and Check Ins, retirement and links\n(FR-AST-006).",
+        "operationId": "asset_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/links": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Linked tickets and Contracts you may see (FR-AST-006).",
+        "operationId": "list_asset_links",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLinkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Links a ticket or Contract of the same Company (needs `assets.update`).",
+        "operationId": "link_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/links/{kind}/{target_id}": {
+      "delete": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Removes a link (needs `assets.update`).",
+        "operationId": "unlink_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/assets/{id}/retire": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Retires an Asset with a date and reason (needs `assets.update`). It must be checked\nin first; retired Assets are excluded from active counts and lists.",
+        "operationId": "retire_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetRetireRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/background-jobs": {
       "get": {
         "tags": [
@@ -744,6 +1582,279 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/v1/calendar/categories": {
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Calendar Categories, Administrators' first, by name (FR-CAL-001).",
+        "operationId": "list_calendar_categories",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarCategoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Adds a Calendar Category (needs `calendar.configure`).",
+        "operationId": "create_calendar_category",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarCategoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarCategoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/categories/{id}": {
+      "put": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Changes a Calendar Category (needs `calendar.configure`). System categories may be\nrenamed and recoloured but not deactivated.",
+        "operationId": "update_calendar_category",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarCategoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarCategoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/events": {
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Calendar Events of the Companies you can see touching a range of days, manual and\ngenerated (FR-CAL-001, FR-CAL-002).",
+        "operationId": "list_calendar_events",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day (required).",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day, inclusive (required; at most 366 days after `from`). Timed events are\nmatched on their UTC days.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "Only this Calendar Category.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Adds a manual Calendar Event (needs `calendar.create`).",
+        "operationId": "create_calendar_event",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/events/{id}": {
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "One Calendar Event.",
+        "operationId": "get_calendar_event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Changes a manual Calendar Event (needs `calendar.update`; generated events: `409`).",
+        "operationId": "edit_calendar_event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Deletes a manual Calendar Event (needs `calendar.update`; generated events: `409`).",
+        "operationId": "delete_calendar_event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
         }
       }
     },
@@ -2628,6 +3739,426 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CompanyDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contacts/{id}": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "One Contact.",
+        "operationId": "get_contact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Edits a Contact (needs `contracts.write`).",
+        "operationId": "edit_contact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contract-statuses": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_contract_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_contract_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contract-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_contract_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Contracts in your Companies by number, with their Notice Date and where it stands\n(needs `contracts.read`).",
+        "operationId": "list_contracts",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text in the number or title.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status_id",
+            "in": "query",
+            "description": "Contract Status.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplier_id",
+            "in": "query",
+            "description": "Supplier.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "owner",
+            "in": "query",
+            "description": "Owner (`me` is accepted).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Active (`true`) or in a closed Contract Status (`false`).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "notice_due",
+            "in": "query",
+            "description": "Only active Contracts whose Notice Date is from today up to\n`contracts.reminder_days` ahead.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Creates a Contract (needs `contracts.write`). Cooper calculates its Notice Date.",
+        "operationId": "create_contract",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{id}": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "One Contract.",
+        "operationId": "get_contract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Edits a Contract (needs `contracts.write`).",
+        "operationId": "edit_contract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Deletes a Contract (needs `contracts.write`).",
+        "operationId": "delete_contract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/contracts/{id}/history": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "The audit trail of a Contract.",
+        "operationId": "contract_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractHistoryDto"
+                  }
                 }
               }
             }
@@ -5022,6 +6553,95 @@
           },
           "401": {
             "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/api/v1/payment-schedules": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_payment_schedules",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_payment_schedule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payment-schedules/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_payment_schedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
           }
         }
       }
@@ -9805,6 +11425,479 @@
         }
       }
     },
+    "/api/v1/supplier-statuses": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_supplier_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_supplier_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/supplier-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_supplier_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/supplier-types": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_supplier_types",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_supplier_type",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/supplier-types/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_supplier_type",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Suppliers in your Companies by legal name (needs `contracts.read`).",
+        "operationId": "list_suppliers",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text in the legal or trading name.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "supplier_type_id",
+            "in": "query",
+            "description": "Supplier Type.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplier_status_id",
+            "in": "query",
+            "description": "Supplier Status.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Active (`true`) or inactive (`false`).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Creates a Supplier (needs `contracts.write`).",
+        "operationId": "create_supplier",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers/{id}": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "One Supplier.",
+        "operationId": "get_supplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Edits a Supplier (needs `contracts.write`).",
+        "operationId": "edit_supplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers/{id}/contacts": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "The Contacts of a Supplier by name (needs `contracts.read`).",
+        "operationId": "list_supplier_contacts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContactDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Adds a Contact to a Supplier (needs `contracts.write`).",
+        "operationId": "create_contact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers/{id}/history": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "The audit trail of a Supplier.",
+        "operationId": "supplier_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/system-log": {
       "get": {
         "tags": [
@@ -13929,6 +16022,758 @@
           }
         }
       },
+      "AssetCheckInRequest": {
+        "type": "object",
+        "description": "Checks an Asset in.",
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "Note."
+          }
+        }
+      },
+      "AssetCheckOutRequest": {
+        "type": "object",
+        "description": "Checks an Asset out.",
+        "required": [
+          "holder_kind",
+          "holder_id"
+        ],
+        "properties": {
+          "due_back_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Expected return."
+          },
+          "holder_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The person."
+          },
+          "holder_kind": {
+            "type": "string",
+            "description": "`requester` (of the Asset's Company) or `analyst`."
+          },
+          "note": {
+            "type": "string",
+            "description": "Note."
+          }
+        }
+      },
+      "AssetCheckoutDto": {
+        "type": "object",
+        "description": "One entry of the Check Out log.",
+        "required": [
+          "id",
+          "holder",
+          "checked_out_at",
+          "checked_out_by",
+          "checkout_note",
+          "checked_in_by",
+          "checkin_note"
+        ],
+        "properties": {
+          "checked_in_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was checked in (`null`: still out)."
+          },
+          "checked_in_by": {
+            "type": "object",
+            "description": "Who checked it in (`{kind, id}`)."
+          },
+          "checked_out_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was checked out."
+          },
+          "checked_out_by": {
+            "type": "object",
+            "description": "Who checked it out (`{kind, id}`)."
+          },
+          "checkin_note": {
+            "type": "string",
+            "description": "Note at Check In."
+          },
+          "checkout_note": {
+            "type": "string",
+            "description": "Note at Check Out."
+          },
+          "due_back_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Expected return."
+          },
+          "holder": {
+            "$ref": "#/components/schemas/AssetHolderDto",
+            "description": "The Holder."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          }
+        }
+      },
+      "AssetCountDto": {
+        "type": "object",
+        "description": "Active Assets counted by type and status.",
+        "required": [
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Active Assets.",
+            "minimum": 0
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Asset Type or Asset Status (`null`: none)."
+          }
+        }
+      },
+      "AssetCurrentCheckoutDto": {
+        "type": "object",
+        "description": "An open Check Out.",
+        "required": [
+          "id",
+          "holder",
+          "checked_out_at"
+        ],
+        "properties": {
+          "checked_out_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Since."
+          },
+          "due_back_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Expected return."
+          },
+          "holder": {
+            "$ref": "#/components/schemas/AssetHolderDto",
+            "description": "The Holder."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Check Out."
+          }
+        }
+      },
+      "AssetDto": {
+        "type": "object",
+        "description": "An Asset (FR-AST-001).",
+        "required": [
+          "id",
+          "company_id",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "asset_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Status."
+          },
+          "asset_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Label, unique per Company."
+          },
+          "asset_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Type."
+          },
+          "checkout": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AssetCurrentCheckoutDto",
+                "description": "The open Check Out, if the Asset is checked out."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "hostname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Network name."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "In the estate (not retired)."
+          },
+          "lease_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease expiry."
+          },
+          "lease_starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease start."
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Location."
+          },
+          "purchase_cost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Purchase cost as a decimal string with two places (`\"1299.00\"`)."
+          },
+          "purchase_currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-4217 currency of the purchase cost."
+          },
+          "purchase_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Purchase date."
+          },
+          "retired_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The day it was retired."
+          },
+          "retirement_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why it was retired."
+          },
+          "service_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Manufacturer serial number."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "warranty_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Warranty expiry."
+          }
+        }
+      },
+      "AssetHistoryDto": {
+        "type": "object",
+        "description": "One change in an Asset's history.",
+        "required": [
+          "id",
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created` or `updated`."
+          },
+          "actor": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field (`holder` for Check Out / Check In, `retired_on` and `retirement_reason`\nfor Retire, `ticket_linked` and the like for links)."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Audit entry ID."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "AssetHolderDto": {
+        "type": "object",
+        "description": "Who has an Asset.",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The person."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`requester` or `analyst`."
+          }
+        }
+      },
+      "AssetLinkDto": {
+        "type": "object",
+        "description": "A linked ticket or Contract.",
+        "required": [
+          "kind",
+          "target_id",
+          "number",
+          "linked_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `contract`."
+          },
+          "linked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was linked."
+          },
+          "number": {
+            "type": "string",
+            "description": "Its number."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The record."
+          }
+        }
+      },
+      "AssetLinkRequest": {
+        "type": "object",
+        "description": "Links a record.",
+        "required": [
+          "kind",
+          "target_id"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `contract`."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The record (same Company)."
+          }
+        }
+      },
+      "AssetLookupDto": {
+        "type": "object",
+        "description": "An Asset Type, Asset Status or Location.",
+        "required": [
+          "id",
+          "name",
+          "is_retired",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Statuses: `#rrggbb`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (offered for new choices)."
+          },
+          "is_retired": {
+            "type": "boolean",
+            "description": "Statuses: the Asset has left the estate (only Retire moves an Asset here)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Locations: the parent Location."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "AssetLookupRequest": {
+        "type": "object",
+        "description": "Creates or changes an Asset Type, Asset Status or Location.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Statuses: `#rrggbb`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_retired": {
+            "type": "boolean",
+            "description": "Statuses: retired."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Locations: the parent Location."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "AssetPage": {
+        "type": "object",
+        "description": "A page of Assets.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetDto"
+            },
+            "description": "Assets, newest first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "AssetRequest": {
+        "type": "object",
+        "description": "Creates or edits an Asset.",
+        "properties": {
+          "asset_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Status (not a retired one: use Retire)."
+          },
+          "asset_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Label, unique per Company."
+          },
+          "asset_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Type."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre of the Asset's Company."
+          },
+          "hostname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Network name."
+          },
+          "lease_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease expiry."
+          },
+          "lease_starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease start."
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Location."
+          },
+          "purchase_cost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Purchase cost as a decimal string (`\"1299.00\"`, at most two decimals)."
+          },
+          "purchase_currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-4217 currency, required with a cost."
+          },
+          "purchase_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Purchase date."
+          },
+          "service_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Manufacturer serial number."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "warranty_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Warranty expiry."
+          }
+        }
+      },
+      "AssetRetireRequest": {
+        "type": "object",
+        "description": "Retires an Asset.",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "asset_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "A retired Asset Status to move to (otherwise the status is cleared)."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why."
+          },
+          "retired_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The day it left the estate (default today)."
+          }
+        }
+      },
+      "AssetSummaryDto": {
+        "type": "object",
+        "description": "Counts of the estate (FR-AST-005).",
+        "required": [
+          "active",
+          "retired",
+          "checked_out",
+          "by_type",
+          "by_status"
+        ],
+        "properties": {
+          "active": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Assets in the estate.",
+            "minimum": 0
+          },
+          "by_status": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCountDto"
+            },
+            "description": "Active Assets per Asset Status."
+          },
+          "by_type": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCountDto"
+            },
+            "description": "Active Assets per Asset Type."
+          },
+          "checked_out": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Active Assets checked out.",
+            "minimum": 0
+          },
+          "retired": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Retired Assets (not counted as active).",
+            "minimum": 0
+          }
+        }
+      },
       "AssignmentRequest": {
         "type": "object",
         "description": "Assign a ticket.",
@@ -14100,6 +16945,301 @@
             "type": "string",
             "format": "uuid",
             "description": "The ticket."
+          }
+        }
+      },
+      "CalendarCategoryDto": {
+        "type": "object",
+        "description": "A Calendar Category.",
+        "required": [
+          "id",
+          "name",
+          "colour",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": "string",
+            "description": "`#rrggbb`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Offered for new events."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "system_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Made by Cooper for generated events (`contracts`, `assets`); not offered for\nmanual events and never inactive."
+          }
+        }
+      },
+      "CalendarCategoryRequest": {
+        "type": "object",
+        "description": "Creates or changes a Calendar Category.",
+        "required": [
+          "name",
+          "colour"
+        ],
+        "properties": {
+          "colour": {
+            "type": "string",
+            "description": "`#rrggbb`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Offered for new events."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name (1 to 50 characters, unique)."
+          }
+        }
+      },
+      "CalendarEventDto": {
+        "type": "object",
+        "description": "A Calendar Event.",
+        "required": [
+          "id",
+          "company_id",
+          "title",
+          "description",
+          "category_id",
+          "category_name",
+          "colour",
+          "all_day",
+          "editable",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "all_day": {
+            "type": "boolean",
+            "description": "Whole days (`start_date`..=`end_date`) rather than times (`starts_at`..`ends_at`)."
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Category."
+          },
+          "category_name": {
+            "type": "string",
+            "description": "Category name."
+          },
+          "colour": {
+            "type": "string",
+            "description": "Category colour, `#rrggbb`."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "editable": {
+            "type": "boolean",
+            "description": "Whether the event can be edited and deleted (manual events)."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: last day (inclusive)."
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: end (UTC)."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where."
+          },
+          "source": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CalendarEventSourceDto",
+                "description": "Source of a generated event; generated events are read-only."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: first day."
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: start (UTC)."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "CalendarEventList": {
+        "type": "object",
+        "description": "Events of a range.",
+        "required": [
+          "items",
+          "truncated"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventDto"
+            },
+            "description": "Events by start (all-day events first on a day)."
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "More events matched than returned (2000); narrow the range or filter."
+          }
+        }
+      },
+      "CalendarEventRequest": {
+        "type": "object",
+        "description": "Creates or changes a manual Calendar Event.",
+        "required": [
+          "title",
+          "category_id"
+        ],
+        "properties": {
+          "all_day": {
+            "type": "boolean",
+            "description": "Whole days (`start_date`, `end_date`) or times (`starts_at`, `ends_at`)."
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "An active Calendar Category that is not a system one."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: last day (default `start_date`)."
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: end (at or after the start)."
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: first day."
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: start."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title (1 to 255 characters)."
+          }
+        }
+      },
+      "CalendarEventSourceDto": {
+        "type": "object",
+        "description": "The record a generated Calendar Event comes from.",
+        "required": [
+          "kind",
+          "id",
+          "date"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Which date: `notice_date`, `end_date`, `warranty_expires_on` or `lease_expires_on`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Contract or Asset."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`contract` or `asset`."
           }
         }
       },
@@ -16267,6 +19407,601 @@
           }
         }
       },
+      "ContactDto": {
+        "type": "object",
+        "description": "A Contact: a person at a Supplier.",
+        "required": [
+          "id",
+          "company_id",
+          "supplier_id",
+          "full_name",
+          "notes",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Email address."
+          },
+          "full_name": {
+            "type": "string",
+            "description": "Full name."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "job_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Job title."
+          },
+          "mobile": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Mobile."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Phone."
+          },
+          "supplier_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "ContactRequest": {
+        "type": "object",
+        "description": "Creates or edits a Contact.",
+        "required": [
+          "full_name"
+        ],
+        "properties": {
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Email address."
+          },
+          "full_name": {
+            "type": "string",
+            "description": "Full name."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "job_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Job title."
+          },
+          "mobile": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Mobile."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Phone."
+          }
+        }
+      },
+      "ContractDto": {
+        "type": "object",
+        "description": "A Contract.",
+        "required": [
+          "id",
+          "company_id",
+          "contract_number",
+          "title",
+          "description",
+          "party",
+          "is_active",
+          "notice_status",
+          "personal_data_transferred",
+          "dpia_required",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "contract_number": {
+            "type": "string",
+            "description": "Contract number (unique per Company)."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 4217 currency of the value."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "dms_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the document management system."
+          },
+          "dpia_completed_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "When the DPIA was completed."
+          },
+          "dpia_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the DPIA."
+          },
+          "dpia_required": {
+            "type": "boolean",
+            "description": "A DPIA is required."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "End date."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Neither deleted nor in a closed Contract Status."
+          },
+          "notice_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Notice Date, calculated by Cooper: the end date minus the notice period."
+          },
+          "notice_period": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoticePeriodDto",
+                "description": "Notice period."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notice_status": {
+            "$ref": "#/components/schemas/NoticeStatusDto",
+            "description": "Where the Notice Date stands today."
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner Analyst."
+          },
+          "party": {
+            "type": "string",
+            "description": "`supplier` (with `supplier_id`) or `customer` (the Company, optionally with\n`requester_id`)."
+          },
+          "payment_schedule_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Payment Schedule."
+          },
+          "personal_data_transferred": {
+            "type": "boolean",
+            "description": "Personal data is transferred (FR-CON-004)."
+          },
+          "requester_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Customer Requester."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Start date."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Contract Status."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Value as a decimal string with two places, for example `\"1250.00\"`."
+          }
+        }
+      },
+      "ContractHistoryDto": {
+        "type": "object",
+        "description": "One change in an audit trail.",
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created`, `updated` or `deleted`."
+          },
+          "actor": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "ContractLookupDto": {
+        "type": "object",
+        "description": "A Supplier Type, Supplier Status, Contract Status or Payment Schedule.",
+        "required": [
+          "id",
+          "name",
+          "is_closed",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (only active rows can be chosen)."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Contract Statuses: a Contract in this status is finished (no Calendar Events, no\nreminders). Always `false` for the other lookups."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "ContractLookupRequest": {
+        "type": "object",
+        "description": "Creates or changes a lookup.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Contract Statuses: closed."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "ContractPage": {
+        "type": "object",
+        "description": "A page of Contracts.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractDto"
+            },
+            "description": "Contracts by number."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "ContractRequest": {
+        "type": "object",
+        "description": "Creates or edits a Contract.",
+        "required": [
+          "contract_number",
+          "title"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "contract_number": {
+            "type": "string",
+            "description": "Contract number (unique per Company)."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre of the Company."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 4217 currency (required with a value)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "dms_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the document management system (`http(s)://`)."
+          },
+          "dpia_completed_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "When the DPIA was completed (needs `dpia_required`)."
+          },
+          "dpia_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the DPIA (needs `dpia_required`)."
+          },
+          "dpia_required": {
+            "type": "boolean",
+            "description": "A DPIA is required."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "End date."
+          },
+          "notice_period": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoticePeriodDto",
+                "description": "Notice period."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner Analyst."
+          },
+          "payment_schedule_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Payment Schedule."
+          },
+          "personal_data_transferred": {
+            "type": "boolean",
+            "description": "Personal data is transferred."
+          },
+          "requester_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Customer Requester (customer Contracts only)."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Start date."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Contract Status."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier: the Contract is with this Supplier. Leave empty for a customer Contract."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Value as a decimal string (at most two decimal places)."
+          }
+        }
+      },
       "CorrectIncidentUpdateRequest": {
         "type": "object",
         "description": "Corrects a posted update.",
@@ -18138,6 +21873,44 @@
           }
         }
       },
+      "NoticePeriodDto": {
+        "type": "object",
+        "description": "How long before the end date notice must be given.",
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Number of days (0 to 3650) or months (0 to 120).",
+            "minimum": 0
+          },
+          "unit": {
+            "$ref": "#/components/schemas/NoticePeriodUnit",
+            "description": "Days or months."
+          }
+        }
+      },
+      "NoticePeriodUnit": {
+        "type": "string",
+        "description": "The unit of a notice period.",
+        "enum": [
+          "days",
+          "months"
+        ]
+      },
+      "NoticeStatusDto": {
+        "type": "string",
+        "description": "Where a Contract's Notice Date stands today.",
+        "enum": [
+          "none",
+          "later",
+          "upcoming",
+          "passed"
+        ]
+      },
       "NotificationDto": {
         "type": "object",
         "description": "A Notification.",
@@ -18169,6 +21942,14 @@
             "format": "uuid",
             "description": "Linked Change."
           },
+          "contract_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Linked Contract."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -18181,7 +21962,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or\n`checks_unrecorded`."
+            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`,\n`checks_unrecorded`, `contract_notice_due` or `contract_end_due`."
           },
           "read_at": {
             "type": [
@@ -22032,6 +25813,179 @@
           }
         }
       },
+      "SupplierDto": {
+        "type": "object",
+        "description": "A Supplier.",
+        "required": [
+          "id",
+          "company_id",
+          "legal_name",
+          "notes",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "legal_name": {
+            "type": "string",
+            "description": "Legal name."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "registration_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Company registration number."
+          },
+          "supplier_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Status."
+          },
+          "supplier_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Type."
+          },
+          "trading_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Trading name."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "vat_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "VAT number."
+          }
+        }
+      },
+      "SupplierPage": {
+        "type": "object",
+        "description": "A page of Suppliers.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplierDto"
+            },
+            "description": "Suppliers by legal name."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "SupplierRequest": {
+        "type": "object",
+        "description": "Creates or edits a Supplier.",
+        "required": [
+          "legal_name"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "legal_name": {
+            "type": "string",
+            "description": "Legal name."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "registration_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Company registration number."
+          },
+          "supplier_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Status."
+          },
+          "supplier_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Type."
+          },
+          "trading_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Trading name."
+          },
+          "vat_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "VAT number."
+          }
+        }
+      },
       "SwitchRequesterRequest": {
         "type": "object",
         "description": "Switch the Requester a Portal session acts as.",
@@ -24375,6 +28329,18 @@
     {
       "name": "Morning Checks",
       "description": "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"
+    },
+    {
+      "name": "Assets",
+      "description": "Assets, Asset Types, Asset Statuses, Locations, Check Out / Check In, Retire, links and history"
+    },
+    {
+      "name": "Contracts",
+      "description": "Suppliers, Contacts and Contracts with Notice Dates, data protection fields and their lookups"
+    },
+    {
+      "name": "Calendar",
+      "description": "The IT Calendar: Calendar Events (manual and generated from contract and asset dates) and Calendar Categories"
     },
     {
       "name": "Reporting",

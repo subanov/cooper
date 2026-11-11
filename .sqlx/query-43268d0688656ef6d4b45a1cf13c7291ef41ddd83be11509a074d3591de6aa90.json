@@ -1,0 +1,420 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT a.id, a.tenant_id, a.hostname, a.service_tag, a.asset_tag, a.asset_type_id, a.asset_status_id,\n                      a.location_id, a.supplier_id, a.cost_centre_id, a.purchase_date,\n                      (a.purchase_cost * 100)::bigint AS \"purchase_cost?\", a.purchase_currency, a.warranty_expires_on,\n                      a.lease_starts_on, a.lease_expires_on, a.retired_on, a.retirement_reason, a.retired_at,\n                      a.retired_by_kind, a.retired_by_id, a.created_by_kind, a.created_by_id, a.created_at, a.updated_at,\n                      c.id AS \"checkout_id?\", c.holder_kind AS \"holder_kind?\", c.holder_id AS \"holder_id?\",\n                      c.checked_out_at AS \"checked_out_at?\", c.checked_out_by_kind AS \"checked_out_by_kind?\",\n                      c.checked_out_by_id AS \"checked_out_by_id?\", c.checkout_note AS \"checkout_note?\",\n                      c.due_back_on AS \"due_back_on?\"\n               FROM assets a\n               LEFT JOIN asset_checkouts c ON c.asset_id = a.id AND c.checked_in_at IS NULL\n               WHERE ($1 OR a.tenant_id = ANY($2))\n                 AND ($3::uuid IS NULL OR a.tenant_id = $3)\n                 AND ($4::uuid IS NULL OR a.asset_type_id = $4)\n                 AND ($5::uuid IS NULL OR a.asset_status_id = $5)\n                 AND ($6::uuid[] IS NULL OR a.location_id = ANY($6))\n                 AND ($7::text IS NULL OR (c.holder_kind = $7 AND c.holder_id = $8))\n                 AND ($9::boolean IS NULL OR (c.id IS NOT NULL) = $9)\n                 AND ($10 OR a.retired_on IS NULL)\n                 AND (NOT $11 OR a.retired_on IS NOT NULL)\n                 AND ($12::text IS NULL OR a.hostname ILIKE $12 OR a.asset_tag ILIKE $12 OR a.service_tag ILIKE $12)\n                 AND ($13::uuid IS NULL OR a.id < $13)\n               ORDER BY a.id DESC\n               LIMIT $14",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "hostname",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "hostname"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "service_tag",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "service_tag"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "asset_tag",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "asset_tag"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "asset_type_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "asset_type_id"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "asset_status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "asset_status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "location_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "location_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "supplier_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "supplier_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "cost_centre_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "cost_centre_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "purchase_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "purchase_date"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "purchase_cost?",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 12,
+        "name": "purchase_currency",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "purchase_currency"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "warranty_expires_on",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "warranty_expires_on"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "lease_starts_on",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "lease_starts_on"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "lease_expires_on",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "lease_expires_on"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "retired_on",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "retired_on"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "retirement_reason",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "retirement_reason"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "retired_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "retired_at"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "retired_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "retired_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "retired_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "retired_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 22,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 23,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 24,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 25,
+        "name": "checkout_id?",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 26,
+        "name": "holder_kind?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "holder_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 27,
+        "name": "holder_id?",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "holder_id"
+          }
+        }
+      },
+      {
+        "ordinal": 28,
+        "name": "checked_out_at?",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "checked_out_at"
+          }
+        }
+      },
+      {
+        "ordinal": 29,
+        "name": "checked_out_by_kind?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "checked_out_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 30,
+        "name": "checked_out_by_id?",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "checked_out_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 31,
+        "name": "checkout_note?",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "checkout_note"
+          }
+        }
+      },
+      {
+        "ordinal": 32,
+        "name": "due_back_on?",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "asset_checkouts",
+            "name": "due_back_on"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "UuidArray",
+        "Text",
+        "Uuid",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      null,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "43268d0688656ef6d4b45a1cf13c7291ef41ddd83be11509a074d3591de6aa90"
+}

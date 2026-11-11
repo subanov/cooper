@@ -1,0 +1,193 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, legal_name, trading_name, registration_number, vat_number, supplier_type_id,\n                      supplier_status_id, notes, is_active, created_by_kind, created_by_id, created_at, updated_at\n               FROM suppliers\n               WHERE ($1 OR tenant_id = ANY($2))\n                 AND ($3::uuid IS NULL OR tenant_id = $3)\n                 AND ($4::text IS NULL OR legal_name ILIKE $4 OR trading_name ILIKE $4)\n                 AND ($5::uuid IS NULL OR supplier_type_id = $5)\n                 AND ($6::uuid IS NULL OR supplier_status_id = $6)\n                 AND ($7::boolean IS NULL OR is_active = $7)\n                 AND ($8::text IS NULL OR (lower(legal_name), id) > (lower($8), $9::uuid))\n               ORDER BY lower(legal_name), id\n               LIMIT $10",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "legal_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "legal_name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "trading_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "trading_name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "registration_number",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "registration_number"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "vat_number",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "vat_number"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "supplier_type_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "supplier_type_id"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "supplier_status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "supplier_status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "notes",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "notes"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "suppliers",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "32eff2104dc6d00932105655ef8a1727013bb2d130a3b7c9ea64f64de48c14fc"
+}

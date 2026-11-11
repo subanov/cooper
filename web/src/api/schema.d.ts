@@ -198,6 +198,290 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/asset-locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_asset_locations"];
+        put?: never;
+        post: operations["create_asset_location"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-locations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_asset_location"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_asset_statuses"];
+        put?: never;
+        post: operations["create_asset_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_asset_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_asset_types"];
+        put?: never;
+        post: operations["create_asset_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_asset_type"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assets in your Companies, newest first; retired Assets only when asked for (needs
+         *     `assets.read`).
+         */
+        get: operations["list_assets"];
+        put?: never;
+        /** Registers an Asset (needs `assets.create`). */
+        post: operations["create_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Active and retired Asset counts, active Assets per type and status (needs
+         *     `assets.read`; FR-AST-005).
+         */
+        get: operations["asset_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Asset. */
+        get: operations["get_asset"];
+        /** Edits an Asset (needs `assets.update`). */
+        put: operations["edit_asset"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks an Asset back in (needs `assets.update`). */
+        post: operations["check_in_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Checks an Asset out to a Requester or Analyst (needs `assets.update`). A retired or
+         *     already checked-out Asset cannot be checked out.
+         */
+        post: operations["check_out_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/checkouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Check Out log of an Asset, newest first. */
+        get: operations["list_asset_checkouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The full history of an Asset: edits, Check Outs and Check Ins, retirement and links
+         *     (FR-AST-006).
+         */
+        get: operations["asset_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Linked tickets and Contracts you may see (FR-AST-006). */
+        get: operations["list_asset_links"];
+        put?: never;
+        /** Links a ticket or Contract of the same Company (needs `assets.update`). */
+        post: operations["link_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/links/{kind}/{target_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a link (needs `assets.update`). */
+        delete: operations["unlink_asset"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retires an Asset with a date and reason (needs `assets.update`). It must be checked
+         *     in first; retired Assets are excluded from active counts and lists.
+         */
+        post: operations["retire_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/background-jobs": {
         parameters: {
             query?: never;
@@ -261,6 +545,84 @@ export interface paths {
         put: operations["set_job_schedule"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calendar Categories, Administrators' first, by name (FR-CAL-001). */
+        get: operations["list_calendar_categories"];
+        put?: never;
+        /** Adds a Calendar Category (needs `calendar.configure`). */
+        post: operations["create_calendar_category"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Changes a Calendar Category (needs `calendar.configure`). System categories may be
+         *     renamed and recoloured but not deactivated.
+         */
+        put: operations["update_calendar_category"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calendar Events of the Companies you can see touching a range of days, manual and
+         *     generated (FR-CAL-001, FR-CAL-002).
+         */
+        get: operations["list_calendar_events"];
+        put?: never;
+        /** Adds a manual Calendar Event (needs `calendar.create`). */
+        post: operations["create_calendar_event"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Calendar Event. */
+        get: operations["get_calendar_event"];
+        /** Changes a manual Calendar Event (needs `calendar.update`; generated events: `409`). */
+        put: operations["edit_calendar_event"];
+        post?: never;
+        /** Deletes a manual Calendar Event (needs `calendar.update`; generated events: `409`). */
+        delete: operations["delete_calendar_event"];
         options?: never;
         head?: never;
         patch?: never;
@@ -859,6 +1221,113 @@ export interface paths {
         put?: never;
         /** Reactivates a Company. */
         post: operations["reactivate_company"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Contact. */
+        get: operations["get_contact"];
+        /** Edits a Contact (needs `contracts.write`). */
+        put: operations["edit_contact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_contract_statuses"];
+        put?: never;
+        post: operations["create_contract_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_contract_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Contracts in your Companies by number, with their Notice Date and where it stands
+         *     (needs `contracts.read`).
+         */
+        get: operations["list_contracts"];
+        put?: never;
+        /** Creates a Contract (needs `contracts.write`). Cooper calculates its Notice Date. */
+        post: operations["create_contract"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Contract. */
+        get: operations["get_contract"];
+        /** Edits a Contract (needs `contracts.write`). */
+        put: operations["edit_contract"];
+        post?: never;
+        /** Deletes a Contract (needs `contracts.write`). */
+        delete: operations["delete_contract"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The audit trail of a Contract. */
+        get: operations["contract_history"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1750,6 +2219,38 @@ export interface paths {
         put?: never;
         /** Sets a new password with the token from the email. Ends every session. */
         post: operations["confirm_password_reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payment-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_payment_schedules"];
+        put?: never;
+        post: operations["create_payment_schedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payment-schedules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_payment_schedule"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3486,6 +3987,141 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/supplier-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_supplier_statuses"];
+        put?: never;
+        post: operations["create_supplier_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_supplier_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_supplier_types"];
+        put?: never;
+        post: operations["create_supplier_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_supplier_type"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Suppliers in your Companies by legal name (needs `contracts.read`). */
+        get: operations["list_suppliers"];
+        put?: never;
+        /** Creates a Supplier (needs `contracts.write`). */
+        post: operations["create_supplier"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Supplier. */
+        get: operations["get_supplier"];
+        /** Edits a Supplier (needs `contracts.write`). */
+        put: operations["edit_supplier"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Contacts of a Supplier by name (needs `contracts.read`). */
+        get: operations["list_supplier_contacts"];
+        put?: never;
+        /** Adds a Contact to a Supplier (needs `contracts.write`). */
+        post: operations["create_contact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The audit trail of a Supplier. */
+        get: operations["supplier_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/system-log": {
         parameters: {
             query?: never;
@@ -4844,6 +5480,399 @@ export interface components {
              */
             rate_limit_per_minute?: number;
         };
+        /** @description Checks an Asset in. */
+        AssetCheckInRequest: {
+            /** @description Note. */
+            note?: string;
+        };
+        /** @description Checks an Asset out. */
+        AssetCheckOutRequest: {
+            /**
+             * Format: date
+             * @description Expected return.
+             */
+            due_back_on?: string | null;
+            /**
+             * Format: uuid
+             * @description The person.
+             */
+            holder_id: string;
+            /** @description `requester` (of the Asset's Company) or `analyst`. */
+            holder_kind: string;
+            /** @description Note. */
+            note?: string;
+        };
+        /** @description One entry of the Check Out log. */
+        AssetCheckoutDto: {
+            /**
+             * Format: date-time
+             * @description When it was checked in (`null`: still out).
+             */
+            checked_in_at?: string | null;
+            /** @description Who checked it in (`{kind, id}`). */
+            checked_in_by: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When it was checked out.
+             */
+            checked_out_at: string;
+            /** @description Who checked it out (`{kind, id}`). */
+            checked_out_by: Record<string, never>;
+            /** @description Note at Check In. */
+            checkin_note: string;
+            /** @description Note at Check Out. */
+            checkout_note: string;
+            /**
+             * Format: date
+             * @description Expected return.
+             */
+            due_back_on?: string | null;
+            /** @description The Holder. */
+            holder: components["schemas"]["AssetHolderDto"];
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+        };
+        /** @description Active Assets counted by type and status. */
+        AssetCountDto: {
+            /**
+             * Format: int64
+             * @description Active Assets.
+             */
+            count: number;
+            /**
+             * Format: uuid
+             * @description The Asset Type or Asset Status (`null`: none).
+             */
+            id?: string | null;
+        };
+        /** @description An open Check Out. */
+        AssetCurrentCheckoutDto: {
+            /**
+             * Format: date-time
+             * @description Since.
+             */
+            checked_out_at: string;
+            /**
+             * Format: date
+             * @description Expected return.
+             */
+            due_back_on?: string | null;
+            /** @description The Holder. */
+            holder: components["schemas"]["AssetHolderDto"];
+            /**
+             * Format: uuid
+             * @description The Check Out.
+             */
+            id: string;
+        };
+        /** @description An Asset (FR-AST-001). */
+        AssetDto: {
+            /**
+             * Format: uuid
+             * @description Asset Status.
+             */
+            asset_status_id?: string | null;
+            /** @description Label, unique per Company. */
+            asset_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Asset Type.
+             */
+            asset_type_id?: string | null;
+            checkout?: components["schemas"]["AssetCurrentCheckoutDto"] | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: uuid
+             * @description Cost Centre.
+             */
+            cost_centre_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Network name. */
+            hostname?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description In the estate (not retired). */
+            is_active: boolean;
+            /**
+             * Format: date
+             * @description Lease expiry.
+             */
+            lease_expires_on?: string | null;
+            /**
+             * Format: date
+             * @description Lease start.
+             */
+            lease_starts_on?: string | null;
+            /**
+             * Format: uuid
+             * @description Location.
+             */
+            location_id?: string | null;
+            /** @description Purchase cost as a decimal string with two places (`"1299.00"`). */
+            purchase_cost?: string | null;
+            /** @description ISO-4217 currency of the purchase cost. */
+            purchase_currency?: string | null;
+            /**
+             * Format: date
+             * @description Purchase date.
+             */
+            purchase_date?: string | null;
+            /**
+             * Format: date
+             * @description The day it was retired.
+             */
+            retired_on?: string | null;
+            /** @description Why it was retired. */
+            retirement_reason?: string | null;
+            /** @description Manufacturer serial number. */
+            service_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /**
+             * Format: date
+             * @description Warranty expiry.
+             */
+            warranty_expires_on?: string | null;
+        };
+        /** @description One change in an Asset's history. */
+        AssetHistoryDto: {
+            /** @description `created` or `updated`. */
+            action: string;
+            /** @description Who (`{kind, id}`). */
+            actor: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /**
+             * @description Field (`holder` for Check Out / Check In, `retired_on` and `retirement_reason`
+             *     for Retire, `ticket_linked` and the like for links).
+             */
+            field?: string | null;
+            /**
+             * Format: uuid
+             * @description Audit entry ID.
+             */
+            id: string;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /** @description Who has an Asset. */
+        AssetHolderDto: {
+            /**
+             * Format: uuid
+             * @description The person.
+             */
+            id: string;
+            /** @description `requester` or `analyst`. */
+            kind: string;
+        };
+        /** @description A linked ticket or Contract. */
+        AssetLinkDto: {
+            /** @description `ticket` or `contract`. */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When it was linked.
+             */
+            linked_at: string;
+            /** @description Its number. */
+            number: string;
+            /**
+             * Format: uuid
+             * @description The record.
+             */
+            target_id: string;
+        };
+        /** @description Links a record. */
+        AssetLinkRequest: {
+            /** @description `ticket` or `contract`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description The record (same Company).
+             */
+            target_id: string;
+        };
+        /** @description An Asset Type, Asset Status or Location. */
+        AssetLookupDto: {
+            /** @description Statuses: `#rrggbb`. */
+            colour?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active (offered for new choices). */
+            is_active: boolean;
+            /** @description Statuses: the Asset has left the estate (only Retire moves an Asset here). */
+            is_retired: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Locations: the parent Location.
+             */
+            parent_id?: string | null;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes an Asset Type, Asset Status or Location. */
+        AssetLookupRequest: {
+            /** @description Statuses: `#rrggbb`. */
+            colour?: string | null;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Statuses: retired. */
+            is_retired?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Locations: the parent Location.
+             */
+            parent_id?: string | null;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description A page of Assets. */
+        AssetPage: {
+            /** @description Assets, newest first. */
+            items: components["schemas"]["AssetDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits an Asset. */
+        AssetRequest: {
+            /**
+             * Format: uuid
+             * @description Asset Status (not a retired one: use Retire).
+             */
+            asset_status_id?: string | null;
+            /** @description Label, unique per Company. */
+            asset_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Asset Type.
+             */
+            asset_type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Cost Centre of the Asset's Company.
+             */
+            cost_centre_id?: string | null;
+            /** @description Network name. */
+            hostname?: string | null;
+            /**
+             * Format: date
+             * @description Lease expiry.
+             */
+            lease_expires_on?: string | null;
+            /**
+             * Format: date
+             * @description Lease start.
+             */
+            lease_starts_on?: string | null;
+            /**
+             * Format: uuid
+             * @description Location.
+             */
+            location_id?: string | null;
+            /** @description Purchase cost as a decimal string (`"1299.00"`, at most two decimals). */
+            purchase_cost?: string | null;
+            /** @description ISO-4217 currency, required with a cost. */
+            purchase_currency?: string | null;
+            /**
+             * Format: date
+             * @description Purchase date.
+             */
+            purchase_date?: string | null;
+            /** @description Manufacturer serial number. */
+            service_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id?: string | null;
+            /**
+             * Format: date
+             * @description Warranty expiry.
+             */
+            warranty_expires_on?: string | null;
+        };
+        /** @description Retires an Asset. */
+        AssetRetireRequest: {
+            /**
+             * Format: uuid
+             * @description A retired Asset Status to move to (otherwise the status is cleared).
+             */
+            asset_status_id?: string | null;
+            /** @description Why. */
+            reason: string;
+            /**
+             * Format: date
+             * @description The day it left the estate (default today).
+             */
+            retired_on?: string | null;
+        };
+        /** @description Counts of the estate (FR-AST-005). */
+        AssetSummaryDto: {
+            /**
+             * Format: int64
+             * @description Assets in the estate.
+             */
+            active: number;
+            /** @description Active Assets per Asset Status. */
+            by_status: components["schemas"]["AssetCountDto"][];
+            /** @description Active Assets per Asset Type. */
+            by_type: components["schemas"]["AssetCountDto"][];
+            /**
+             * Format: int64
+             * @description Active Assets checked out.
+             */
+            checked_out: number;
+            /**
+             * Format: int64
+             * @description Retired Assets (not counted as active).
+             */
+            retired: number;
+        };
         /** @description Assign a ticket. */
         AssignmentRequest: {
             /**
@@ -4942,6 +5971,157 @@ export interface components {
              * @description The ticket.
              */
             ticket_id: string;
+        };
+        /** @description A Calendar Category. */
+        CalendarCategoryDto: {
+            /** @description `#rrggbb`. */
+            colour: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Offered for new events. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * @description Made by Cooper for generated events (`contracts`, `assets`); not offered for
+             *     manual events and never inactive.
+             */
+            system_key?: string | null;
+        };
+        /** @description Creates or changes a Calendar Category. */
+        CalendarCategoryRequest: {
+            /** @description `#rrggbb`. */
+            colour: string;
+            /** @description Offered for new events. */
+            is_active?: boolean;
+            /** @description Name (1 to 50 characters, unique). */
+            name: string;
+        };
+        /** @description A Calendar Event. */
+        CalendarEventDto: {
+            /** @description Whole days (`start_date`..=`end_date`) rather than times (`starts_at`..`ends_at`). */
+            all_day: boolean;
+            /**
+             * Format: uuid
+             * @description Category.
+             */
+            category_id: string;
+            /** @description Category name. */
+            category_name: string;
+            /** @description Category colour, `#rrggbb`. */
+            colour: string;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Description. */
+            description: string;
+            /** @description Whether the event can be edited and deleted (manual events). */
+            editable: boolean;
+            /**
+             * Format: date
+             * @description All-day: last day (inclusive).
+             */
+            end_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: end (UTC).
+             */
+            ends_at?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Where. */
+            location?: string | null;
+            source?: components["schemas"]["CalendarEventSourceDto"] | null;
+            /**
+             * Format: date
+             * @description All-day: first day.
+             */
+            start_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: start (UTC).
+             */
+            starts_at?: string | null;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description Events of a range. */
+        CalendarEventList: {
+            /** @description Events by start (all-day events first on a day). */
+            items: components["schemas"]["CalendarEventDto"][];
+            /** @description More events matched than returned (2000); narrow the range or filter. */
+            truncated: boolean;
+        };
+        /** @description Creates or changes a manual Calendar Event. */
+        CalendarEventRequest: {
+            /** @description Whole days (`start_date`, `end_date`) or times (`starts_at`, `ends_at`). */
+            all_day?: boolean;
+            /**
+             * Format: uuid
+             * @description An active Calendar Category that is not a system one.
+             */
+            category_id: string;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /**
+             * Format: date
+             * @description All-day: last day (default `start_date`).
+             */
+            end_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: end (at or after the start).
+             */
+            ends_at?: string | null;
+            /** @description Where. */
+            location?: string | null;
+            /**
+             * Format: date
+             * @description All-day: first day.
+             */
+            start_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: start.
+             */
+            starts_at?: string | null;
+            /** @description Title (1 to 255 characters). */
+            title: string;
+        };
+        /** @description The record a generated Calendar Event comes from. */
+        CalendarEventSourceDto: {
+            /** @description Which date: `notice_date`, `end_date`, `warranty_expires_on` or `lease_expires_on`. */
+            date: string;
+            /**
+             * Format: uuid
+             * @description The Contract or Asset.
+             */
+            id: string;
+            /** @description `contract` or `asset`. */
+            kind: string;
         };
         /** @description An entry of the Portal Catalogue. */
         CatalogueEntryDto: {
@@ -6104,6 +7284,299 @@ export interface components {
             /** @description Ticket Code. */
             ticket_code: string;
         };
+        /** @description A Contact: a person at a Supplier. */
+        ContactDto: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Email address. */
+            email?: string | null;
+            /** @description Full name. */
+            full_name: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Job title. */
+            job_title?: string | null;
+            /** @description Mobile. */
+            mobile?: string | null;
+            /** @description Notes. */
+            notes: string;
+            /** @description Phone. */
+            phone?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description Creates or edits a Contact. */
+        ContactRequest: {
+            /** @description Email address. */
+            email?: string | null;
+            /** @description Full name. */
+            full_name: string;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Job title. */
+            job_title?: string | null;
+            /** @description Mobile. */
+            mobile?: string | null;
+            /** @description Notes. */
+            notes?: string;
+            /** @description Phone. */
+            phone?: string | null;
+        };
+        /** @description A Contract. */
+        ContractDto: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description Contract number (unique per Company). */
+            contract_number: string;
+            /**
+             * Format: uuid
+             * @description Cost Centre.
+             */
+            cost_centre_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description ISO 4217 currency of the value. */
+            currency?: string | null;
+            /** @description Description. */
+            description: string;
+            /** @description Link to the document management system. */
+            dms_link?: string | null;
+            /**
+             * Format: date
+             * @description When the DPIA was completed.
+             */
+            dpia_completed_on?: string | null;
+            /** @description Link to the DPIA. */
+            dpia_link?: string | null;
+            /** @description A DPIA is required. */
+            dpia_required: boolean;
+            /**
+             * Format: date
+             * @description End date.
+             */
+            end_date?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Neither deleted nor in a closed Contract Status. */
+            is_active: boolean;
+            /**
+             * Format: date
+             * @description Notice Date, calculated by Cooper: the end date minus the notice period.
+             */
+            notice_date?: string | null;
+            notice_period?: components["schemas"]["NoticePeriodDto"] | null;
+            /** @description Where the Notice Date stands today. */
+            notice_status: components["schemas"]["NoticeStatusDto"];
+            /**
+             * Format: uuid
+             * @description Owner Analyst.
+             */
+            owner_id?: string | null;
+            /**
+             * @description `supplier` (with `supplier_id`) or `customer` (the Company, optionally with
+             *     `requester_id`).
+             */
+            party: string;
+            /**
+             * Format: uuid
+             * @description Payment Schedule.
+             */
+            payment_schedule_id?: string | null;
+            /** @description Personal data is transferred (FR-CON-004). */
+            personal_data_transferred: boolean;
+            /**
+             * Format: uuid
+             * @description Customer Requester.
+             */
+            requester_id?: string | null;
+            /**
+             * Format: date
+             * @description Start date.
+             */
+            start_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Contract Status.
+             */
+            status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id?: string | null;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /** @description Value as a decimal string with two places, for example `"1250.00"`. */
+            value?: string | null;
+        };
+        /** @description One change in an audit trail. */
+        ContractHistoryDto: {
+            /** @description `created`, `updated` or `deleted`. */
+            action: string;
+            /** @description Who (`{kind, id}`). */
+            actor: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /** @description Field. */
+            field?: string | null;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /** @description A Supplier Type, Supplier Status, Contract Status or Payment Schedule. */
+        ContractLookupDto: {
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active (only active rows can be chosen). */
+            is_active: boolean;
+            /**
+             * @description Contract Statuses: a Contract in this status is finished (no Calendar Events, no
+             *     reminders). Always `false` for the other lookups.
+             */
+            is_closed: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes a lookup. */
+        ContractLookupRequest: {
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Contract Statuses: closed. */
+            is_closed?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description A page of Contracts. */
+        ContractPage: {
+            /** @description Contracts by number. */
+            items: components["schemas"]["ContractDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits a Contract. */
+        ContractRequest: {
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Contract number (unique per Company). */
+            contract_number: string;
+            /**
+             * Format: uuid
+             * @description Cost Centre of the Company.
+             */
+            cost_centre_id?: string | null;
+            /** @description ISO 4217 currency (required with a value). */
+            currency?: string | null;
+            /** @description Description. */
+            description?: string;
+            /** @description Link to the document management system (`http(s)://`). */
+            dms_link?: string | null;
+            /**
+             * Format: date
+             * @description When the DPIA was completed (needs `dpia_required`).
+             */
+            dpia_completed_on?: string | null;
+            /** @description Link to the DPIA (needs `dpia_required`). */
+            dpia_link?: string | null;
+            /** @description A DPIA is required. */
+            dpia_required?: boolean;
+            /**
+             * Format: date
+             * @description End date.
+             */
+            end_date?: string | null;
+            notice_period?: components["schemas"]["NoticePeriodDto"] | null;
+            /**
+             * Format: uuid
+             * @description Owner Analyst.
+             */
+            owner_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Payment Schedule.
+             */
+            payment_schedule_id?: string | null;
+            /** @description Personal data is transferred. */
+            personal_data_transferred?: boolean;
+            /**
+             * Format: uuid
+             * @description Customer Requester (customer Contracts only).
+             */
+            requester_id?: string | null;
+            /**
+             * Format: date
+             * @description Start date.
+             */
+            start_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Contract Status.
+             */
+            status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier: the Contract is with this Supplier. Leave empty for a customer Contract.
+             */
+            supplier_id?: string | null;
+            /** @description Title. */
+            title: string;
+            /** @description Value as a decimal string (at most two decimal places). */
+            value?: string | null;
+        };
         /** @description Corrects a posted update. */
         CorrectIncidentUpdateRequest: {
             /** @description Text. */
@@ -7039,6 +8512,26 @@ export interface components {
             /** @description Visible to the Requester (default: internal). */
             is_public?: boolean;
         };
+        /** @description How long before the end date notice must be given. */
+        NoticePeriodDto: {
+            /**
+             * Format: int32
+             * @description Number of days (0 to 3650) or months (0 to 120).
+             */
+            amount: number;
+            /** @description Days or months. */
+            unit: components["schemas"]["NoticePeriodUnit"];
+        };
+        /**
+         * @description The unit of a notice period.
+         * @enum {string}
+         */
+        NoticePeriodUnit: "days" | "months";
+        /**
+         * @description Where a Contract's Notice Date stands today.
+         * @enum {string}
+         */
+        NoticeStatusDto: "none" | "later" | "upcoming" | "passed";
         /** @description A Notification. */
         NotificationDto: {
             /**
@@ -7054,6 +8547,11 @@ export interface components {
              */
             change_id?: string | null;
             /**
+             * Format: uuid
+             * @description Linked Contract.
+             */
+            contract_id?: string | null;
+            /**
              * Format: date-time
              * @description Created.
              */
@@ -7066,8 +8564,8 @@ export interface components {
             /**
              * @description `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
              *     `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-             *     `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or
-             *     `checks_unrecorded`.
+             *     `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`,
+             *     `checks_unrecorded`, `contract_notice_due` or `contract_end_due`.
              */
             kind: string;
             /**
@@ -8912,6 +10410,88 @@ export interface components {
              */
             sort_order?: number;
         };
+        /** @description A Supplier. */
+        SupplierDto: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Legal name. */
+            legal_name: string;
+            /** @description Notes. */
+            notes: string;
+            /** @description Company registration number. */
+            registration_number?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Status.
+             */
+            supplier_status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Type.
+             */
+            supplier_type_id?: string | null;
+            /** @description Trading name. */
+            trading_name?: string | null;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /** @description VAT number. */
+            vat_number?: string | null;
+        };
+        /** @description A page of Suppliers. */
+        SupplierPage: {
+            /** @description Suppliers by legal name. */
+            items: components["schemas"]["SupplierDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits a Supplier. */
+        SupplierRequest: {
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Legal name. */
+            legal_name: string;
+            /** @description Notes. */
+            notes?: string;
+            /** @description Company registration number. */
+            registration_number?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Status.
+             */
+            supplier_status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Type.
+             */
+            supplier_type_id?: string | null;
+            /** @description Trading name. */
+            trading_name?: string | null;
+            /** @description VAT number. */
+            vat_number?: string | null;
+        };
         /** @description Switch the Requester a Portal session acts as. */
         SwitchRequesterRequest: {
             /**
@@ -10475,6 +12055,526 @@ export interface operations {
             };
         };
     };
+    list_asset_locations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"][];
+                };
+            };
+        };
+    };
+    create_asset_location: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    update_asset_location: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    list_asset_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"][];
+                };
+            };
+        };
+    };
+    create_asset_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    update_asset_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    list_asset_types: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"][];
+                };
+            };
+        };
+    };
+    create_asset_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    update_asset_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    list_assets: {
+        parameters: {
+            query?: {
+                /** @description One Company. */
+                company_id?: string;
+                /** @description Asset Type. */
+                asset_type_id?: string;
+                /** @description Asset Status. */
+                asset_status_id?: string;
+                /** @description Location (and the Locations below it). */
+                location_id?: string;
+                /** @description Holder kind (`requester` or `analyst`), with `holder_id`. */
+                holder_kind?: string;
+                /** @description Holder, with `holder_kind`. */
+                holder_id?: string;
+                /** @description Checked out (`true`) or available (`false`). */
+                checked_out?: boolean;
+                /** @description Include retired Assets (left out by default). */
+                include_retired?: boolean;
+                /** @description Retired Assets only. */
+                retired_only?: boolean;
+                /** @description Hostname, Asset Tag or Service Tag contains. */
+                q?: string;
+                /** @description Page size (1 to 200). */
+                limit?: number;
+                /** @description Cursor. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetPage"];
+                };
+            };
+        };
+    };
+    create_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    asset_summary: {
+        parameters: {
+            query?: {
+                /** @description One Company (default: all of yours). */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetSummaryDto"];
+                };
+            };
+        };
+    };
+    get_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    edit_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    check_in_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCheckInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    check_out_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCheckOutRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    list_asset_checkouts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetCheckoutDto"][];
+                };
+            };
+        };
+    };
+    asset_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetHistoryDto"][];
+                };
+            };
+        };
+    };
+    list_asset_links: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLinkDto"][];
+                };
+            };
+        };
+    };
+    link_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLinkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLinkDto"];
+                };
+            };
+        };
+    };
+    unlink_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                kind: string;
+                target_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    retire_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRetireRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
     list_jobs: {
         parameters: {
             query?: never;
@@ -10563,6 +12663,192 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["JobDto"];
                 };
+            };
+        };
+    };
+    list_calendar_categories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarCategoryDto"][];
+                };
+            };
+        };
+    };
+    create_calendar_category: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarCategoryRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarCategoryDto"];
+                };
+            };
+        };
+    };
+    update_calendar_category: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarCategoryRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarCategoryDto"];
+                };
+            };
+        };
+    };
+    list_calendar_events: {
+        parameters: {
+            query: {
+                /** @description First day (required). */
+                from: string;
+                /**
+                 * @description Last day, inclusive (required; at most 366 days after `from`). Timed events are
+                 *     matched on their UTC days.
+                 */
+                to: string;
+                /** @description Only this Company. */
+                company_id?: string;
+                /** @description Only this Calendar Category. */
+                category_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventList"];
+                };
+            };
+        };
+    };
+    create_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventDto"];
+                };
+            };
+        };
+    };
+    get_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventDto"];
+                };
+            };
+        };
+    };
+    edit_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventDto"];
+                };
+            };
+        };
+    };
+    delete_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -11771,6 +14057,269 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CompanyDto"];
+                };
+            };
+        };
+    };
+    get_contact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"];
+                };
+            };
+        };
+    };
+    edit_contact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"];
+                };
+            };
+        };
+    };
+    list_contract_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_contract_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_contract_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    list_contracts: {
+        parameters: {
+            query?: {
+                /** @description Company. */
+                company_id?: string;
+                /** @description Text in the number or title. */
+                q?: string;
+                /** @description Contract Status. */
+                status_id?: string;
+                /** @description Supplier. */
+                supplier_id?: string;
+                /** @description Owner (`me` is accepted). */
+                owner?: string;
+                /** @description Active (`true`) or in a closed Contract Status (`false`). */
+                active?: boolean;
+                /**
+                 * @description Only active Contracts whose Notice Date is from today up to
+                 *     `contracts.reminder_days` ahead.
+                 */
+                notice_due?: boolean;
+                /** @description Page size (1 to 200). */
+                limit?: number;
+                /** @description Cursor. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractPage"];
+                };
+            };
+        };
+    };
+    create_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractDto"];
+                };
+            };
+        };
+    };
+    get_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractDto"];
+                };
+            };
+        };
+    };
+    edit_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractDto"];
+                };
+            };
+        };
+    };
+    delete_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    contract_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractHistoryDto"][];
                 };
             };
         };
@@ -13317,6 +15866,73 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_payment_schedules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_payment_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_payment_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
             };
         };
     };
@@ -16572,6 +19188,310 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_supplier_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_supplier_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_supplier_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    list_supplier_types: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_supplier_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_supplier_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    list_suppliers: {
+        parameters: {
+            query?: {
+                /** @description Company. */
+                company_id?: string;
+                /** @description Text in the legal or trading name. */
+                q?: string;
+                /** @description Supplier Type. */
+                supplier_type_id?: string;
+                /** @description Supplier Status. */
+                supplier_status_id?: string;
+                /** @description Active (`true`) or inactive (`false`). */
+                active?: boolean;
+                /** @description Page size (1 to 200). */
+                limit?: number;
+                /** @description Cursor. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierPage"];
+                };
+            };
+        };
+    };
+    create_supplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+        };
+    };
+    get_supplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+        };
+    };
+    edit_supplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+        };
+    };
+    list_supplier_contacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"][];
+                };
+            };
+        };
+    };
+    create_contact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"];
+                };
+            };
+        };
+    };
+    supplier_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractHistoryDto"][];
+                };
             };
         };
     };

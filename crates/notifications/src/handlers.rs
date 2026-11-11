@@ -177,6 +177,7 @@ impl TicketNotifier {
             change_id: None,
             article_id: None,
             task_id: None,
+            contract_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -350,6 +351,7 @@ impl EventHandler for MailboxAlerts {
             change_id: None,
             article_id: None,
             task_id: None,
+            contract_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -455,6 +457,7 @@ impl EventHandler for ChangeNotifier {
             change_id: Some(event.aggregate_id),
             article_id: None,
             task_id: None,
+            contract_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -522,6 +525,7 @@ impl EventHandler for ArticleReviewNotifier {
             change_id: None,
             article_id: Some(event.aggregate_id),
             task_id: None,
+            contract_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -595,6 +599,7 @@ impl EventHandler for TaskNotifier {
             change_id: None,
             article_id: None,
             task_id: Some(event.aggregate_id),
+            contract_id: None,
             source_event_id: event.id,
         };
         self.notifications
@@ -674,6 +679,111 @@ impl EventHandler for CheckReminderNotifier {
             change_id: None,
             article_id: None,
             task_id: None,
+            contract_id: None,
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, BTreeSet::from([to]), event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
+    }
+}
+
+/// What a reminder Notification needs to know about a Contract.
+#[derive(Debug, Clone)]
+pub struct ContractFacts {
+    /// Contract number.
+    pub contract_number: String,
+    /// Title.
+    pub title: String,
+    /// Company.
+    pub tenant_id: TenantId,
+    /// Owner now.
+    pub owner: Option<AnalystId>,
+    /// Notice Date now.
+    pub notice_date: Option<chrono::NaiveDate>,
+    /// End date now.
+    pub end_date: Option<chrono::NaiveDate>,
+    /// Neither deleted nor in a closed Contract Status.
+    pub is_active: bool,
+}
+
+/// Reads Contracts (through the Contracts application API).
+#[async_trait]
+pub trait ContractLookup: Send + Sync {
+    /// A Contract that is not deleted.
+    async fn contract(&self, id: Uuid) -> Result<Option<ContractFacts>, String>;
+}
+
+/// Reminds a Contract's owner that its Notice Date or end date is coming up
+/// (FR-CON-003), unless the Contract has moved on since (deleted, closed, another owner
+/// or another date).
+pub struct ContractReminderNotifier {
+    /// The notifications service.
+    pub notifications: Notifications,
+    /// Contracts.
+    pub contracts: Arc<dyn ContractLookup>,
+}
+
+#[async_trait]
+impl EventHandler for ContractReminderNotifier {
+    fn name(&self) -> &'static str {
+        "contract-reminder-notifier"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        event_type == "contract.reminder_due"
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        let (Some(to), Some(kind), Some(date)) = (
+            uuid(&event.payload, "owner_id").map(AnalystId::from_uuid),
+            field(&event.payload, "kind").and_then(Value::as_str),
+            field(&event.payload, "date")
+                .and_then(Value::as_str)
+                .and_then(|d| d.parse::<chrono::NaiveDate>().ok()),
+        ) else {
+            return Ok(());
+        };
+        let Some(facts) = self
+            .contracts
+            .contract(event.aggregate_id)
+            .await
+            .map_err(handler_error)?
+        else {
+            return Ok(());
+        };
+        let (notification, current) = match kind {
+            "notice_date" => (NotificationKind::ContractNoticeDue, facts.notice_date),
+            "end_date" => (NotificationKind::ContractEndDue, facts.end_date),
+            _ => return Ok(()),
+        };
+        if !facts.is_active || facts.owner != Some(to) || current != Some(date) {
+            return Ok(());
+        }
+        let number = &facts.contract_number;
+        let (title, body) = if notification == NotificationKind::ContractNoticeDue {
+            (
+                format!("Notice Date {date}: {number} {}", facts.title),
+                format!("Decide on Contract {number} and give notice by {date}."),
+            )
+        } else {
+            (
+                format!("Contract ends {date}: {number} {}", facts.title),
+                format!("Contract {number} ends on {date}."),
+            )
+        };
+        let draft = Draft {
+            kind: notification,
+            tenant_id: Some(facts.tenant_id),
+            title,
+            body,
+            ticket_id: None,
+            change_id: None,
+            article_id: None,
+            task_id: None,
+            contract_id: Some(event.aggregate_id),
             source_event_id: event.id,
         };
         self.notifications

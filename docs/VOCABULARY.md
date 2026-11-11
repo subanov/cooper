@@ -51,7 +51,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Audit** | An append-only record of who changed what and when: Actor, timestamp, field, old value, new value. Every aggregate has an audit trail (ticket audit, change audit, …), stored in one platform table keyed by aggregate type and ID (ADR-0009). | `AuditRecord`, `audit_entries` | history log |
 | **Tenant Scope** | The set of Companies a request or job may see: specific Companies, or all. Every tenant query runs inside one; the database enforces it with Row-Level Security (ADR-0004). | `TenantScope` | tenant context, org filter |
 | **Domain Event** | A past-tense fact recorded by an aggregate (`TicketCreated`, `ChangeApproved`), with a stable dotted type (`ticket.created`). The way contexts react to each other. | `DomainEvent`, `EventEnvelope` | message, notification (Notification is the in-app bell) |
-| **Notification** | An entry in an Analyst's bell (in-app), about an assignment, a mention, a Requester reply, an SLA Warning or Breach, or unrecorded Morning Checks. Kinds (fixed): `ticket_assigned`, `mentioned`, `reply_received`, `sla_warning`, `sla_breached`, `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`, `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`, `checks_unrecorded`. | `Notification`, `notifications` | alert, message |
+| **Notification** | An entry in an Analyst's bell (in-app), about an assignment, a mention, a Requester reply, an SLA Warning or Breach, unrecorded Morning Checks, or a Contract Reminder. Kinds (fixed): `ticket_assigned`, `mentioned`, `reply_received`, `sla_warning`, `sla_breached`, `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`, `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`, `checks_unrecorded`, `contract_notice_due`, `contract_end_due`. | `Notification`, `notifications` | alert, message |
 | **Live Update** | A signal pushed to a signed-in Analyst's browser that a record they can see (for now a ticket) has changed, so the screen fetches it again. Carries only which record changed, never its data. Sent over Server-Sent Events (ADR-0022). | `LiveChange`, `/api/v1/live` | push message, notification (Notification is the in-app bell), websocket event |
 | **Mention** | `@username` in a Note; the mentioned Analyst gets a Notification. | `mentions()` | tag |
 | **Outbox** | The table where Domain Events are stored in the same transaction as the change, then delivered at least once to Event Handlers by the worker (ADR-0005). | `outbox_events`, `EventHandler` | queue (generic) |
@@ -205,11 +205,11 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Service Tag** | The manufacturer serial number. | `ServiceTag` | serial |
 | **Asset Type** | Configurable classification. Linked to a CMDB Class and to Field Sets. No seed values (Administrators create them). | `AssetType` | |
 | **Asset Status** | Configurable status. `is_retired` means the asset has left the estate. No seed values (Administrators create them). | `AssetStatus` | |
-| **Retire** | Remove an Asset from the estate, with a date and reason. | `Asset::retire()` | dispose, delete |
-| **Location** | Hierarchical physical location. | `AssetLocation` | site |
+| **Retire** | Remove an Asset from the estate, with a date and reason. Recorded on the Asset (`Retirement`); a retired Asset is not **active** and is left out of active counts. | `Asset::retire()`, `Retirement` | dispose, delete |
+| **Location** | Hierarchical physical location (a tree, at most six levels). | `AssetLocation` | site |
 | **Asset Field / Field Set** | Custom fields, grouped into Field Sets and assigned to Asset Types. | `AssetField`, `AssetFieldSet` | |
 | **Holder** | The Requester or Analyst who currently has an Asset. | `AssetHolder` | owner, user |
-| **Check Out / Check In** | Give an Asset to, or take it back from, a Holder. Logged. | `AssetCheckout` | lend |
+| **Check Out / Check In** | Give an Asset to, or take it back from, a Holder. Logged; at most one open Check Out per Asset. | `AssetCheckout` | lend |
 | **Asset Connection** | A physical attachment between assets (for example a monitor to a PC). | `AssetConnection` | |
 | **Inventory Source** | Where asset data comes from: agent/REST push, Intune, Proxmox, VMware Cloud Director, Hyper-V, vCenter. | `InventorySource` | discovery |
 | **Asset Import** | A CSV or API import with mappings. Run modes: `live`, `preview`. Entry actions (fixed): create, update, unchanged, conflict, skip, error, deactivate. | `AssetImportProfile`, `AssetImportRun` | |
@@ -293,8 +293,9 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
-| **Calendar Event** | An entry on the IT calendar, with a Category (colour). Can be generated, for example from asset warranty expiry or contract notice dates. | `CalendarEvent` | appointment |
-| **Calendar Category** | Colour-coded event category. | `CalendarCategory` | |
+| **Calendar Event** | An entry on the IT calendar of one Company, with a Category (colour): whole days, or a start and end time. Can be **generated** from another record's date (contract Notice Date and end date, asset warranty and lease expiry); generated events are read-only and link to their **Source**. | `CalendarEvent` | appointment |
+| **Calendar Category** | Colour-coded event category. A **system category** (`contracts`, `assets`) holds the generated events of one source; it stays active and takes no manual events. | `CalendarCategory` | |
+| **Source** (of a generated event) | The record a generated Calendar Event comes from (Contract or Asset) and which of its dates it marks. | `EventSource`, `SourceKind`, `SourceDate` | origin (that is a ticket Origin) |
 | **Calendar Connection** | A link to an external calendar (Microsoft, Google). | `CalendarConnection` | |
 | **Enrolment** | An Analyst's calendar sync setting. Mode (fixed): `off`, `push`, `feed`. Task mode (fixed): `off`, `work`, `due`, `both`. | `CalendarEnrolment` | subscription |
 
@@ -309,7 +310,9 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Contact** | A person at a Supplier. | `Contact` | (never use for Requesters) |
 | **Contract Status / Supplier Type / Supplier Status / Payment Schedule** | Configurable lookups. No seed values (Administrators create them). | — | |
 | **Contract Terms** | Structured terms, organised in tabs. | `ContractTermTab`, `ContractTermValue` | |
+| **Notice Period** | How long before the end of a Contract notice must be given: a number of calendar days or calendar months. | `NoticePeriod` | |
 | **Notice Date** | The last date to give notice: contract end minus notice period. | `Contract::notice_date()` | |
+| **Contract Reminder** | A Notification to the Contract owner a configured number of days ahead of the Notice Date or end date; sent once per date. | `ContractReminderDue`, `contract_reminders` | renewal alert |
 | **RFP** | Request for Proposal builder: documents, extracted requirements, conflicts, invited suppliers, scores. | `Rfp` | tender |
 
 ---

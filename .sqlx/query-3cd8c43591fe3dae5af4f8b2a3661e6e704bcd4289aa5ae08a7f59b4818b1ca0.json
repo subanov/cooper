@@ -1,0 +1,78 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT kind, target_id, linked_by_kind, linked_by_id, linked_at FROM asset_links\n             WHERE asset_id = $1 AND ($2 OR tenant_id = ANY($3)) ORDER BY linked_at, target_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "asset_links",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "target_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "asset_links",
+            "name": "target_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "linked_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "asset_links",
+            "name": "linked_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "linked_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "asset_links",
+            "name": "linked_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "linked_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "asset_links",
+            "name": "linked_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "3cd8c43591fe3dae5af4f8b2a3661e6e704bcd4289aa5ae08a7f59b4818b1ca0"
+}

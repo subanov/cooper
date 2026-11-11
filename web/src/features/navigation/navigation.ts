@@ -8,9 +8,12 @@ export interface NavItem {
     | "/"
     | "/tickets"
     | "/tasks"
+    | "/assets"
+    | "/calendar"
     | "/knowledge"
     | "/service-status"
     | "/morning-checks"
+    | "/contracts"
     | "/users"
     | "/administration";
   /** Catalogue id of the label. */
@@ -38,6 +41,20 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   { to: "/tasks", label: "nav.tasks", module: "tasks", capability: "tasks.read", shortcut: "w" },
   {
+    to: "/assets",
+    label: "nav.assets",
+    module: "assets",
+    capability: "assets.read",
+    shortcut: "i",
+  },
+  {
+    to: "/calendar",
+    label: "nav.calendar",
+    module: "calendar",
+    capability: "calendar.read",
+    shortcut: "l",
+  },
+  {
     to: "/knowledge",
     label: "nav.knowledge",
     module: "knowledge",
@@ -57,6 +74,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     module: "morning-checks",
     capability: "morning-checks.read",
     shortcut: "m",
+  },
+  {
+    to: "/contracts",
+    label: "nav.contracts",
+    module: "contracts",
+    capability: "contracts.read",
+    shortcut: "c",
   },
   {
     to: "/users",

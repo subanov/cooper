@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE assets SET hostname = $2, service_tag = $3, asset_tag = $4, asset_type_id = $5, asset_status_id = $6,\n                location_id = $7, supplier_id = $8, cost_centre_id = $9, purchase_date = $10,\n                purchase_cost = $11::bigint / 100.0, purchase_currency = $12, warranty_expires_on = $13,\n                lease_starts_on = $14, lease_expires_on = $15, retired_on = $16, retirement_reason = $17,\n                retired_at = $18, retired_by_kind = $19, retired_by_id = $20, updated_at = $21\n         WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Date",
+        "Int8",
+        "Text",
+        "Date",
+        "Date",
+        "Date",
+        "Date",
+        "Text",
+        "Timestamptz",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "46c011d0b76a2b6a867cfefd16439326f6863a9a782a25c3aecf0aaa2b626796"
+}

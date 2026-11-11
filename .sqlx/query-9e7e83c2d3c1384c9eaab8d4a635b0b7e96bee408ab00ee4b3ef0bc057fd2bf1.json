@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO contract_reminders (tenant_id, contract_id, kind, reminded_date, owner_id, sent_at)\n             VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Date",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9e7e83c2d3c1384c9eaab8d4a635b0b7e96bee408ab00ee4b3ef0bc057fd2bf1"
+}
