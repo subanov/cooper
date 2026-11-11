@@ -7,8 +7,8 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import type { LookupKind } from "./features/administration/resources";
-import type { ContractLookupKind } from "./features/contracts/api";
 import { parseMonth } from "./features/calendar/month";
+import type { ContractLookupKind } from "./features/contracts/api";
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
@@ -30,11 +30,11 @@ import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
 import { AssetEditor } from "./routes/analyst/assets/AssetEditor";
 import { AssetsPage } from "./routes/analyst/assets/AssetsPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
+import { CalendarPage } from "./routes/analyst/calendar/CalendarPage";
 import { ContractEditor } from "./routes/analyst/contracts/ContractEditor";
 import { ContractsPage } from "./routes/analyst/contracts/ContractsPage";
 import { SupplierEditor } from "./routes/analyst/contracts/SupplierEditor";
 import { SuppliersPage } from "./routes/analyst/contracts/SuppliersPage";
-import { CalendarPage } from "./routes/analyst/calendar/CalendarPage";
 import { Home } from "./routes/analyst/Home";
 import { ArticlePage } from "./routes/analyst/knowledge/ArticlePage";
 import { KnowledgePage } from "./routes/analyst/knowledge/KnowledgePage";

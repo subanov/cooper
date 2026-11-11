@@ -17,6 +17,7 @@ const CAPS: &[&str] = &[
     "assets.create",
     "assets.update",
     "tickets.read",
+    "contracts.read",
 ];
 
 struct World {
@@ -154,11 +155,40 @@ async fn assets_are_registered_checked_out_retired_linked_and_audited(pool: PgPo
         )
         .await;
 
+    // Suppliers and Contracts come from the Contracts context (ADR-0035).
+    let supplier = w
+        .created(
+            &w.admin,
+            "/api/v1/suppliers",
+            json!({ "company_id": w.company, "legal_name": "Laptops Ltd" }),
+        )
+        .await;
+    let contract = w
+        .created(
+            &w.admin,
+            "/api/v1/contracts",
+            json!({ "company_id": w.company, "contract_number": "CON-7", "title": "Laptop lease" }),
+        )
+        .await;
+    let r = ann
+        .post(
+            "/api/v1/assets",
+            json!({ "company_id": w.company, "asset_tag": "A-0404",
+                    "supplier_id": "019a0000-0000-7000-8000-00000000ffff" }),
+        )
+        .await;
+    assert_eq!(
+        r.status,
+        StatusCode::UNPROCESSABLE_ENTITY,
+        "unknown Supplier: {:?}",
+        r.body
+    );
+
     // Register (FR-AST-001).
     let body = json!({
         "company_id": w.company, "hostname": "lt-0001", "service_tag": "SN123", "asset_tag": "A-0001",
         "asset_type_id": laptop["id"], "asset_status_id": in_use["id"], "location_id": room["id"],
-        "supplier_id": "019a0000-0000-7000-8000-00000000ffff", "cost_centre_id": cc["id"],
+        "supplier_id": supplier["id"], "cost_centre_id": cc["id"],
         "purchase_date": "2026-01-15", "purchase_cost": "1299.5", "purchase_currency": "gbp",
         "warranty_expires_on": "2029-01-15"
     });
@@ -307,12 +337,21 @@ async fn assets_are_registered_checked_out_retired_linked_and_audited(pool: PgPo
         )
         .await;
     assert_eq!(link["number"], ticket["number"]);
-    w.created(
-        &ann,
-        &format!("{path}/links"),
-        json!({ "kind": "contract", "target_id": "019a0000-0000-7000-8000-00000000cccc" }),
-    )
-    .await;
+    let r = ann
+        .post(
+            &format!("{path}/links"),
+            json!({ "kind": "contract", "target_id": "019a0000-0000-7000-8000-00000000cccc" }),
+        )
+        .await;
+    assert!(r.status.is_client_error(), "unknown Contract: {:?}", r.body);
+    let link = w
+        .created(
+            &ann,
+            &format!("{path}/links"),
+            json!({ "kind": "contract", "target_id": contract["id"] }),
+        )
+        .await;
+    assert_eq!(link["number"], "CON-7");
     let r = ann
         .post(
             &format!("{path}/links"),
@@ -327,7 +366,7 @@ async fn assets_are_registered_checked_out_retired_linked_and_audited(pool: PgPo
     let r = ann
         .send(
             Method::DELETE,
-            &format!("{path}/links/contract/019a0000-0000-7000-8000-00000000cccc"),
+            &format!("{path}/links/contract/{}", id(&contract)),
             None,
         )
         .await;
