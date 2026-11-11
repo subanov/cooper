@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO contract_statuses (id, name, is_closed, sort_order, is_active, created_at, updated_at)\n                 VALUES ($1, $2, $3, $4, $5, $6, $7)\n                 ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, is_closed = EXCLUDED.is_closed,\n                     sort_order = EXCLUDED.sort_order, is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bool",
+        "Int4",
+        "Bool",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "38a7abcd51364f04e7f586151b16eb2cce75bec0fd5962d76d1ebafdb1fb97a5"
+}

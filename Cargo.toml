@@ -26,6 +26,7 @@ cooper-morning-checks = { path = "crates/morning-checks" }
 cooper-problem-management = { path = "crates/problem-management" }
 cooper-reporting = { path = "crates/reporting" }
 cooper-assets = { path = "crates/assets" }
+cooper-contracts = { path = "crates/contracts" }
 
 # Runtime and web
 tokio = { version = "1.54", features = ["fs", "io-util", "macros", "rt-multi-thread", "signal", "sync", "time"] }

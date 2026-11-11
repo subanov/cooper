@@ -41,3 +41,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0032](0032-reporting-context.md) | Reporting: owning contexts count in SQL as the caller, Reporting composes; no read model | Accepted |
 | [0033](0033-attachments-storage-extraction-and-mailbox-consent.md) | S3 blob store over SigV4, background text extraction, Mailbox Consent with PKCE, and Portal Notifications | Accepted |
 | [0034](0034-assets.md) | Assets: retirement on the Asset, one open Check Out, exact money, and Suppliers by ID | Accepted |
+| [0035](0035-contracts.md) | Contracts: per-Company Suppliers and Contracts, a calculated Notice Date, a Calendar event contract and once-only reminders | Accepted |

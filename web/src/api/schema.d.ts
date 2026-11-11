@@ -1149,6 +1149,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Contact. */
+        get: operations["get_contact"];
+        /** Edits a Contact (needs `contracts.write`). */
+        put: operations["edit_contact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_contract_statuses"];
+        put?: never;
+        post: operations["create_contract_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_contract_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Contracts in your Companies by number, with their Notice Date and where it stands
+         *     (needs `contracts.read`).
+         */
+        get: operations["list_contracts"];
+        put?: never;
+        /** Creates a Contract (needs `contracts.write`). Cooper calculates its Notice Date. */
+        post: operations["create_contract"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Contract. */
+        get: operations["get_contract"];
+        /** Edits a Contract (needs `contracts.write`). */
+        put: operations["edit_contract"];
+        post?: never;
+        /** Deletes a Contract (needs `contracts.write`). */
+        delete: operations["delete_contract"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The audit trail of a Contract. */
+        get: operations["contract_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cost-centres": {
         parameters: {
             query?: never;
@@ -2034,6 +2141,38 @@ export interface paths {
         put?: never;
         /** Sets a new password with the token from the email. Ends every session. */
         post: operations["confirm_password_reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payment-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_payment_schedules"];
+        put?: never;
+        post: operations["create_payment_schedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payment-schedules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_payment_schedule"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3762,6 +3901,141 @@ export interface paths {
         };
         /** Starts single sign-on: redirects the browser to the provider. */
         get: operations["start"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_supplier_statuses"];
+        put?: never;
+        post: operations["create_supplier_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_supplier_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_supplier_types"];
+        put?: never;
+        post: operations["create_supplier_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/supplier-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_supplier_type"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Suppliers in your Companies by legal name (needs `contracts.read`). */
+        get: operations["list_suppliers"];
+        put?: never;
+        /** Creates a Supplier (needs `contracts.write`). */
+        post: operations["create_supplier"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Supplier. */
+        get: operations["get_supplier"];
+        /** Edits a Supplier (needs `contracts.write`). */
+        put: operations["edit_supplier"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Contacts of a Supplier by name (needs `contracts.read`). */
+        get: operations["list_supplier_contacts"];
+        put?: never;
+        /** Adds a Contact to a Supplier (needs `contracts.write`). */
+        post: operations["create_contact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/suppliers/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The audit trail of a Supplier. */
+        get: operations["supplier_history"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6781,6 +7055,299 @@ export interface components {
             /** @description Ticket Code. */
             ticket_code: string;
         };
+        /** @description A Contact: a person at a Supplier. */
+        ContactDto: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Email address. */
+            email?: string | null;
+            /** @description Full name. */
+            full_name: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Job title. */
+            job_title?: string | null;
+            /** @description Mobile. */
+            mobile?: string | null;
+            /** @description Notes. */
+            notes: string;
+            /** @description Phone. */
+            phone?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description Creates or edits a Contact. */
+        ContactRequest: {
+            /** @description Email address. */
+            email?: string | null;
+            /** @description Full name. */
+            full_name: string;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Job title. */
+            job_title?: string | null;
+            /** @description Mobile. */
+            mobile?: string | null;
+            /** @description Notes. */
+            notes?: string;
+            /** @description Phone. */
+            phone?: string | null;
+        };
+        /** @description A Contract. */
+        ContractDto: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description Contract number (unique per Company). */
+            contract_number: string;
+            /**
+             * Format: uuid
+             * @description Cost Centre.
+             */
+            cost_centre_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description ISO 4217 currency of the value. */
+            currency?: string | null;
+            /** @description Description. */
+            description: string;
+            /** @description Link to the document management system. */
+            dms_link?: string | null;
+            /**
+             * Format: date
+             * @description When the DPIA was completed.
+             */
+            dpia_completed_on?: string | null;
+            /** @description Link to the DPIA. */
+            dpia_link?: string | null;
+            /** @description A DPIA is required. */
+            dpia_required: boolean;
+            /**
+             * Format: date
+             * @description End date.
+             */
+            end_date?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Neither deleted nor in a closed Contract Status. */
+            is_active: boolean;
+            /**
+             * Format: date
+             * @description Notice Date, calculated by Cooper: the end date minus the notice period.
+             */
+            notice_date?: string | null;
+            notice_period?: components["schemas"]["NoticePeriodDto"] | null;
+            /** @description Where the Notice Date stands today. */
+            notice_status: components["schemas"]["NoticeStatusDto"];
+            /**
+             * Format: uuid
+             * @description Owner Analyst.
+             */
+            owner_id?: string | null;
+            /**
+             * @description `supplier` (with `supplier_id`) or `customer` (the Company, optionally with
+             *     `requester_id`).
+             */
+            party: string;
+            /**
+             * Format: uuid
+             * @description Payment Schedule.
+             */
+            payment_schedule_id?: string | null;
+            /** @description Personal data is transferred (FR-CON-004). */
+            personal_data_transferred: boolean;
+            /**
+             * Format: uuid
+             * @description Customer Requester.
+             */
+            requester_id?: string | null;
+            /**
+             * Format: date
+             * @description Start date.
+             */
+            start_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Contract Status.
+             */
+            status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id?: string | null;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /** @description Value as a decimal string with two places, for example `"1250.00"`. */
+            value?: string | null;
+        };
+        /** @description One change in an audit trail. */
+        ContractHistoryDto: {
+            /** @description `created`, `updated` or `deleted`. */
+            action: string;
+            /** @description Who (`{kind, id}`). */
+            actor: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /** @description Field. */
+            field?: string | null;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /** @description A Supplier Type, Supplier Status, Contract Status or Payment Schedule. */
+        ContractLookupDto: {
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active (only active rows can be chosen). */
+            is_active: boolean;
+            /**
+             * @description Contract Statuses: a Contract in this status is finished (no Calendar Events, no
+             *     reminders). Always `false` for the other lookups.
+             */
+            is_closed: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes a lookup. */
+        ContractLookupRequest: {
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Contract Statuses: closed. */
+            is_closed?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description A page of Contracts. */
+        ContractPage: {
+            /** @description Contracts by number. */
+            items: components["schemas"]["ContractDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits a Contract. */
+        ContractRequest: {
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Contract number (unique per Company). */
+            contract_number: string;
+            /**
+             * Format: uuid
+             * @description Cost Centre of the Company.
+             */
+            cost_centre_id?: string | null;
+            /** @description ISO 4217 currency (required with a value). */
+            currency?: string | null;
+            /** @description Description. */
+            description?: string;
+            /** @description Link to the document management system (`http(s)://`). */
+            dms_link?: string | null;
+            /**
+             * Format: date
+             * @description When the DPIA was completed (needs `dpia_required`).
+             */
+            dpia_completed_on?: string | null;
+            /** @description Link to the DPIA (needs `dpia_required`). */
+            dpia_link?: string | null;
+            /** @description A DPIA is required. */
+            dpia_required?: boolean;
+            /**
+             * Format: date
+             * @description End date.
+             */
+            end_date?: string | null;
+            notice_period?: components["schemas"]["NoticePeriodDto"] | null;
+            /**
+             * Format: uuid
+             * @description Owner Analyst.
+             */
+            owner_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Payment Schedule.
+             */
+            payment_schedule_id?: string | null;
+            /** @description Personal data is transferred. */
+            personal_data_transferred?: boolean;
+            /**
+             * Format: uuid
+             * @description Customer Requester (customer Contracts only).
+             */
+            requester_id?: string | null;
+            /**
+             * Format: date
+             * @description Start date.
+             */
+            start_date?: string | null;
+            /**
+             * Format: uuid
+             * @description Contract Status.
+             */
+            status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier: the Contract is with this Supplier. Leave empty for a customer Contract.
+             */
+            supplier_id?: string | null;
+            /** @description Title. */
+            title: string;
+            /** @description Value as a decimal string (at most two decimal places). */
+            value?: string | null;
+        };
         /** @description Corrects a posted update. */
         CorrectIncidentUpdateRequest: {
             /** @description Text. */
@@ -7716,6 +8283,26 @@ export interface components {
             /** @description Visible to the Requester (default: internal). */
             is_public?: boolean;
         };
+        /** @description How long before the end date notice must be given. */
+        NoticePeriodDto: {
+            /**
+             * Format: int32
+             * @description Number of days (0 to 3650) or months (0 to 120).
+             */
+            amount: number;
+            /** @description Days or months. */
+            unit: components["schemas"]["NoticePeriodUnit"];
+        };
+        /**
+         * @description The unit of a notice period.
+         * @enum {string}
+         */
+        NoticePeriodUnit: "days" | "months";
+        /**
+         * @description Where a Contract's Notice Date stands today.
+         * @enum {string}
+         */
+        NoticeStatusDto: "none" | "later" | "upcoming" | "passed";
         /** @description A Notification. */
         NotificationDto: {
             /**
@@ -7731,6 +8318,11 @@ export interface components {
              */
             change_id?: string | null;
             /**
+             * Format: uuid
+             * @description Linked Contract.
+             */
+            contract_id?: string | null;
+            /**
              * Format: date-time
              * @description Created.
              */
@@ -7743,8 +8335,8 @@ export interface components {
             /**
              * @description `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
              *     `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-             *     `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or
-             *     `checks_unrecorded`.
+             *     `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`,
+             *     `checks_unrecorded`, `contract_notice_due` or `contract_end_due`.
              */
             kind: string;
             /**
@@ -9588,6 +10180,88 @@ export interface components {
              * @description Display order.
              */
             sort_order?: number;
+        };
+        /** @description A Supplier. */
+        SupplierDto: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active. */
+            is_active: boolean;
+            /** @description Legal name. */
+            legal_name: string;
+            /** @description Notes. */
+            notes: string;
+            /** @description Company registration number. */
+            registration_number?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Status.
+             */
+            supplier_status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Type.
+             */
+            supplier_type_id?: string | null;
+            /** @description Trading name. */
+            trading_name?: string | null;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /** @description VAT number. */
+            vat_number?: string | null;
+        };
+        /** @description A page of Suppliers. */
+        SupplierPage: {
+            /** @description Suppliers by legal name. */
+            items: components["schemas"]["SupplierDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits a Supplier. */
+        SupplierRequest: {
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Legal name. */
+            legal_name: string;
+            /** @description Notes. */
+            notes?: string;
+            /** @description Company registration number. */
+            registration_number?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Status.
+             */
+            supplier_status_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier Type.
+             */
+            supplier_type_id?: string | null;
+            /** @description Trading name. */
+            trading_name?: string | null;
+            /** @description VAT number. */
+            vat_number?: string | null;
         };
         /** @description Switch the Requester a Portal session acts as. */
         SwitchRequesterRequest: {
@@ -12972,6 +13646,269 @@ export interface operations {
             };
         };
     };
+    get_contact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"];
+                };
+            };
+        };
+    };
+    edit_contact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"];
+                };
+            };
+        };
+    };
+    list_contract_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_contract_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_contract_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    list_contracts: {
+        parameters: {
+            query?: {
+                /** @description Company. */
+                company_id?: string;
+                /** @description Text in the number or title. */
+                q?: string;
+                /** @description Contract Status. */
+                status_id?: string;
+                /** @description Supplier. */
+                supplier_id?: string;
+                /** @description Owner (`me` is accepted). */
+                owner?: string;
+                /** @description Active (`true`) or in a closed Contract Status (`false`). */
+                active?: boolean;
+                /**
+                 * @description Only active Contracts whose Notice Date is from today up to
+                 *     `contracts.reminder_days` ahead.
+                 */
+                notice_due?: boolean;
+                /** @description Page size (1 to 200). */
+                limit?: number;
+                /** @description Cursor. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractPage"];
+                };
+            };
+        };
+    };
+    create_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractDto"];
+                };
+            };
+        };
+    };
+    get_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractDto"];
+                };
+            };
+        };
+    };
+    edit_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractDto"];
+                };
+            };
+        };
+    };
+    delete_contract: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    contract_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractHistoryDto"][];
+                };
+            };
+        };
+    };
     list_cost_centres: {
         parameters: {
             query?: {
@@ -14514,6 +15451,73 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_payment_schedules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_payment_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_payment_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
             };
         };
     };
@@ -17769,6 +18773,310 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_supplier_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_supplier_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_supplier_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    list_supplier_types: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"][];
+                };
+            };
+        };
+    };
+    create_supplier_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    update_supplier_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContractLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractLookupDto"];
+                };
+            };
+        };
+    };
+    list_suppliers: {
+        parameters: {
+            query?: {
+                /** @description Company. */
+                company_id?: string;
+                /** @description Text in the legal or trading name. */
+                q?: string;
+                /** @description Supplier Type. */
+                supplier_type_id?: string;
+                /** @description Supplier Status. */
+                supplier_status_id?: string;
+                /** @description Active (`true`) or inactive (`false`). */
+                active?: boolean;
+                /** @description Page size (1 to 200). */
+                limit?: number;
+                /** @description Cursor. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierPage"];
+                };
+            };
+        };
+    };
+    create_supplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+        };
+    };
+    get_supplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+        };
+    };
+    edit_supplier: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierDto"];
+                };
+            };
+        };
+    };
+    list_supplier_contacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"][];
+                };
+            };
+        };
+    };
+    create_contact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactDto"];
+                };
+            };
+        };
+    };
+    supplier_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContractHistoryDto"][];
+                };
             };
         };
     };

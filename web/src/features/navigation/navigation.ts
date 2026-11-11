@@ -12,6 +12,7 @@ export interface NavItem {
     | "/knowledge"
     | "/service-status"
     | "/morning-checks"
+    | "/contracts"
     | "/users"
     | "/administration";
   /** Catalogue id of the label. */
@@ -65,6 +66,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     module: "morning-checks",
     capability: "morning-checks.read",
     shortcut: "m",
+  },
+  {
+    to: "/contracts",
+    label: "nav.contracts",
+    module: "contracts",
+    capability: "contracts.read",
+    shortcut: "c",
   },
   {
     to: "/users",

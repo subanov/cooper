@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO suppliers (id, tenant_id, legal_name, trading_name, registration_number, vat_number, supplier_type_id,\n                                    supplier_status_id, notes, is_active, created_by_kind, created_by_id, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)\n             ON CONFLICT (id) DO UPDATE SET legal_name = EXCLUDED.legal_name, trading_name = EXCLUDED.trading_name,\n                 registration_number = EXCLUDED.registration_number, vat_number = EXCLUDED.vat_number,\n                 supplier_type_id = EXCLUDED.supplier_type_id, supplier_status_id = EXCLUDED.supplier_status_id,\n                 notes = EXCLUDED.notes, is_active = EXCLUDED.is_active, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d4f1cb17a6240f2b52fada7693296c4e91b26132b244bba0d99d0c81dee77fc3"
+}

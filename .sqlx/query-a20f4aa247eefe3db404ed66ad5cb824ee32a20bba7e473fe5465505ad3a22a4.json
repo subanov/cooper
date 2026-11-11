@@ -1,0 +1,366 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT c.id, c.tenant_id, c.contract_number, c.title, c.description, c.party_kind, c.supplier_id, c.requester_id,\n                      c.owner_id, c.contract_status_id, COALESCE(s.is_closed, false) AS \"status_closed!\", c.start_date, c.end_date,\n                      c.notice_period_amount, c.notice_period_unit, (c.value * 100)::bigint AS \"value_minor?\", c.currency,\n                      c.payment_schedule_id, c.cost_centre_id, c.dms_link, c.personal_data_transferred, c.dpia_required,\n                      c.dpia_completed_on, c.dpia_link, c.created_by_kind, c.created_by_id, c.created_at, c.updated_at, c.deleted_at\n               FROM contracts c LEFT JOIN contract_statuses s ON s.id = c.contract_status_id\n               WHERE c.deleted_at IS NULL AND ($1 OR c.tenant_id = ANY($2))\n                 AND ($3::uuid IS NULL OR c.tenant_id = $3)\n                 AND ($4::text IS NULL OR c.contract_number ILIKE $4 OR c.title ILIKE $4)\n                 AND ($5::uuid IS NULL OR c.contract_status_id = $5)\n                 AND ($6::uuid IS NULL OR c.supplier_id = $6)\n                 AND ($7::uuid IS NULL OR c.owner_id = $7)\n                 AND ($8::boolean IS NULL OR COALESCE(s.is_closed, false) = NOT $8)\n                 AND ($9::date IS NULL OR c.notice_date BETWEEN $9 AND $10::date)\n                 AND ($11::text IS NULL OR (lower(c.contract_number), c.id) > (lower($11), $12::uuid))\n               ORDER BY lower(c.contract_number), c.id\n               LIMIT $13",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "contract_number",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "contract_number"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "party_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "party_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "supplier_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "supplier_id"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "requester_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "requester_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "owner_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "contract_status_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "contract_status_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "status_closed!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 11,
+        "name": "start_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "start_date"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "end_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "end_date"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "notice_period_amount",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "notice_period_amount"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "notice_period_unit",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "notice_period_unit"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "value_minor?",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 16,
+        "name": "currency",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "currency"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "payment_schedule_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "payment_schedule_id"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "cost_centre_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "cost_centre_id"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "dms_link",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "dms_link"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "personal_data_transferred",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "personal_data_transferred"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "dpia_required",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "dpia_required"
+          }
+        }
+      },
+      {
+        "ordinal": 22,
+        "name": "dpia_completed_on",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "dpia_completed_on"
+          }
+        }
+      },
+      {
+        "ordinal": 23,
+        "name": "dpia_link",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "dpia_link"
+          }
+        }
+      },
+      {
+        "ordinal": 24,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 25,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 26,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 27,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "updated_at"
+          }
+        }
+      },
+      {
+        "ordinal": 28,
+        "name": "deleted_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "contracts",
+            "name": "deleted_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Date",
+        "Date",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      null,
+      true,
+      true,
+      true,
+      true,
+      null,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "a20f4aa247eefe3db404ed66ad5cb824ee32a20bba7e473fe5465505ad3a22a4"
+}

@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO contracts (id, tenant_id, contract_number, title, description, party_kind, supplier_id, requester_id,\n                                owner_id, contract_status_id, start_date, end_date, notice_period_amount, notice_period_unit,\n                                notice_date, value, currency, payment_schedule_id, cost_centre_id, dms_link,\n                                personal_data_transferred, dpia_required, dpia_completed_on, dpia_link,\n                                created_by_kind, created_by_id, created_at, updated_at, deleted_at)\n         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::bigint::numeric / 100, $17, $18,\n                 $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)\n         ON CONFLICT (id) DO UPDATE SET contract_number = EXCLUDED.contract_number, title = EXCLUDED.title,\n             description = EXCLUDED.description, party_kind = EXCLUDED.party_kind, supplier_id = EXCLUDED.supplier_id,\n             requester_id = EXCLUDED.requester_id, owner_id = EXCLUDED.owner_id,\n             contract_status_id = EXCLUDED.contract_status_id, start_date = EXCLUDED.start_date,\n             end_date = EXCLUDED.end_date, notice_period_amount = EXCLUDED.notice_period_amount,\n             notice_period_unit = EXCLUDED.notice_period_unit, notice_date = EXCLUDED.notice_date,\n             value = EXCLUDED.value, currency = EXCLUDED.currency, payment_schedule_id = EXCLUDED.payment_schedule_id,\n             cost_centre_id = EXCLUDED.cost_centre_id, dms_link = EXCLUDED.dms_link,\n             personal_data_transferred = EXCLUDED.personal_data_transferred, dpia_required = EXCLUDED.dpia_required,\n             dpia_completed_on = EXCLUDED.dpia_completed_on, dpia_link = EXCLUDED.dpia_link,\n             updated_at = EXCLUDED.updated_at, deleted_at = EXCLUDED.deleted_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Date",
+        "Date",
+        "Int4",
+        "Text",
+        "Date",
+        "Int8",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Bool",
+        "Date",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "478acc9584490c32170b8f98adca9196e751e75bcb957db5a9edc3c892af8cfd"
+}

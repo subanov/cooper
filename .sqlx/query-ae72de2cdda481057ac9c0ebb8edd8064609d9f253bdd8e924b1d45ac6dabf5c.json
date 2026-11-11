@@ -1,0 +1,162 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, supplier_id, full_name, job_title, email, phone, mobile, notes, is_active, created_at, updated_at\n             FROM supplier_contacts WHERE id = $1 AND ($2 OR tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "supplier_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "supplier_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "full_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "full_name"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "job_title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "job_title"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "email"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "phone",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "phone"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "mobile",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "mobile"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "notes",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "notes"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "supplier_contacts",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ae72de2cdda481057ac9c0ebb8edd8064609d9f253bdd8e924b1d45ac6dabf5c"
+}

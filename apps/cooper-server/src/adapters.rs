@@ -1278,3 +1278,112 @@ impl cooper_assets::ports::Directory for AssetDirectory {
         }
     }
 }
+
+/// Contracts' view of Analysts, Requesters and Cost Centres, through the identity
+/// application API (ADR-0035).
+pub struct ContractDirectory {
+    /// Analysts, Requesters and Cost Centres.
+    pub identity: IdentityDirectory,
+}
+
+fn contract_err(e: impl std::fmt::Display) -> cooper_contracts::ports::RepoError {
+    cooper_contracts::ports::RepoError::Storage(e.to_string())
+}
+
+#[async_trait]
+impl cooper_contracts::ports::Directory for ContractDirectory {
+    async fn analyst_active(
+        &self,
+        analyst: AnalystId,
+    ) -> Result<bool, cooper_contracts::ports::RepoError> {
+        Directory::analyst_is_active(&self.identity, analyst)
+            .await
+            .map_err(contract_err)
+    }
+
+    async fn requester_company(
+        &self,
+        requester: RequesterId,
+    ) -> Result<Option<TenantId>, cooper_contracts::ports::RepoError> {
+        Directory::requester_company(&self.identity, &TenantScope::All, requester)
+            .await
+            .map_err(contract_err)
+    }
+
+    async fn cost_centre_company(
+        &self,
+        cost_centre: uuid::Uuid,
+    ) -> Result<Option<TenantId>, cooper_contracts::ports::RepoError> {
+        match self
+            .identity
+            .identity
+            .get_cost_centre(
+                &system(TenantScope::All),
+                cooper_identity::domain::CostCentreId::from_uuid(cost_centre),
+            )
+            .await
+        {
+            Ok(c) => Ok(Some(c.tenant_id())),
+            Err(IdentityError::NotFound(_)) => Ok(None),
+            Err(e) => Err(contract_err(e)),
+        }
+    }
+}
+
+/// The reminder window and time zone of Contracts, read from System Settings
+/// (FR-CON-003).
+pub struct ContractSettings {
+    /// Administration.
+    pub admin: AdministrationService,
+}
+
+#[async_trait]
+impl cooper_contracts::ports::ContractSettingsProvider for ContractSettings {
+    async fn settings(&self) -> cooper_contracts::ports::ContractSettings {
+        let defaults = cooper_contracts::ports::ContractSettings::default();
+        let value = |key: &'static str| {
+            let admin = self.admin.clone();
+            async move { admin.setting_value(key).await.ok().flatten() }
+        };
+        cooper_contracts::ports::ContractSettings {
+            reminder_days: value(cooper_contracts::application::settings::REMINDER_DAYS.key)
+                .await
+                .and_then(|v| v.as_u64())
+                .and_then(|v| u32::try_from(v).ok())
+                .unwrap_or(defaults.reminder_days),
+            time_zone: value(cooper_administration::application::settings::TIME_ZONE.key)
+                .await
+                .and_then(|v| v.as_str().map(str::to_owned))
+                .unwrap_or(defaults.time_zone),
+        }
+    }
+}
+
+/// Contract facts for reminder Notifications.
+pub struct ContractFactsLookup {
+    /// Contracts.
+    pub contracts: cooper_contracts::application::ContractsService,
+}
+
+#[async_trait]
+impl cooper_notifications::handlers::ContractLookup for ContractFactsLookup {
+    async fn contract(
+        &self,
+        id: uuid::Uuid,
+    ) -> Result<Option<cooper_notifications::handlers::ContractFacts>, String> {
+        Ok(self
+            .contracts
+            .for_notifications(cooper_contracts::domain::ContractId::from_uuid(id))
+            .await
+            .map_err(|e| e.to_string())?
+            .map(|c| cooper_notifications::handlers::ContractFacts {
+                contract_number: c.details().contract_number.clone(),
+                title: c.details().title.clone(),
+                tenant_id: c.tenant_id(),
+                owner: c.details().owner_id,
+                notice_date: c.notice_date(),
+                end_date: c.details().end_date,
+                is_active: c.is_active(),
+            }))
+    }
+}
