@@ -7,6 +7,7 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import type { LookupKind } from "./features/administration/resources";
+import type { ContractLookupKind } from "./features/contracts/api";
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
@@ -15,6 +16,7 @@ import { JobsPage } from "./routes/analyst/administration/JobsPage";
 import { ModulesPage } from "./routes/analyst/administration/ModulesPage";
 import { CategoriesPage } from "./routes/analyst/administration/resources/CategoriesPage";
 import { CompaniesPage } from "./routes/analyst/administration/resources/CompaniesPage";
+import { ContractLookupPage } from "./routes/analyst/administration/resources/ContractLookupPage";
 import { CostCentresPage } from "./routes/analyst/administration/resources/CostCentresPage";
 import { DepartmentsPage } from "./routes/analyst/administration/resources/DepartmentsPage";
 import { LookupAdminPage } from "./routes/analyst/administration/resources/LookupAdminPage";
@@ -23,6 +25,10 @@ import { TeamsPage } from "./routes/analyst/administration/resources/TeamsPage";
 import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
 import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
+import { ContractEditor } from "./routes/analyst/contracts/ContractEditor";
+import { ContractsPage } from "./routes/analyst/contracts/ContractsPage";
+import { SupplierEditor } from "./routes/analyst/contracts/SupplierEditor";
+import { SuppliersPage } from "./routes/analyst/contracts/SuppliersPage";
 import { Home } from "./routes/analyst/Home";
 import { ArticlePage } from "./routes/analyst/knowledge/ArticlePage";
 import { KnowledgePage } from "./routes/analyst/knowledge/KnowledgePage";
@@ -161,6 +167,43 @@ const taskByIdRoute = createRoute({
   component: function TaskRoute() {
     const { id } = taskByIdRoute.useParams();
     return <TaskEditor key={id} id={id} />;
+  },
+});
+
+const contractsRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/contracts",
+  component: ContractsPage,
+});
+const newContractRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/contracts/new",
+  component: () => <ContractEditor />,
+});
+const contractByIdRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/contracts/$id",
+  component: function ContractRoute() {
+    const { id } = contractByIdRoute.useParams();
+    return <ContractEditor key={id} id={id} />;
+  },
+});
+const suppliersRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/suppliers",
+  component: SuppliersPage,
+});
+const newSupplierRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/suppliers/new",
+  component: () => <SupplierEditor />,
+});
+const supplierByIdRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/suppliers/$id",
+  component: function SupplierRoute() {
+    const { id } = supplierByIdRoute.useParams();
+    return <SupplierEditor key={id} id={id} />;
   },
 });
 
@@ -335,6 +378,7 @@ function adminPage<P extends string>(path: P, component: () => React.JSX.Element
   return createRoute({ getParentRoute: () => administrationRoute, path, component });
 }
 const lookupPage = (kind: LookupKind) => () => <LookupAdminPage kind={kind} />;
+const contractLookupPage = (kind: ContractLookupKind) => () => <ContractLookupPage kind={kind} />;
 const adminReferenceRoutes = [
   adminPage("/ticket-statuses", lookupPage("ticket-statuses")),
   adminPage("/ticket-priorities", lookupPage("ticket-priorities")),
@@ -347,6 +391,10 @@ const adminReferenceRoutes = [
   adminPage("/departments", DepartmentsPage),
   adminPage("/cost-centres", CostCentresPage),
   adminPage("/roles", RolesPage),
+  adminPage("/supplier-types", contractLookupPage("supplier-types")),
+  adminPage("/supplier-statuses", contractLookupPage("supplier-statuses")),
+  adminPage("/contract-statuses", contractLookupPage("contract-statuses")),
+  adminPage("/payment-schedules", contractLookupPage("payment-schedules")),
 ] as const;
 
 const portalSignInRoute = createRoute({
@@ -419,6 +467,12 @@ export const routeTree = rootRoute.addChildren([
     tasksRoute,
     newTaskRoute,
     taskByIdRoute,
+    contractsRoute,
+    newContractRoute,
+    contractByIdRoute,
+    suppliersRoute,
+    newSupplierRoute,
+    supplierByIdRoute,
     knowledgeRoute,
     newArticleRoute,
     articleByIdRoute,

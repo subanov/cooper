@@ -76,8 +76,8 @@ pub struct NotificationDto {
     pub id: Uuid,
     /// `ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,
     /// `mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,
-    /// `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or
-    /// `checks_unrecorded`.
+    /// `change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`,
+    /// `checks_unrecorded`, `contract_notice_due` or `contract_end_due`.
     pub kind: String,
     /// Short text.
     pub title: String,
@@ -91,6 +91,8 @@ pub struct NotificationDto {
     pub article_id: Option<Uuid>,
     /// Linked Task.
     pub task_id: Option<Uuid>,
+    /// Linked Contract.
+    pub contract_id: Option<Uuid>,
     /// Created.
     pub created_at: DateTime<Utc>,
     /// When it was read.
@@ -108,6 +110,7 @@ impl From<Notification> for NotificationDto {
             change_id: n.change_id,
             article_id: n.article_id,
             task_id: n.task_id,
+            contract_id: n.contract_id,
             created_at: n.created_at,
             read_at: n.read_at,
         }

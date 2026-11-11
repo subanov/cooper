@@ -218,6 +218,11 @@ fn with_jobs(
                 service: state.morning_checks.service.clone(),
             },
         ))
+        .with_job(Arc::new(
+            cooper_contracts::infrastructure::ContractReminderJob {
+                service: state.contracts.service.clone(),
+            },
+        ))
 }
 
 async fn job_loop(
@@ -366,6 +371,7 @@ mod tests {
         let expected = [
             "attachment-orphan-cleanup",
             "attachment-text-extraction",
+            "contract-reminders",
             "email-sender",
             "identity-housekeeping",
             "identity-secrets-reencrypt",

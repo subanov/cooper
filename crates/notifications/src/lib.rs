@@ -55,6 +55,10 @@ pub enum NotificationKind {
     TaskAssigned,
     /// Morning Checks routed to the recipient are still unrecorded.
     ChecksUnrecorded,
+    /// The Notice Date of a Contract the recipient owns is coming up.
+    ContractNoticeDue,
+    /// The end date of a Contract the recipient owns is coming up.
+    ContractEndDue,
 }
 
 impl NotificationKind {
@@ -76,6 +80,8 @@ impl NotificationKind {
             Self::ArticleReviewDue => "article_review_due",
             Self::TaskAssigned => "task_assigned",
             Self::ChecksUnrecorded => "checks_unrecorded",
+            Self::ContractNoticeDue => "contract_notice_due",
+            Self::ContractEndDue => "contract_end_due",
         }
     }
 
@@ -95,6 +101,8 @@ impl NotificationKind {
             Self::ArticleReviewDue,
             Self::TaskAssigned,
             Self::ChecksUnrecorded,
+            Self::ContractNoticeDue,
+            Self::ContractEndDue,
         ]
         .into_iter()
         .find(|k| k.as_str() == s)
@@ -124,6 +132,8 @@ pub struct Notification {
     pub article_id: Option<Uuid>,
     /// The Task it links to.
     pub task_id: Option<Uuid>,
+    /// The Contract it links to.
+    pub contract_id: Option<Uuid>,
     /// The domain event that caused it.
     pub source_event_id: EventId,
     /// Created.
@@ -151,6 +161,8 @@ pub struct Draft {
     pub article_id: Option<Uuid>,
     /// Linked Task.
     pub task_id: Option<Uuid>,
+    /// Linked Contract.
+    pub contract_id: Option<Uuid>,
     /// Source event.
     pub source_event_id: EventId,
 }
@@ -341,8 +353,8 @@ impl NotificationStore for PgNotificationStore {
             .await
             .map_err(|e| e.to_string())?;
         let inserted = sqlx::query!(
-            "INSERT INTO notifications (id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, article_id, task_id, source_event_id, created_at)
-             SELECT n.id, n.recipient, $3, $4, $5, $6, $7, $10, $11, $12, $8, $9 FROM UNNEST($1::uuid[], $2::uuid[]) AS n(id, recipient)
+            "INSERT INTO notifications (id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, article_id, task_id, contract_id, source_event_id, created_at)
+             SELECT n.id, n.recipient, $3, $4, $5, $6, $7, $10, $11, $12, $13, $8, $9 FROM UNNEST($1::uuid[], $2::uuid[]) AS n(id, recipient)
              JOIN analysts a ON a.id = n.recipient AND a.is_active
              ON CONFLICT (source_event_id, recipient_id) DO NOTHING",
             &ids,
@@ -356,7 +368,8 @@ impl NotificationStore for PgNotificationStore {
             now,
             d.change_id,
             d.article_id,
-            d.task_id
+            d.task_id,
+            d.contract_id
         )
         .execute(&mut *tx)
         .await
@@ -378,7 +391,7 @@ impl NotificationStore for PgNotificationStore {
             .await
             .map_err(|e| e.to_string())?;
         let rows = sqlx::query!(
-            "SELECT id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, article_id, task_id, source_event_id, created_at, read_at
+            "SELECT id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, article_id, task_id, contract_id, source_event_id, created_at, read_at
              FROM notifications
              WHERE recipient_id = $1 AND (NOT $2 OR read_at IS NULL)
                AND ($3::timestamptz IS NULL OR (created_at, id) < ($3, $4))
@@ -407,6 +420,7 @@ impl NotificationStore for PgNotificationStore {
                     change_id: r.change_id,
                     article_id: r.article_id,
                     task_id: r.task_id,
+                    contract_id: r.contract_id,
                     source_event_id: EventId::from_uuid(r.source_event_id),
                     created_at: r.created_at,
                     read_at: r.read_at,

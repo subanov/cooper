@@ -193,6 +193,8 @@ pub struct AppState {
     pub morning_checks: cooper_morning_checks::api::MorningChecksApi,
     /// Reporting API state.
     pub reporting: cooper_reporting::api::ReportingApi,
+    /// Contracts API state.
+    pub contracts: cooper_contracts::api::ContractsApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -212,6 +214,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_service_status::application::capabilities::ALL)
         .chain(cooper_morning_checks::application::capabilities::ALL)
         .chain(cooper_reporting::application::capabilities::ALL)
+        .chain(cooper_contracts::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -226,6 +229,7 @@ pub fn setting_catalogue() -> Vec<SettingDefinition> {
         .chain(cooper_notifications::email::settings::ALL)
         .chain(cooper_service_status::application::settings::ALL)
         .chain(cooper_morning_checks::application::settings::ALL)
+        .chain(cooper_contracts::application::settings::ALL)
         .copied()
         .collect()
 }
@@ -272,6 +276,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_reporting::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Reporting)),
+        )
+        .chain(
+            cooper_contracts::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Contracts)),
         )
         .collect()
 }
@@ -483,6 +492,24 @@ impl AppState {
                 },
             ),
         };
+        let contracts = cooper_contracts::api::ContractsApi {
+            service: cooper_contracts::application::ContractsService::new(
+                cooper_contracts::application::ContractsPorts {
+                    contracts: Arc::new(cooper_contracts::infrastructure::PgContractsStore::new(
+                        pool.clone(),
+                    )),
+                    directory: Arc::new(crate::adapters::ContractDirectory {
+                        identity: IdentityDirectory {
+                            identity: service.clone(),
+                        },
+                    }),
+                    settings: Arc::new(crate::adapters::ContractSettings {
+                        admin: admin.clone(),
+                    }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let changes = cooper_change_management::api::ChangesApi {
             service: change_service,
             blobs: blobs.clone(),
@@ -521,6 +548,7 @@ impl AppState {
             service_status,
             morning_checks,
             reporting,
+            contracts,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -579,6 +607,12 @@ impl AppState {
                     checks: self.morning_checks.service.clone(),
                 }),
             }),
+            Arc::new(cooper_notifications::handlers::ContractReminderNotifier {
+                notifications: self.notifications.service.clone(),
+                contracts: Arc::new(crate::adapters::ContractFactsLookup {
+                    contracts: self.contracts.service.clone(),
+                }),
+            }),
             Arc::new(cooper_notifications::handlers::MailboxAlerts {
                 notifications: self.notifications.service.clone(),
                 people: Arc::new(IdentityDirectory {
@@ -631,6 +665,12 @@ impl AppState {
             Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
         }
         poller
+    }
+}
+
+impl FromRef<AppState> for cooper_contracts::api::ContractsApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.contracts.clone()
     }
 }
 
@@ -718,6 +758,7 @@ mod tests {
                 + cooper_service_status::application::capabilities::ALL.len()
                 + cooper_morning_checks::application::capabilities::ALL.len()
                 + cooper_reporting::application::capabilities::ALL.len()
+                + cooper_contracts::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

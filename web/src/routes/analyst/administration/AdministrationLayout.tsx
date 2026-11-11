@@ -38,6 +38,15 @@ const SECTIONS: readonly Section[] = [
       { to: "/administration/roles", label: "admin.roles" },
     ],
   },
+  {
+    heading: "admin.group.contracts",
+    links: [
+      { to: "/administration/supplier-types", label: "admin.supplierTypes" },
+      { to: "/administration/supplier-statuses", label: "admin.supplierStatuses" },
+      { to: "/administration/contract-statuses", label: "admin.contractStatuses" },
+      { to: "/administration/payment-schedules", label: "admin.paymentSchedules" },
+    ],
+  },
 ];
 
 /** Administration (FR-SYS-001 to FR-SYS-003): a sectioned menu beside the chosen page. */

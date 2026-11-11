@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, article_id, task_id, source_event_id, created_at, read_at\n             FROM notifications\n             WHERE recipient_id = $1 AND (NOT $2 OR read_at IS NULL)\n               AND ($3::timestamptz IS NULL OR (created_at, id) < ($3, $4))\n             ORDER BY created_at DESC, id DESC LIMIT $5",
+  "query": "SELECT id, recipient_id, tenant_id, kind, title, body, ticket_id, change_id, article_id, task_id, contract_id, source_event_id, created_at, read_at\n             FROM notifications\n             WHERE recipient_id = $1 AND (NOT $2 OR read_at IS NULL)\n               AND ($3::timestamptz IS NULL OR (created_at, id) < ($3, $4))\n             ORDER BY created_at DESC, id DESC LIMIT $5",
   "describe": {
     "columns": [
       {
@@ -115,6 +115,17 @@
       },
       {
         "ordinal": 10,
+        "name": "contract_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "notifications",
+            "name": "contract_id"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
         "name": "source_event_id",
         "type_info": "Uuid",
         "origin": {
@@ -125,7 +136,7 @@
         }
       },
       {
-        "ordinal": 11,
+        "ordinal": 12,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -136,7 +147,7 @@
         }
       },
       {
-        "ordinal": 12,
+        "ordinal": 13,
         "name": "read_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -167,10 +178,11 @@
       true,
       true,
       true,
+      true,
       false,
       false,
       true
     ]
   },
-  "hash": "3dc7bf02bd32e7b4064c77d6e075f8c6f046d5cfe8dcbfb2462298de49daaf26"
+  "hash": "c80a411daa0773a3bea4882f218869e841a4d82a10ce28f48aacaeda703fa84a"
 }

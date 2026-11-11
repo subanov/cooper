@@ -2635,6 +2635,426 @@
         }
       }
     },
+    "/api/v1/contacts/{id}": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "One Contact.",
+        "operationId": "get_contact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Edits a Contact (needs `contracts.write`).",
+        "operationId": "edit_contact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contract-statuses": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_contract_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_contract_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contract-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_contract_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Contracts in your Companies by number, with their Notice Date and where it stands\n(needs `contracts.read`).",
+        "operationId": "list_contracts",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text in the number or title.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status_id",
+            "in": "query",
+            "description": "Contract Status.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplier_id",
+            "in": "query",
+            "description": "Supplier.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "owner",
+            "in": "query",
+            "description": "Owner (`me` is accepted).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Active (`true`) or in a closed Contract Status (`false`).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "notice_due",
+            "in": "query",
+            "description": "Only active Contracts whose Notice Date is from today up to\n`contracts.reminder_days` ahead.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Creates a Contract (needs `contracts.write`). Cooper calculates its Notice Date.",
+        "operationId": "create_contract",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{id}": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "One Contract.",
+        "operationId": "get_contract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Edits a Contract (needs `contracts.write`).",
+        "operationId": "edit_contract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Deletes a Contract (needs `contracts.write`).",
+        "operationId": "delete_contract",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/contracts/{id}/history": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "The audit trail of a Contract.",
+        "operationId": "contract_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cost-centres": {
       "get": {
         "tags": [
@@ -5022,6 +5442,95 @@
           },
           "401": {
             "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/api/v1/payment-schedules": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_payment_schedules",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_payment_schedule",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payment-schedules/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_payment_schedule",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
           }
         }
       }
@@ -9801,6 +10310,479 @@
         "responses": {
           "303": {
             "description": "To the provider"
+          }
+        }
+      }
+    },
+    "/api/v1/supplier-statuses": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_supplier_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_supplier_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/supplier-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_supplier_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/supplier-types": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "list_supplier_types",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "create_supplier_type",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/supplier-types/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "operationId": "update_supplier_type",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContractLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Suppliers in your Companies by legal name (needs `contracts.read`).",
+        "operationId": "list_suppliers",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text in the legal or trading name.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "supplier_type_id",
+            "in": "query",
+            "description": "Supplier Type.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "supplier_status_id",
+            "in": "query",
+            "description": "Supplier Status.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Active (`true`) or inactive (`false`).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Creates a Supplier (needs `contracts.write`).",
+        "operationId": "create_supplier",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers/{id}": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "One Supplier.",
+        "operationId": "get_supplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Edits a Supplier (needs `contracts.write`).",
+        "operationId": "edit_supplier",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers/{id}/contacts": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "The Contacts of a Supplier by name (needs `contracts.read`).",
+        "operationId": "list_supplier_contacts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContactDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Adds a Contact to a Supplier (needs `contracts.write`).",
+        "operationId": "create_contact",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppliers/{id}/history": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "The audit trail of a Supplier.",
+        "operationId": "supplier_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ContractHistoryDto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -16267,6 +17249,601 @@
           }
         }
       },
+      "ContactDto": {
+        "type": "object",
+        "description": "A Contact: a person at a Supplier.",
+        "required": [
+          "id",
+          "company_id",
+          "supplier_id",
+          "full_name",
+          "notes",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Email address."
+          },
+          "full_name": {
+            "type": "string",
+            "description": "Full name."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "job_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Job title."
+          },
+          "mobile": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Mobile."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Phone."
+          },
+          "supplier_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "ContactRequest": {
+        "type": "object",
+        "description": "Creates or edits a Contact.",
+        "required": [
+          "full_name"
+        ],
+        "properties": {
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Email address."
+          },
+          "full_name": {
+            "type": "string",
+            "description": "Full name."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "job_title": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Job title."
+          },
+          "mobile": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Mobile."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Phone."
+          }
+        }
+      },
+      "ContractDto": {
+        "type": "object",
+        "description": "A Contract.",
+        "required": [
+          "id",
+          "company_id",
+          "contract_number",
+          "title",
+          "description",
+          "party",
+          "is_active",
+          "notice_status",
+          "personal_data_transferred",
+          "dpia_required",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "contract_number": {
+            "type": "string",
+            "description": "Contract number (unique per Company)."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 4217 currency of the value."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "dms_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the document management system."
+          },
+          "dpia_completed_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "When the DPIA was completed."
+          },
+          "dpia_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the DPIA."
+          },
+          "dpia_required": {
+            "type": "boolean",
+            "description": "A DPIA is required."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "End date."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Neither deleted nor in a closed Contract Status."
+          },
+          "notice_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Notice Date, calculated by Cooper: the end date minus the notice period."
+          },
+          "notice_period": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoticePeriodDto",
+                "description": "Notice period."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notice_status": {
+            "$ref": "#/components/schemas/NoticeStatusDto",
+            "description": "Where the Notice Date stands today."
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner Analyst."
+          },
+          "party": {
+            "type": "string",
+            "description": "`supplier` (with `supplier_id`) or `customer` (the Company, optionally with\n`requester_id`)."
+          },
+          "payment_schedule_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Payment Schedule."
+          },
+          "personal_data_transferred": {
+            "type": "boolean",
+            "description": "Personal data is transferred (FR-CON-004)."
+          },
+          "requester_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Customer Requester."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Start date."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Contract Status."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Value as a decimal string with two places, for example `\"1250.00\"`."
+          }
+        }
+      },
+      "ContractHistoryDto": {
+        "type": "object",
+        "description": "One change in an audit trail.",
+        "required": [
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created`, `updated` or `deleted`."
+          },
+          "actor": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "ContractLookupDto": {
+        "type": "object",
+        "description": "A Supplier Type, Supplier Status, Contract Status or Payment Schedule.",
+        "required": [
+          "id",
+          "name",
+          "is_closed",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (only active rows can be chosen)."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Contract Statuses: a Contract in this status is finished (no Calendar Events, no\nreminders). Always `false` for the other lookups."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "ContractLookupRequest": {
+        "type": "object",
+        "description": "Creates or changes a lookup.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_closed": {
+            "type": "boolean",
+            "description": "Contract Statuses: closed."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "ContractPage": {
+        "type": "object",
+        "description": "A page of Contracts.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContractDto"
+            },
+            "description": "Contracts by number."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "ContractRequest": {
+        "type": "object",
+        "description": "Creates or edits a Contract.",
+        "required": [
+          "contract_number",
+          "title"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "contract_number": {
+            "type": "string",
+            "description": "Contract number (unique per Company)."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre of the Company."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO 4217 currency (required with a value)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "dms_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the document management system (`http(s)://`)."
+          },
+          "dpia_completed_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "When the DPIA was completed (needs `dpia_required`)."
+          },
+          "dpia_link": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Link to the DPIA (needs `dpia_required`)."
+          },
+          "dpia_required": {
+            "type": "boolean",
+            "description": "A DPIA is required."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "End date."
+          },
+          "notice_period": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NoticePeriodDto",
+                "description": "Notice period."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Owner Analyst."
+          },
+          "payment_schedule_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Payment Schedule."
+          },
+          "personal_data_transferred": {
+            "type": "boolean",
+            "description": "Personal data is transferred."
+          },
+          "requester_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Customer Requester (customer Contracts only)."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Start date."
+          },
+          "status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Contract Status."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier: the Contract is with this Supplier. Leave empty for a customer Contract."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Value as a decimal string (at most two decimal places)."
+          }
+        }
+      },
       "CorrectIncidentUpdateRequest": {
         "type": "object",
         "description": "Corrects a posted update.",
@@ -18138,6 +19715,44 @@
           }
         }
       },
+      "NoticePeriodDto": {
+        "type": "object",
+        "description": "How long before the end date notice must be given.",
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Number of days (0 to 3650) or months (0 to 120).",
+            "minimum": 0
+          },
+          "unit": {
+            "$ref": "#/components/schemas/NoticePeriodUnit",
+            "description": "Days or months."
+          }
+        }
+      },
+      "NoticePeriodUnit": {
+        "type": "string",
+        "description": "The unit of a notice period.",
+        "enum": [
+          "days",
+          "months"
+        ]
+      },
+      "NoticeStatusDto": {
+        "type": "string",
+        "description": "Where a Contract's Notice Date stands today.",
+        "enum": [
+          "none",
+          "later",
+          "upcoming",
+          "passed"
+        ]
+      },
       "NotificationDto": {
         "type": "object",
         "description": "A Notification.",
@@ -18169,6 +19784,14 @@
             "format": "uuid",
             "description": "Linked Change."
           },
+          "contract_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Linked Contract."
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -18181,7 +19804,7 @@
           },
           "kind": {
             "type": "string",
-            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed`, `article_review_due`, `task_assigned` or\n`checks_unrecorded`."
+            "description": "`ticket_assigned`, `mentioned`, `sla_warning`, `sla_breached`, `reply_received`,\n`mailbox_failing`, `change_submitted`, `change_approved`, `change_rejected`,\n`change_scheduled`, `change_completed`, `article_review_due`, `task_assigned`,\n`checks_unrecorded`, `contract_notice_due` or `contract_end_due`."
           },
           "read_at": {
             "type": [
@@ -22032,6 +23655,179 @@
           }
         }
       },
+      "SupplierDto": {
+        "type": "object",
+        "description": "A Supplier.",
+        "required": [
+          "id",
+          "company_id",
+          "legal_name",
+          "notes",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "legal_name": {
+            "type": "string",
+            "description": "Legal name."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "registration_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Company registration number."
+          },
+          "supplier_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Status."
+          },
+          "supplier_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Type."
+          },
+          "trading_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Trading name."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "vat_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "VAT number."
+          }
+        }
+      },
+      "SupplierPage": {
+        "type": "object",
+        "description": "A page of Suppliers.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SupplierDto"
+            },
+            "description": "Suppliers by legal name."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "SupplierRequest": {
+        "type": "object",
+        "description": "Creates or edits a Supplier.",
+        "required": [
+          "legal_name"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "legal_name": {
+            "type": "string",
+            "description": "Legal name."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "registration_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Company registration number."
+          },
+          "supplier_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Status."
+          },
+          "supplier_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier Type."
+          },
+          "trading_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Trading name."
+          },
+          "vat_number": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "VAT number."
+          }
+        }
+      },
       "SwitchRequesterRequest": {
         "type": "object",
         "description": "Switch the Requester a Portal session acts as.",
@@ -24375,6 +26171,10 @@
     {
       "name": "Morning Checks",
       "description": "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"
+    },
+    {
+      "name": "Contracts",
+      "description": "Suppliers, Contacts and Contracts with Notice Dates, data protection fields and their lookups"
     },
     {
       "name": "Reporting",
