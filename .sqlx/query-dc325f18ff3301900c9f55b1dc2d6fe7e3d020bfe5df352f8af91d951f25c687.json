@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT a.retired_on IS NOT NULL AS \"retired!\",\n                  EXISTS (SELECT 1 FROM asset_checkouts c WHERE c.asset_id = a.id AND c.checked_in_at IS NULL) AS \"held!\"\n           FROM assets a WHERE a.id = $1 FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "retired!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "held!",
+        "type_info": "Bool",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "dc325f18ff3301900c9f55b1dc2d6fe7e3d020bfe5df352f8af91d951f25c687"
+}

@@ -38,6 +38,14 @@ const SECTIONS: readonly Section[] = [
       { to: "/administration/roles", label: "admin.roles" },
     ],
   },
+  {
+    heading: "admin.group.assets",
+    links: [
+      { to: "/administration/asset-types", label: "admin.assetTypes" },
+      { to: "/administration/asset-statuses", label: "admin.assetStatuses" },
+      { to: "/administration/asset-locations", label: "admin.locations" },
+    ],
+  },
 ];
 
 /** Administration (FR-SYS-001 to FR-SYS-003): a sectioned menu beside the chosen page. */

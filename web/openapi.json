@@ -604,6 +604,844 @@
         }
       }
     },
+    "/api/v1/asset-locations": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "list_asset_locations",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "create_asset_location",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-locations/{id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "update_asset_location",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-statuses": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "list_asset_statuses",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "create_asset_status",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-statuses/{id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "update_asset_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-types": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "list_asset_types",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLookupDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "create_asset_type",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-types/{id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "operationId": "update_asset_type",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLookupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLookupDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Assets in your Companies, newest first; retired Assets only when asked for (needs\n`assets.read`).",
+        "operationId": "list_assets",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "One Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset_type_id",
+            "in": "query",
+            "description": "Asset Type.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "asset_status_id",
+            "in": "query",
+            "description": "Asset Status.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "location_id",
+            "in": "query",
+            "description": "Location (and the Locations below it).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "holder_kind",
+            "in": "query",
+            "description": "Holder kind (`requester` or `analyst`), with `holder_id`.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "holder_id",
+            "in": "query",
+            "description": "Holder, with `holder_kind`.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "checked_out",
+            "in": "query",
+            "description": "Checked out (`true`) or available (`false`).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "include_retired",
+            "in": "query",
+            "description": "Include retired Assets (left out by default).",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "retired_only",
+            "in": "query",
+            "description": "Retired Assets only.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Hostname, Asset Tag or Service Tag contains.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Registers an Asset (needs `assets.create`).",
+        "operationId": "create_asset",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/summary": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Active and retired Asset counts, active Assets per type and status (needs\n`assets.read`; FR-AST-005).",
+        "operationId": "asset_summary",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "One Company (default: all of yours).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetSummaryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "One Asset.",
+        "operationId": "get_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Edits an Asset (needs `assets.update`).",
+        "operationId": "edit_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/check-in": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Checks an Asset back in (needs `assets.update`).",
+        "operationId": "check_in_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetCheckInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/check-out": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Checks an Asset out to a Requester or Analyst (needs `assets.update`). A retired or\nalready checked-out Asset cannot be checked out.",
+        "operationId": "check_out_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetCheckOutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/checkouts": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "The Check Out log of an Asset, newest first.",
+        "operationId": "list_asset_checkouts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetCheckoutDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/history": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "The full history of an Asset: edits, Check Outs and Check Ins, retirement and links\n(FR-AST-006).",
+        "operationId": "asset_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/links": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Linked tickets and Contracts you may see (FR-AST-006).",
+        "operationId": "list_asset_links",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AssetLinkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Links a ticket or Contract of the same Company (needs `assets.update`).",
+        "operationId": "link_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetLinkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/links/{kind}/{target_id}": {
+      "delete": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Removes a link (needs `assets.update`).",
+        "operationId": "unlink_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/assets/{id}/retire": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Retires an Asset with a date and reason (needs `assets.update`). It must be checked\nin first; retired Assets are excluded from active counts and lists.",
+        "operationId": "retire_asset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetRetireRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/background-jobs": {
       "get": {
         "tags": [
@@ -13929,6 +14767,758 @@
           }
         }
       },
+      "AssetCheckInRequest": {
+        "type": "object",
+        "description": "Checks an Asset in.",
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "Note."
+          }
+        }
+      },
+      "AssetCheckOutRequest": {
+        "type": "object",
+        "description": "Checks an Asset out.",
+        "required": [
+          "holder_kind",
+          "holder_id"
+        ],
+        "properties": {
+          "due_back_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Expected return."
+          },
+          "holder_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The person."
+          },
+          "holder_kind": {
+            "type": "string",
+            "description": "`requester` (of the Asset's Company) or `analyst`."
+          },
+          "note": {
+            "type": "string",
+            "description": "Note."
+          }
+        }
+      },
+      "AssetCheckoutDto": {
+        "type": "object",
+        "description": "One entry of the Check Out log.",
+        "required": [
+          "id",
+          "holder",
+          "checked_out_at",
+          "checked_out_by",
+          "checkout_note",
+          "checked_in_by",
+          "checkin_note"
+        ],
+        "properties": {
+          "checked_in_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was checked in (`null`: still out)."
+          },
+          "checked_in_by": {
+            "type": "object",
+            "description": "Who checked it in (`{kind, id}`)."
+          },
+          "checked_out_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was checked out."
+          },
+          "checked_out_by": {
+            "type": "object",
+            "description": "Who checked it out (`{kind, id}`)."
+          },
+          "checkin_note": {
+            "type": "string",
+            "description": "Note at Check In."
+          },
+          "checkout_note": {
+            "type": "string",
+            "description": "Note at Check Out."
+          },
+          "due_back_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Expected return."
+          },
+          "holder": {
+            "$ref": "#/components/schemas/AssetHolderDto",
+            "description": "The Holder."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          }
+        }
+      },
+      "AssetCountDto": {
+        "type": "object",
+        "description": "Active Assets counted by type and status.",
+        "required": [
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Active Assets.",
+            "minimum": 0
+          },
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Asset Type or Asset Status (`null`: none)."
+          }
+        }
+      },
+      "AssetCurrentCheckoutDto": {
+        "type": "object",
+        "description": "An open Check Out.",
+        "required": [
+          "id",
+          "holder",
+          "checked_out_at"
+        ],
+        "properties": {
+          "checked_out_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Since."
+          },
+          "due_back_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Expected return."
+          },
+          "holder": {
+            "$ref": "#/components/schemas/AssetHolderDto",
+            "description": "The Holder."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Check Out."
+          }
+        }
+      },
+      "AssetDto": {
+        "type": "object",
+        "description": "An Asset (FR-AST-001).",
+        "required": [
+          "id",
+          "company_id",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "asset_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Status."
+          },
+          "asset_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Label, unique per Company."
+          },
+          "asset_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Type."
+          },
+          "checkout": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AssetCurrentCheckoutDto",
+                "description": "The open Check Out, if the Asset is checked out."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "hostname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Network name."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "In the estate (not retired)."
+          },
+          "lease_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease expiry."
+          },
+          "lease_starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease start."
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Location."
+          },
+          "purchase_cost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Purchase cost as a decimal string with two places (`\"1299.00\"`)."
+          },
+          "purchase_currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-4217 currency of the purchase cost."
+          },
+          "purchase_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Purchase date."
+          },
+          "retired_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The day it was retired."
+          },
+          "retirement_reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why it was retired."
+          },
+          "service_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Manufacturer serial number."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          },
+          "warranty_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Warranty expiry."
+          }
+        }
+      },
+      "AssetHistoryDto": {
+        "type": "object",
+        "description": "One change in an Asset's history.",
+        "required": [
+          "id",
+          "at",
+          "actor",
+          "action",
+          "old_value",
+          "new_value"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created` or `updated`."
+          },
+          "actor": {
+            "type": "object",
+            "description": "Who (`{kind, id}`)."
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field (`holder` for Check Out / Check In, `retired_on` and `retirement_reason`\nfor Retire, `ticket_linked` and the like for links)."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Audit entry ID."
+          },
+          "new_value": {
+            "type": "object",
+            "description": "After."
+          },
+          "old_value": {
+            "type": "object",
+            "description": "Before."
+          }
+        }
+      },
+      "AssetHolderDto": {
+        "type": "object",
+        "description": "Who has an Asset.",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The person."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`requester` or `analyst`."
+          }
+        }
+      },
+      "AssetLinkDto": {
+        "type": "object",
+        "description": "A linked ticket or Contract.",
+        "required": [
+          "kind",
+          "target_id",
+          "number",
+          "linked_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `contract`."
+          },
+          "linked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was linked."
+          },
+          "number": {
+            "type": "string",
+            "description": "Its number."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The record."
+          }
+        }
+      },
+      "AssetLinkRequest": {
+        "type": "object",
+        "description": "Links a record.",
+        "required": [
+          "kind",
+          "target_id"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`ticket` or `contract`."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The record (same Company)."
+          }
+        }
+      },
+      "AssetLookupDto": {
+        "type": "object",
+        "description": "An Asset Type, Asset Status or Location.",
+        "required": [
+          "id",
+          "name",
+          "is_retired",
+          "sort_order",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Statuses: `#rrggbb`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active (offered for new choices)."
+          },
+          "is_retired": {
+            "type": "boolean",
+            "description": "Statuses: the Asset has left the estate (only Retire moves an Asset here)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Locations: the parent Location."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "AssetLookupRequest": {
+        "type": "object",
+        "description": "Creates or changes an Asset Type, Asset Status or Location.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "colour": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Statuses: `#rrggbb`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "is_retired": {
+            "type": "boolean",
+            "description": "Statuses: retired."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Locations: the parent Location."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Order."
+          }
+        }
+      },
+      "AssetPage": {
+        "type": "object",
+        "description": "A page of Assets.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetDto"
+            },
+            "description": "Assets, newest first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor for the next page."
+          }
+        }
+      },
+      "AssetRequest": {
+        "type": "object",
+        "description": "Creates or edits an Asset.",
+        "properties": {
+          "asset_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Status (not a retired one: use Retire)."
+          },
+          "asset_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Label, unique per Company."
+          },
+          "asset_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Type."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "cost_centre_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Cost Centre of the Asset's Company."
+          },
+          "hostname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Network name."
+          },
+          "lease_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease expiry."
+          },
+          "lease_starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Lease start."
+          },
+          "location_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Location."
+          },
+          "purchase_cost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Purchase cost as a decimal string (`\"1299.00\"`, at most two decimals)."
+          },
+          "purchase_currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-4217 currency, required with a cost."
+          },
+          "purchase_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Purchase date."
+          },
+          "service_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Manufacturer serial number."
+          },
+          "supplier_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Supplier."
+          },
+          "warranty_expires_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Warranty expiry."
+          }
+        }
+      },
+      "AssetRetireRequest": {
+        "type": "object",
+        "description": "Retires an Asset.",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "asset_status_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "A retired Asset Status to move to (otherwise the status is cleared)."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why."
+          },
+          "retired_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "The day it left the estate (default today)."
+          }
+        }
+      },
+      "AssetSummaryDto": {
+        "type": "object",
+        "description": "Counts of the estate (FR-AST-005).",
+        "required": [
+          "active",
+          "retired",
+          "checked_out",
+          "by_type",
+          "by_status"
+        ],
+        "properties": {
+          "active": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Assets in the estate.",
+            "minimum": 0
+          },
+          "by_status": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCountDto"
+            },
+            "description": "Active Assets per Asset Status."
+          },
+          "by_type": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssetCountDto"
+            },
+            "description": "Active Assets per Asset Type."
+          },
+          "checked_out": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Active Assets checked out.",
+            "minimum": 0
+          },
+          "retired": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Retired Assets (not counted as active).",
+            "minimum": 0
+          }
+        }
+      },
       "AssignmentRequest": {
         "type": "object",
         "description": "Assign a ticket.",
@@ -24375,6 +25965,10 @@
     {
       "name": "Morning Checks",
       "description": "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"
+    },
+    {
+      "name": "Assets",
+      "description": "Assets, Asset Types, Asset Statuses, Locations, Check Out / Check In, Retire, links and history"
     },
     {
       "name": "Reporting",

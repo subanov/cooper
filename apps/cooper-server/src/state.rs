@@ -193,6 +193,8 @@ pub struct AppState {
     pub morning_checks: cooper_morning_checks::api::MorningChecksApi,
     /// Reporting API state.
     pub reporting: cooper_reporting::api::ReportingApi,
+    /// Assets API state.
+    pub assets: cooper_assets::api::AssetsApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -212,6 +214,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_service_status::application::capabilities::ALL)
         .chain(cooper_morning_checks::application::capabilities::ALL)
         .chain(cooper_reporting::application::capabilities::ALL)
+        .chain(cooper_assets::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -272,6 +275,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_reporting::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Reporting)),
+        )
+        .chain(
+            cooper_assets::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Assets)),
         )
         .collect()
 }
@@ -483,6 +491,22 @@ impl AppState {
                 },
             ),
         };
+        let assets = cooper_assets::api::AssetsApi {
+            service: cooper_assets::application::AssetService::new(
+                cooper_assets::application::AssetPorts {
+                    assets: Arc::new(cooper_assets::infrastructure::PgAssetStore::new(
+                        pool.clone(),
+                    )),
+                    directory: Arc::new(crate::adapters::AssetDirectory {
+                        identity: IdentityDirectory {
+                            identity: service.clone(),
+                        },
+                        desk: desk.clone(),
+                    }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let changes = cooper_change_management::api::ChangesApi {
             service: change_service,
             blobs: blobs.clone(),
@@ -521,6 +545,7 @@ impl AppState {
             service_status,
             morning_checks,
             reporting,
+            assets,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -634,6 +659,12 @@ impl AppState {
     }
 }
 
+impl FromRef<AppState> for cooper_assets::api::AssetsApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.assets.clone()
+    }
+}
+
 impl FromRef<AppState> for cooper_reporting::api::ReportingApi {
     fn from_ref(state: &AppState) -> Self {
         state.reporting.clone()
@@ -718,6 +749,7 @@ mod tests {
                 + cooper_service_status::application::capabilities::ALL.len()
                 + cooper_morning_checks::application::capabilities::ALL.len()
                 + cooper_reporting::application::capabilities::ALL.len()
+                + cooper_assets::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

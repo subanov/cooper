@@ -1,0 +1,39 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COUNT(*) FILTER (WHERE a.retired_on IS NULL) AS \"active!\",\n                      COUNT(*) FILTER (WHERE a.retired_on IS NOT NULL) AS \"retired!\",\n                      COUNT(c.id) FILTER (WHERE a.retired_on IS NULL) AS \"checked_out!\"\n               FROM assets a LEFT JOIN asset_checkouts c ON c.asset_id = a.id AND c.checked_in_at IS NULL\n               WHERE ($1 OR a.tenant_id = ANY($2)) AND ($3::uuid IS NULL OR a.tenant_id = $3)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "active!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "retired!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 2,
+        "name": "checked_out!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "1d63007a45c1e12b615d4b6faaf5726e739df2303fa40fe6f37a91ffb7074bd7"
+}

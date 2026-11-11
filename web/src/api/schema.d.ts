@@ -198,6 +198,290 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/asset-locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_asset_locations"];
+        put?: never;
+        post: operations["create_asset_location"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-locations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_asset_location"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_asset_statuses"];
+        put?: never;
+        post: operations["create_asset_status"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-statuses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_asset_status"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_asset_types"];
+        put?: never;
+        post: operations["create_asset_type"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["update_asset_type"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Assets in your Companies, newest first; retired Assets only when asked for (needs
+         *     `assets.read`).
+         */
+        get: operations["list_assets"];
+        put?: never;
+        /** Registers an Asset (needs `assets.create`). */
+        post: operations["create_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Active and retired Asset counts, active Assets per type and status (needs
+         *     `assets.read`; FR-AST-005).
+         */
+        get: operations["asset_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Asset. */
+        get: operations["get_asset"];
+        /** Edits an Asset (needs `assets.update`). */
+        put: operations["edit_asset"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks an Asset back in (needs `assets.update`). */
+        post: operations["check_in_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Checks an Asset out to a Requester or Analyst (needs `assets.update`). A retired or
+         *     already checked-out Asset cannot be checked out.
+         */
+        post: operations["check_out_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/checkouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Check Out log of an Asset, newest first. */
+        get: operations["list_asset_checkouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The full history of an Asset: edits, Check Outs and Check Ins, retirement and links
+         *     (FR-AST-006).
+         */
+        get: operations["asset_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Linked tickets and Contracts you may see (FR-AST-006). */
+        get: operations["list_asset_links"];
+        put?: never;
+        /** Links a ticket or Contract of the same Company (needs `assets.update`). */
+        post: operations["link_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/links/{kind}/{target_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a link (needs `assets.update`). */
+        delete: operations["unlink_asset"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retires an Asset with a date and reason (needs `assets.update`). It must be checked
+         *     in first; retired Assets are excluded from active counts and lists.
+         */
+        post: operations["retire_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/background-jobs": {
         parameters: {
             query?: never;
@@ -4843,6 +5127,399 @@ export interface components {
              * @description Requests per minute (1 to 10000, default 60).
              */
             rate_limit_per_minute?: number;
+        };
+        /** @description Checks an Asset in. */
+        AssetCheckInRequest: {
+            /** @description Note. */
+            note?: string;
+        };
+        /** @description Checks an Asset out. */
+        AssetCheckOutRequest: {
+            /**
+             * Format: date
+             * @description Expected return.
+             */
+            due_back_on?: string | null;
+            /**
+             * Format: uuid
+             * @description The person.
+             */
+            holder_id: string;
+            /** @description `requester` (of the Asset's Company) or `analyst`. */
+            holder_kind: string;
+            /** @description Note. */
+            note?: string;
+        };
+        /** @description One entry of the Check Out log. */
+        AssetCheckoutDto: {
+            /**
+             * Format: date-time
+             * @description When it was checked in (`null`: still out).
+             */
+            checked_in_at?: string | null;
+            /** @description Who checked it in (`{kind, id}`). */
+            checked_in_by: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When it was checked out.
+             */
+            checked_out_at: string;
+            /** @description Who checked it out (`{kind, id}`). */
+            checked_out_by: Record<string, never>;
+            /** @description Note at Check In. */
+            checkin_note: string;
+            /** @description Note at Check Out. */
+            checkout_note: string;
+            /**
+             * Format: date
+             * @description Expected return.
+             */
+            due_back_on?: string | null;
+            /** @description The Holder. */
+            holder: components["schemas"]["AssetHolderDto"];
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+        };
+        /** @description Active Assets counted by type and status. */
+        AssetCountDto: {
+            /**
+             * Format: int64
+             * @description Active Assets.
+             */
+            count: number;
+            /**
+             * Format: uuid
+             * @description The Asset Type or Asset Status (`null`: none).
+             */
+            id?: string | null;
+        };
+        /** @description An open Check Out. */
+        AssetCurrentCheckoutDto: {
+            /**
+             * Format: date-time
+             * @description Since.
+             */
+            checked_out_at: string;
+            /**
+             * Format: date
+             * @description Expected return.
+             */
+            due_back_on?: string | null;
+            /** @description The Holder. */
+            holder: components["schemas"]["AssetHolderDto"];
+            /**
+             * Format: uuid
+             * @description The Check Out.
+             */
+            id: string;
+        };
+        /** @description An Asset (FR-AST-001). */
+        AssetDto: {
+            /**
+             * Format: uuid
+             * @description Asset Status.
+             */
+            asset_status_id?: string | null;
+            /** @description Label, unique per Company. */
+            asset_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Asset Type.
+             */
+            asset_type_id?: string | null;
+            checkout?: components["schemas"]["AssetCurrentCheckoutDto"] | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: uuid
+             * @description Cost Centre.
+             */
+            cost_centre_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Network name. */
+            hostname?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description In the estate (not retired). */
+            is_active: boolean;
+            /**
+             * Format: date
+             * @description Lease expiry.
+             */
+            lease_expires_on?: string | null;
+            /**
+             * Format: date
+             * @description Lease start.
+             */
+            lease_starts_on?: string | null;
+            /**
+             * Format: uuid
+             * @description Location.
+             */
+            location_id?: string | null;
+            /** @description Purchase cost as a decimal string with two places (`"1299.00"`). */
+            purchase_cost?: string | null;
+            /** @description ISO-4217 currency of the purchase cost. */
+            purchase_currency?: string | null;
+            /**
+             * Format: date
+             * @description Purchase date.
+             */
+            purchase_date?: string | null;
+            /**
+             * Format: date
+             * @description The day it was retired.
+             */
+            retired_on?: string | null;
+            /** @description Why it was retired. */
+            retirement_reason?: string | null;
+            /** @description Manufacturer serial number. */
+            service_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id?: string | null;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+            /**
+             * Format: date
+             * @description Warranty expiry.
+             */
+            warranty_expires_on?: string | null;
+        };
+        /** @description One change in an Asset's history. */
+        AssetHistoryDto: {
+            /** @description `created` or `updated`. */
+            action: string;
+            /** @description Who (`{kind, id}`). */
+            actor: Record<string, never>;
+            /**
+             * Format: date-time
+             * @description When.
+             */
+            at: string;
+            /**
+             * @description Field (`holder` for Check Out / Check In, `retired_on` and `retirement_reason`
+             *     for Retire, `ticket_linked` and the like for links).
+             */
+            field?: string | null;
+            /**
+             * Format: uuid
+             * @description Audit entry ID.
+             */
+            id: string;
+            /** @description After. */
+            new_value: Record<string, never>;
+            /** @description Before. */
+            old_value: Record<string, never>;
+        };
+        /** @description Who has an Asset. */
+        AssetHolderDto: {
+            /**
+             * Format: uuid
+             * @description The person.
+             */
+            id: string;
+            /** @description `requester` or `analyst`. */
+            kind: string;
+        };
+        /** @description A linked ticket or Contract. */
+        AssetLinkDto: {
+            /** @description `ticket` or `contract`. */
+            kind: string;
+            /**
+             * Format: date-time
+             * @description When it was linked.
+             */
+            linked_at: string;
+            /** @description Its number. */
+            number: string;
+            /**
+             * Format: uuid
+             * @description The record.
+             */
+            target_id: string;
+        };
+        /** @description Links a record. */
+        AssetLinkRequest: {
+            /** @description `ticket` or `contract`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description The record (same Company).
+             */
+            target_id: string;
+        };
+        /** @description An Asset Type, Asset Status or Location. */
+        AssetLookupDto: {
+            /** @description Statuses: `#rrggbb`. */
+            colour?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active (offered for new choices). */
+            is_active: boolean;
+            /** @description Statuses: the Asset has left the estate (only Retire moves an Asset here). */
+            is_retired: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Locations: the parent Location.
+             */
+            parent_id?: string | null;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+        };
+        /** @description Creates or changes an Asset Type, Asset Status or Location. */
+        AssetLookupRequest: {
+            /** @description Statuses: `#rrggbb`. */
+            colour?: string | null;
+            /** @description Active. */
+            is_active?: boolean;
+            /** @description Statuses: retired. */
+            is_retired?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Locations: the parent Location.
+             */
+            parent_id?: string | null;
+            /**
+             * Format: int32
+             * @description Order.
+             */
+            sort_order?: number;
+        };
+        /** @description A page of Assets. */
+        AssetPage: {
+            /** @description Assets, newest first. */
+            items: components["schemas"]["AssetDto"][];
+            /** @description Cursor for the next page. */
+            next_cursor?: string | null;
+        };
+        /** @description Creates or edits an Asset. */
+        AssetRequest: {
+            /**
+             * Format: uuid
+             * @description Asset Status (not a retired one: use Retire).
+             */
+            asset_status_id?: string | null;
+            /** @description Label, unique per Company. */
+            asset_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Asset Type.
+             */
+            asset_type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Cost Centre of the Asset's Company.
+             */
+            cost_centre_id?: string | null;
+            /** @description Network name. */
+            hostname?: string | null;
+            /**
+             * Format: date
+             * @description Lease expiry.
+             */
+            lease_expires_on?: string | null;
+            /**
+             * Format: date
+             * @description Lease start.
+             */
+            lease_starts_on?: string | null;
+            /**
+             * Format: uuid
+             * @description Location.
+             */
+            location_id?: string | null;
+            /** @description Purchase cost as a decimal string (`"1299.00"`, at most two decimals). */
+            purchase_cost?: string | null;
+            /** @description ISO-4217 currency, required with a cost. */
+            purchase_currency?: string | null;
+            /**
+             * Format: date
+             * @description Purchase date.
+             */
+            purchase_date?: string | null;
+            /** @description Manufacturer serial number. */
+            service_tag?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier.
+             */
+            supplier_id?: string | null;
+            /**
+             * Format: date
+             * @description Warranty expiry.
+             */
+            warranty_expires_on?: string | null;
+        };
+        /** @description Retires an Asset. */
+        AssetRetireRequest: {
+            /**
+             * Format: uuid
+             * @description A retired Asset Status to move to (otherwise the status is cleared).
+             */
+            asset_status_id?: string | null;
+            /** @description Why. */
+            reason: string;
+            /**
+             * Format: date
+             * @description The day it left the estate (default today).
+             */
+            retired_on?: string | null;
+        };
+        /** @description Counts of the estate (FR-AST-005). */
+        AssetSummaryDto: {
+            /**
+             * Format: int64
+             * @description Assets in the estate.
+             */
+            active: number;
+            /** @description Active Assets per Asset Status. */
+            by_status: components["schemas"]["AssetCountDto"][];
+            /** @description Active Assets per Asset Type. */
+            by_type: components["schemas"]["AssetCountDto"][];
+            /**
+             * Format: int64
+             * @description Active Assets checked out.
+             */
+            checked_out: number;
+            /**
+             * Format: int64
+             * @description Retired Assets (not counted as active).
+             */
+            retired: number;
         };
         /** @description Assign a ticket. */
         AssignmentRequest: {
@@ -10471,6 +11148,526 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiKeyDto"];
+                };
+            };
+        };
+    };
+    list_asset_locations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"][];
+                };
+            };
+        };
+    };
+    create_asset_location: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    update_asset_location: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    list_asset_statuses: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"][];
+                };
+            };
+        };
+    };
+    create_asset_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    update_asset_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    list_asset_types: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"][];
+                };
+            };
+        };
+    };
+    create_asset_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    update_asset_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLookupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLookupDto"];
+                };
+            };
+        };
+    };
+    list_assets: {
+        parameters: {
+            query?: {
+                /** @description One Company. */
+                company_id?: string;
+                /** @description Asset Type. */
+                asset_type_id?: string;
+                /** @description Asset Status. */
+                asset_status_id?: string;
+                /** @description Location (and the Locations below it). */
+                location_id?: string;
+                /** @description Holder kind (`requester` or `analyst`), with `holder_id`. */
+                holder_kind?: string;
+                /** @description Holder, with `holder_kind`. */
+                holder_id?: string;
+                /** @description Checked out (`true`) or available (`false`). */
+                checked_out?: boolean;
+                /** @description Include retired Assets (left out by default). */
+                include_retired?: boolean;
+                /** @description Retired Assets only. */
+                retired_only?: boolean;
+                /** @description Hostname, Asset Tag or Service Tag contains. */
+                q?: string;
+                /** @description Page size (1 to 200). */
+                limit?: number;
+                /** @description Cursor. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetPage"];
+                };
+            };
+        };
+    };
+    create_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    asset_summary: {
+        parameters: {
+            query?: {
+                /** @description One Company (default: all of yours). */
+                company_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetSummaryDto"];
+                };
+            };
+        };
+    };
+    get_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    edit_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    check_in_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCheckInRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    check_out_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetCheckOutRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    list_asset_checkouts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetCheckoutDto"][];
+                };
+            };
+        };
+    };
+    asset_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetHistoryDto"][];
+                };
+            };
+        };
+    };
+    list_asset_links: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLinkDto"][];
+                };
+            };
+        };
+    };
+    link_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetLinkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetLinkDto"];
+                };
+            };
+        };
+    };
+    unlink_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                kind: string;
+                target_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    retire_asset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRetireRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDto"];
                 };
             };
         };

@@ -13,6 +13,7 @@ import { AnalystLayout } from "./routes/analyst/AnalystLayout";
 import { AdministrationLayout } from "./routes/analyst/administration/AdministrationLayout";
 import { JobsPage } from "./routes/analyst/administration/JobsPage";
 import { ModulesPage } from "./routes/analyst/administration/ModulesPage";
+import { AssetLookupsPage } from "./routes/analyst/administration/resources/AssetLookupsPage";
 import { CategoriesPage } from "./routes/analyst/administration/resources/CategoriesPage";
 import { CompaniesPage } from "./routes/analyst/administration/resources/CompaniesPage";
 import { CostCentresPage } from "./routes/analyst/administration/resources/CostCentresPage";
@@ -22,6 +23,8 @@ import { RolesPage } from "./routes/analyst/administration/resources/RolesPage";
 import { TeamsPage } from "./routes/analyst/administration/resources/TeamsPage";
 import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
 import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
+import { AssetEditor } from "./routes/analyst/assets/AssetEditor";
+import { AssetsPage } from "./routes/analyst/assets/AssetsPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
 import { Home } from "./routes/analyst/Home";
 import { ArticlePage } from "./routes/analyst/knowledge/ArticlePage";
@@ -161,6 +164,25 @@ const taskByIdRoute = createRoute({
   component: function TaskRoute() {
     const { id } = taskByIdRoute.useParams();
     return <TaskEditor key={id} id={id} />;
+  },
+});
+
+const assetsRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/assets",
+  component: AssetsPage,
+});
+const newAssetRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/assets/new",
+  component: () => <AssetEditor />,
+});
+const assetByIdRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/assets/$id",
+  component: function AssetRoute() {
+    const { id } = assetByIdRoute.useParams();
+    return <AssetEditor key={id} id={id} />;
   },
 });
 
@@ -347,6 +369,9 @@ const adminReferenceRoutes = [
   adminPage("/departments", DepartmentsPage),
   adminPage("/cost-centres", CostCentresPage),
   adminPage("/roles", RolesPage),
+  adminPage("/asset-types", () => <AssetLookupsPage kind="asset-types" />),
+  adminPage("/asset-statuses", () => <AssetLookupsPage kind="asset-statuses" />),
+  adminPage("/asset-locations", () => <AssetLookupsPage kind="asset-locations" />),
 ] as const;
 
 const portalSignInRoute = createRoute({
@@ -419,6 +444,9 @@ export const routeTree = rootRoute.addChildren([
     tasksRoute,
     newTaskRoute,
     taskByIdRoute,
+    assetsRoute,
+    newAssetRoute,
+    assetByIdRoute,
     knowledgeRoute,
     newArticleRoute,
     articleByIdRoute,

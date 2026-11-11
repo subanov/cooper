@@ -40,3 +40,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0031](0031-morning-checks-context.md) | Morning Checks: per-Company Checks, Check Dates in the instance time zone, and once-only reminders | Accepted |
 | [0032](0032-reporting-context.md) | Reporting: owning contexts count in SQL as the caller, Reporting composes; no read model | Accepted |
 | [0033](0033-attachments-storage-extraction-and-mailbox-consent.md) | S3 blob store over SigV4, background text extraction, Mailbox Consent with PKCE, and Portal Notifications | Accepted |
+| [0034](0034-assets.md) | Assets: retirement on the Asset, one open Check Out, exact money, and Suppliers by ID | Accepted |

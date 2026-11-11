@@ -1181,3 +1181,100 @@ impl cooper_notifications::handlers::UnrecordedChecksLookup for UnrecordedChecks
             .map_err(|e| e.to_string())
     }
 }
+
+/// Assets' view of Requesters, Analysts, Cost Centres, Suppliers, tickets and Contracts,
+/// through their application APIs (ADR-0034).
+pub struct AssetDirectory {
+    /// Requesters, Analysts and Cost Centres.
+    pub identity: IdentityDirectory,
+    /// Tickets.
+    pub desk: cooper_service_desk::application::ServiceDesk,
+}
+
+fn asset_err(e: impl std::fmt::Display) -> cooper_assets::ports::RepoError {
+    cooper_assets::ports::RepoError::Storage(e.to_string())
+}
+
+#[async_trait]
+impl cooper_assets::ports::Directory for AssetDirectory {
+    async fn requester_in(
+        &self,
+        tenant: TenantId,
+        id: RequesterId,
+    ) -> Result<bool, cooper_assets::ports::RepoError> {
+        match self
+            .identity
+            .identity
+            .get_requester(&system(TenantScope::single(tenant)), id)
+            .await
+        {
+            Ok(r) => Ok(r.tenant_id() == tenant && r.is_active()),
+            Err(IdentityError::NotFound(_)) => Ok(false),
+            Err(e) => Err(asset_err(e)),
+        }
+    }
+
+    async fn analyst_active(&self, id: AnalystId) -> Result<bool, cooper_assets::ports::RepoError> {
+        Directory::analyst_is_active(&self.identity, id)
+            .await
+            .map_err(asset_err)
+    }
+
+    async fn cost_centre_in(
+        &self,
+        tenant: TenantId,
+        id: uuid::Uuid,
+    ) -> Result<bool, cooper_assets::ports::RepoError> {
+        match self
+            .identity
+            .identity
+            .get_cost_centre(
+                &system(TenantScope::single(tenant)),
+                cooper_identity::domain::CostCentreId::from_uuid(id),
+            )
+            .await
+        {
+            Ok(c) => Ok(c.tenant_id() == tenant),
+            Err(IdentityError::NotFound(_)) => Ok(false),
+            Err(e) => Err(asset_err(e)),
+        }
+    }
+
+    async fn supplier_exists(
+        &self,
+        _tenant: TenantId,
+        _id: uuid::Uuid,
+    ) -> Result<bool, cooper_assets::ports::RepoError> {
+        // INTEGRATION: wire to the Contracts context's application API (a Supplier the
+        // Company may use). Until the Contracts context lands, any Supplier ID is
+        // accepted; `assets.supplier_id` has no foreign key on purpose (ADR-0034).
+        Ok(true)
+    }
+
+    async fn link_target(
+        &self,
+        principal: &Principal,
+        tenant: TenantId,
+        kind: cooper_assets::ports::LinkKind,
+        id: uuid::Uuid,
+    ) -> Result<Option<String>, cooper_assets::ports::RepoError> {
+        use cooper_assets::ports::LinkKind;
+        use cooper_service_desk::application::AppError;
+        match kind {
+            LinkKind::Ticket => match self
+                .desk
+                .ticket(principal, cooper_kernel::TicketId::from_uuid(id))
+                .await
+            {
+                Ok(d) => Ok((d.ticket.tenant_id() == tenant).then(|| d.ticket.number().to_owned())),
+                Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+                Err(e) => Err(asset_err(e)),
+            },
+            // INTEGRATION: wire to the Contracts context's application API: return the
+            // Contract Number when the Contract belongs to `tenant` and the caller may
+            // see it, `None` otherwise. Until then any Contract ID is accepted and
+            // labelled with its ID.
+            LinkKind::Contract => Ok(Some(id.to_string())),
+        }
+    }
+}

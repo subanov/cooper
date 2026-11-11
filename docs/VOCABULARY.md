@@ -205,11 +205,11 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Service Tag** | The manufacturer serial number. | `ServiceTag` | serial |
 | **Asset Type** | Configurable classification. Linked to a CMDB Class and to Field Sets. No seed values (Administrators create them). | `AssetType` | |
 | **Asset Status** | Configurable status. `is_retired` means the asset has left the estate. No seed values (Administrators create them). | `AssetStatus` | |
-| **Retire** | Remove an Asset from the estate, with a date and reason. | `Asset::retire()` | dispose, delete |
-| **Location** | Hierarchical physical location. | `AssetLocation` | site |
+| **Retire** | Remove an Asset from the estate, with a date and reason. Recorded on the Asset (`Retirement`); a retired Asset is not **active** and is left out of active counts. | `Asset::retire()`, `Retirement` | dispose, delete |
+| **Location** | Hierarchical physical location (a tree, at most six levels). | `AssetLocation` | site |
 | **Asset Field / Field Set** | Custom fields, grouped into Field Sets and assigned to Asset Types. | `AssetField`, `AssetFieldSet` | |
 | **Holder** | The Requester or Analyst who currently has an Asset. | `AssetHolder` | owner, user |
-| **Check Out / Check In** | Give an Asset to, or take it back from, a Holder. Logged. | `AssetCheckout` | lend |
+| **Check Out / Check In** | Give an Asset to, or take it back from, a Holder. Logged; at most one open Check Out per Asset. | `AssetCheckout` | lend |
 | **Asset Connection** | A physical attachment between assets (for example a monitor to a PC). | `AssetConnection` | |
 | **Inventory Source** | Where asset data comes from: agent/REST push, Intune, Proxmox, VMware Cloud Director, Hyper-V, vCenter. | `InventorySource` | discovery |
 | **Asset Import** | A CSV or API import with mappings. Run modes: `live`, `preview`. Entry actions (fixed): create, update, unchanged, conflict, skip, error, deactivate. | `AssetImportProfile`, `AssetImportRun` | |

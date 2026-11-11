@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO asset_checkouts (id, tenant_id, asset_id, holder_kind, holder_id, checked_out_at, checked_out_by_kind,\n                                          checked_out_by_id, checkout_note, due_back_on)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Text",
+        "Uuid",
+        "Text",
+        "Date"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "646a14f3d87551d3039e3ab13cb4c954fb761a9cc1ebf9a49a7c83dd56a56eca"
+}

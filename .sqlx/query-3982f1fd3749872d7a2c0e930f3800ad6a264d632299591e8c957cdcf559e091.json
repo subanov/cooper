@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO assets (id, tenant_id, hostname, service_tag, asset_tag, asset_type_id, asset_status_id, location_id,\n                                 supplier_id, cost_centre_id, purchase_date, purchase_cost, purchase_currency,\n                                 warranty_expires_on, lease_starts_on, lease_expires_on, created_by_kind, created_by_id,\n                                 created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::bigint / 100.0, $13, $14, $15, $16, $17, $18, $19, $20)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Date",
+        "Int8",
+        "Text",
+        "Date",
+        "Date",
+        "Date",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3982f1fd3749872d7a2c0e930f3800ad6a264d632299591e8c957cdcf559e091"
+}
