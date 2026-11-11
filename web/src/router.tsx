@@ -7,12 +7,14 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import type { LookupKind } from "./features/administration/resources";
+import { parseMonth } from "./features/calendar/month";
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
 import { AdministrationLayout } from "./routes/analyst/administration/AdministrationLayout";
 import { JobsPage } from "./routes/analyst/administration/JobsPage";
 import { ModulesPage } from "./routes/analyst/administration/ModulesPage";
+import { CalendarCategoriesPage } from "./routes/analyst/administration/resources/CalendarCategoriesPage";
 import { CategoriesPage } from "./routes/analyst/administration/resources/CategoriesPage";
 import { CompaniesPage } from "./routes/analyst/administration/resources/CompaniesPage";
 import { CostCentresPage } from "./routes/analyst/administration/resources/CostCentresPage";
@@ -23,6 +25,7 @@ import { TeamsPage } from "./routes/analyst/administration/resources/TeamsPage";
 import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
 import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
 import { ComingSoon } from "./routes/analyst/ComingSoon";
+import { CalendarPage } from "./routes/analyst/calendar/CalendarPage";
 import { Home } from "./routes/analyst/Home";
 import { ArticlePage } from "./routes/analyst/knowledge/ArticlePage";
 import { KnowledgePage } from "./routes/analyst/knowledge/KnowledgePage";
@@ -161,6 +164,22 @@ const taskByIdRoute = createRoute({
   component: function TaskRoute() {
     const { id } = taskByIdRoute.useParams();
     return <TaskEditor key={id} id={id} />;
+  },
+});
+
+/** The IT Calendar; the month and Category filter are in the URL (FR-CAL-001). */
+const calendarRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/calendar",
+  validateSearch: (search: Record<string, unknown>): { month?: string; category?: string } => ({
+    ...(typeof search.month === "string" ? { month: search.month } : {}),
+    ...(typeof search.category === "string" && search.category
+      ? { category: search.category }
+      : {}),
+  }),
+  component: function CalendarRoute() {
+    const { month, category } = calendarRoute.useSearch();
+    return <CalendarPage month={parseMonth(month)} {...(category ? { category } : {})} />;
   },
 });
 
@@ -347,6 +366,7 @@ const adminReferenceRoutes = [
   adminPage("/departments", DepartmentsPage),
   adminPage("/cost-centres", CostCentresPage),
   adminPage("/roles", RolesPage),
+  adminPage("/calendar-categories", CalendarCategoriesPage),
 ] as const;
 
 const portalSignInRoute = createRoute({
@@ -419,6 +439,7 @@ export const routeTree = rootRoute.addChildren([
     tasksRoute,
     newTaskRoute,
     taskByIdRoute,
+    calendarRoute,
     knowledgeRoute,
     newArticleRoute,
     articleByIdRoute,

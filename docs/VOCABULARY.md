@@ -293,8 +293,9 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 
 | Term | Definition | Code | Avoid |
 |---|---|---|---|
-| **Calendar Event** | An entry on the IT calendar, with a Category (colour). Can be generated, for example from asset warranty expiry or contract notice dates. | `CalendarEvent` | appointment |
-| **Calendar Category** | Colour-coded event category. | `CalendarCategory` | |
+| **Calendar Event** | An entry on the IT calendar of one Company, with a Category (colour): whole days, or a start and end time. Can be **generated** from another record's date (contract Notice Date and end date, asset warranty and lease expiry); generated events are read-only and link to their **Source**. | `CalendarEvent` | appointment |
+| **Calendar Category** | Colour-coded event category. A **system category** (`contracts`, `assets`) holds the generated events of one source; it stays active and takes no manual events. | `CalendarCategory` | |
+| **Source** (of a generated event) | The record a generated Calendar Event comes from (Contract or Asset) and which of its dates it marks. | `EventSource`, `SourceKind`, `SourceDate` | origin (that is a ticket Origin) |
 | **Calendar Connection** | A link to an external calendar (Microsoft, Google). | `CalendarConnection` | |
 | **Enrolment** | An Analyst's calendar sync setting. Mode (fixed): `off`, `push`, `feed`. Task mode (fixed): `off`, `work`, `due`, `both`. | `CalendarEnrolment` | subscription |
 

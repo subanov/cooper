@@ -193,6 +193,8 @@ pub struct AppState {
     pub morning_checks: cooper_morning_checks::api::MorningChecksApi,
     /// Reporting API state.
     pub reporting: cooper_reporting::api::ReportingApi,
+    /// Calendar API state.
+    pub calendar: cooper_calendar::api::CalendarApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
 }
@@ -212,6 +214,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_service_status::application::capabilities::ALL)
         .chain(cooper_morning_checks::application::capabilities::ALL)
         .chain(cooper_reporting::application::capabilities::ALL)
+        .chain(cooper_calendar::application::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -272,6 +275,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_reporting::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Reporting)),
+        )
+        .chain(
+            cooper_calendar::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Calendar)),
         )
         .collect()
 }
@@ -491,6 +499,16 @@ impl AppState {
                 public_url: security.public_url.clone(),
             }),
         };
+        let calendar = cooper_calendar::api::CalendarApi {
+            service: cooper_calendar::application::CalendarService::new(
+                cooper_calendar::application::CalendarPorts {
+                    store: Arc::new(cooper_calendar::infrastructure::PgCalendarStore::new(
+                        pool.clone(),
+                    )),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let problems = cooper_problem_management::api::ProblemsApi {
             service: problem_service,
         };
@@ -521,6 +539,7 @@ impl AppState {
             service_status,
             morning_checks,
             reporting,
+            calendar,
             service_desk: ServiceDeskApi {
                 service: desk,
                 blobs,
@@ -597,6 +616,9 @@ impl AppState {
             Arc::new(cooper_notifications::email::ReplyMailer {
                 outbox: cooper_notifications::email::EmailOutbox::new(self.pool.clone()),
             }),
+            Arc::new(cooper_calendar::handlers::GeneratedEventsSync {
+                calendar: self.calendar.service.clone(),
+            }),
         ]
     }
 }
@@ -631,6 +653,12 @@ impl AppState {
             Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
         }
         poller
+    }
+}
+
+impl FromRef<AppState> for cooper_calendar::api::CalendarApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.calendar.clone()
     }
 }
 
@@ -718,6 +746,7 @@ mod tests {
                 + cooper_service_status::application::capabilities::ALL.len()
                 + cooper_morning_checks::application::capabilities::ALL.len()
                 + cooper_reporting::application::capabilities::ALL.len()
+                + cooper_calendar::application::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

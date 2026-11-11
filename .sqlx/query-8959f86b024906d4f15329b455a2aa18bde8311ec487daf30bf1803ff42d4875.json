@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE calendar_sources SET synced_event_id = $4, synced_at = $5\n                 WHERE tenant_id = $1 AND source_kind = $2 AND source_id = $3\n                   AND synced_at = $6 AND synced_event_id = $7",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8959f86b024906d4f15329b455a2aa18bde8311ec487daf30bf1803ff42d4875"
+}

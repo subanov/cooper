@@ -281,7 +281,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-AST-009 | Inventory connectors: Microsoft Intune, Proxmox, VMware vCenter / Cloud Director, Hyper-V. | C | P4 |
 | FR-AST-010 | **Reconciliation**: possible duplicates or conflicts become Review Items (open, merged, different, ignored, resolved). **Protected Fields** are never overwritten by imports. | C | P4 |
 | FR-AST-011 | Print **Asset Labels** with QR codes. Scanning a code opens the Asset. | C | P4 |
-| FR-AST-012 | Warranty and lease expiry create Calendar Events and notifications ahead of time. | S | P3 |
+| FR-AST-012 | Warranty and lease expiry create Calendar Events and notifications ahead of time. The Calendar Events come from `asset.dates_changed` (FR-CAL-002, ADR-0034). | S | P3 |
 | FR-AST-013 | **Software** inventory: distinct Applications (name, publisher) and Installations per Asset with version. | S | P3 |
 | FR-AST-014 | **Licences** (type, key, quantity, renewal date, notice period, cost, currency, status), with compliance shown as installations vs. quantity. | S | P3 |
 | FR-AST-015 | Asset and software dashboards (by type, status, OS, manufacturer, model; top installed; publisher distribution). | C | P4 |
@@ -303,7 +303,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 |---|---|---|---|
 | FR-CON-001 | Manage **Suppliers** (legal name, trading name, registration number, VAT number, type, status) and their **Contacts**. | M | P3 |
 | FR-CON-002 | Manage **Contracts**: number, title, supplier (or customer Company/Requester), owner, status, start and end, notice period, value, currency, payment schedule, cost centre, DMS link. | M | P3 |
-| FR-CON-003 | Cooper calculates the **Notice Date**. Calendar Events and notifications are generated ahead of the notice date and end date. | M | P3 |
+| FR-CON-003 | Cooper calculates the **Notice Date**. Calendar Events and notifications are generated ahead of the notice date and end date. The Calendar Events come from `contract.dates_changed` (FR-CAL-002, ADR-0034). | M | P3 |
 | FR-CON-004 | Data protection fields: personal data transferred, DPIA required, DPIA completed date and link. | S | P3 |
 | FR-CON-005 | Configurable **Contract Terms** tabs with values per contract. | C | P3 |
 | FR-CON-006 | Link Contracts to Assets and Tasks. | S | P3 |
@@ -313,8 +313,8 @@ come from [VOCABULARY.md](VOCABULARY.md).
 
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
-| FR-CAL-001 | An IT **Calendar** with manual events and colour-coded **Calendar Categories**. | M | P3 |
-| FR-CAL-002 | The calendar shows generated events: change windows, planned maintenance, ticket scheduled work, task due dates, warranty, lease and contract dates. | S | P3 |
+| FR-CAL-001 | An IT **Calendar** with manual events and colour-coded **Calendar Categories**. Each Calendar Event belongs to a Company and has a title, description, category, optional location, and either whole days (start and end date) or a start and end time; the end is never before the start. Calendar Categories have a unique name, a `#rrggbb` colour and an active flag; only active, non-system categories take new events; no categories are seeded. Analysts list the events of a range of days (at most 366) of the Companies they see, optionally for one Company or category, and view the Calendar a month at a time. Deviation from FreeITSM: events belong to a Company; the end must not be before the start; all-day events are dates and timed events UTC instants, never server-local times (ADR-0034). | M | P3 |
+| FR-CAL-002 | The calendar shows generated events: change windows, planned maintenance, ticket scheduled work, task due dates, warranty, lease and contract dates. Contract Notice Dates and end dates, and asset warranty and lease expiry, are generated from the Contracts and Assets contexts' `contract.dates_changed` and `asset.dates_changed` events: one all-day event per date, in a system Calendar Category per source, removed when the date is cleared or the record is inactive. Generated events are read-only and link to their source (ADR-0034). Change windows, planned maintenance, scheduled work and task due dates are not generated yet. | S | P3 |
 | FR-CAL-003 | Analysts can **Enrol** to sync their ticket work and task dates to Microsoft 365 or Google calendars (push), or subscribe to an iCal feed. | C | P4 |
 
 ## 18. Forms (FRM)

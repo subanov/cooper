@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT synced_at, synced_event_id FROM calendar_sources\n             WHERE tenant_id = $1 AND source_kind = $2 AND source_id = $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "synced_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "calendar_sources",
+            "name": "synced_at"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "synced_event_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "calendar_sources",
+            "name": "synced_event_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "566bb75bfc0a085048f9f63241130676039667244d3b3d040810de1e2da2d442"
+}

@@ -747,6 +747,279 @@
         }
       }
     },
+    "/api/v1/calendar/categories": {
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Calendar Categories, Administrators' first, by name (FR-CAL-001).",
+        "operationId": "list_calendar_categories",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarCategoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Adds a Calendar Category (needs `calendar.configure`).",
+        "operationId": "create_calendar_category",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarCategoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarCategoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/categories/{id}": {
+      "put": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Changes a Calendar Category (needs `calendar.configure`). System categories may be\nrenamed and recoloured but not deactivated.",
+        "operationId": "update_calendar_category",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarCategoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarCategoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/events": {
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Calendar Events of the Companies you can see touching a range of days, manual and\ngenerated (FR-CAL-001, FR-CAL-002).",
+        "operationId": "list_calendar_events",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day (required).",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day, inclusive (required; at most 366 days after `from`). Timed events are\nmatched on their UTC days.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "description": "Only this Calendar Category.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Adds a manual Calendar Event (needs `calendar.create`).",
+        "operationId": "create_calendar_event",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/calendar/events/{id}": {
+      "get": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "One Calendar Event.",
+        "operationId": "get_calendar_event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Changes a manual Calendar Event (needs `calendar.update`; generated events: `409`).",
+        "operationId": "edit_calendar_event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarEventRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Calendar"
+        ],
+        "summary": "Deletes a manual Calendar Event (needs `calendar.update`; generated events: `409`).",
+        "operationId": "delete_calendar_event",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
     "/api/v1/capabilities": {
       "get": {
         "tags": [
@@ -14103,6 +14376,301 @@
           }
         }
       },
+      "CalendarCategoryDto": {
+        "type": "object",
+        "description": "A Calendar Category.",
+        "required": [
+          "id",
+          "name",
+          "colour",
+          "is_active"
+        ],
+        "properties": {
+          "colour": {
+            "type": "string",
+            "description": "`#rrggbb`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Offered for new events."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "system_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Made by Cooper for generated events (`contracts`, `assets`); not offered for\nmanual events and never inactive."
+          }
+        }
+      },
+      "CalendarCategoryRequest": {
+        "type": "object",
+        "description": "Creates or changes a Calendar Category.",
+        "required": [
+          "name",
+          "colour"
+        ],
+        "properties": {
+          "colour": {
+            "type": "string",
+            "description": "`#rrggbb`."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Offered for new events."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name (1 to 50 characters, unique)."
+          }
+        }
+      },
+      "CalendarEventDto": {
+        "type": "object",
+        "description": "A Calendar Event.",
+        "required": [
+          "id",
+          "company_id",
+          "title",
+          "description",
+          "category_id",
+          "category_name",
+          "colour",
+          "all_day",
+          "editable",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "all_day": {
+            "type": "boolean",
+            "description": "Whole days (`start_date`..=`end_date`) rather than times (`starts_at`..`ends_at`)."
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Category."
+          },
+          "category_name": {
+            "type": "string",
+            "description": "Category name."
+          },
+          "colour": {
+            "type": "string",
+            "description": "Category colour, `#rrggbb`."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "editable": {
+            "type": "boolean",
+            "description": "Whether the event can be edited and deleted (manual events)."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: last day (inclusive)."
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: end (UTC)."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where."
+          },
+          "source": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CalendarEventSourceDto",
+                "description": "Source of a generated event; generated events are read-only."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: first day."
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: start (UTC)."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last changed."
+          }
+        }
+      },
+      "CalendarEventList": {
+        "type": "object",
+        "description": "Events of a range.",
+        "required": [
+          "items",
+          "truncated"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventDto"
+            },
+            "description": "Events by start (all-day events first on a day)."
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "More events matched than returned (2000); narrow the range or filter."
+          }
+        }
+      },
+      "CalendarEventRequest": {
+        "type": "object",
+        "description": "Creates or changes a manual Calendar Event.",
+        "required": [
+          "title",
+          "category_id"
+        ],
+        "properties": {
+          "all_day": {
+            "type": "boolean",
+            "description": "Whole days (`start_date`, `end_date`) or times (`starts_at`, `ends_at`)."
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "An active Calendar Category that is not a system one."
+          },
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "end_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: last day (default `start_date`)."
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: end (at or after the start)."
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where."
+          },
+          "start_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "All-day: first day."
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Timed: start."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title (1 to 255 characters)."
+          }
+        }
+      },
+      "CalendarEventSourceDto": {
+        "type": "object",
+        "description": "The record a generated Calendar Event comes from.",
+        "required": [
+          "kind",
+          "id",
+          "date"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Which date: `notice_date`, `end_date`, `warranty_expires_on` or `lease_expires_on`."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Contract or Asset."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`contract` or `asset`."
+          }
+        }
+      },
       "CatalogueEntryDto": {
         "type": "object",
         "description": "An entry of the Portal Catalogue.",
@@ -24375,6 +24943,10 @@
     {
       "name": "Morning Checks",
       "description": "Check Groups, Checks, Check Statuses, daily Check Results, Result Links, history and export"
+    },
+    {
+      "name": "Calendar",
+      "description": "The IT Calendar: Calendar Events (manual and generated from contract and asset dates) and Calendar Categories"
     },
     {
       "name": "Reporting",

@@ -18,6 +18,7 @@ export function useInvalidateAdmin() {
         "morning-checks",
         "tasks",
         "knowledge",
+        "calendar",
       ].map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
     );
   };

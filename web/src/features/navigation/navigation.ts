@@ -8,6 +8,7 @@ export interface NavItem {
     | "/"
     | "/tickets"
     | "/tasks"
+    | "/calendar"
     | "/knowledge"
     | "/service-status"
     | "/morning-checks"
@@ -37,6 +38,13 @@ export const NAV_ITEMS: readonly NavItem[] = [
     shortcut: "t",
   },
   { to: "/tasks", label: "nav.tasks", module: "tasks", capability: "tasks.read", shortcut: "w" },
+  {
+    to: "/calendar",
+    label: "nav.calendar",
+    module: "calendar",
+    capability: "calendar.read",
+    shortcut: "c",
+  },
   {
     to: "/knowledge",
     label: "nav.knowledge",
