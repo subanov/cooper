@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import type { LookupKind } from "./features/administration/resources";
 import type { ContractLookupKind } from "./features/contracts/api";
+import { parseMonth } from "./features/calendar/month";
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
@@ -15,6 +16,7 @@ import { AdministrationLayout } from "./routes/analyst/administration/Administra
 import { JobsPage } from "./routes/analyst/administration/JobsPage";
 import { ModulesPage } from "./routes/analyst/administration/ModulesPage";
 import { AssetLookupsPage } from "./routes/analyst/administration/resources/AssetLookupsPage";
+import { CalendarCategoriesPage } from "./routes/analyst/administration/resources/CalendarCategoriesPage";
 import { CategoriesPage } from "./routes/analyst/administration/resources/CategoriesPage";
 import { CompaniesPage } from "./routes/analyst/administration/resources/CompaniesPage";
 import { ContractLookupPage } from "./routes/analyst/administration/resources/ContractLookupPage";
@@ -32,6 +34,7 @@ import { ContractEditor } from "./routes/analyst/contracts/ContractEditor";
 import { ContractsPage } from "./routes/analyst/contracts/ContractsPage";
 import { SupplierEditor } from "./routes/analyst/contracts/SupplierEditor";
 import { SuppliersPage } from "./routes/analyst/contracts/SuppliersPage";
+import { CalendarPage } from "./routes/analyst/calendar/CalendarPage";
 import { Home } from "./routes/analyst/Home";
 import { ArticlePage } from "./routes/analyst/knowledge/ArticlePage";
 import { KnowledgePage } from "./routes/analyst/knowledge/KnowledgePage";
@@ -227,6 +230,21 @@ const supplierByIdRoute = createRoute({
     return <SupplierEditor key={id} id={id} />;
   },
 });
+/** The IT Calendar; the month and Category filter are in the URL (FR-CAL-001). */
+const calendarRoute = createRoute({
+  getParentRoute: () => analystRoute,
+  path: "/calendar",
+  validateSearch: (search: Record<string, unknown>): { month?: string; category?: string } => ({
+    ...(typeof search.month === "string" ? { month: search.month } : {}),
+    ...(typeof search.category === "string" && search.category
+      ? { category: search.category }
+      : {}),
+  }),
+  component: function CalendarRoute() {
+    const { month, category } = calendarRoute.useSearch();
+    return <CalendarPage month={parseMonth(month)} {...(category ? { category } : {})} />;
+  },
+});
 
 const knowledgeRoute = createRoute({
   getParentRoute: () => analystRoute,
@@ -419,6 +437,7 @@ const adminReferenceRoutes = [
   adminPage("/supplier-statuses", contractLookupPage("supplier-statuses")),
   adminPage("/contract-statuses", contractLookupPage("contract-statuses")),
   adminPage("/payment-schedules", contractLookupPage("payment-schedules")),
+  adminPage("/calendar-categories", CalendarCategoriesPage),
 ] as const;
 
 const portalSignInRoute = createRoute({
@@ -500,6 +519,7 @@ export const routeTree = rootRoute.addChildren([
     suppliersRoute,
     newSupplierRoute,
     supplierByIdRoute,
+    calendarRoute,
     knowledgeRoute,
     newArticleRoute,
     articleByIdRoute,

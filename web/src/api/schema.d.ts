@@ -550,6 +550,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/calendar/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calendar Categories, Administrators' first, by name (FR-CAL-001). */
+        get: operations["list_calendar_categories"];
+        put?: never;
+        /** Adds a Calendar Category (needs `calendar.configure`). */
+        post: operations["create_calendar_category"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Changes a Calendar Category (needs `calendar.configure`). System categories may be
+         *     renamed and recoloured but not deactivated.
+         */
+        put: operations["update_calendar_category"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calendar Events of the Companies you can see touching a range of days, manual and
+         *     generated (FR-CAL-001, FR-CAL-002).
+         */
+        get: operations["list_calendar_events"];
+        put?: never;
+        /** Adds a manual Calendar Event (needs `calendar.create`). */
+        post: operations["create_calendar_event"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/calendar/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Calendar Event. */
+        get: operations["get_calendar_event"];
+        /** Changes a manual Calendar Event (needs `calendar.update`; generated events: `409`). */
+        put: operations["edit_calendar_event"];
+        post?: never;
+        /** Deletes a manual Calendar Event (needs `calendar.update`; generated events: `409`). */
+        delete: operations["delete_calendar_event"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/capabilities": {
         parameters: {
             query?: never;
@@ -5893,6 +5971,157 @@ export interface components {
              * @description The ticket.
              */
             ticket_id: string;
+        };
+        /** @description A Calendar Category. */
+        CalendarCategoryDto: {
+            /** @description `#rrggbb`. */
+            colour: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Offered for new events. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * @description Made by Cooper for generated events (`contracts`, `assets`); not offered for
+             *     manual events and never inactive.
+             */
+            system_key?: string | null;
+        };
+        /** @description Creates or changes a Calendar Category. */
+        CalendarCategoryRequest: {
+            /** @description `#rrggbb`. */
+            colour: string;
+            /** @description Offered for new events. */
+            is_active?: boolean;
+            /** @description Name (1 to 50 characters, unique). */
+            name: string;
+        };
+        /** @description A Calendar Event. */
+        CalendarEventDto: {
+            /** @description Whole days (`start_date`..=`end_date`) rather than times (`starts_at`..`ends_at`). */
+            all_day: boolean;
+            /**
+             * Format: uuid
+             * @description Category.
+             */
+            category_id: string;
+            /** @description Category name. */
+            category_name: string;
+            /** @description Category colour, `#rrggbb`. */
+            colour: string;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description Created.
+             */
+            created_at: string;
+            /** @description Description. */
+            description: string;
+            /** @description Whether the event can be edited and deleted (manual events). */
+            editable: boolean;
+            /**
+             * Format: date
+             * @description All-day: last day (inclusive).
+             */
+            end_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: end (UTC).
+             */
+            ends_at?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Where. */
+            location?: string | null;
+            source?: components["schemas"]["CalendarEventSourceDto"] | null;
+            /**
+             * Format: date
+             * @description All-day: first day.
+             */
+            start_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: start (UTC).
+             */
+            starts_at?: string | null;
+            /** @description Title. */
+            title: string;
+            /**
+             * Format: date-time
+             * @description Last changed.
+             */
+            updated_at: string;
+        };
+        /** @description Events of a range. */
+        CalendarEventList: {
+            /** @description Events by start (all-day events first on a day). */
+            items: components["schemas"]["CalendarEventDto"][];
+            /** @description More events matched than returned (2000); narrow the range or filter. */
+            truncated: boolean;
+        };
+        /** @description Creates or changes a manual Calendar Event. */
+        CalendarEventRequest: {
+            /** @description Whole days (`start_date`, `end_date`) or times (`starts_at`, `ends_at`). */
+            all_day?: boolean;
+            /**
+             * Format: uuid
+             * @description An active Calendar Category that is not a system one.
+             */
+            category_id: string;
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /**
+             * Format: date
+             * @description All-day: last day (default `start_date`).
+             */
+            end_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: end (at or after the start).
+             */
+            ends_at?: string | null;
+            /** @description Where. */
+            location?: string | null;
+            /**
+             * Format: date
+             * @description All-day: first day.
+             */
+            start_date?: string | null;
+            /**
+             * Format: date-time
+             * @description Timed: start.
+             */
+            starts_at?: string | null;
+            /** @description Title (1 to 255 characters). */
+            title: string;
+        };
+        /** @description The record a generated Calendar Event comes from. */
+        CalendarEventSourceDto: {
+            /** @description Which date: `notice_date`, `end_date`, `warranty_expires_on` or `lease_expires_on`. */
+            date: string;
+            /**
+             * Format: uuid
+             * @description The Contract or Asset.
+             */
+            id: string;
+            /** @description `contract` or `asset`. */
+            kind: string;
         };
         /** @description An entry of the Portal Catalogue. */
         CatalogueEntryDto: {
@@ -12434,6 +12663,192 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["JobDto"];
                 };
+            };
+        };
+    };
+    list_calendar_categories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarCategoryDto"][];
+                };
+            };
+        };
+    };
+    create_calendar_category: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarCategoryRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarCategoryDto"];
+                };
+            };
+        };
+    };
+    update_calendar_category: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarCategoryRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarCategoryDto"];
+                };
+            };
+        };
+    };
+    list_calendar_events: {
+        parameters: {
+            query: {
+                /** @description First day (required). */
+                from: string;
+                /**
+                 * @description Last day, inclusive (required; at most 366 days after `from`). Timed events are
+                 *     matched on their UTC days.
+                 */
+                to: string;
+                /** @description Only this Company. */
+                company_id?: string;
+                /** @description Only this Calendar Category. */
+                category_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventList"];
+                };
+            };
+        };
+    };
+    create_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventDto"];
+                };
+            };
+        };
+    };
+    get_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventDto"];
+                };
+            };
+        };
+    };
+    edit_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalendarEventRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarEventDto"];
+                };
+            };
+        };
+    };
+    delete_calendar_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

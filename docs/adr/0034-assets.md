@@ -58,10 +58,12 @@ Three things needed a decision:
   are both present or both absent.
 - **Suppliers and Contracts by ID.** `supplier_id` has no foreign key: the Contracts
   context owns Suppliers. The application checks a Supplier through the `Directory`
-  port (`supplier_exists`), and Contract links through `link_target`. Until the
-  Contracts context is wired, `apps/cooper-server/src/adapters.rs` accepts any ID there
-  (marked `INTEGRATION:`). Ticket links go through the service desk API: the ticket must
-  be visible to the caller and belong to the Asset's Company.
+  port (`supplier_exists`), and Contract links through `link_target`; the adapter in
+  `apps/cooper-server/src/adapters.rs` asks the Contracts application API (ADR-0035):
+  the Supplier must belong to the Asset's Company, and a linked Contract must belong to
+  it too and be readable by the caller (`contracts.read`), and is labelled with its
+  Contract Number. Ticket links go through the service desk API: the ticket must be
+  visible to the caller and belong to the Asset's Company.
 - **Links** (`asset_links`) are `ticket` or `contract`. Links to CIs arrive with the
   CMDB (FR-CMD-005).
 - **History.** Every mutation writes the Asset's audit entries in the same transaction:
@@ -80,7 +82,7 @@ Three things needed a decision:
 - Retired Assets cannot drift back into the estate by a status edit, and every
   retirement has a date and a reason.
 - One Check Out per Asset holds even under concurrent requests.
-- The Contracts integration is two adapter methods; until then Supplier and Contract
-  IDs are not verified (a Contract link is labelled with its ID).
+- The Contracts integration is two adapter methods, so Assets never read Contracts
+  tables.
 - Custom Asset Fields, imports, inventory, software, licences and labels (FR-AST-003,
   -007 to -015) are not part of this decision.

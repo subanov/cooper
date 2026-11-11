@@ -42,3 +42,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0033](0033-attachments-storage-extraction-and-mailbox-consent.md) | S3 blob store over SigV4, background text extraction, Mailbox Consent with PKCE, and Portal Notifications | Accepted |
 | [0034](0034-assets.md) | Assets: retirement on the Asset, one open Check Out, exact money, and Suppliers by ID | Accepted |
 | [0035](0035-contracts.md) | Contracts: per-Company Suppliers and Contracts, a calculated Notice Date, a Calendar event contract and once-only reminders | Accepted |
+| [0036](0036-calendar-context.md) | Calendar: per-Company events, instance-wide categories, and read-only events generated from other contexts' outbox events | Accepted |

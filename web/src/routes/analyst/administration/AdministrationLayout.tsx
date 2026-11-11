@@ -55,6 +55,10 @@ const SECTIONS: readonly Section[] = [
       { to: "/administration/payment-schedules", label: "admin.paymentSchedules" },
     ],
   },
+  {
+    heading: "admin.group.calendar",
+    links: [{ to: "/administration/calendar-categories", label: "admin.calendarCategories" }],
+  },
 ];
 
 /** Administration (FR-SYS-001 to FR-SYS-003): a sectioned menu beside the chosen page. */

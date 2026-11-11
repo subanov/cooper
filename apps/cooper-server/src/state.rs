@@ -193,6 +193,8 @@ pub struct AppState {
     pub morning_checks: cooper_morning_checks::api::MorningChecksApi,
     /// Reporting API state.
     pub reporting: cooper_reporting::api::ReportingApi,
+    /// Calendar API state.
+    pub calendar: cooper_calendar::api::CalendarApi,
     /// Contracts API state.
     pub contracts: cooper_contracts::api::ContractsApi,
     /// Assets API state.
@@ -212,6 +214,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_problem_management::application::capabilities::ALL)
         .chain(cooper_change_management::application::capabilities::ALL)
         .chain(cooper_knowledge::application::capabilities::ALL)
+        .chain(cooper_calendar::application::capabilities::ALL)
         .chain(cooper_tasks::application::capabilities::ALL)
         .chain(cooper_service_status::application::capabilities::ALL)
         .chain(cooper_contracts::application::capabilities::ALL)
@@ -289,6 +292,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_contracts::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Contracts)),
+        )
+        .chain(
+            cooper_calendar::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Calendar)),
         )
         .collect()
 }
@@ -500,22 +508,6 @@ impl AppState {
                 },
             ),
         };
-        let assets = cooper_assets::api::AssetsApi {
-            service: cooper_assets::application::AssetService::new(
-                cooper_assets::application::AssetPorts {
-                    assets: Arc::new(cooper_assets::infrastructure::PgAssetStore::new(
-                        pool.clone(),
-                    )),
-                    directory: Arc::new(crate::adapters::AssetDirectory {
-                        identity: IdentityDirectory {
-                            identity: service.clone(),
-                        },
-                        desk: desk.clone(),
-                    }),
-                    clock: clock.clone(),
-                },
-            ),
-        };
         let contracts = cooper_contracts::api::ContractsApi {
             service: cooper_contracts::application::ContractsService::new(
                 cooper_contracts::application::ContractsPorts {
@@ -534,6 +526,23 @@ impl AppState {
                 },
             ),
         };
+        let assets = cooper_assets::api::AssetsApi {
+            service: cooper_assets::application::AssetService::new(
+                cooper_assets::application::AssetPorts {
+                    assets: Arc::new(cooper_assets::infrastructure::PgAssetStore::new(
+                        pool.clone(),
+                    )),
+                    directory: Arc::new(crate::adapters::AssetDirectory {
+                        identity: IdentityDirectory {
+                            identity: service.clone(),
+                        },
+                        desk: desk.clone(),
+                        contracts: contracts.service.clone(),
+                    }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let changes = cooper_change_management::api::ChangesApi {
             service: change_service,
             blobs: blobs.clone(),
@@ -541,6 +550,16 @@ impl AppState {
                 admin: admin.clone(),
                 public_url: security.public_url.clone(),
             }),
+        };
+        let calendar = cooper_calendar::api::CalendarApi {
+            service: cooper_calendar::application::CalendarService::new(
+                cooper_calendar::application::CalendarPorts {
+                    store: Arc::new(cooper_calendar::infrastructure::PgCalendarStore::new(
+                        pool.clone(),
+                    )),
+                    clock: clock.clone(),
+                },
+            ),
         };
         let problems = cooper_problem_management::api::ProblemsApi {
             service: problem_service,
@@ -572,6 +591,7 @@ impl AppState {
             service_status,
             morning_checks,
             reporting,
+            calendar,
             contracts,
             assets,
             service_desk: ServiceDeskApi {
@@ -656,6 +676,9 @@ impl AppState {
             Arc::new(cooper_notifications::email::ReplyMailer {
                 outbox: cooper_notifications::email::EmailOutbox::new(self.pool.clone()),
             }),
+            Arc::new(cooper_calendar::handlers::GeneratedEventsSync {
+                calendar: self.calendar.service.clone(),
+            }),
         ]
     }
 }
@@ -702,6 +725,12 @@ impl FromRef<AppState> for cooper_assets::api::AssetsApi {
 impl FromRef<AppState> for cooper_contracts::api::ContractsApi {
     fn from_ref(state: &AppState) -> Self {
         state.contracts.clone()
+    }
+}
+
+impl FromRef<AppState> for cooper_calendar::api::CalendarApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.calendar.clone()
     }
 }
 
@@ -789,6 +818,7 @@ mod tests {
                 + cooper_service_status::application::capabilities::ALL.len()
                 + cooper_morning_checks::application::capabilities::ALL.len()
                 + cooper_reporting::application::capabilities::ALL.len()
+                + cooper_calendar::application::capabilities::ALL.len()
                 + cooper_contracts::application::capabilities::ALL.len()
                 + cooper_assets::application::capabilities::ALL.len()
         );

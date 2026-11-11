@@ -1189,6 +1189,8 @@ pub struct AssetDirectory {
     pub identity: IdentityDirectory,
     /// Tickets.
     pub desk: cooper_service_desk::application::ServiceDesk,
+    /// Suppliers and Contracts.
+    pub contracts: cooper_contracts::application::ContractsService,
 }
 
 fn asset_err(e: impl std::fmt::Display) -> cooper_assets::ports::RepoError {
@@ -1242,13 +1244,17 @@ impl cooper_assets::ports::Directory for AssetDirectory {
 
     async fn supplier_exists(
         &self,
-        _tenant: TenantId,
-        _id: uuid::Uuid,
+        tenant: TenantId,
+        id: uuid::Uuid,
     ) -> Result<bool, cooper_assets::ports::RepoError> {
-        // INTEGRATION: wire to the Contracts context's application API (a Supplier the
-        // Company may use). Until the Contracts context lands, any Supplier ID is
-        // accepted; `assets.supplier_id` has no foreign key on purpose (ADR-0034).
-        Ok(true)
+        self.contracts
+            .supplier_exists(
+                &TenantScope::single(tenant),
+                tenant,
+                cooper_contracts::domain::SupplierId::from_uuid(id),
+            )
+            .await
+            .map_err(asset_err)
     }
 
     async fn link_target(
@@ -1270,11 +1276,23 @@ impl cooper_assets::ports::Directory for AssetDirectory {
                 Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
                 Err(e) => Err(asset_err(e)),
             },
-            // INTEGRATION: wire to the Contracts context's application API: return the
-            // Contract Number when the Contract belongs to `tenant` and the caller may
-            // see it, `None` otherwise. Until then any Contract ID is accepted and
-            // labelled with its ID.
-            LinkKind::Contract => Ok(Some(id.to_string())),
+            // A Contract of the same Company that the caller may read.
+            LinkKind::Contract => {
+                if !principal.can("contracts.read") {
+                    return Ok(None);
+                }
+                let summary = self
+                    .contracts
+                    .contract_summary(
+                        principal.scope(),
+                        cooper_contracts::domain::ContractId::from_uuid(id),
+                    )
+                    .await
+                    .map_err(asset_err)?;
+                Ok(summary
+                    .filter(|c| c.tenant_id == tenant)
+                    .map(|c| c.contract_number))
+            }
         }
     }
 }

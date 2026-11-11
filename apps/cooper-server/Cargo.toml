@@ -39,6 +39,7 @@ cooper-problem-management.workspace = true
 cooper-reporting.workspace = true
 cooper-assets.workspace = true
 cooper-contracts.workspace = true
+cooper-calendar.workspace = true
 cooper-service-desk.workspace = true
 futures.workspace = true
 http.workspace = true
