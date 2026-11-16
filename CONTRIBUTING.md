@@ -14,8 +14,15 @@ cargo install sqlx-cli --locked --no-default-features --features rustls,postgres
 cp .env.example .env
 docker compose up -d --wait postgres     # or: just db
 cargo sqlx migrate run                   # or: just migrate
-cargo test --workspace                   # or: just test
+just test                                # tests in their own PostgreSQL (see below)
 ```
+
+Tests and `just check` do not use the compose database. `just test-db` (run
+automatically by `just test`, `lint`, `prepare`, `sqlx-check` and `coverage`) starts a
+separate container, `cooper-test-postgres`, on port 55432 (`COOPER_TEST_POSTGRES_PORT`)
+with its own role and database, `cooper_test`, on a tmpfs, and applies the migrations.
+Your development data in the compose `cooper` database is never touched by tests, and the
+`_sqlx_test_*` databases tests create never appear there. `just test-db-down` removes it.
 
 `docker compose up -d` also starts Mailpit (outbound mail capture, UI on
 <http://localhost:8025>) and GreenMail (IMAP/SMTP test server for mailbox intake).
