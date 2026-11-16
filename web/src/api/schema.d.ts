@@ -1752,7 +1752,7 @@ export interface paths {
         };
         /**
          * The provider redirects here after the account consented (or refused). Stores the
-         *     refresh token, encrypted, and redirects to the console with
+         *     refresh token, encrypted, and redirects to the Mailboxes screen with
          *     `?mailbox_consent=connected&mailbox=<id>` (needs the same Analyst session that started
          *     the consent).
          */
@@ -8292,6 +8292,17 @@ export interface components {
              */
             authorization_url: string;
         };
+        /** @description OAuth client credentials of a Microsoft or Google Mailbox (requests only; FR-EML-012). */
+        MailboxCredentialsDto: {
+            /** @description OAuth client ID (application ID). */
+            client_id: string;
+            /** @description OAuth client secret. */
+            client_secret: string;
+            /** @description Refresh token, when not obtained through Mailbox Consent. */
+            refresh_token?: string | null;
+            /** @description Microsoft Entra tenant (directory) ID or domain. */
+            tenant?: string | null;
+        };
         /**
          * @description A Mailbox. Secrets are write-only: send `password` (IMAP) or `credentials` (OAuth)
          *     to set or replace them.
@@ -8306,6 +8317,7 @@ export interface components {
              * @description Default Company of new tickets.
              */
             company_id: string;
+            credentials?: components["schemas"]["MailboxCredentialsDto"] | null;
             /**
              * Format: uuid
              * @description Default Department.
@@ -8343,6 +8355,8 @@ export interface components {
              * @description Origin of new tickets (default: Email).
              */
             origin_id?: string | null;
+            /** @description IMAP password (requests only; never returned). */
+            password?: string | null;
             /** @description `delete`, `move` or `mark_read` after import. */
             post_import_action?: string;
             /** @description `imap`, `microsoft` or `google`. */

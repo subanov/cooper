@@ -930,7 +930,7 @@ pub struct ConsentCallbackParams {
 }
 
 /// The provider redirects here after the account consented (or refused). Stores the
-/// refresh token, encrypted, and redirects to the console with
+/// refresh token, encrypted, and redirects to the Mailboxes screen with
 /// `?mailbox_consent=connected&mailbox=<id>` (needs the same Analyst session that started
 /// the consent).
 #[utoipa::path(get, path = "/mailboxes/consent/callback", tag = "Mailboxes", params(ConsentCallbackParams), responses((status = 303, description = "Connected; redirect to the console")))]
@@ -947,7 +947,7 @@ async fn finish_consent(
         StatusCode::SEE_OTHER,
         [(
             http::header::LOCATION,
-            format!("/?mailbox_consent=connected&mailbox={mailbox}"),
+            format!("/administration/mailboxes?mailbox_consent=connected&mailbox={mailbox}"),
         )],
     )
         .into_response())

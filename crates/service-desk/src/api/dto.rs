@@ -1126,13 +1126,14 @@ pub struct MailboxDto {
     #[serde(default)]
     pub folder: String,
     /// IMAP password (requests only; never returned).
-    #[serde(default, skip_serializing)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schema(write_only)]
     pub password: Option<String>,
     /// Microsoft and Google OAuth client credentials (requests only; never returned):
     /// `client_id`, `client_secret`, `tenant` (Microsoft) and `refresh_token` (Microsoft
     /// `delegated`, Google).
-    #[serde(default, skip_serializing)]
-    #[schema(value_type = Option<Object>)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schema(write_only, value_type = Option<MailboxCredentialsDto>)]
     pub credentials: Option<serde_json::Value>,
     /// Whether a secret is stored (responses only).
     #[serde(default)]
@@ -1184,6 +1185,21 @@ pub struct WhitelistDto {
     pub pattern: String,
     /// Allow (`true`) or block.
     pub allow: bool,
+}
+
+/// OAuth client credentials of a Microsoft or Google Mailbox (requests only; FR-EML-012).
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct MailboxCredentialsDto {
+    /// OAuth client ID (application ID).
+    pub client_id: String,
+    /// OAuth client secret.
+    pub client_secret: String,
+    /// Microsoft Entra tenant (directory) ID or domain.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tenant: Option<String>,
+    /// Refresh token, when not obtained through Mailbox Consent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refresh_token: Option<String>,
 }
 
 /// Mailbox health (FR-EML-010).
