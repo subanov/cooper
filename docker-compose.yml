@@ -55,7 +55,7 @@ services:
 
   s3:
     profiles: ["s3"]
-    image: chrislusf/seaweedfs:4.52
+    image: chrislusf/seaweedfs:4.53
     command: ["server", "-s3", "-s3.config=/etc/seaweedfs/s3.json", "-dir=/data"]
     volumes:
       - ./deploy/s3/s3.json:/etc/seaweedfs/s3.json:ro
