@@ -42,8 +42,10 @@ db:
     docker compose up -d --wait postgres
 
 # Apply migrations (as production does: `cooper-server migrate` with DATABASE_URL).
+# Compiled from the committed .sqlx/ data: the queries cannot be checked against a database
+# that has not been migrated yet (a fresh `docker compose up` volume).
 migrate:
-    cargo run -q -p cooper-server -- migrate
+    SQLX_OFFLINE=true cargo run -q -p cooper-server -- migrate
 
 # Refresh offline query data (.sqlx/) from the test database's schema. Commit the result.
 prepare: test-db
