@@ -1,6 +1,12 @@
 # Task runner for Cooper (https://just.systems). `just --list` shows all recipes.
 set dotenv-load := true
 
+# Checks and tests use their own PostgreSQL (scripts/test-db.sh), never the compose one:
+# a separate container, port, role and database, so test data cannot mix with dev data.
+test_db_port := env("COOPER_TEST_POSTGRES_PORT", "55432")
+test_database_url := "postgres://cooper_test:cooper_test@localhost:" + test_db_port + "/cooper_test"
+test_env := "COOPER_TEST_POSTGRES_PORT=" + test_db_port + " DATABASE_URL=" + test_database_url
+
 # Run every check CI runs.
 check: fmt-check lint test sqlx-check migrations-check
 
@@ -12,12 +18,12 @@ fmt-check:
     cargo fmt --all -- --check
 
 # Clippy with warnings as errors.
-lint:
-    cargo clippy --workspace --all-targets --all-features -- -D warnings
+lint: test-db
+    {{test_env}} cargo clippy --workspace --all-targets --all-features -- -D warnings
 
-# All tests. Needs DATABASE_URL and a running database (`just db`).
-test:
-    cargo test --workspace --all-features
+# All tests, against the test database (started on demand, see `test-db`).
+test: test-db
+    {{test_env}} cargo test --workspace --all-features
 
 # Start the local stack.
 up:
@@ -31,7 +37,7 @@ up-app:
 image tag="cooper:dev":
     docker build --target runtime -t {{tag}} .
 
-# Start only PostgreSQL.
+# Start only PostgreSQL (development data).
 db:
     docker compose up -d --wait postgres
 
@@ -39,17 +45,26 @@ db:
 migrate:
     cargo run -q -p cooper-server -- migrate
 
-# Refresh offline query data (.sqlx/). Commit the result.
-prepare:
-    cargo sqlx prepare --workspace -- --all-targets --all-features
+# Refresh offline query data (.sqlx/) from the test database's schema. Commit the result.
+prepare: test-db
+    {{test_env}} cargo sqlx prepare --workspace -- --all-targets --all-features
 
 # Fail if .sqlx/ is stale.
-sqlx-check:
-    cargo sqlx prepare --workspace --check -- --all-targets --all-features
+sqlx-check: test-db
+    {{test_env}} cargo sqlx prepare --workspace --check -- --all-targets --all-features
 
 # Fail if a migration that exists on main was changed or removed.
 migrations-check base="origin/main":
     scripts/check-migrations.sh {{base}}
+
+# Start the test PostgreSQL (container `cooper-test-postgres`, port 55432, role and
+# database `cooper_test`, data on tmpfs) and apply migrations. Idempotent.
+test-db:
+    COOPER_TEST_POSTGRES_PORT={{test_db_port}} scripts/test-db.sh up
+
+# Remove the test PostgreSQL and everything in it.
+test-db-down:
+    scripts/test-db.sh down
 
 # Run the HTTP server.
 server:
@@ -60,8 +75,8 @@ worker:
     cargo run -p cooper-worker
 
 # Test coverage like CI (cargo-llvm-cov + nextest): HTML report in target/llvm-cov/html.
-coverage:
-    cargo llvm-cov nextest --workspace --all-features --html
+coverage: test-db
+    {{test_env}} cargo llvm-cov nextest --workspace --all-features --html
     cargo llvm-cov report --lcov --output-path lcov.info
     scripts/coverage-summary.sh lcov.info
 

@@ -95,7 +95,9 @@ PostgreSQL with pgBackRest point-in-time recovery): see the
 [deployment](docs/runbooks/deployment.md) and [backup](docs/runbooks/backup-and-restore.md)
 runbooks.
 
-Run the checks before you push (`just check`, and `just web-check` when `web/` changed):
+Run the checks before you push (`just check`, and `just web-check` when `web/` changed).
+`just check` runs against its own PostgreSQL (`cooper-test-postgres`, role `cooper_test`),
+never the compose database:
 
 ```bash
 cargo fmt --all

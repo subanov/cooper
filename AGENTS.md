@@ -237,7 +237,8 @@ cargo sqlx migrate run                   # apply migrations (or: cargo run -p co
 cargo run -p cooper-server               # start the HTTP server (http://localhost:8080/health/ready)
 cargo run -p cooper-worker               # start background jobs and the outbox dispatcher
 docker compose --profile app up -d --build   # run migrate + server + worker from the Dockerfile
-cargo test --workspace --all-features    # all tests (needs DATABASE_URL)
+just test                                # all tests, in a separate test PostgreSQL (scripts/test-db.sh)
+just test-db / just test-db-down         # start (and migrate) / remove the test PostgreSQL
 cargo fmt --all && cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo sqlx prepare --workspace -- --all-targets --all-features   # refresh .sqlx/ before committing
 scripts/check-migrations.sh origin/main  # merged migrations must not change
@@ -257,7 +258,11 @@ test fails otherwise. New npm packages must be at least 7 days old (pnpm
 `minimumReleaseAge`), and install scripts are denied unless listed in
 `web/pnpm-workspace.yaml`.
 
-`just check` runs the same checks as CI (see the `justfile`).
+`just check` runs the same checks as CI (see the `justfile`). Checks and tests never use the
+compose database: they run in container `cooper-test-postgres` (port
+`COOPER_TEST_POSTGRES_PORT`, default 55432, role and database `cooper_test`, data on tmpfs),
+so `docker compose up` and the tests cannot see or break each other's data. Plain
+`cargo test` reads `DATABASE_URL` from your shell or `.env`; prefer `just test`.
 
 Building blocks every context uses (ADR-0004, ADR-0005, ADR-0009):
 
