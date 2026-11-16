@@ -23,6 +23,7 @@ import { ContractLookupPage } from "./routes/analyst/administration/resources/Co
 import { CostCentresPage } from "./routes/analyst/administration/resources/CostCentresPage";
 import { DepartmentsPage } from "./routes/analyst/administration/resources/DepartmentsPage";
 import { LookupAdminPage } from "./routes/analyst/administration/resources/LookupAdminPage";
+import { MailboxesPage } from "./routes/analyst/administration/resources/MailboxesPage";
 import { RolesPage } from "./routes/analyst/administration/resources/RolesPage";
 import { TeamsPage } from "./routes/analyst/administration/resources/TeamsPage";
 import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
@@ -425,6 +426,7 @@ const adminReferenceRoutes = [
   adminPage("/ticket-origins", lookupPage("ticket-origins")),
   adminPage("/resolution-codes", lookupPage("resolution-codes")),
   adminPage("/ticket-categories", CategoriesPage),
+  adminPage("/mailboxes", MailboxesPage),
   adminPage("/companies", CompaniesPage),
   adminPage("/teams", TeamsPage),
   adminPage("/departments", DepartmentsPage),

@@ -559,7 +559,7 @@ async fn mailbox_consent_stores_the_refresh_token_once_per_state(pool: PgPool) {
     assert_eq!(done.status, StatusCode::SEE_OTHER, "{:?}", done.body);
     assert_eq!(
         done.headers[http::header::LOCATION],
-        format!("/?mailbox_consent=connected&mailbox={id}").as_str()
+        format!("/administration/mailboxes?mailbox_consent=connected&mailbox={id}").as_str()
     );
     let seen = calls.all();
     assert_eq!(

@@ -26,6 +26,7 @@ const SECTIONS: readonly Section[] = [
       { to: "/administration/ticket-origins", label: "admin.origins" },
       { to: "/administration/ticket-categories", label: "admin.categories" },
       { to: "/administration/resolution-codes", label: "admin.codes" },
+      { to: "/administration/mailboxes", label: "admin.mailboxes" },
     ],
   },
   {

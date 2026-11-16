@@ -5418,7 +5418,7 @@
         "tags": [
           "Mailboxes"
         ],
-        "summary": "The provider redirects here after the account consented (or refused). Stores the\nrefresh token, encrypted, and redirects to the console with\n`?mailbox_consent=connected&mailbox=<id>` (needs the same Analyst session that started\nthe consent).",
+        "summary": "The provider redirects here after the account consented (or refused). Stores the\nrefresh token, encrypted, and redirects to the Mailboxes screen with\n`?mailbox_consent=connected&mailbox=<id>` (needs the same Analyst session that started\nthe consent).",
         "operationId": "finish_consent",
         "parameters": [
           {
@@ -21395,6 +21395,38 @@
           }
         }
       },
+      "MailboxCredentialsDto": {
+        "type": "object",
+        "description": "OAuth client credentials of a Microsoft or Google Mailbox (requests only; FR-EML-012).",
+        "required": [
+          "client_id",
+          "client_secret"
+        ],
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "description": "OAuth client ID (application ID)."
+          },
+          "client_secret": {
+            "type": "string",
+            "description": "OAuth client secret."
+          },
+          "refresh_token": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Refresh token, when not obtained through Mailbox Consent."
+          },
+          "tenant": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Microsoft Entra tenant (directory) ID or domain."
+          }
+        }
+      },
       "MailboxDto": {
         "type": "object",
         "description": "A Mailbox. Secrets are write-only: send `password` (IMAP) or `credentials` (OAuth)\nto set or replace them.",
@@ -21420,6 +21452,18 @@
             "type": "string",
             "format": "uuid",
             "description": "Default Company of new tickets."
+          },
+          "credentials": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MailboxCredentialsDto",
+                "description": "Microsoft and Google OAuth client credentials (requests only; never returned):\n`client_id`, `client_secret`, `tenant` (Microsoft) and `refresh_token` (Microsoft\n`delegated`, Google)."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "writeOnly": true
           },
           "department_id": {
             "type": [
@@ -21508,6 +21552,14 @@
             ],
             "format": "uuid",
             "description": "Origin of new tickets (default: Email)."
+          },
+          "password": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IMAP password (requests only; never returned).",
+            "writeOnly": true
           },
           "post_import_action": {
             "type": "string",
