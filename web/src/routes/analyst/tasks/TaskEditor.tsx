@@ -23,10 +23,11 @@ import { companiesQuery, defaultCompanyId } from "@/features/users/queries";
 import { useText } from "@/i18n/useText";
 import type { Schemas } from "@/lib/api";
 import { useFlash } from "../users/Flash";
+import { TaskLinks } from "./TaskLinks";
 
 type Task = Schemas["TaskDto"];
 
-/** Creates a Task (`id` absent) or edits one, with its comments. */
+/** Creates a Task (`id` absent) or edits one, with its links and comments. */
 export function TaskEditor({ id }: { id?: string | undefined }) {
   const t = useText();
   const existing = useQuery({ ...taskQuery(id ?? ""), enabled: Boolean(id) });
@@ -42,6 +43,7 @@ export function TaskEditor({ id }: { id?: string | undefined }) {
         {t("tasks.back")}
       </Link>
       <TaskForm key={existing.data?.updated_at ?? "new"} task={existing.data} />
+      {existing.data ? <TaskLinks taskId={existing.data.id} /> : null}
       {existing.data ? <Comments taskId={existing.data.id} /> : null}
     </div>
   );

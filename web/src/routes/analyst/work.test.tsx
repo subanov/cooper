@@ -111,6 +111,75 @@ describe("Tasks", () => {
     });
     expect(await screen.findByRole("heading", { name: "Order toner" })).toBeInTheDocument();
   });
+
+  it("links a ticket by Ticket Number and removes the link (FR-TSK-004)", async () => {
+    let links: Record<string, unknown>[] = [];
+    const calls = mockFetch({
+      ...base,
+      ...taskLookups,
+      "/api/v1/analysts": { status: 200, body: { items: [] } },
+      "GET /api/v1/tasks/k1": { status: 200, body: task() },
+      "GET /api/v1/tasks/k1/comments": { status: 200, body: [] },
+      "GET /api/v1/tasks/k1/links": () => ({ status: 200, body: links }),
+      "GET /api/v1/tickets": {
+        status: 200,
+        body: { items: [{ id: "tk5", number: "UP-000005" }], next_cursor: null },
+      },
+      "POST /api/v1/tasks/k1/links": (_req, body) => {
+        const link = {
+          ...(body as object),
+          number: "UP-000005",
+          linked_at: "2026-11-16T12:00:00Z",
+        };
+        links = [link];
+        return { status: 201, body: link };
+      },
+      "DELETE /api/v1/tasks/k1/links/ticket/tk5": () => {
+        links = [];
+        return { status: 204 };
+      },
+    });
+    const user = userEvent.setup();
+    const { container } = renderApp("/tasks/k1");
+
+    expect(await screen.findByText("Not linked to tickets or Changes.")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Ticket Number"), "up-000005");
+    await user.click(screen.getByRole("button", { name: "Link" }));
+
+    expect(await screen.findByRole("link", { name: "UP-000005" })).toHaveAttribute(
+      "href",
+      "/tickets/tk5",
+    );
+    expect(calls.find((c) => c.method === "POST")?.body).toEqual({
+      kind: "ticket",
+      target_id: "tk5",
+    });
+    expect(await axeViolations(container)).toEqual([]);
+
+    await user.click(screen.getByRole("button", { name: "Remove link to UP-000005" }));
+    expect(await screen.findByText("Not linked to tickets or Changes.")).toBeInTheDocument();
+  });
+
+  it("says when no visible ticket has that Ticket Number", async () => {
+    const calls = mockFetch({
+      ...base,
+      ...taskLookups,
+      "/api/v1/analysts": { status: 200, body: { items: [] } },
+      "GET /api/v1/tasks/k1": { status: 200, body: task() },
+      "GET /api/v1/tasks/k1/comments": { status: 200, body: [] },
+      "GET /api/v1/tasks/k1/links": { status: 200, body: [] },
+      "GET /api/v1/tickets": { status: 200, body: { items: [], next_cursor: null } },
+    });
+    const user = userEvent.setup();
+    renderApp("/tasks/k1");
+
+    await user.type(await screen.findByLabelText("Ticket Number"), "UP-999999");
+    await user.click(screen.getByRole("button", { name: "Link" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "No ticket UP-999999 that you can see.",
+    );
+    expect(calls.some((c) => c.method === "POST")).toBe(false);
+  });
 });
 
 describe("Knowledge", () => {
