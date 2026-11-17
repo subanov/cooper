@@ -287,3 +287,142 @@ describe("ticket detail and keyboard triage (FR-TKT-024)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("This ticket does not exist");
   });
 });
+
+describe("Tasks linked to a ticket (FR-TSK-004, FR-TKT-030)", () => {
+  const task = (id: string, title: string, over: Record<string, unknown> = {}) => ({
+    id,
+    company_id: "c1",
+    title,
+    description: "",
+    status_id: "ts1",
+    is_closed: false,
+    priority_id: "tp1",
+    tags: [],
+    board_position: 0,
+    created_at: "2026-11-01T09:00:00Z",
+    updated_at: "2026-11-01T09:00:00Z",
+    ...over,
+  });
+  const withTasks = (capabilities: string[]) => ({
+    "/api/v1/session": { status: 200, body: { ...session, capabilities } },
+    "/api/v1/modules": {
+      status: 200,
+      body: [
+        { key: "tickets", is_enabled: true },
+        { key: "tasks", is_enabled: true },
+      ],
+    },
+  });
+  const all = ["tickets.read", "tickets.update", "tasks.read", "tasks.update"];
+
+  it("lists linked Tasks and links an open Task of the ticket's Company", async () => {
+    let linked = [task("k1", "Patch the print server", { is_closed: true })];
+    const searches: string[] = [];
+    const calls = api({
+      ...withTasks(all),
+      "GET /api/v1/tasks": (request) => {
+        const query = new URL(request.url).searchParams;
+        if (query.get("ticket_id") === "tk1") {
+          return { status: 200, body: { items: linked, next_cursor: null } };
+        }
+        searches.push(query.get("q") ?? "");
+        return {
+          status: 200,
+          body: {
+            items: [
+              task("k1", "Patch the print server"),
+              task("k2", "Replace the roller"),
+              task("k3", "Replace the other roller", { company_id: "c2" }),
+            ],
+            next_cursor: null,
+          },
+        };
+      },
+      "POST /api/v1/tasks/k2/links": () => {
+        linked = [...linked, task("k2", "Replace the roller")];
+        return {
+          status: 201,
+          body: { kind: "ticket", target_id: "tk1", number: "INC-0001", linked_at: "" },
+        };
+      },
+    });
+    const user = userEvent.setup();
+    const { container } = renderApp("/tickets/tk1");
+
+    const section = await screen.findByRole("region", { name: "Tasks" });
+    expect(
+      await within(section).findByRole("link", { name: "Patch the print server" }),
+    ).toHaveAttribute("href", "/tasks/k1");
+    expect(section).toHaveTextContent("Closed");
+    expect(await axeViolations(container)).toEqual([]);
+
+    await user.type(within(section).getByRole("searchbox", { name: /Find a Task/ }), "roller");
+    await user.click(within(section).getByRole("button", { name: "Search" }));
+    const results = await within(section).findByRole("list", { name: "Matching Tasks" });
+    expect(searches).toEqual(["roller"]);
+    // Already linked, and other Companies' Tasks, are not offered.
+    expect(within(results).getAllByRole("listitem")).toHaveLength(1);
+
+    await user.click(within(results).getByRole("button", { name: "Link Replace the roller" }));
+    const post = await waitFor(() => {
+      const found = calls.find((c) => c.method === "POST" && c.path.endsWith("/links"));
+      expect(found).toBeDefined();
+      return found;
+    });
+    expect(post?.body).toEqual({ kind: "ticket", target_id: "tk1" });
+    expect(post?.headers.get("X-CSRF-Token")).toBe("csrf-1");
+    expect(
+      await within(section).findByRole("link", { name: "Replace the roller" }),
+    ).toBeInTheDocument();
+  });
+
+  it("removes a link and shows the server's problem when it fails", async () => {
+    const calls = api({
+      ...withTasks(all),
+      "GET /api/v1/tasks": {
+        status: 200,
+        body: { items: [task("k1", "Patch the print server")], next_cursor: null },
+      },
+      "DELETE /api/v1/tasks/k1/links/ticket/tk1": {
+        status: 403,
+        body: { type: "about:blank", status: 403, detail: "needs tasks.update" },
+      },
+    });
+    const user = userEvent.setup();
+    renderApp("/tickets/tk1");
+
+    const section = await screen.findByRole("region", { name: "Tasks" });
+    await user.click(
+      await within(section).findByRole("button", { name: "Remove link to Patch the print server" }),
+    );
+    expect(await within(section).findByRole("alert")).toHaveTextContent(
+      "Link not removed: needs tasks.update",
+    );
+    expect(calls.some((c) => c.method === "DELETE")).toBe(true);
+  });
+
+  it("shows linked Tasks read-only without tasks.update", async () => {
+    api({
+      ...withTasks(["tickets.read", "tasks.read"]),
+      "GET /api/v1/tasks": {
+        status: 200,
+        body: { items: [task("k1", "Patch the print server")], next_cursor: null },
+      },
+    });
+    renderApp("/tickets/tk1");
+
+    const section = await screen.findByRole("region", { name: "Tasks" });
+    await within(section).findByRole("link", { name: "Patch the print server" });
+    expect(within(section).queryByRole("button")).toBeNull();
+    expect(within(section).queryByRole("searchbox")).toBeNull();
+  });
+
+  it("leaves the section out when the Tasks Module is off", async () => {
+    const calls = api();
+    renderApp("/tickets/tk1");
+    await screen.findByRole("heading", { name: "Subject of INC-0001" });
+    await screen.findByRole("region", { name: "Timeline" });
+    expect(screen.queryByRole("region", { name: "Tasks" })).toBeNull();
+    expect(calls.some((c) => c.path === "/api/v1/tasks")).toBe(false);
+  });
+});

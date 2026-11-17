@@ -12,7 +12,6 @@ import {
   assetLookupQuery,
   checkInAsset,
   checkOutAsset,
-  findTicketByNumber,
   linkAsset,
   retireAsset,
   unlinkAsset,
@@ -20,6 +19,7 @@ import {
 import { problemText } from "@/features/result";
 import {
   analystsQuery,
+  findTicketByNumber,
   namesById,
   requesterNamesQuery,
   requesterSearchQuery,

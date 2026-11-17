@@ -26,13 +26,15 @@ import type { Problem } from "@/lib/problem";
 import { useKeys } from "../useShortcuts";
 import { PresenceNotice } from "./PresenceNotice";
 import { SlaTargetBadge } from "./SlaBadge";
+import { TicketTasks } from "./TicketTasks";
 import { Timeline } from "./Timeline";
 
 type Ticket = Schemas["TicketDto"];
 
 /**
  * One ticket in the split pane: facts, SLA targets, triage actions (assign, status),
- * the reply/Note composer and the timeline. `a` assigns to me, `r` replies, `n` notes.
+ * linked Tasks, the reply/Note composer and the timeline. `a` assigns to me, `r` replies,
+ * `n` notes.
  */
 export function TicketDetail({ ticketId }: { ticketId: string }) {
   const t = useText();
@@ -182,6 +184,8 @@ export function TicketDetail({ ticketId }: { ticketId: string }) {
         </h3>
         <p className="whitespace-pre-wrap text-sm">{tk.description}</p>
       </section>
+
+      <TicketTasks ticket={tk} />
 
       <Composer ref={composer} ticketId={ticketId} onComposingChange={setComposing} />
       <Timeline ticketId={ticketId} />

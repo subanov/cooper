@@ -173,3 +173,14 @@ export function requesterSearchQuery(q: string, companyId: string | undefined) {
     ...LOOKUP,
   });
 }
+
+/** The ticket with this Ticket Number, found through ticket search. */
+export async function findTicketByNumber(
+  number: string,
+): Promise<Schemas["TicketDto"] | undefined> {
+  const { data } = await api.GET("/api/v1/tickets", {
+    params: { query: { q: number, limit: 20 } },
+  });
+  const wanted = number.trim().toUpperCase();
+  return (data?.items ?? []).find((t) => t.number.toUpperCase() === wanted);
+}
