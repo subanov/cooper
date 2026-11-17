@@ -295,6 +295,19 @@ Building blocks every context uses (ADR-0004, ADR-0005, ADR-0009):
 8. Write an ADR for decisions that are hard to reverse (new crate, new dependency, data model
    shape, cross-context contract, significant deviation from FreeITSM).
 9. Never commit secrets. `.env` is git-ignored. Use `.env.example` for documentation.
+10. **Before creating a pull request or merge request, check the latest versions of
+    components according to Dependabot** (config: `.github/dependabot.yml`; covers cargo,
+    npm in `web/`, GitHub Actions, docker-compose images):
+    - List open Dependabot PRs: `gh pr list --author "app/dependabot" --state open`.
+    - If your change adds or bumps a dependency, uses a pinned image or action, or touches
+      a manifest or lockfile (`Cargo.toml`, `Cargo.lock`, `web/package.json`,
+      `docker-compose.yml`, `.github/workflows/`), use the version Dependabot proposes or
+      has already merged. Do not pin an older version, and do not hand-write a bump that an
+      open Dependabot PR already makes.
+    - Rebase onto the latest `main` first, so versions that Dependabot PRs merged
+      meanwhile are included.
+    - Respect the cooldown: new npm packages must be at least 7 days old (§8).
+    - Say in the PR description which Dependabot versions you checked, or that none apply.
 
 ## 10. Security baseline
 
