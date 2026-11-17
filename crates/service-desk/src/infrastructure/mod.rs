@@ -23,8 +23,8 @@ pub use google::GmailClient;
 #[cfg(feature = "graph")]
 pub use graph::GraphClient;
 pub use imap::{
-    Disposition, FetchedMessage, ImapClient, MailboxClient, MailboxPoller, MailboxSession,
-    parse_email,
+    Disposition, FetchedMessage, ImapClient, MailboxClient, MailboxClients, MailboxPoller,
+    MailboxSession, parse_email,
 };
 pub use mailboxes::{PgMailboxStore, ReencryptMailboxSecrets};
 pub use relations::{PRESENCE_TOPIC, PrunePresence, prune_presence};

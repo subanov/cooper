@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { SelectField } from "@/components/ui/select-field";
 import {
+  checkMailboxConnection,
   createMailbox,
   type Mailbox,
   mailboxesQuery,
@@ -468,13 +469,66 @@ function MailboxForm({ row, done }: { row: Mailbox | null; done: () => void }) {
   );
 }
 
-/** Mailbox Consent for Microsoft `delegated` and Google Mailboxes. */
+/** The Connection Check (FR-EML-013) of a saved Mailbox, and Mailbox Consent. */
 function ConnectionSection({ mailbox, id }: { mailbox: Mailbox; id: string }) {
+  return (
+    <>
+      <CheckSection id={id} />
+      {usesConsent(mailbox) ? <ConsentSection id={id} /> : null}
+    </>
+  );
+}
+
+type CheckOutcome = { ok: true } | { ok: false; error: string };
+
+/** Signs in with the saved settings and shows that it worked, or why not. */
+function CheckSection({ id }: { id: string }) {
+  const t = useText();
+  const [checking, setChecking] = useState(false);
+  const [outcome, setOutcome] = useState<CheckOutcome | null>(null);
+  async function check() {
+    setChecking(true);
+    setOutcome(null);
+    const reply = await checkMailboxConnection(id);
+    setChecking(false);
+    if (!reply.ok) {
+      setOutcome({ ok: false, error: problemText(reply.problem) });
+    } else if (reply.data.ok) {
+      setOutcome({ ok: true });
+    } else {
+      setOutcome({ ok: false, error: reply.data.error ?? t("common.error") });
+    }
+  }
+  return (
+    <section className="grid gap-2" aria-labelledby={`check-${id}`}>
+      <h3 id={`check-${id}`} className="font-semibold">
+        {t("admin.mailboxes.check")}
+      </h3>
+      <p className="text-sm text-muted-foreground">{t("admin.mailboxes.checkIntro")}</p>
+      <div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={check}
+          disabled={checking}
+          aria-busy={checking}
+        >
+          {t(checking ? "admin.mailboxes.checking" : "admin.mailboxes.checkButton")}
+        </Button>
+      </div>
+      {outcome?.ok ? <Alert variant="success">{t("admin.mailboxes.checkOk")}</Alert> : null}
+      {outcome && !outcome.ok ? (
+        <Alert variant="error">{t("admin.mailboxes.checkFailed", { error: outcome.error })}</Alert>
+      ) : null}
+    </section>
+  );
+}
+
+/** Mailbox Consent for Microsoft `delegated` and Google Mailboxes. */
+function ConsentSection({ id }: { id: string }) {
   const t = useText();
   const flash = useFlash();
-  if (!usesConsent(mailbox)) {
-    return null;
-  }
   async function connect() {
     const outcome = await startMailboxConsent(id);
     if (!outcome.ok) {

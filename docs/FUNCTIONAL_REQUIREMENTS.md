@@ -145,6 +145,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-EML-010 | Mailbox health (last poll, last error) is visible to Administrators and raises a notification on failure. | S | P1 |
 | FR-EML-011 | Loop protection: auto-replies, bounces and Cooper's own outbound mail do not create tickets. Cooper also skips duplicates by Message-ID, so a message read twice never creates two tickets (ADR-0018). | M | P1 |
 | FR-EML-012 | OAuth tokens and mailbox passwords are encrypted at rest. Deviation from FreeITSM: keys are versioned and rotatable (ADR-0013). | M | P1 |
+| FR-EML-013 | Administrators run a **Connection Check** on a saved Mailbox: Cooper signs in with the saved settings and secret and opens the folder, without reading, moving or marking mail, and shows that it connected or the reason it failed. A check does not change the Mailbox's health (FR-EML-010); a secret the provider rotates while signing in is stored. | S | P1 |
 
 ## 5. Other Channels (CHN)
 

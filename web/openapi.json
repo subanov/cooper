@@ -5497,6 +5497,37 @@
         }
       }
     },
+    "/api/v1/mailboxes/{id}/connection-check": {
+      "post": {
+        "tags": [
+          "Mailboxes"
+        ],
+        "summary": "Runs a Connection Check (FR-EML-013): signs in with the saved settings and secret and\nopens the folder, without reading or changing mail. A failed sign-in is a 200 with\n`ok: false` and the reason; health is left to the poller (needs `tickets.configure`).",
+        "operationId": "check_mailbox_connection",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionCheckDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/mailboxes/{id}/consent": {
       "post": {
         "tags": [
@@ -19404,6 +19435,26 @@
           "ticket_code": {
             "type": "string",
             "description": "Ticket Code."
+          }
+        }
+      },
+      "ConnectionCheckDto": {
+        "type": "object",
+        "description": "The outcome of a Connection Check.",
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "What failed, when `ok` is false."
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "Whether Cooper signed in and opened the folder."
           }
         }
       },

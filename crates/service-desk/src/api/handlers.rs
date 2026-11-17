@@ -132,6 +132,7 @@ where
         .routes(routes!(download_attachment))
         .routes(routes!(list_mailboxes, create_mailbox))
         .routes(routes!(update_mailbox))
+        .routes(routes!(check_mailbox_connection))
         .routes(routes!(start_consent))
         .routes(routes!(finish_consent))
         .routes(routes!(list_rejected))
@@ -894,6 +895,38 @@ async fn update_mailbox(
             .await?
             .into(),
     ))
+}
+
+/// The outcome of a Connection Check.
+#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct ConnectionCheckDto {
+    /// Whether Cooper signed in and opened the folder.
+    pub ok: bool,
+    /// What failed, when `ok` is false.
+    pub error: Option<String>,
+}
+
+/// Runs a Connection Check (FR-EML-013): signs in with the saved settings and secret and
+/// opens the folder, without reading or changing mail. A failed sign-in is a 200 with
+/// `ok: false` and the reason; health is left to the poller (needs `tickets.configure`).
+#[utoipa::path(post, path = "/mailboxes/{id}/connection-check", tag = "Mailboxes", params(("id" = Uuid, Path)), responses((status = 200, body = ConnectionCheckDto)))]
+async fn check_mailbox_connection(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+) -> ApiResult<Json<ConnectionCheckDto>> {
+    use crate::application::ConnectionCheck;
+    let outcome = api.service.check_mailbox_connection(&p, id).await?;
+    Ok(Json(match outcome {
+        ConnectionCheck::Connected => ConnectionCheckDto {
+            ok: true,
+            error: None,
+        },
+        ConnectionCheck::Failed(error) => ConnectionCheckDto {
+            ok: false,
+            error: Some(error),
+        },
+    }))
 }
 
 /// Where to send the Administrator's browser to connect a Mailbox.

@@ -18,7 +18,9 @@ use tokio::net::TcpStream;
 use tokio_rustls::client::TlsStream;
 
 use crate::application::{IntakeOutcome, ServiceDesk, StoredFile};
-use crate::domain::{AfterImport, AfterReject, InboundEmail, Mailbox, Provider, Security};
+use crate::domain::{
+    AfterImport, AfterReject, InboundEmail, Mailbox, MailboxConnector, Provider, Security,
+};
 
 /// What to do with a fetched message once handled.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -131,6 +133,34 @@ fn tls_connector() -> Result<tokio_rustls::TlsConnector, String> {
     Ok(tokio_rustls::TlsConnector::from(Arc::new(config)))
 }
 
+/// Opens TLS on `tcp`, explaining the usual misconfigurations in the error.
+async fn tls_handshake(
+    host: &str,
+    port: u16,
+    tcp: TcpStream,
+) -> Result<TlsStream<TcpStream>, String> {
+    use tokio_rustls::rustls::{self, CertificateError, InvalidMessage};
+    let name = rustls::pki_types::ServerName::try_from(host.to_owned())
+        .map_err(|e| format!("invalid host name {host}: {e}"))?;
+    tls_connector()?.connect(name, tcp).await.map_err(|e| {
+        let hint = match e.get_ref().and_then(|i| i.downcast_ref::<rustls::Error>()) {
+            // The server spoke plain IMAP ("* OK ...") instead of starting TLS.
+            Some(rustls::Error::InvalidMessage(InvalidMessage::InvalidContentType)) => format!(
+                " ({host}:{port} answered without TLS: use the TLS port, usually 993, or \
+                 Security \"none\" for a plain test server such as GreenMail on 3143)"
+            ),
+            Some(rustls::Error::InvalidCertificate(
+                CertificateError::UnknownIssuer | CertificateError::BadSignature,
+            )) => format!(
+                " ({host}:{port} has a certificate from an unknown issuer, such as a \
+                 self-signed one; Cooper trusts public certificate authorities only)"
+            ),
+            _ => String::new(),
+        };
+        format!("TLS handshake failed: {e}{hint}")
+    })
+}
+
 struct ImapSession {
     session: async_imap::Session<Stream>,
 }
@@ -154,14 +184,7 @@ impl MailboxClient for ImapClient {
         let stream = match imap.security {
             Security::None => Stream::Plain(tcp),
             Security::Tls => {
-                let name = tokio_rustls::rustls::pki_types::ServerName::try_from(imap.host.clone())
-                    .map_err(|e| e.to_string())?;
-                Stream::Tls(Box::new(
-                    tls_connector()?
-                        .connect(name, tcp)
-                        .await
-                        .map_err(|e| format!("TLS handshake failed: {e}"))?,
-                ))
+                Stream::Tls(Box::new(tls_handshake(&imap.host, imap.port, tcp).await?))
             }
             Security::Starttls => {
                 return Err("STARTTLS is not supported; use TLS (port 993)".into());
@@ -397,12 +420,70 @@ fn strip_html(html: &str) -> String {
         .replace("&amp;", "&")
 }
 
+/// The mailbox client of each enabled provider, shared by the poller and Connection
+/// Checks.
+#[derive(Clone, Default)]
+pub struct MailboxClients {
+    clients: Vec<(Provider, Arc<dyn MailboxClient>)>,
+}
+
+/// How long a Connection Check may take before it is reported as failed.
+const CHECK_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(25);
+
+impl MailboxClients {
+    /// `imap` for IMAP Mailboxes. Add other providers with
+    /// [`MailboxClients::with_client`].
+    #[must_use]
+    pub fn new(imap: Arc<dyn MailboxClient>) -> Self {
+        Self::default().with_client(Provider::Imap, imap)
+    }
+
+    /// Uses `client` for Mailboxes of `provider`.
+    #[must_use]
+    pub fn with_client(mut self, provider: Provider, client: Arc<dyn MailboxClient>) -> Self {
+        self.clients.retain(|(p, _)| *p != provider);
+        self.clients.push((provider, client));
+        self
+    }
+
+    fn client(&self, provider: Provider) -> Result<&Arc<dyn MailboxClient>, String> {
+        self.clients
+            .iter()
+            .find(|(p, _)| *p == provider)
+            .map(|(_, c)| c)
+            .ok_or_else(|| {
+                format!(
+                    "the {} provider is not enabled in this build",
+                    provider.as_str()
+                )
+            })
+    }
+}
+
+#[async_trait]
+impl MailboxConnector for MailboxClients {
+    async fn check(&self, mailbox: &Mailbox, secret: &str) -> Result<Option<String>, String> {
+        let client = self.client(mailbox.settings().provider)?;
+        let mut session = tokio::time::timeout(CHECK_TIMEOUT, client.open(mailbox, secret))
+            .await
+            .map_err(|_| {
+                format!(
+                    "no answer from the provider within {} seconds",
+                    CHECK_TIMEOUT.as_secs()
+                )
+            })??;
+        let rotated = session.rotated_secret();
+        let _ = session.close().await;
+        Ok(rotated)
+    }
+}
+
 /// Polls every active Mailbox (FR-EML-002). Every minute by default; one worker at a
 /// time (job lock).
 pub struct MailboxPoller {
     desk: ServiceDesk,
     blobs: BlobStore,
-    clients: Vec<(Provider, Arc<dyn MailboxClient>)>,
+    clients: MailboxClients,
 }
 
 /// Messages handled per Mailbox per run.
@@ -413,18 +494,27 @@ impl MailboxPoller {
     /// [`MailboxPoller::with_client`].
     #[must_use]
     pub fn new(desk: ServiceDesk, blobs: BlobStore, imap: Arc<dyn MailboxClient>) -> Self {
+        Self::with_clients(desk, blobs, MailboxClients::new(imap))
+    }
+
+    /// A poller using `clients`.
+    #[must_use]
+    pub const fn with_clients(
+        desk: ServiceDesk,
+        blobs: BlobStore,
+        clients: MailboxClients,
+    ) -> Self {
         Self {
             desk,
             blobs,
-            clients: vec![(Provider::Imap, imap)],
+            clients,
         }
     }
 
     /// Uses `client` for Mailboxes of `provider`.
     #[must_use]
     pub fn with_client(mut self, provider: Provider, client: Arc<dyn MailboxClient>) -> Self {
-        self.clients.retain(|(p, _)| *p != provider);
-        self.clients.push((provider, client));
+        self.clients = self.clients.with_client(provider, client);
         self
     }
 
@@ -464,18 +554,7 @@ impl MailboxPoller {
     }
 
     async fn poll(&self, mailbox: &Mailbox) -> Result<usize, String> {
-        let provider = mailbox.settings().provider;
-        let client = self
-            .clients
-            .iter()
-            .find(|(p, _)| *p == provider)
-            .map(|(_, c)| c)
-            .ok_or_else(|| {
-                format!(
-                    "the {} provider is not enabled in this build",
-                    provider.as_str()
-                )
-            })?;
+        let client = self.clients.client(mailbox.settings().provider)?;
         let secret = self
             .desk
             .mailbox_secret(mailbox.id())
@@ -567,6 +646,26 @@ impl Job for MailboxPoller {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn tls_to_a_plain_imap_port_explains_the_misconfiguration() {
+        use tokio::io::AsyncWriteExt;
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let server = tokio::spawn(async move {
+            let (mut s, _) = listener.accept().await.unwrap();
+            let _ = s
+                .write_all(b"* OK IMAP4rev1 Server GreenMail ready\r\n")
+                .await;
+            let mut buf = [0u8; 512];
+            let _ = tokio::io::AsyncReadExt::read(&mut s, &mut buf).await;
+        });
+        let tcp = TcpStream::connect(("127.0.0.1", port)).await.unwrap();
+        let err = tls_handshake("localhost", port, tcp).await.unwrap_err();
+        assert!(err.contains("answered without TLS"), "{err}");
+        assert!(err.contains("Security \"none\""), "{err}");
+        server.abort();
+    }
 
     #[test]
     fn parses_headers_threading_and_attachments() {
