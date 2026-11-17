@@ -12,3 +12,12 @@ minimumReleaseAge: 10080
 # verifies its platform binary, which pnpm already installs.
 allowBuilds:
   esbuild: false
+
+# Security overrides for transitive dev dependencies (Dependabot alerts #1 and #2).
+# Storybook 10.6's docgen plugin still pins glob 13, so no upstream bump fixes these;
+# drop each override once the dependency that pulls it in requires a fixed version.
+# - glob <= 14.0.1: AbortSignal cancellation bypass (fixed in 14.0.2).
+# - minimatch 7.x to 11.0.0: denial of service via globparts amplification (fixed in 11.0.1).
+overrides:
+  "glob@>=9.0.0 <14.0.2": ^14.0.4
+  "minimatch@>=7.0.0 <11.0.1": ^11.0.5
