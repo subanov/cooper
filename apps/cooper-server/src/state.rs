@@ -201,6 +201,8 @@ pub struct AppState {
     pub assets: cooper_assets::api::AssetsApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
     pub live: cooper_platform::live::LiveFeed,
+    /// The mailbox client of each enabled provider (poller and Connection Checks).
+    mailbox_clients: cooper_service_desk::infrastructure::MailboxClients,
 }
 
 /// Every Capability declared by the contexts wired into this server. Roles may only use
@@ -354,6 +356,7 @@ impl AppState {
             Arc::new(cooper_notifications::portal::PgPortalNotificationStore::new(pool.clone())),
             clock.clone(),
         );
+        let mailbox_clients = mailbox_clients();
         let desk = ServiceDesk::new(ServiceDeskPorts {
             tickets: Arc::new(PgServiceDeskStore::new(pool.clone())),
             reference: Arc::new(PgServiceDeskStore::new(pool.clone())),
@@ -365,6 +368,7 @@ impl AppState {
                     security.mailbox_oauth,
                 ),
             ),
+            connector: Arc::new(mailbox_clients.clone()),
             preferences: Arc::new(crate::adapters::PortalPreferences {
                 portal: portal_notifications.clone(),
             }),
@@ -569,6 +573,7 @@ impl AppState {
         };
         Ok(Self {
             live: cooper_platform::live::LiveFeed::new(pool.clone()),
+            mailbox_clients,
             pool,
             clock,
             identity: IdentityApi {
@@ -688,32 +693,40 @@ impl AppState {
     /// Microsoft Graph and Gmail when built with the `graph` and `google` features.
     #[must_use]
     pub fn mailbox_poller(&self) -> cooper_service_desk::infrastructure::MailboxPoller {
-        #[allow(unused_mut)]
-        let mut poller = cooper_service_desk::infrastructure::MailboxPoller::new(
+        cooper_service_desk::infrastructure::MailboxPoller::with_clients(
             self.service_desk.service.clone(),
             self.service_desk.blobs.clone(),
-            Arc::new(cooper_service_desk::infrastructure::ImapClient),
-        );
-        #[cfg(feature = "graph")]
-        match cooper_service_desk::infrastructure::GraphClient::new() {
-            Ok(c) => {
-                poller = poller.with_client(
-                    cooper_service_desk::domain::Provider::Microsoft,
-                    Arc::new(c),
-                );
-            }
-            Err(e) => tracing::error!(error = %e, "Microsoft Graph client unavailable"),
-        }
-        #[cfg(feature = "google")]
-        match cooper_service_desk::infrastructure::GmailClient::new() {
-            Ok(c) => {
-                poller =
-                    poller.with_client(cooper_service_desk::domain::Provider::Google, Arc::new(c));
-            }
-            Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
-        }
-        poller
+            self.mailbox_clients.clone(),
+        )
     }
+}
+
+/// The mailbox clients of this build: IMAP, and Microsoft Graph and Gmail with the
+/// `graph` and `google` features.
+fn mailbox_clients() -> cooper_service_desk::infrastructure::MailboxClients {
+    #[allow(unused_mut)]
+    let mut clients = cooper_service_desk::infrastructure::MailboxClients::new(Arc::new(
+        cooper_service_desk::infrastructure::ImapClient,
+    ));
+    #[cfg(feature = "graph")]
+    match cooper_service_desk::infrastructure::GraphClient::new() {
+        Ok(c) => {
+            clients = clients.with_client(
+                cooper_service_desk::domain::Provider::Microsoft,
+                Arc::new(c),
+            );
+        }
+        Err(e) => tracing::error!(error = %e, "Microsoft Graph client unavailable"),
+    }
+    #[cfg(feature = "google")]
+    match cooper_service_desk::infrastructure::GmailClient::new() {
+        Ok(c) => {
+            clients =
+                clients.with_client(cooper_service_desk::domain::Provider::Google, Arc::new(c));
+        }
+        Err(e) => tracing::error!(error = %e, "Gmail client unavailable"),
+    }
+    clients
 }
 
 impl FromRef<AppState> for cooper_assets::api::AssetsApi {

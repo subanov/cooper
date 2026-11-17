@@ -280,6 +280,86 @@ async fn repeated_poll_failures_alert_administrators(pool: PgPool) {
 }
 
 #[sqlx::test(migrations = "../../migrations")]
+async fn connection_check_reports_the_failure_and_leaves_health_alone(pool: PgPool) {
+    let (_, admin) = setup(&pool).await;
+    let m = mailbox(
+        &admin,
+        &pool,
+        json!({ "imap_host": "127.0.0.1", "imap_port": 1 }),
+    )
+    .await;
+    let id = m["id"].as_str().unwrap();
+    let r = admin
+        .post(
+            &format!("/api/v1/mailboxes/{id}/connection-check"),
+            json!({}),
+        )
+        .await;
+    assert_eq!(r.status, StatusCode::OK, "{:?}", r.body);
+    assert_eq!(r.body["ok"], false);
+    let error = r.body["error"].as_str().unwrap();
+    assert!(error.contains("cannot connect to 127.0.0.1:1"), "{error}");
+
+    let health = admin.get("/api/v1/mailboxes").await.body[0]["health"].clone();
+    assert!(health["last_polled_at"].is_null(), "{health:?}");
+    assert_eq!(health["consecutive_failures"].as_i64().unwrap_or(0), 0);
+
+    let missing = admin
+        .post(
+            &format!("/api/v1/mailboxes/{}/connection-check", Uuid::now_v7()),
+            json!({}),
+        )
+        .await;
+    assert_eq!(missing.status, StatusCode::NOT_FOUND);
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn connection_check_against_greenmail(pool: PgPool) {
+    let host = std::env::var("COOPER_TEST_GREENMAIL_HOST").unwrap_or_else(|_| "localhost".into());
+    if tokio::net::TcpStream::connect((host.as_str(), 3143))
+        .await
+        .is_err()
+    {
+        assert!(
+            std::env::var("COOPER_REQUIRE_GREENMAIL").is_err(),
+            "GreenMail is required but not reachable at {host}:3143"
+        );
+        eprintln!("GreenMail not reachable at {host}:3143; skipping");
+        return;
+    }
+    let (_, admin) = setup(&pool).await;
+    let user = format!("check-{}@localhost", Uuid::now_v7());
+    let m = mailbox(
+        &admin,
+        &pool,
+        json!({ "address": user, "imap_host": host, "imap_username": user, "password": user }),
+    )
+    .await;
+    let id = m["id"].as_str().unwrap();
+    let ok = admin
+        .post(
+            &format!("/api/v1/mailboxes/{id}/connection-check"),
+            json!({}),
+        )
+        .await;
+    assert_eq!(ok.body, json!({ "ok": true, "error": null }));
+
+    let mut body = m.clone();
+    body["folder"] = json!("No Such Folder");
+    let r = admin.put(&format!("/api/v1/mailboxes/{id}"), body).await;
+    assert_eq!(r.status, StatusCode::OK, "{:?}", r.body);
+    let failed = admin
+        .post(
+            &format!("/api/v1/mailboxes/{id}/connection-check"),
+            json!({}),
+        )
+        .await;
+    assert_eq!(failed.body["ok"], false);
+    let error = failed.body["error"].as_str().unwrap();
+    assert!(error.contains("No Such Folder"), "{error}");
+}
+
+#[sqlx::test(migrations = "../../migrations")]
 async fn imap_poll_against_greenmail(pool: PgPool) {
     use lettre::AsyncTransport as _;
     let host = std::env::var("COOPER_TEST_GREENMAIL_HOST").unwrap_or_else(|_| "localhost".into());

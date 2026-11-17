@@ -13,6 +13,15 @@ use crate::domain::{
     parse_sdref,
 };
 
+/// The outcome of a Connection Check (FR-EML-013).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ConnectionCheck {
+    /// Cooper signed in and opened the folder.
+    Connected,
+    /// Signing in or opening the folder failed: the reason, for Administrators.
+    Failed(String),
+}
+
 /// What happened to an inbound email.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IntakeOutcome {
@@ -109,6 +118,40 @@ impl ServiceDesk {
         require(principal, capabilities::CONFIGURE)?;
         self.mailbox(id).await?;
         Ok(self.ports.mailboxes.rejected(id, 100).await?)
+    }
+
+    /// Runs a Connection Check (FR-EML-013): signs in with the saved settings and secret
+    /// and opens the folder, without reading or changing mail. The Mailbox's health
+    /// (FR-EML-010) is left to the poller; a secret the provider rotated is stored.
+    ///
+    /// # Errors
+    ///
+    /// Forbidden, not found or storage failures. A failed sign-in is
+    /// [`ConnectionCheck::Failed`], not an error.
+    pub async fn check_mailbox_connection(
+        &self,
+        principal: &Principal,
+        id: Uuid,
+    ) -> Result<ConnectionCheck, AppError> {
+        require(principal, capabilities::CONFIGURE)?;
+        let mailbox = self.mailbox(id).await?;
+        let Some(secret) = self.ports.mailboxes.secret(id).await? else {
+            return Ok(ConnectionCheck::Failed(
+                "the Mailbox has no password or credentials".into(),
+            ));
+        };
+        match self.ports.connector.check(&mailbox, &secret).await {
+            Ok(rotated) => {
+                if let Some(rotated) = rotated {
+                    self.rotate_mailbox_secret(&mailbox, &rotated).await?;
+                }
+                Ok(ConnectionCheck::Connected)
+            }
+            Err(e) => {
+                tracing::info!(mailbox = %mailbox.settings().address, error = %e, "mailbox connection check failed");
+                Ok(ConnectionCheck::Failed(e.chars().take(1000).collect()))
+            }
+        }
     }
 
     pub(super) async fn mailbox(&self, id: Uuid) -> Result<Mailbox, AppError> {

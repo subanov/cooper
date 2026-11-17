@@ -744,6 +744,13 @@ export const en = {
   "admin.mailboxes.consentIntro":
     "Save the client ID and secret first, then sign in to the mailbox account at the provider. Saving new client credentials disconnects the Mailbox until you connect it again.",
   "admin.mailboxes.connect": "Connect the Mailbox",
+  "admin.mailboxes.check": "Connection Check",
+  "admin.mailboxes.checkIntro":
+    "Signs in with the saved settings and opens the folder. Nothing is read or changed. Save your changes first.",
+  "admin.mailboxes.checkButton": "Check connection",
+  "admin.mailboxes.checking": "Checking…",
+  "admin.mailboxes.checkOk": "Connected: Cooper signed in and opened the folder.",
+  "admin.mailboxes.checkFailed": "The check failed: {error}",
   "admin.mailboxes.health": "Health",
   "admin.mailboxes.healthy": "Healthy",
   "admin.mailboxes.notPolled": "Not polled yet",

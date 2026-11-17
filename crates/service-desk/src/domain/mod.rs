@@ -50,10 +50,10 @@ pub use merge::{
 pub use number::{NumberContext, NumberFormat};
 pub use ports::{
     AnalystProfile, AttachmentInfo, ContentRepository, DepartmentInfo, Directory, ListFilter,
-    MailboxConsentClient, MailboxRepository, ManagedTickets, ReferenceData, RepoError,
-    RequesterContact, RequesterNotificationPreferences, RetiredNumber, SlaRepository, SortField,
-    TicketListQuery, TicketRelations, TicketRepository, TicketSettings, TicketSettingsProvider,
-    TicketSummary, TicketView, Visibility,
+    MailboxConnector, MailboxConsentClient, MailboxRepository, ManagedTickets, ReferenceData,
+    RepoError, RequesterContact, RequesterNotificationPreferences, RetiredNumber, SlaRepository,
+    SortField, TicketListQuery, TicketRelations, TicketRepository, TicketSettings,
+    TicketSettingsProvider, TicketSummary, TicketView, Visibility,
 };
 pub use sla::{
     DayHours, RuleTarget, SlaCalendar, SlaCalendarInput, SlaNotificationRule, SlaRuleInput,

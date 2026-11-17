@@ -506,6 +506,20 @@ pub trait MailboxRepository: Send + Sync {
     ) -> Result<Option<super::MailboxConsent>, RepoError>;
 }
 
+/// Signs in to a Mailbox's provider to run a Connection Check (FR-EML-013).
+#[async_trait]
+pub trait MailboxConnector: Send + Sync {
+    /// Signs in with `secret` and opens the Mailbox's folder, then disconnects. No
+    /// message is read, moved or marked. `Ok` carries a replacement secret the provider
+    /// issued while signing in (a rotated refresh token), to be stored.
+    ///
+    /// # Errors
+    ///
+    /// What failed, worded for Administrators.
+    async fn check(&self, mailbox: &super::Mailbox, secret: &str)
+    -> Result<Option<String>, String>;
+}
+
 /// The provider side of Mailbox Consent (ADR-0033).
 #[async_trait]
 pub trait MailboxConsentClient: Send + Sync {

@@ -18,14 +18,14 @@ use cooper_kernel::{Actor, Clock, Forbidden, Principal};
 use thiserror::Error;
 
 use crate::domain::{
-    ContentRepository, Directory, MailboxConsentClient, MailboxRepository, ReferenceData,
-    RepoError, RequesterNotificationPreferences, SlaRepository, TicketError, TicketRelations,
-    TicketRepository, TicketSettingsProvider, TicketStatistics,
+    ContentRepository, Directory, MailboxConnector, MailboxConsentClient, MailboxRepository,
+    ReferenceData, RepoError, RequesterNotificationPreferences, SlaRepository, TicketError,
+    TicketRelations, TicketRepository, TicketSettingsProvider, TicketStatistics,
 };
 
 pub use configuration::FieldValue;
 pub use content::{ReplyInput, StoredFile};
-pub use intake::IntakeOutcome;
+pub use intake::{ConnectionCheck, IntakeOutcome};
 pub use portal::{PortalTicket, PortalTicketInput, PortalTimelineEntry};
 pub use reference::LookupInput;
 pub use relations::{BulkAction, BulkOutcome, LinkView, SplitInput, Viewer};
@@ -198,6 +198,8 @@ pub struct ServiceDeskPorts {
     pub mailboxes: Arc<dyn MailboxRepository>,
     /// The providers of Mailbox Consent.
     pub consent: Arc<dyn MailboxConsentClient>,
+    /// Signs in to Mailboxes for Connection Checks.
+    pub connector: Arc<dyn MailboxConnector>,
     /// Requesters' Notification Preferences (the notifications context).
     pub preferences: Arc<dyn RequesterNotificationPreferences>,
     /// Links, merges, splits, number history, presence and field values.

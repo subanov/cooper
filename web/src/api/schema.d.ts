@@ -1785,6 +1785,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mailboxes/{id}/connection-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Runs a Connection Check (FR-EML-013): signs in with the saved settings and secret and
+         *     opens the folder, without reading or changing mail. A failed sign-in is a 200 with
+         *     `ok: false` and the reason; health is left to the poller (needs `tickets.configure`).
+         */
+        post: operations["check_mailbox_connection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/mailboxes/{id}/consent": {
         parameters: {
             query?: never;
@@ -7283,6 +7304,13 @@ export interface components {
             sender_domains?: string[];
             /** @description Ticket Code. */
             ticket_code: string;
+        };
+        /** @description The outcome of a Connection Check. */
+        ConnectionCheckDto: {
+            /** @description What failed, when `ok` is false. */
+            error?: string | null;
+            /** @description Whether Cooper signed in and opened the folder. */
+            ok: boolean;
         };
         /** @description A Contact: a person at a Supplier. */
         ContactDto: {
@@ -15167,6 +15195,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MailboxDto"];
+                };
+            };
+        };
+    };
+    check_mailbox_connection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectionCheckDto"];
                 };
             };
         };

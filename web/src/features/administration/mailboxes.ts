@@ -40,6 +40,13 @@ export const createMailbox = (body: Mailbox) => result(api.POST("/api/v1/mailbox
 export const updateMailbox = (id: string, body: Mailbox) =>
   result(api.PUT("/api/v1/mailboxes/{id}", { params: { path: { id } }, body }));
 
+/**
+ * Runs a Connection Check (FR-EML-013) with the saved settings: `ok`, or `error` with
+ * the reason. Nothing in the Mailbox is read or changed.
+ */
+export const checkMailboxConnection = (id: string) =>
+  result(api.POST("/api/v1/mailboxes/{id}/connection-check", { params: { path: { id } } }));
+
 /** Starts Mailbox Consent: the provider sign-in page to send the browser to. */
 export const startMailboxConsent = (id: string) =>
   result(api.POST("/api/v1/mailboxes/{id}/consent", { params: { path: { id } } }));

@@ -157,6 +157,52 @@ describe("Mailboxes (FR-EML-001)", () => {
     expect(put?.body).toMatchObject({ password: null, credentials: null, name: "Service desk" });
   });
 
+  it("checks the connection and shows the error (FR-EML-013)", async () => {
+    let answer: { ok: boolean; error: string | null } = {
+      ok: false,
+      error: "IMAP login failed: authentication failed",
+    };
+    const calls = mockFetch({
+      ...base,
+      "GET /api/v1/mailboxes": { status: 200, body: [mailbox()] },
+      "GET /api/v1/mailboxes/m1/rejected-emails": { status: 200, body: [] },
+      "POST /api/v1/mailboxes/m1/connection-check": () => ({ status: 200, body: answer }),
+    });
+    const user = userEvent.setup();
+    const { container } = renderApp("/administration/mailboxes");
+    await user.click(await screen.findByRole("button", { name: "Edit Service desk" }));
+
+    await user.click(screen.getByRole("button", { name: "Check connection" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "The check failed: IMAP login failed: authentication failed",
+    );
+    expect(await axeViolations(container)).toEqual([]);
+    const check = calls.find((c) => c.path.endsWith("/connection-check"));
+    expect(check?.headers.get("x-csrf-token")).toBe("csrf-1");
+
+    answer = { ok: true, error: null };
+    await user.click(screen.getByRole("button", { name: "Check connection" }));
+    expect(await screen.findByText(/Connected: Cooper signed in/)).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("shows a refused check as an error", async () => {
+    mockFetch({
+      ...base,
+      "GET /api/v1/mailboxes": { status: 200, body: [mailbox()] },
+      "GET /api/v1/mailboxes/m1/rejected-emails": { status: 200, body: [] },
+      "POST /api/v1/mailboxes/m1/connection-check": {
+        status: 403,
+        body: { title: "Forbidden", status: 403, detail: "needs tickets.configure" },
+      },
+    });
+    const user = userEvent.setup();
+    renderApp("/administration/mailboxes");
+    await user.click(await screen.findByRole("button", { name: "Edit Service desk" }));
+    await user.click(screen.getByRole("button", { name: "Check connection" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/The check failed:/);
+  });
+
   it("starts Mailbox Consent for a delegated Microsoft Mailbox", async () => {
     const assign = vi.fn();
     vi.stubGlobal("location", { ...window.location, assign });
