@@ -1,9 +1,12 @@
 import { QueryClient } from "@tanstack/react-query";
 import {
+  type AsyncRouteComponent,
   createRootRouteWithContext,
   createRoute,
   createRouter,
+  lazyRouteComponent,
   Outlet,
+  type RouteComponent,
   redirect,
 } from "@tanstack/react-router";
 import type { LookupKind } from "./features/administration/resources";
@@ -12,60 +15,219 @@ import type { ContractLookupKind } from "./features/contracts/api";
 import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
 import { parseTicketSearch } from "./features/tickets/views";
 import { AnalystLayout } from "./routes/analyst/AnalystLayout";
-import { AdministrationLayout } from "./routes/analyst/administration/AdministrationLayout";
-import { JobsPage } from "./routes/analyst/administration/JobsPage";
-import { ModulesPage } from "./routes/analyst/administration/ModulesPage";
-import { AssetLookupsPage } from "./routes/analyst/administration/resources/AssetLookupsPage";
-import { CalendarCategoriesPage } from "./routes/analyst/administration/resources/CalendarCategoriesPage";
-import { CategoriesPage } from "./routes/analyst/administration/resources/CategoriesPage";
-import { CompaniesPage } from "./routes/analyst/administration/resources/CompaniesPage";
-import { ContractLookupPage } from "./routes/analyst/administration/resources/ContractLookupPage";
-import { CostCentresPage } from "./routes/analyst/administration/resources/CostCentresPage";
-import { DepartmentsPage } from "./routes/analyst/administration/resources/DepartmentsPage";
-import { LookupAdminPage } from "./routes/analyst/administration/resources/LookupAdminPage";
-import { MailboxesPage } from "./routes/analyst/administration/resources/MailboxesPage";
-import { RolesPage } from "./routes/analyst/administration/resources/RolesPage";
-import { TeamsPage } from "./routes/analyst/administration/resources/TeamsPage";
-import { SettingsPage } from "./routes/analyst/administration/SettingsPage";
-import { SystemLogPage } from "./routes/analyst/administration/SystemLogPage";
-import { AssetEditor } from "./routes/analyst/assets/AssetEditor";
-import { AssetsPage } from "./routes/analyst/assets/AssetsPage";
-import { ComingSoon } from "./routes/analyst/ComingSoon";
-import { CalendarPage } from "./routes/analyst/calendar/CalendarPage";
-import { ContractEditor } from "./routes/analyst/contracts/ContractEditor";
-import { ContractsPage } from "./routes/analyst/contracts/ContractsPage";
-import { SupplierEditor } from "./routes/analyst/contracts/SupplierEditor";
-import { SuppliersPage } from "./routes/analyst/contracts/SuppliersPage";
-import { Home } from "./routes/analyst/Home";
-import { ArticlePage } from "./routes/analyst/knowledge/ArticlePage";
-import { KnowledgePage } from "./routes/analyst/knowledge/KnowledgePage";
-import { ChecksPage } from "./routes/analyst/morning-checks/ChecksPage";
-import { MorningChecksLayout } from "./routes/analyst/morning-checks/MorningChecksLayout";
-import { TodayPage } from "./routes/analyst/morning-checks/TodayPage";
-import { IncidentEditor } from "./routes/analyst/service-status/IncidentEditor";
-import { IncidentsPage } from "./routes/analyst/service-status/IncidentsPage";
-import { OverviewPage } from "./routes/analyst/service-status/OverviewPage";
-import { ServiceStatusLayout } from "./routes/analyst/service-status/ServiceStatusLayout";
-import { ServicesPage } from "./routes/analyst/service-status/ServicesPage";
-import { TaskEditor } from "./routes/analyst/tasks/TaskEditor";
-import { TasksPage } from "./routes/analyst/tasks/TasksPage";
-import { NewTicket } from "./routes/analyst/tickets/NewTicket";
-import { TicketDetail } from "./routes/analyst/tickets/TicketDetail";
-import { TicketsPage } from "./routes/analyst/tickets/TicketsPage";
-import { AnalystEditor } from "./routes/analyst/users/AnalystEditor";
-import { AnalystsPage } from "./routes/analyst/users/AnalystsPage";
-import { RequesterEditor } from "./routes/analyst/users/RequesterEditor";
-import { RequestersPage } from "./routes/analyst/users/RequestersPage";
-import { UsersLayout } from "./routes/analyst/users/UsersLayout";
-import { ResetPasswordPage } from "./routes/auth/ResetPassword";
 import { SignInPage } from "./routes/auth/SignIn";
-import { TwoFactorSetupPage } from "./routes/auth/TwoFactorSetup";
 import { NotFound } from "./routes/NotFound";
-import { PortalHome } from "./routes/portal/PortalHome";
 import { PortalLayout } from "./routes/portal/PortalLayout";
-import { PortalResetPage, PortalSetPasswordPage } from "./routes/portal/PortalPassword";
-import { PortalRegisterPage } from "./routes/portal/PortalRegister";
-import { PortalSignInPage } from "./routes/portal/PortalSignIn";
+
+/* Pages load on demand, so the first download holds only the app shell. */
+const AdministrationLayout = lazyRouteComponent(
+  () => import("./routes/analyst/administration/AdministrationLayout"),
+  "AdministrationLayout",
+);
+const JobsPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/JobsPage"),
+  "JobsPage",
+);
+const ModulesPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/ModulesPage"),
+  "ModulesPage",
+);
+const AssetLookupsPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/AssetLookupsPage"),
+  "AssetLookupsPage",
+);
+const CalendarCategoriesPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/CalendarCategoriesPage"),
+  "CalendarCategoriesPage",
+);
+const CategoriesPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/CategoriesPage"),
+  "CategoriesPage",
+);
+const CompaniesPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/CompaniesPage"),
+  "CompaniesPage",
+);
+const ContractLookupPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/ContractLookupPage"),
+  "ContractLookupPage",
+);
+const CostCentresPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/CostCentresPage"),
+  "CostCentresPage",
+);
+const DepartmentsPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/DepartmentsPage"),
+  "DepartmentsPage",
+);
+const LookupAdminPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/LookupAdminPage"),
+  "LookupAdminPage",
+);
+const MailboxesPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/MailboxesPage"),
+  "MailboxesPage",
+);
+const RolesPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/RolesPage"),
+  "RolesPage",
+);
+const TeamsPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/resources/TeamsPage"),
+  "TeamsPage",
+);
+const SettingsPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/SettingsPage"),
+  "SettingsPage",
+);
+const SystemLogPage = lazyRouteComponent(
+  () => import("./routes/analyst/administration/SystemLogPage"),
+  "SystemLogPage",
+);
+const AssetEditor = lazyRouteComponent(
+  () => import("./routes/analyst/assets/AssetEditor"),
+  "AssetEditor",
+);
+const AssetsPage = lazyRouteComponent(
+  () => import("./routes/analyst/assets/AssetsPage"),
+  "AssetsPage",
+);
+const ComingSoon = lazyRouteComponent(() => import("./routes/analyst/ComingSoon"), "ComingSoon");
+const CalendarPage = lazyRouteComponent(
+  () => import("./routes/analyst/calendar/CalendarPage"),
+  "CalendarPage",
+);
+const ContractEditor = lazyRouteComponent(
+  () => import("./routes/analyst/contracts/ContractEditor"),
+  "ContractEditor",
+);
+const ContractsPage = lazyRouteComponent(
+  () => import("./routes/analyst/contracts/ContractsPage"),
+  "ContractsPage",
+);
+const SupplierEditor = lazyRouteComponent(
+  () => import("./routes/analyst/contracts/SupplierEditor"),
+  "SupplierEditor",
+);
+const SuppliersPage = lazyRouteComponent(
+  () => import("./routes/analyst/contracts/SuppliersPage"),
+  "SuppliersPage",
+);
+const Home = lazyRouteComponent(() => import("./routes/analyst/Home"), "Home");
+const ArticlePage = lazyRouteComponent(
+  () => import("./routes/analyst/knowledge/ArticlePage"),
+  "ArticlePage",
+);
+const KnowledgePage = lazyRouteComponent(
+  () => import("./routes/analyst/knowledge/KnowledgePage"),
+  "KnowledgePage",
+);
+const ChecksPage = lazyRouteComponent(
+  () => import("./routes/analyst/morning-checks/ChecksPage"),
+  "ChecksPage",
+);
+const MorningChecksLayout = lazyRouteComponent(
+  () => import("./routes/analyst/morning-checks/MorningChecksLayout"),
+  "MorningChecksLayout",
+);
+const TodayPage = lazyRouteComponent(
+  () => import("./routes/analyst/morning-checks/TodayPage"),
+  "TodayPage",
+);
+const IncidentEditor = lazyRouteComponent(
+  () => import("./routes/analyst/service-status/IncidentEditor"),
+  "IncidentEditor",
+);
+const IncidentsPage = lazyRouteComponent(
+  () => import("./routes/analyst/service-status/IncidentsPage"),
+  "IncidentsPage",
+);
+const OverviewPage = lazyRouteComponent(
+  () => import("./routes/analyst/service-status/OverviewPage"),
+  "OverviewPage",
+);
+const ServiceStatusLayout = lazyRouteComponent(
+  () => import("./routes/analyst/service-status/ServiceStatusLayout"),
+  "ServiceStatusLayout",
+);
+const ServicesPage = lazyRouteComponent(
+  () => import("./routes/analyst/service-status/ServicesPage"),
+  "ServicesPage",
+);
+const TaskEditor = lazyRouteComponent(
+  () => import("./routes/analyst/tasks/TaskEditor"),
+  "TaskEditor",
+);
+const TasksPage = lazyRouteComponent(() => import("./routes/analyst/tasks/TasksPage"), "TasksPage");
+const NewTicket = lazyRouteComponent(
+  () => import("./routes/analyst/tickets/NewTicket"),
+  "NewTicket",
+);
+const TicketDetail = lazyRouteComponent(
+  () => import("./routes/analyst/tickets/TicketDetail"),
+  "TicketDetail",
+);
+const TicketsPage = lazyRouteComponent(
+  () => import("./routes/analyst/tickets/TicketsPage"),
+  "TicketsPage",
+);
+const AnalystEditor = lazyRouteComponent(
+  () => import("./routes/analyst/users/AnalystEditor"),
+  "AnalystEditor",
+);
+const AnalystsPage = lazyRouteComponent(
+  () => import("./routes/analyst/users/AnalystsPage"),
+  "AnalystsPage",
+);
+const RequesterEditor = lazyRouteComponent(
+  () => import("./routes/analyst/users/RequesterEditor"),
+  "RequesterEditor",
+);
+const RequestersPage = lazyRouteComponent(
+  () => import("./routes/analyst/users/RequestersPage"),
+  "RequestersPage",
+);
+const UsersLayout = lazyRouteComponent(
+  () => import("./routes/analyst/users/UsersLayout"),
+  "UsersLayout",
+);
+const ResetPasswordPage = lazyRouteComponent(
+  () => import("./routes/auth/ResetPassword"),
+  "ResetPasswordPage",
+);
+const TwoFactorSetupPage = lazyRouteComponent(
+  () => import("./routes/auth/TwoFactorSetup"),
+  "TwoFactorSetupPage",
+);
+const PortalHome = lazyRouteComponent(() => import("./routes/portal/PortalHome"), "PortalHome");
+const PortalResetPage = lazyRouteComponent(
+  () => import("./routes/portal/PortalPassword"),
+  "PortalResetPage",
+);
+const PortalSetPasswordPage = lazyRouteComponent(
+  () => import("./routes/portal/PortalPassword"),
+  "PortalSetPasswordPage",
+);
+const PortalRegisterPage = lazyRouteComponent(
+  () => import("./routes/portal/PortalRegister"),
+  "PortalRegisterPage",
+);
+const PortalSignInPage = lazyRouteComponent(
+  () => import("./routes/portal/PortalSignIn"),
+  "PortalSignInPage",
+);
+
+/**
+ * A route component that renders a lazy page with route props. It preloads the page, so the
+ * router loads the chunk before it shows the route instead of suspending mid-render.
+ */
+function withPage<P>(
+  page: AsyncRouteComponent<P>,
+  component: () => React.JSX.Element,
+): RouteComponent {
+  const { preload } = page;
+  return preload ? Object.assign(component, { preload }) : component;
+}
 
 /** What every route can use: the query cache, for loading data before rendering. */
 export interface RouterContext {
@@ -97,10 +259,10 @@ const resetRoute = createRoute({
   path: "/reset-password",
   validateSearch: (search: Record<string, unknown>): { token?: string } =>
     typeof search.token === "string" ? { token: search.token } : {},
-  component: function ResetRoute() {
+  component: withPage(ResetPasswordPage, function ResetRoute() {
     const { token } = resetRoute.useSearch();
     return <ResetPasswordPage token={token} />;
-  },
+  }),
 });
 
 const twoFactorRoute = createRoute({
@@ -145,10 +307,10 @@ const ticketsRoute = createRoute({
 const ticketRoute = createRoute({
   getParentRoute: () => ticketsRoute,
   path: "$ticketId",
-  component: function TicketRoute() {
+  component: withPage(TicketDetail, function TicketRoute() {
     const { ticketId } = ticketRoute.useParams();
     return <TicketDetail key={ticketId} ticketId={ticketId} />;
-  },
+  }),
 });
 
 /** The New ticket form, in the split pane beside the list. */
@@ -166,15 +328,15 @@ const tasksRoute = createRoute({
 const newTaskRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/tasks/new",
-  component: () => <TaskEditor />,
+  component: withPage(TaskEditor, () => <TaskEditor />),
 });
 const taskByIdRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/tasks/$id",
-  component: function TaskRoute() {
+  component: withPage(TaskEditor, function TaskRoute() {
     const { id } = taskByIdRoute.useParams();
     return <TaskEditor key={id} id={id} />;
-  },
+  }),
 });
 
 const assetsRoute = createRoute({
@@ -185,15 +347,15 @@ const assetsRoute = createRoute({
 const newAssetRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/assets/new",
-  component: () => <AssetEditor />,
+  component: withPage(AssetEditor, () => <AssetEditor />),
 });
 const assetByIdRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/assets/$id",
-  component: function AssetRoute() {
+  component: withPage(AssetEditor, function AssetRoute() {
     const { id } = assetByIdRoute.useParams();
     return <AssetEditor key={id} id={id} />;
-  },
+  }),
 });
 const contractsRoute = createRoute({
   getParentRoute: () => analystRoute,
@@ -203,15 +365,15 @@ const contractsRoute = createRoute({
 const newContractRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/contracts/new",
-  component: () => <ContractEditor />,
+  component: withPage(ContractEditor, () => <ContractEditor />),
 });
 const contractByIdRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/contracts/$id",
-  component: function ContractRoute() {
+  component: withPage(ContractEditor, function ContractRoute() {
     const { id } = contractByIdRoute.useParams();
     return <ContractEditor key={id} id={id} />;
-  },
+  }),
 });
 const suppliersRoute = createRoute({
   getParentRoute: () => analystRoute,
@@ -221,15 +383,15 @@ const suppliersRoute = createRoute({
 const newSupplierRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/suppliers/new",
-  component: () => <SupplierEditor />,
+  component: withPage(SupplierEditor, () => <SupplierEditor />),
 });
 const supplierByIdRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/suppliers/$id",
-  component: function SupplierRoute() {
+  component: withPage(SupplierEditor, function SupplierRoute() {
     const { id } = supplierByIdRoute.useParams();
     return <SupplierEditor key={id} id={id} />;
-  },
+  }),
 });
 /** The IT Calendar; the month and Category filter are in the URL (FR-CAL-001). */
 const calendarRoute = createRoute({
@@ -241,10 +403,10 @@ const calendarRoute = createRoute({
       ? { category: search.category }
       : {}),
   }),
-  component: function CalendarRoute() {
+  component: withPage(CalendarPage, function CalendarRoute() {
     const { month, category } = calendarRoute.useSearch();
     return <CalendarPage month={parseMonth(month)} {...(category ? { category } : {})} />;
-  },
+  }),
 });
 
 const knowledgeRoute = createRoute({
@@ -255,15 +417,15 @@ const knowledgeRoute = createRoute({
 const newArticleRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/knowledge/new",
-  component: () => <ArticlePage />,
+  component: withPage(ArticlePage, () => <ArticlePage />),
 });
 const articleByIdRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/knowledge/$id",
-  component: function ArticleRoute() {
+  component: withPage(ArticlePage, function ArticleRoute() {
     const { id } = articleByIdRoute.useParams();
     return <ArticlePage key={id} id={id} />;
-  },
+  }),
 });
 
 const serviceStatusRoute = createRoute({
@@ -291,15 +453,15 @@ const statusIncidentsRoute = createRoute({
 const statusNewIncidentRoute = createRoute({
   getParentRoute: () => serviceStatusRoute,
   path: "/incidents/new",
-  component: () => <IncidentEditor />,
+  component: withPage(IncidentEditor, () => <IncidentEditor />),
 });
 const statusIncidentRoute = createRoute({
   getParentRoute: () => serviceStatusRoute,
   path: "/incidents/$id",
-  component: function IncidentRoute() {
+  component: withPage(IncidentEditor, function IncidentRoute() {
     const { id } = statusIncidentRoute.useParams();
     return <IncidentEditor key={id} id={id} />;
-  },
+  }),
 });
 const statusServicesRoute = createRoute({
   getParentRoute: () => serviceStatusRoute,
@@ -350,15 +512,15 @@ const analystsRoute = createRoute({
 const newAnalystRoute = createRoute({
   getParentRoute: () => usersRoute,
   path: "/analysts/new",
-  component: () => <AnalystEditor />,
+  component: withPage(AnalystEditor, () => <AnalystEditor />),
 });
 const analystRouteById = createRoute({
   getParentRoute: () => usersRoute,
   path: "/analysts/$id",
-  component: function AnalystRoute() {
+  component: withPage(AnalystEditor, function AnalystRoute() {
     const { id } = analystRouteById.useParams();
     return <AnalystEditor key={id} id={id} />;
-  },
+  }),
 });
 const requestersRoute = createRoute({
   getParentRoute: () => usersRoute,
@@ -368,15 +530,15 @@ const requestersRoute = createRoute({
 const newRequesterRoute = createRoute({
   getParentRoute: () => usersRoute,
   path: "/requesters/new",
-  component: () => <RequesterEditor />,
+  component: withPage(RequesterEditor, () => <RequesterEditor />),
 });
 const requesterRouteById = createRoute({
   getParentRoute: () => usersRoute,
   path: "/requesters/$id",
-  component: function RequesterRoute() {
+  component: withPage(RequesterEditor, function RequesterRoute() {
     const { id } = requesterRouteById.useParams();
     return <RequesterEditor key={id} id={id} />;
-  },
+  }),
 });
 
 const administrationRoute = createRoute({
@@ -414,11 +576,13 @@ const administrationLogRoute = createRoute({
 });
 
 /** An Administration page for ticket reference data or an organisation list. */
-function adminPage<P extends string>(path: P, component: () => React.JSX.Element) {
+function adminPage<P extends string>(path: P, component: RouteComponent) {
   return createRoute({ getParentRoute: () => administrationRoute, path, component });
 }
-const lookupPage = (kind: LookupKind) => () => <LookupAdminPage kind={kind} />;
-const contractLookupPage = (kind: ContractLookupKind) => () => <ContractLookupPage kind={kind} />;
+const lookupPage = (kind: LookupKind) =>
+  withPage(LookupAdminPage, () => <LookupAdminPage kind={kind} />);
+const contractLookupPage = (kind: ContractLookupKind) =>
+  withPage(ContractLookupPage, () => <ContractLookupPage kind={kind} />);
 const adminReferenceRoutes = [
   adminPage("/ticket-statuses", lookupPage("ticket-statuses")),
   adminPage("/ticket-priorities", lookupPage("ticket-priorities")),
@@ -432,9 +596,18 @@ const adminReferenceRoutes = [
   adminPage("/departments", DepartmentsPage),
   adminPage("/cost-centres", CostCentresPage),
   adminPage("/roles", RolesPage),
-  adminPage("/asset-types", () => <AssetLookupsPage kind="asset-types" />),
-  adminPage("/asset-statuses", () => <AssetLookupsPage kind="asset-statuses" />),
-  adminPage("/asset-locations", () => <AssetLookupsPage kind="asset-locations" />),
+  adminPage(
+    "/asset-types",
+    withPage(AssetLookupsPage, () => <AssetLookupsPage kind="asset-types" />),
+  ),
+  adminPage(
+    "/asset-statuses",
+    withPage(AssetLookupsPage, () => <AssetLookupsPage kind="asset-statuses" />),
+  ),
+  adminPage(
+    "/asset-locations",
+    withPage(AssetLookupsPage, () => <AssetLookupsPage kind="asset-locations" />),
+  ),
   adminPage("/supplier-types", contractLookupPage("supplier-types")),
   adminPage("/supplier-statuses", contractLookupPage("supplier-statuses")),
   adminPage("/contract-statuses", contractLookupPage("contract-statuses")),
@@ -447,10 +620,10 @@ const portalSignInRoute = createRoute({
   path: "/portal/sign-in",
   validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
     typeof search.redirect === "string" ? { redirect: search.redirect } : {},
-  component: function PortalSignInRoute() {
+  component: withPage(PortalSignInPage, function PortalSignInRoute() {
     const { redirect: target } = portalSignInRoute.useSearch();
     return <PortalSignInPage redirect={target} />;
-  },
+  }),
 });
 
 const portalResetRoute = createRoute({
@@ -465,10 +638,10 @@ const portalSetPasswordRoute = createRoute({
   path: "/portal/set-password",
   validateSearch: (search: Record<string, unknown>): { token?: string } =>
     typeof search.token === "string" ? { token: search.token } : {},
-  component: function PortalSetPasswordRoute() {
+  component: withPage(PortalSetPasswordPage, function PortalSetPasswordRoute() {
     const { token } = portalSetPasswordRoute.useSearch();
     return <PortalSetPasswordPage token={token} />;
-  },
+  }),
 });
 
 const portalRegisterRoute = createRoute({
@@ -499,7 +672,7 @@ const portalHomeRoute = createRoute({
 const portalTicketsRoute = createRoute({
   getParentRoute: () => portalRoute,
   path: "/tickets",
-  component: () => <ComingSoon section="portalNav.tickets" />,
+  component: withPage(ComingSoon, () => <ComingSoon section="portalNav.tickets" />),
 });
 
 export const routeTree = rootRoute.addChildren([

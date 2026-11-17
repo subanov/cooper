@@ -219,11 +219,13 @@ describe("Knowledge", () => {
     const { container } = renderApp("/knowledge");
 
     await user.click(await screen.findByRole("link", { name: "Reset a password" }));
-    expect(await screen.findByText("Use the reset link.")).toBeInTheDocument();
+    // The list also shows the body text, so wait for the Article page itself.
+    const publish = await screen.findByRole("button", { name: "Publish" });
+    expect(screen.getByText("Use the reset link.")).toBeInTheDocument();
     expect(screen.getByText("Draft")).toBeInTheDocument();
     expect(await axeViolations(container)).toEqual([]);
 
-    await user.click(screen.getByRole("button", { name: "Publish" }));
+    await user.click(publish);
     expect(await screen.findByText("Published.")).toBeInTheDocument();
     expect(calls.find((c) => c.path.endsWith("/published"))?.body).toEqual({ is_published: true });
   });
