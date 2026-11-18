@@ -14,7 +14,7 @@
 # Keep the Rust version in step with rust-toolchain.toml and Node with web/.node-version.
 # The web UI (web/) is built first and embedded into cooper-server (ADR-0010).
 
-ARG RUST_VERSION=1.99.1
+ARG RUST_VERSION=1.100.0
 ARG NODE_VERSION=26
 
 # --- web: build the SPA with the locked dependencies ---------------------------------------
