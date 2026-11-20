@@ -19,5 +19,5 @@
     "paths": { "@/*": ["./src/*"] },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
   },
-  "include": ["src", ".storybook/preview.ts"]
+  "include": ["src", ".storybook/preview.tsx"]
 }

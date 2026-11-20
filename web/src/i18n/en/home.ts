@@ -1,0 +1,27 @@
+/** Home: the Watchtower and the Analyst's own work. */
+export const home = {
+  "home.greeting.morning": "Good morning, {name}",
+  "home.greeting.afternoon": "Good afternoon, {name}",
+  "home.greeting.evening": "Good evening, {name}",
+  "home.intro": "What needs you today. Press {key} to jump anywhere.",
+  "home.watchtower": "Watchtower",
+  "home.watchtowerIntro": "Counts across the service desk, refreshed live.",
+  "home.openTickets": "Open tickets",
+  "home.unassigned": "Unassigned",
+  "home.highPriority": "High priority",
+  "home.byStatus": "Open tickets by status",
+  "home.openTasks": "Open Tasks",
+  "home.overdue": "Overdue",
+  "home.dueToday": "Due today",
+  "home.checks": "Today's Morning Checks",
+  "home.checksRecorded": "{recorded} of {total} recorded",
+  "home.needAttention": "Need attention",
+  "home.myTickets": "My tickets",
+  "home.myTicketsEmpty": "Nothing assigned to you right now.",
+  "home.seeAll": "See all",
+  "home.recordChecks": "Record Morning Checks",
+  "home.myTasks": "My Tasks",
+  "home.companies":
+    "{count, plural, =0 {You see no Companies yet. Ask an Administrator for access.} one {You work for # Company.} other {You work for # Companies.}}",
+  "home.allCompanies": "You work for every Company.",
+} as const;

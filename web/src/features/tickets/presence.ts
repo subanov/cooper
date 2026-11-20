@@ -5,24 +5,20 @@ import { api, type Schemas } from "@/lib/api";
 /** How often an open ticket tells the server the Analyst is still there (FR-TKT-025). */
 export const HEARTBEAT_MS = 10_000;
 
-/** Other Analysts who have the ticket open. Refreshed by heartbeats and Live Updates. */
 export function presenceQuery(id: string) {
   return queryOptions({
     queryKey: ["tickets", "presence", id],
     queryFn: async (): Promise<Schemas["ViewerDto"][]> => {
-      const { data } = await api.GET("/api/v1/tickets/{id}/presence", {
-        params: { path: { id } },
-      });
+      const { data } = await api.GET("/api/v1/tickets/{id}/presence", { params: { path: { id } } });
       return data ?? [];
     },
-    // Viewers who close their tab drop out after the server's stale window.
     refetchInterval: 15_000,
   });
 }
 
 /**
- * Announces that the signed-in Analyst has ticket `id` open (and whether they are
- * writing), and returns the other Analysts who do. Presence warns; it never locks.
+ * Announces that the Analyst has ticket `id` open (and whether they are writing) and
+ * returns the other Analysts who do. Presence warns; it never locks (ADR-0024).
  */
 export function useTicketPresence(id: string, composing: boolean): Schemas["ViewerDto"][] {
   const queryClient = useQueryClient();
@@ -34,9 +30,7 @@ export function useTicketPresence(id: string, composing: boolean): Schemas["View
           params: { path: { id } },
           body: { composing },
         });
-        if (!stopped && data) {
-          queryClient.setQueryData(presenceQuery(id).queryKey, data);
-        }
+        if (!stopped && data) queryClient.setQueryData(presenceQuery(id).queryKey, data);
       } catch {
         // Offline: the next heartbeat tries again.
       }
@@ -50,7 +44,6 @@ export function useTicketPresence(id: string, composing: boolean): Schemas["View
   }, [id, composing, queryClient]);
   useEffect(
     () => () => {
-      // Leaving is only an optimisation: the heartbeat goes stale on its own.
       api.DELETE("/api/v1/tickets/{id}/presence", { params: { path: { id } } }).catch(() => {});
     },
     [id],

@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { applyPreferences } from "./features/preferences/preferences";
+import { applyPreferences } from "./lib/preferences";
 import { makeQueryClient, makeRouter } from "./router";
 import "./styles.css";
 

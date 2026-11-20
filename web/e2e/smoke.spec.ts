@@ -1,20 +1,16 @@
-import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { expectAccessible } from "./support";
 
-const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
-
-for (const path of ["/sign-in", "/reset-password", "/portal"]) {
-  test(`${path} loads under the CSP and passes axe-core`, async ({ page }) => {
+for (const path of ["/sign-in", "/reset-password", "/portal/sign-in", "/portal/reset-password"]) {
+  test(`${path} loads under the CSP and passes axe-core in both themes`, async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (message) => {
-      if (message.type() === "error") {
-        errors.push(message.text());
-      }
+      if (message.type() === "error") errors.push(message.text());
     });
     await page.goto(path);
     await expect(page.getByRole("main")).toBeVisible();
-    const results = await new AxeBuilder({ page }).withTags(WCAG).analyze();
-    expect(results.violations.map((v) => v.id)).toEqual([]);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expectAccessible(page);
     // A Content-Security-Policy violation shows up as a console error; the signed-out
     // session request (401) is expected.
     expect(errors.filter((e) => !e.includes("401"))).toEqual([]);
