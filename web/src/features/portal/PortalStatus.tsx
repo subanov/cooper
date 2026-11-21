@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Badge, ColourLabel } from "@/components/Badge";
-import { Card } from "@/components/Card";
-import { PageHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { LoadingBlock, QueryState } from "@/components/Feedback";
+import { PageHeader, Panel } from "@/components/Layout";
 import type { MessageId } from "@/i18n/messages";
 import { useFormat, useText } from "@/i18n/useText";
 import { portalStatusQuery } from "./api";
@@ -20,7 +19,7 @@ export function PortalStatusPage() {
           const incidents = s.incidents.filter((i) => !i.is_resolved);
           return (
             <>
-              <Card title={t("portalStatus.services")} flush>
+              <Panel title={t("portalStatus.services")} flush>
                 <ul className="divide-y divide-line">
                   {s.services.map((svc) => (
                     <li
@@ -39,8 +38,8 @@ export function PortalStatusPage() {
                     </li>
                   ))}
                 </ul>
-              </Card>
-              <Card title={t("portalStatus.incidents")}>
+              </Panel>
+              <Panel title={t("portalStatus.incidents")}>
                 {incidents.length === 0 ? (
                   <p className="text-sm text-fg-muted">{t("portalStatus.noIncidents")}</p>
                 ) : (
@@ -68,8 +67,8 @@ export function PortalStatusPage() {
                     ))}
                   </ul>
                 )}
-              </Card>
-              <Card title={t("portalStatus.maintenance")}>
+              </Panel>
+              <Panel title={t("portalStatus.maintenance")}>
                 {s.planned_maintenance.length === 0 ? (
                   <p className="text-sm text-fg-muted">{t("portalStatus.noMaintenance")}</p>
                 ) : (
@@ -97,7 +96,7 @@ export function PortalStatusPage() {
                     ))}
                   </ul>
                 )}
-              </Card>
+              </Panel>
             </>
           );
         }}

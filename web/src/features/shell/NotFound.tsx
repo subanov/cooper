@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Compass } from "lucide-react";
 import { buttonClass } from "@/components/Button";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState } from "@/components/Feedback";
 import { useText } from "@/i18n/useText";
 
 /** Shown for unknown addresses, inside or outside the signed-in frame. */

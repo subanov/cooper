@@ -1,10 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ExternalLink, Keyboard, LogOut, UserRound } from "lucide-react";
 import { Button } from "@/components/Button";
-import { Menu, MenuItem, MenuLabel, MenuRadioGroup, MenuSeparator } from "@/components/Menu";
+import { Menu, MenuItem, MenuLabel, MenuRadio, MenuSeparator } from "@/components/Menu";
 import { useSession, useSignOut } from "@/features/session/session";
 import { useText } from "@/i18n/useText";
-import { type Density, setPreferences, type Theme, usePreferences } from "@/lib/preferences";
+import { setPreferences, usePreferences } from "@/lib/preferences";
 
 /** The signed-in Analyst's menu: account, display preferences, help and sign out. */
 export function AccountMenu({ onShowShortcuts }: { onShowShortcuts: () => void }) {
@@ -24,10 +24,10 @@ export function AccountMenu({ onShowShortcuts }: { onShowShortcuts: () => void }
     <Menu
       label={t("menu.account", { name })}
       trigger={
-        <Button variant="ghost" className="gap-2 px-1.5" title={t("menu.account", { name })}>
+        <Button variant="ghost" className="gap-2 px-1.5">
           <span
             aria-hidden="true"
-            className="grid size-7 place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent-text"
+            className="grid size-7 place-items-center rounded-full bg-accent text-xs font-semibold text-accent-fg"
           >
             {initials}
           </span>
@@ -48,27 +48,29 @@ export function AccountMenu({ onShowShortcuts }: { onShowShortcuts: () => void }
       <MenuItem icon={<UserRound />} onSelect={() => void navigate({ to: "/account" })}>
         {t("menu.myAccount")}
       </MenuItem>
-      <MenuItem icon={<Keyboard />} shortcut="?" onSelect={onShowShortcuts}>
+      <MenuItem icon={<Keyboard />} onSelect={onShowShortcuts}>
         {t("menu.shortcuts")}
       </MenuItem>
       <MenuItem icon={<ExternalLink />} onSelect={() => void navigate({ to: "/portal" })}>
         {t("menu.portal")}
       </MenuItem>
       <MenuSeparator />
-      <MenuRadioGroup
+      <MenuLabel>{t("menu.theme")}</MenuLabel>
+      <MenuRadio
         label={t("menu.theme")}
         value={prefs.theme}
-        onChange={(theme) => setPreferences({ theme: theme as Theme })}
+        onChange={(theme) => setPreferences({ theme })}
         options={[
           { value: "system", label: t("menu.themeSystem") },
           { value: "light", label: t("menu.themeLight") },
           { value: "dark", label: t("menu.themeDark") },
         ]}
       />
-      <MenuRadioGroup
+      <MenuLabel>{t("menu.density")}</MenuLabel>
+      <MenuRadio
         label={t("menu.density")}
         value={prefs.density}
-        onChange={(density) => setPreferences({ density: density as Density })}
+        onChange={(density) => setPreferences({ density })}
         options={[
           { value: "comfortable", label: t("menu.densityComfortable") },
           { value: "compact", label: t("menu.densityCompact") },

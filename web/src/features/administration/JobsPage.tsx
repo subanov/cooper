@@ -3,14 +3,11 @@ import { History, Pencil, Play } from "lucide-react";
 import { useState } from "react";
 import { Badge, type Tone } from "@/components/Badge";
 import { IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { DataTable } from "@/components/DataTable";
+import { type Column, DataTable } from "@/components/DataTable";
 import { Dialog, FormDialog } from "@/components/Dialog";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState, ProblemNotice, QueryState } from "@/components/Feedback";
 import { SelectField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
-import { QueryState } from "@/components/QueryState";
+import { PageHeader, Panel } from "@/components/Layout";
 import { useAction } from "@/features/shared/mutation";
 import type { MessageId } from "@/i18n/messages";
 import { useFormat, useText } from "@/i18n/useText";
@@ -19,9 +16,10 @@ import { call } from "@/lib/request";
 
 type Job = Schemas["JobDto"];
 type Schedule = { kind?: string; interval_seconds?: number | null; daily_at?: string | null };
+type Run = Schemas["JobRunDto"];
 
 const OUTCOME_TONE: Record<string, Tone> = {
-  running: "accent",
+  running: "info",
   succeeded: "success",
   failed: "danger",
   abandoned: "warning",
@@ -29,9 +27,9 @@ const OUTCOME_TONE: Record<string, Tone> = {
 
 function OutcomeBadge({ outcome }: { outcome: string }) {
   const t = useText();
-  const known = ["running", "succeeded", "failed", "abandoned"].includes(outcome);
+  const known = outcome in OUTCOME_TONE;
   return (
-    <Badge tone={OUTCOME_TONE[outcome] ?? "muted"}>
+    <Badge tone={OUTCOME_TONE[outcome] ?? "neutral"}>
       {known ? t(`admin.jobs.outcome.${outcome}` as MessageId) : outcome}
     </Badge>
   );
@@ -62,88 +60,88 @@ export function JobsPage() {
       : s.kind === "daily"
         ? t("admin.jobs.summary.daily", { time: s.daily_at ?? "" })
         : t("admin.jobs.summary.off");
+  const columns: Column<Job>[] = [
+    {
+      key: "name",
+      header: t("admin.jobs.name"),
+      cell: (j) => <span className="font-mono text-[0.8125rem]">{j.name}</span>,
+    },
+    {
+      key: "schedule",
+      header: t("admin.jobs.schedule"),
+      cell: (j) => summary(j.schedule as Schedule),
+    },
+    {
+      key: "last",
+      header: t("admin.jobs.last"),
+      cell: (j) =>
+        j.last_run_at ? (
+          <span className="flex flex-wrap items-center gap-1.5">
+            {j.last_outcome ? <OutcomeBadge outcome={j.last_outcome} /> : null}
+            <span className="text-xs text-fg-muted">
+              {f.relative(j.last_run_at)}
+              {j.last_duration_ms != null
+                ? ` · ${t("admin.jobs.duration", { ms: j.last_duration_ms })}`
+                : ""}
+            </span>
+          </span>
+        ) : (
+          t("admin.jobs.never")
+        ),
+    },
+    {
+      key: "next",
+      header: t("admin.jobs.next"),
+      cell: (j) => (j.next_run_at ? f.dateTime(j.next_run_at) : t("common.noneDash")),
+    },
+    {
+      key: "actions",
+      header: t("common.actions"),
+      hideHeader: true,
+      className: "whitespace-nowrap text-right",
+      cell: (j) => (
+        <span className="inline-flex gap-1">
+          <IconButton
+            size="sm"
+            tooltip="top"
+            label={t("admin.jobs.runNamed", { name: j.name })}
+            icon={<Play aria-hidden="true" />}
+            loading={run.isPending && run.variables === j.name}
+            onClick={() => run.mutate(j.name)}
+          />
+          <IconButton
+            size="sm"
+            tooltip="top"
+            label={t("admin.jobs.editNamed", { name: j.name })}
+            icon={<Pencil aria-hidden="true" />}
+            onClick={() => setEditing(j)}
+          />
+          <IconButton
+            size="sm"
+            tooltip="top"
+            label={t("admin.jobs.historyNamed", { name: j.name })}
+            icon={<History aria-hidden="true" />}
+            onClick={() => setHistory(j)}
+          />
+        </span>
+      ),
+    },
+  ];
   return (
     <>
-      <SectionHeader title={t("admin.jobs")} description={t("admin.jobs.intro")} />
+      <PageHeader level={2} title={t("admin.jobs")} description={t("admin.jobs.intro")} />
       <ProblemNotice error={run.error} />
       <QueryState query={jobs}>
         {(list) => (
-          <Card flush>
+          <Panel flush>
             <DataTable
               caption={t("admin.jobs")}
               rows={list}
               rowKey={(j) => j.name}
               empty={<EmptyState title={t("admin.jobs.empty")} />}
-              columns={[
-                {
-                  id: "name",
-                  header: t("admin.jobs.name"),
-                  rowHeader: true,
-                  cell: (j) => <span className="font-mono text-[0.8125rem]">{j.name}</span>,
-                },
-                {
-                  id: "schedule",
-                  header: t("admin.jobs.schedule"),
-                  cell: (j) => summary(j.schedule as Schedule),
-                },
-                {
-                  id: "last",
-                  header: t("admin.jobs.last"),
-                  cell: (j) =>
-                    j.last_run_at ? (
-                      <span className="flex flex-wrap items-center gap-1.5">
-                        {j.last_outcome ? <OutcomeBadge outcome={j.last_outcome} /> : null}
-                        <span className="text-xs text-fg-muted">
-                          {f.relative(j.last_run_at)}
-                          {j.last_duration_ms != null
-                            ? ` · ${t("admin.jobs.duration", { ms: j.last_duration_ms })}`
-                            : ""}
-                        </span>
-                      </span>
-                    ) : (
-                      t("admin.jobs.never")
-                    ),
-                },
-                {
-                  id: "next",
-                  header: t("admin.jobs.next"),
-                  wide: true,
-                  cell: (j) => (j.next_run_at ? f.dateTime(j.next_run_at) : t("common.noneDash")),
-                },
-                {
-                  id: "actions",
-                  header: <span className="sr-only">{t("common.actions")}</span>,
-                  className: "whitespace-nowrap text-right",
-                  cell: (j) => (
-                    <span className="inline-flex gap-1">
-                      <IconButton
-                        size="sm"
-                        tooltip="top"
-                        label={t("admin.jobs.runNamed", { name: j.name })}
-                        icon={<Play aria-hidden="true" className="size-3.5" />}
-                        loading={run.isPending && run.variables === j.name}
-                        onClick={() => run.mutate(j.name)}
-                      />
-                      <IconButton
-                        size="sm"
-                        tooltip="top"
-                        label={t("admin.jobs.editNamed", { name: j.name })}
-                        icon={<Pencil aria-hidden="true" className="size-3.5" />}
-                        onClick={() => setEditing(j)}
-                      />
-                      <IconButton
-                        size="sm"
-                        tooltip="top"
-                        label={t("admin.jobs.historyNamed", { name: j.name })}
-                        icon={<History aria-hidden="true" className="size-3.5" />}
-                        onClick={() => setHistory(j)}
-                      />
-                    </span>
-                  ),
-                },
-              ]}
+              columns={columns}
             />
-          </Card>
+          </Panel>
         )}
       </QueryState>
       {editing ? <ScheduleDialog job={editing} onClose={() => setEditing(null)} /> : null}
@@ -225,6 +223,27 @@ function RunsDialog({ job, onClose }: { job: Job; onClose: () => void }) {
         }),
       ),
   });
+  const columns: Column<Run>[] = [
+    { key: "started", header: t("admin.jobs.started"), cell: (r) => f.dateTime(r.started_at) },
+    {
+      key: "outcome",
+      header: t("admin.jobs.outcome"),
+      cell: (r) => <OutcomeBadge outcome={r.outcome} />,
+    },
+    {
+      key: "duration",
+      header: t("admin.jobs.durationHeader"),
+      cell: (r) =>
+        r.duration_ms != null
+          ? t("admin.jobs.duration", { ms: r.duration_ms })
+          : t("common.noneDash"),
+    },
+    {
+      key: "message",
+      header: t("admin.jobs.message"),
+      cell: (r) => <span className="[overflow-wrap:anywhere]">{r.message ?? ""}</span>,
+    },
+  ];
   return (
     <Dialog
       open
@@ -239,31 +258,7 @@ function RunsDialog({ job, onClose }: { job: Job; onClose: () => void }) {
             rows={page.items}
             rowKey={(r) => r.id}
             empty={<p className="py-4 text-sm text-fg-muted">{t("admin.jobs.noRuns")}</p>}
-            columns={[
-              {
-                id: "started",
-                header: t("admin.jobs.started"),
-                cell: (r) => f.dateTime(r.started_at),
-              },
-              {
-                id: "outcome",
-                header: t("admin.jobs.outcome"),
-                cell: (r) => <OutcomeBadge outcome={r.outcome} />,
-              },
-              {
-                id: "duration",
-                header: t("admin.jobs.durationHeader"),
-                cell: (r) =>
-                  r.duration_ms != null
-                    ? t("admin.jobs.duration", { ms: r.duration_ms })
-                    : t("common.noneDash"),
-              },
-              {
-                id: "message",
-                header: t("admin.jobs.message"),
-                cell: (r) => <span className="[overflow-wrap:anywhere]">{r.message ?? ""}</span>,
-              },
-            ]}
+            columns={columns}
           />
         )}
       </QueryState>

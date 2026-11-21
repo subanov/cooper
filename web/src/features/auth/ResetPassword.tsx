@@ -2,8 +2,8 @@ import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/Button";
+import { Notice, ProblemNotice } from "@/components/Feedback";
 import { TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
 import { PublicLayout } from "@/features/shell/PublicLayout";
 import { useText } from "@/i18n/useText";
 import { api } from "@/lib/api";
@@ -11,8 +11,8 @@ import { problemOf } from "@/lib/problem";
 import { call } from "@/lib/request";
 
 /**
- * Asks for a reset link, or (with the emailed `token`) sets a new password
- * (FR-IAM-004). The answer never says whether an account exists.
+ * Asks for a reset link, or (with the emailed `token`) sets a new password (FR-IAM-004).
+ * The answer never says whether an account exists.
  */
 export function ResetPasswordPage({ token }: { token: string | undefined }) {
   return token ? <ChooseNewPassword token={token} /> : <RequestLink />;
@@ -41,6 +41,7 @@ function RequestLink() {
             label={t("signIn.login")}
             autoComplete="username"
             required
+            autoFocus
             value={login}
             onChange={(e) => setLogin(e.target.value)}
           />
@@ -67,33 +68,38 @@ export function NewPasswordForm({
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
   const [shown, setShown] = useState(false);
-  const short = password.length > 0 && password.length < 12;
-  const mismatch = repeat.length > 0 && repeat !== password;
+  const short = password.length < 12;
+  const mismatch = repeat !== password;
   function submit(event: FormEvent) {
     event.preventDefault();
     setShown(true);
-    if (password.length < 12 || password !== repeat) return;
+    if (short || mismatch) {
+      document.getElementById(short ? "new-password" : "repeat-password")?.focus();
+      return;
+    }
     onSubmit(password);
   }
   return (
     <form className="grid gap-4" onSubmit={submit} noValidate>
       <TextField
+        id="new-password"
         label={t("reset.newPassword")}
         hint={t("reset.passwordHint")}
         type="password"
         autoComplete="new-password"
         required
         value={password}
-        error={shown && (short || password.length === 0) ? t("reset.tooShort") : undefined}
+        error={shown && short ? t("reset.tooShort") : undefined}
         onChange={(e) => setPassword(e.target.value)}
       />
       <TextField
+        id="repeat-password"
         label={t("reset.confirmPassword")}
         type="password"
         autoComplete="new-password"
         required
         value={repeat}
-        error={shown && mismatch ? t("reset.mismatch") : undefined}
+        error={shown && !short && mismatch ? t("reset.mismatch") : undefined}
         onChange={(e) => setRepeat(e.target.value)}
       />
       <Button type="submit" variant="primary" size="lg" loading={busy}>
@@ -115,13 +121,18 @@ function ChooseNewPassword({ token }: { token: string }) {
     <PublicLayout title={t("reset.newTitle")} footer={<BackToSignIn />}>
       {confirm.isSuccess ? (
         <Notice tone="success" title={t("reset.done")}>
-          <Link to="/sign-in">{t("reset.back")}</Link>
+          <Link to="/sign-in" className="font-medium text-accent-text underline">
+            {t("reset.back")}
+          </Link>
         </Notice>
       ) : (
         <>
           {invalid ? (
             <Notice tone="danger">
-              {t("reset.invalid")} <Link to="/reset-password">{t("reset.submit")}</Link>
+              {t("reset.invalid")}{" "}
+              <Link to="/reset-password" className="font-medium underline">
+                {t("reset.submit")}
+              </Link>
             </Notice>
           ) : (
             <ProblemNotice error={confirm.error} />

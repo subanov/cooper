@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftRight, Clock, Inbox, Lock, MessageSquare, Send } from "lucide-react";
 import { useState } from "react";
-import { Badge } from "@/components/Badge";
-import { EmptyState } from "@/components/EmptyState";
-import { QueryState } from "@/components/QueryState";
+import { Badge, type Tone } from "@/components/Badge";
+import { EmptyState, QueryState } from "@/components/Feedback";
 import { Segmented } from "@/components/Tabs";
 import {
   analystsQuery,
@@ -25,12 +24,10 @@ interface FieldChange {
   old_value: unknown;
   new_value: unknown;
 }
+type Lookup = "status" | "priority" | "analyst" | "team" | "code";
 
 /** Fields shown with their new value; IDs are named through reference data. */
-const SHOWN: Record<
-  string,
-  { label: MessageId; lookup?: "status" | "priority" | "analyst" | "team" | "code" }
-> = {
+const SHOWN: Record<string, { label: MessageId; lookup?: Lookup }> = {
   status_id: { label: "ticket.status", lookup: "status" },
   priority_id: { label: "ticket.priority", lookup: "priority" },
   assigned_analyst_id: { label: "ticket.assignee", lookup: "analyst" },
@@ -54,8 +51,9 @@ const CHANGED_ONLY: Record<string, MessageId> = {
 };
 
 /**
- * The ticket timeline (FR-TKT-024): emails, Notes, time and changes. Oldest first by
- * default, as the API returns them; Analysts can flip it.
+ * The ticket timeline (FR-TKT-024): emails, Notes, time and changes, oldest first as the API
+ * returns them; Analysts can flip the order. Internal Notes look different from what the
+ * Requester sees.
  */
 export function Timeline({
   ticketId,
@@ -73,7 +71,7 @@ export function Timeline({
   const priorities = useQuery(ticketLookupQuery("ticket-priorities"));
   const codes = useQuery(ticketLookupQuery("resolution-codes"));
   const teams = useQuery(teamsQuery);
-  const names = {
+  const names: Record<Lookup, Map<string, string>> = {
     analyst: namesById(analysts.data, (a) => a.full_name),
     status: namesById(statuses.data),
     priority: namesById(priorities.data),
@@ -97,9 +95,9 @@ export function Timeline({
   return (
     <section aria-labelledby="timeline-title" className="grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="timeline-title" className="text-[0.9375rem] font-semibold">
+        <h3 id="timeline-title" className="text-[0.9375rem] font-semibold">
           {t("timeline.title")}
-        </h2>
+        </h3>
         <Segmented
           label={t("timeline.order")}
           value={order}
@@ -116,29 +114,28 @@ export function Timeline({
             <EmptyState icon={<Inbox aria-hidden="true" />} title={t("timeline.empty")} />
           ) : (
             <ol className="relative grid gap-3 before:absolute before:inset-y-2 before:left-[0.9375rem] before:w-px before:bg-line">
-              {(order === "oldest" ? items : [...items].reverse()).map((item) => {
+              {(order === "oldest" ? items : [...items].reverse()).map((item, index) => {
                 const data = item.data as Record<string, unknown>;
-                const actor = item.actor as Actor;
-                const kind = describeKind(item.kind, data);
+                const kind = kindStyle(item.kind, data);
                 return (
                   <li
-                    key={`${item.at}-${item.kind}-${String(data.id ?? data.message_id ?? JSON.stringify(data.changes ?? "").length)}`}
+                    key={`${item.at}-${item.kind}-${String(data.id ?? data.message_id ?? index)}`}
                     className="relative grid grid-cols-[2rem_1fr] gap-3"
                   >
                     <span
                       aria-hidden="true"
                       className={cn(
                         "z-10 mt-1 grid size-8 place-items-center rounded-full border border-line bg-surface [&_svg]:size-4",
-                        kind.tone,
+                        kind.iconTone,
                       )}
                     >
                       {kind.icon}
                     </span>
                     <article className={cn("min-w-0 rounded-lg border p-3", kind.card)}>
                       <header className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted">
-                        <span className="font-semibold text-fg">{who(actor)}</span>
-                        <Badge tone={kind.badgeTone}>{t(kind.label)}</Badge>
-                        <time dateTime={item.at} className="ml-auto" title={f.dateTime(item.at)}>
+                        <span className="font-semibold text-fg">{who(item.actor as Actor)}</span>
+                        <Badge tone={kind.badge}>{t(kind.label)}</Badge>
+                        <time dateTime={item.at} className="ml-auto">
                           {f.dateTime(item.at)}
                         </time>
                       </header>
@@ -155,14 +152,14 @@ export function Timeline({
   );
 }
 
-function describeKind(kind: string, data: Record<string, unknown>) {
+function kindStyle(kind: string, data: Record<string, unknown>) {
   if (kind === "email") {
     const out = data.direction === "outbound";
     return {
       label: (out ? "timeline.emailOut" : "timeline.emailIn") as MessageId,
       icon: out ? <Send /> : <Inbox />,
-      tone: "text-accent-text",
-      badgeTone: "accent" as const,
+      iconTone: "text-accent-text",
+      badge: "accent" as Tone,
       card: "border-line bg-surface",
     };
   }
@@ -171,27 +168,26 @@ function describeKind(kind: string, data: Record<string, unknown>) {
     return {
       label: (isPublic ? "timeline.publicNote" : "timeline.internalNote") as MessageId,
       icon: isPublic ? <MessageSquare /> : <Lock />,
-      tone: isPublic ? "text-accent-text" : "text-warning-text",
-      badgeTone: isPublic ? ("accent" as const) : ("warning" as const),
-      // Internal Notes look different from what the Requester sees (H5: no accidental leaks).
-      card: isPublic ? "border-line bg-surface" : "border-warning-text/25 bg-warning-soft/50",
+      iconTone: isPublic ? "text-accent-text" : "text-warning-text",
+      badge: (isPublic ? "accent" : "warning") as Tone,
+      card: isPublic ? "border-line bg-surface" : "border-warning-text/30 bg-warning-soft/60",
     };
   }
   if (kind === "time_entry") {
     return {
       label: "timeline.time" as MessageId,
       icon: <Clock />,
-      tone: "text-fg-muted",
-      badgeTone: "muted" as const,
-      card: "border-line bg-canvas",
+      iconTone: "text-fg-muted",
+      badge: "muted" as Tone,
+      card: "border-line bg-sunken/50",
     };
   }
   return {
     label: "timeline.change" as MessageId,
     icon: <ArrowLeftRight />,
-    tone: "text-fg-muted",
-    badgeTone: "muted" as const,
-    card: "border-line bg-canvas",
+    iconTone: "text-fg-muted",
+    badge: "muted" as Tone,
+    card: "border-line bg-sunken/50",
   };
 }
 
@@ -202,7 +198,7 @@ function Body({
 }: {
   kind: string;
   data: Record<string, unknown>;
-  names: Record<"analyst" | "status" | "priority" | "team" | "code", Map<string, string>>;
+  names: Record<Lookup, Map<string, string>>;
 }) {
   const t = useText();
   if (kind === "email") {
@@ -215,7 +211,7 @@ function Body({
           })}
         </p>
         <p className="font-medium">{String(data.subject ?? "")}</p>
-        <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">
+        <p className="whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere]">
           {String(data.text_body ?? "")}
         </p>
       </div>
@@ -223,7 +219,9 @@ function Body({
   }
   if (kind === "note") {
     return (
-      <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{String(data.body ?? "")}</p>
+      <p className="whitespace-pre-wrap leading-relaxed [overflow-wrap:anywhere]">
+        {String(data.body ?? "")}
+      </p>
     );
   }
   if (kind === "time_entry") {

@@ -3,14 +3,11 @@ import { Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { CheckboxList } from "@/components/CheckboxList";
 import { FormDialog } from "@/components/Dialog";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState, ProblemNotice, QueryState } from "@/components/Feedback";
 import { Checkbox, FormGrid, SelectField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
-import { QueryState } from "@/components/QueryState";
+import { PageHeader, Panel } from "@/components/Layout";
 import { categoriesQuery, namesById, ticketLookupQuery } from "@/features/reference/queries";
 import { useAction } from "@/features/shared/mutation";
 import { useText } from "@/i18n/useText";
@@ -29,13 +26,14 @@ export function CategoriesPage() {
   const typeNames = namesById(types.data);
   return (
     <>
-      <SectionHeader
+      <PageHeader
+        level={2}
         title={t("admin.ticketCategories")}
         description={t("admin.categories.intro")}
         actions={
           <Button
             variant="primary"
-            icon={<Plus aria-hidden="true" className="size-4" />}
+            icon={<Plus aria-hidden="true" />}
             onClick={() => setEditing({ parent: null })}
           >
             {t("ref.add")}
@@ -47,7 +45,7 @@ export function CategoriesPage() {
           rows.length === 0 ? (
             <EmptyState title={t("ref.empty")} />
           ) : (
-            <Card flush>
+            <Panel flush>
               <ul aria-label={t("admin.ticketCategories")} className="divide-y divide-line">
                 {rows.map((c) => (
                   <li key={c.id} className="flex flex-wrap items-center gap-2 px-4 py-2">
@@ -58,6 +56,11 @@ export function CategoriesPage() {
                         c.depth >= 2 && "pl-12",
                       )}
                     >
+                      {c.depth > 0 ? (
+                        <span aria-hidden="true" className="text-fg-muted">
+                          └
+                        </span>
+                      ) : null}
                       <span
                         className={cn("font-medium", !c.is_active && "text-fg-muted line-through")}
                       >
@@ -77,8 +80,8 @@ export function CategoriesPage() {
                       <IconButton
                         size="sm"
                         tooltip="top"
-                        label={`${t("ref.add")}: ${c.name}`}
-                        icon={<Plus aria-hidden="true" className="size-3.5" />}
+                        label={t("admin.categories.addInside", { name: c.name })}
+                        icon={<Plus aria-hidden="true" />}
                         onClick={() => setEditing({ parent: c.id })}
                       />
                     ) : null}
@@ -86,13 +89,13 @@ export function CategoriesPage() {
                       size="sm"
                       tooltip="top"
                       label={t("ref.edit", { name: c.name })}
-                      icon={<Pencil aria-hidden="true" className="size-3.5" />}
+                      icon={<Pencil aria-hidden="true" />}
                       onClick={() => setEditing(c)}
                     />
                   </li>
                 ))}
               </ul>
-            </Card>
+            </Panel>
           )
         }
       </QueryState>
@@ -168,6 +171,7 @@ function CategoryDialog({
         <TextField
           label={t("ref.name")}
           required
+          autoFocus
           value={form.name}
           onChange={(e) => setForm((x) => ({ ...x, name: e.target.value }))}
         />
@@ -189,14 +193,17 @@ function CategoryDialog({
             .map((r) => ({ value: r.id, label: `${"› ".repeat(r.depth)}${r.name}` }))}
         />
       </FormGrid>
-      <CheckboxList
-        legend={t("admin.categories.types")}
-        items={(types.data ?? [])
-          .filter((x) => x.is_active)
-          .map((x) => ({ id: x.id, label: x.name }))}
-        selected={form.type_ids}
-        onChange={(type_ids) => setForm((x) => ({ ...x, type_ids }))}
-      />
+      <fieldset className="grid gap-2">
+        <legend className="mb-1 text-[0.8125rem] font-medium">{t("admin.categories.types")}</legend>
+        <CheckboxList
+          legend={t("admin.categories.types")}
+          options={(types.data ?? [])
+            .filter((x) => x.is_active)
+            .map((x) => ({ value: x.id, label: x.name }))}
+          value={form.type_ids}
+          onChange={(type_ids) => setForm((x) => ({ ...x, type_ids }))}
+        />
+      </fieldset>
       <Checkbox
         label={t("admin.categories.portal")}
         checked={form.portal_visible}

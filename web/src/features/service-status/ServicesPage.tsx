@@ -3,13 +3,11 @@ import { Activity, Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { DataTable } from "@/components/DataTable";
+import { type Column, DataTable } from "@/components/DataTable";
 import { FormDialog } from "@/components/Dialog";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState, ProblemNotice } from "@/components/Feedback";
 import { Checkbox, FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
+import { Page, PageHeader, Panel } from "@/components/Layout";
 import { companiesQuery, namesById } from "@/features/reference/queries";
 import { useCan } from "@/features/session/session";
 import { useAction } from "@/features/shared/mutation";
@@ -20,7 +18,7 @@ import { servicesQuery } from "./api";
 
 type Service = Schemas["StatusServiceDto"];
 
-/** The Services the board shows (FR-SST-001). */
+/** The Services the board shows (FR-SST-001); a few fields, so they are edited in place. */
 export function ServicesPage() {
   const t = useText();
   const can = useCan();
@@ -28,15 +26,62 @@ export function ServicesPage() {
   const companies = useQuery(companiesQuery);
   const [editing, setEditing] = useState<Service | "new" | null>(null);
   const editable = can("service-status.configure");
+  const columns: Column<Service>[] = [
+    {
+      key: "name",
+      header: t("common.name"),
+      cell: (s) => (
+        <span className="grid">
+          <span className="font-medium">{s.name}</span>
+          {s.description ? <span className="text-xs text-fg-muted">{s.description}</span> : null}
+        </span>
+      ),
+    },
+    {
+      key: "company",
+      header: t("common.company"),
+      cell: (s) =>
+        s.company_id ? namesById(companies.data).get(s.company_id) : t("status.shared"),
+    },
+    { key: "order", header: t("status.sortOrder"), cell: (s) => s.sort_order },
+    {
+      key: "active",
+      header: t("common.status"),
+      cell: (s) =>
+        s.is_active ? (
+          <Badge tone="success">{t("common.active")}</Badge>
+        ) : (
+          <Badge tone="muted">{t("common.inactive")}</Badge>
+        ),
+    },
+  ];
+  if (editable) {
+    columns.push({
+      key: "edit",
+      header: t("common.actions"),
+      hideHeader: true,
+      className: "w-12 text-right",
+      cell: (s) => (
+        <IconButton
+          size="sm"
+          tooltip="top"
+          label={t("status.editService", { name: s.name })}
+          icon={<Pencil aria-hidden="true" />}
+          onClick={() => setEditing(s)}
+        />
+      ),
+    });
+  }
   return (
-    <div className="grid gap-4">
-      <SectionHeader
+    <Page>
+      <PageHeader
+        level={2}
         title={t("status.services")}
         actions={
           editable ? (
             <Button
               variant="primary"
-              icon={<Plus aria-hidden="true" className="size-4" />}
+              icon={<Plus aria-hidden="true" />}
               onClick={() => setEditing("new")}
             >
               {t("status.addService")}
@@ -45,7 +90,7 @@ export function ServicesPage() {
         }
       />
       <ProblemNotice error={services.error} />
-      <Card flush>
+      <Panel flush>
         <DataTable
           caption={t("status.services")}
           rows={
@@ -58,65 +103,16 @@ export function ServicesPage() {
           empty={
             <EmptyState icon={<Activity aria-hidden="true" />} title={t("status.noServices")} />
           }
-          columns={[
-            {
-              id: "name",
-              header: t("common.name"),
-              rowHeader: true,
-              cell: (s) => (
-                <span className="grid">
-                  <span className="font-medium">{s.name}</span>
-                  {s.description ? (
-                    <span className="text-xs text-fg-muted">{s.description}</span>
-                  ) : null}
-                </span>
-              ),
-            },
-            {
-              id: "company",
-              header: t("common.company"),
-              cell: (s) =>
-                s.company_id ? namesById(companies.data).get(s.company_id) : t("status.shared"),
-            },
-            { id: "order", header: t("status.sortOrder"), wide: true, cell: (s) => s.sort_order },
-            {
-              id: "active",
-              header: t("common.status"),
-              cell: (s) =>
-                s.is_active ? (
-                  <Badge tone="success">{t("common.active")}</Badge>
-                ) : (
-                  <Badge tone="muted">{t("common.inactive")}</Badge>
-                ),
-            },
-            ...(editable
-              ? [
-                  {
-                    id: "edit",
-                    header: <span className="sr-only">{t("common.actions")}</span>,
-                    className: "w-12 text-right",
-                    cell: (s: Service) => (
-                      <IconButton
-                        size="sm"
-                        tooltip="top"
-                        label={t("status.editService", { name: s.name })}
-                        icon={<Pencil aria-hidden="true" className="size-3.5" />}
-                        onClick={() => setEditing(s)}
-                      />
-                    ),
-                  },
-                ]
-              : []),
-          ]}
+          columns={columns}
         />
-      </Card>
+      </Panel>
       {editing ? (
         <ServiceDialog
           service={editing === "new" ? undefined : editing}
           onClose={() => setEditing(null)}
         />
       ) : null}
-    </div>
+    </Page>
   );
 }
 
@@ -169,6 +165,7 @@ function ServiceDialog({
       <TextField
         label={t("common.name")}
         required
+        autoFocus
         value={form.name}
         onChange={(e) => setForm((x) => ({ ...x, name: e.target.value }))}
       />

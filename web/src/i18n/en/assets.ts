@@ -79,4 +79,10 @@ export const assets = {
   "assets.kind.ticket": "Ticket",
   "assets.kind.contract": "Contract",
   "assets.history": "History",
+  "assets.pickOne": "Choose an Asset",
+  "assets.allTypes": "All Asset Types",
+  "assets.allStatuses": "All Asset Statuses",
+  "assets.allLocations": "All Locations",
+  "assets.unavailable": "Asset unavailable",
+  "assets.related": "Custody, links and retirement",
 } as const;

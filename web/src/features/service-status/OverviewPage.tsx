@@ -2,10 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Activity, CheckCircle2 } from "lucide-react";
 import { ColourLabel } from "@/components/Badge";
-import { Card } from "@/components/Card";
-import { EmptyState } from "@/components/EmptyState";
-import { Notice } from "@/components/Notice";
-import { QueryState } from "@/components/QueryState";
+import { EmptyState, Notice, QueryState } from "@/components/Feedback";
+import { Page, Panel } from "@/components/Layout";
 import { useFormat, useText } from "@/i18n/useText";
 import { boardQuery, incidentsQuery } from "./api";
 
@@ -16,7 +14,7 @@ export function OverviewPage() {
   const board = useQuery(boardQuery);
   const open = useQuery(incidentsQuery(true));
   return (
-    <div className="grid gap-5">
+    <Page>
       <QueryState query={board}>
         {(rows) =>
           rows.length === 0 ? (
@@ -30,7 +28,7 @@ export function OverviewPage() {
                   {t("status.allGood")}
                 </Notice>
               ) : null}
-              <Card flush>
+              <Panel title={t("status.services")} flush>
                 <ul className="divide-y divide-line">
                   {[...rows]
                     .sort(
@@ -55,20 +53,23 @@ export function OverviewPage() {
                       </li>
                     ))}
                 </ul>
-              </Card>
+              </Panel>
             </>
           )
         }
       </QueryState>
       {(open.data?.items ?? []).length > 0 ? (
-        <Card title={t("status.openIncidents")} flush>
+        <Panel title={t("status.openIncidents")} flush>
           <ul className="divide-y divide-line">
             {(open.data?.items ?? []).map((i) => (
-              <li key={i.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+              <li
+                key={i.id}
+                className="relative flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-sunken/60"
+              >
                 <Link
                   to="/service-status/incidents/$id"
                   params={{ id: i.id }}
-                  className="flex-1 font-medium hover:underline"
+                  className="flex-1 font-medium after:absolute after:inset-0 hover:underline"
                 >
                   {i.title}
                 </Link>
@@ -78,13 +79,13 @@ export function OverviewPage() {
               </li>
             ))}
           </ul>
-        </Card>
+        </Panel>
       ) : open.isSuccess ? (
         <p className="flex items-center gap-2 text-sm text-fg-muted">
           <CheckCircle2 aria-hidden="true" className="size-4 text-success-text" />
           {t("status.noIncidents")}
         </p>
       ) : null}
-    </div>
+    </Page>
   );
 }

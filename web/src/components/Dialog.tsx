@@ -3,62 +3,69 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useText } from "@/i18n/useText";
 import { cn } from "@/lib/cn";
-import { Button } from "./Button";
+import { Button, IconButton } from "./Button";
+
+const SIZES = { sm: "max-w-md", md: "max-w-lg", lg: "max-w-2xl", xl: "max-w-4xl" } as const;
+
+export interface DialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: ReactNode;
+  description?: ReactNode | undefined;
+  size?: keyof typeof SIZES | undefined;
+  children: ReactNode;
+  footer?: ReactNode | undefined;
+}
 
 /**
- * A modal dialog. Focus moves in and is trapped, Escape and Cancel close it, and focus
- * returns to the control that opened it (H3, WCAG 2.4.3).
+ * A modal dialog: focus moves in and is trapped, Escape and the close button cancel, focus
+ * returns to the opener (H3, WCAG 2.4.3). Use only for focused, short tasks.
  */
 export function Dialog({
   open,
   onOpenChange,
   title,
   description,
+  size = "md",
   children,
   footer,
-  size = "md",
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: ReactNode;
-  description?: ReactNode;
-  children?: ReactNode;
-  footer?: ReactNode;
-  size?: "sm" | "md" | "lg" | undefined;
-}) {
+}: DialogProps) {
   const t = useText();
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-overlay" />
+        <RadixDialog.Overlay className="fixed inset-0 z-50 bg-overlay" />
         <RadixDialog.Content
           {...(description ? {} : { "aria-describedby": undefined })}
           className={cn(
-            "fixed left-1/2 top-[8vh] z-50 grid max-h-[84vh] w-[calc(100vw-2rem)] -translate-x-1/2 grid-rows-[auto_1fr_auto] overflow-hidden rounded-lg border border-line bg-surface shadow-overlay",
-            size === "sm" && "max-w-md",
-            size === "md" && "max-w-xl",
-            size === "lg" && "max-w-3xl",
+            "fixed left-1/2 top-[6vh] z-50 flex max-h-[88vh] w-[calc(100vw-1.5rem)] -translate-x-1/2 flex-col rounded-lg border border-line bg-surface shadow-overlay",
+            SIZES[size],
           )}
         >
-          <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
-            <div className="grid gap-1">
-              <RadixDialog.Title className="text-base font-semibold">{title}</RadixDialog.Title>
+          <div className="flex items-start gap-3 border-b border-line px-5 py-4">
+            <div className="grid min-w-0 flex-1 gap-1">
+              <RadixDialog.Title className="text-base font-semibold leading-snug [overflow-wrap:anywhere]">
+                {title}
+              </RadixDialog.Title>
               {description ? (
                 <RadixDialog.Description className="text-sm text-fg-muted">
                   {description}
                 </RadixDialog.Description>
               ) : null}
             </div>
-            <RadixDialog.Close
-              aria-label={t("common.close")}
-              className="-mr-2 -mt-1 grid size-9 shrink-0 place-items-center rounded-md text-fg-muted hover:bg-sunken"
-            >
-              <X aria-hidden="true" className="size-4" />
+            <RadixDialog.Close asChild>
+              <IconButton
+                size="sm"
+                label={t("common.close")}
+                tooltip="none"
+                icon={<X aria-hidden="true" />}
+                className="-mr-2 -mt-1"
+              />
             </RadixDialog.Close>
           </div>
-          <div className="overflow-y-auto px-5 py-4">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
           {footer ? (
-            <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-canvas px-5 py-3">
+            <div className="flex flex-wrap justify-end gap-2 border-t border-line px-5 py-3">
               {footer}
             </div>
           ) : null}
@@ -68,9 +75,89 @@ export function Dialog({
   );
 }
 
+/** A dialog holding a form: Enter submits, Cancel and Escape close, input survives errors. */
+export function FormDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  size,
+  children,
+  submitLabel,
+  onSubmit,
+  busy,
+  submitDisabled,
+  tone = "primary",
+}: Omit<DialogProps, "footer"> & {
+  submitLabel: string;
+  onSubmit: () => void;
+  busy?: boolean | undefined;
+  submitDisabled?: boolean | undefined;
+  tone?: "primary" | "danger" | undefined;
+}) {
+  const t = useText();
+  return (
+    <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
+      <RadixDialog.Portal>
+        <RadixDialog.Overlay className="fixed inset-0 z-50 bg-overlay" />
+        <RadixDialog.Content
+          {...(description ? {} : { "aria-describedby": undefined })}
+          className={cn(
+            "fixed left-1/2 top-[6vh] z-50 flex max-h-[88vh] w-[calc(100vw-1.5rem)] -translate-x-1/2 flex-col rounded-lg border border-line bg-surface shadow-overlay",
+            SIZES[size ?? "md"],
+          )}
+        >
+          <form
+            noValidate
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!busy && !submitDisabled) onSubmit();
+            }}
+          >
+            <div className="flex items-start gap-3 border-b border-line px-5 py-4">
+              <div className="grid min-w-0 flex-1 gap-1">
+                <RadixDialog.Title className="text-base font-semibold leading-snug [overflow-wrap:anywhere]">
+                  {title}
+                </RadixDialog.Title>
+                {description ? (
+                  <RadixDialog.Description className="text-sm text-fg-muted">
+                    {description}
+                  </RadixDialog.Description>
+                ) : null}
+              </div>
+              <RadixDialog.Close asChild>
+                <IconButton
+                  size="sm"
+                  label={t("common.close")}
+                  tooltip="none"
+                  icon={<X aria-hidden="true" />}
+                  className="-mr-2 -mt-1"
+                />
+              </RadixDialog.Close>
+            </div>
+            <div className="grid min-h-0 flex-1 content-start gap-4 overflow-y-auto px-5 py-4">
+              {children}
+            </div>
+            <div className="flex flex-wrap justify-end gap-2 border-t border-line px-5 py-3">
+              <RadixDialog.Close asChild>
+                <Button variant="ghost">{t("common.cancel")}</Button>
+              </RadixDialog.Close>
+              <Button type="submit" variant={tone} loading={busy} disabled={submitDisabled}>
+                {submitLabel}
+              </Button>
+            </div>
+          </form>
+        </RadixDialog.Content>
+      </RadixDialog.Portal>
+    </RadixDialog.Root>
+  );
+}
+
 /**
- * Confirms a destructive, irreversible action. The title names the object; the
- * confirm button repeats the action (H5). Reversible actions use Undo instead.
+ * Confirms a destructive, irreversible action (H5). The title names the object; reversible
+ * actions use Undo instead.
  */
 export function ConfirmDialog({
   open,
@@ -79,8 +166,7 @@ export function ConfirmDialog({
   children,
   confirmLabel,
   onConfirm,
-  busy = false,
-  tone = "danger",
+  busy,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -89,7 +175,6 @@ export function ConfirmDialog({
   confirmLabel: string;
   onConfirm: () => void;
   busy?: boolean | undefined;
-  tone?: "danger" | "primary" | undefined;
 }) {
   const t = useText();
   return (
@@ -100,8 +185,10 @@ export function ConfirmDialog({
       size="sm"
       footer={
         <>
-          <Button onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
-          <Button variant={tone} loading={busy} onClick={onConfirm}>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button variant="danger" loading={busy} onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </>
@@ -109,82 +196,5 @@ export function ConfirmDialog({
     >
       {children}
     </Dialog>
-  );
-}
-
-/** A form inside a dialog: Enter submits, the footer holds Cancel and the submit button. */
-export function FormDialog({
-  open,
-  onOpenChange,
-  title,
-  description,
-  children,
-  submitLabel,
-  onSubmit,
-  busy = false,
-  size,
-  submitDisabled = false,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: ReactNode;
-  description?: ReactNode;
-  children: ReactNode;
-  submitLabel: string;
-  onSubmit: () => void;
-  busy?: boolean | undefined;
-  size?: "sm" | "md" | "lg" | undefined;
-  submitDisabled?: boolean | undefined;
-}) {
-  const t = useText();
-  return (
-    <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
-      <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-overlay" />
-        <RadixDialog.Content
-          {...(description ? {} : { "aria-describedby": undefined })}
-          className={cn(
-            "fixed left-1/2 top-[8vh] z-50 w-[calc(100vw-2rem)] -translate-x-1/2 overflow-hidden rounded-lg border border-line bg-surface shadow-overlay",
-            size === "sm" && "max-w-md",
-            (size ?? "md") === "md" && "max-w-xl",
-            size === "lg" && "max-w-3xl",
-          )}
-        >
-          <form
-            noValidate
-            className="grid max-h-[84vh] grid-rows-[auto_1fr_auto]"
-            onSubmit={(event) => {
-              event.preventDefault();
-              onSubmit();
-            }}
-          >
-            <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
-              <div className="grid gap-1">
-                <RadixDialog.Title className="text-base font-semibold">{title}</RadixDialog.Title>
-                {description ? (
-                  <RadixDialog.Description className="text-sm text-fg-muted">
-                    {description}
-                  </RadixDialog.Description>
-                ) : null}
-              </div>
-              <RadixDialog.Close
-                type="button"
-                aria-label={t("common.close")}
-                className="-mr-2 -mt-1 grid size-9 shrink-0 place-items-center rounded-md text-fg-muted hover:bg-sunken"
-              >
-                <X aria-hidden="true" className="size-4" />
-              </RadixDialog.Close>
-            </div>
-            <div className="grid content-start gap-4 overflow-y-auto px-5 py-4">{children}</div>
-            <div className="flex flex-wrap justify-end gap-2 border-t border-line bg-canvas px-5 py-3">
-              <Button onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
-              <Button type="submit" variant="primary" loading={busy} disabled={submitDisabled}>
-                {submitLabel}
-              </Button>
-            </div>
-          </form>
-        </RadixDialog.Content>
-      </RadixDialog.Portal>
-    </RadixDialog.Root>
   );
 }

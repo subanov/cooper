@@ -45,12 +45,12 @@ export function CompanyAccessEditor({
       {!all ? (
         <CheckboxList
           legend={t("users.companyAccess")}
-          items={(companies.data ?? []).map((c) => ({
-            id: c.id,
+          options={(companies.data ?? []).map((c) => ({
+            value: c.id,
             label: c.name,
             description: c.is_active ? undefined : t("common.inactive"),
           }))}
-          selected={ids}
+          value={ids}
           onChange={setIds}
           disabled={disabled}
         />

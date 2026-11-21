@@ -32,8 +32,8 @@ export function fieldPayload(
 }
 
 /**
- * Inputs for administrator-defined Ticket Fields (FR-TKT-029), typed by field: text,
- * long text, number, date, dropdown and checkbox. The API validates the answers.
+ * Inputs for administrator-defined Ticket Fields (FR-TKT-029), typed by field: text, long
+ * text, number, date, dropdown and checkbox. The API validates the answers.
  */
 export function TicketFieldInputs({
   fields,

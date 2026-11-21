@@ -238,4 +238,7 @@ export const administration = {
   "admin.mailboxes.from": "From",
   "admin.mailboxes.subject": "Subject",
   "admin.mailboxes.reason": "Reason",
+  "admin.categories.addInside": "Add a Category inside {name}",
+  "admin.teams.parts": "Parts of the Team",
+  "admin.teams.details": "Details",
 } as const;

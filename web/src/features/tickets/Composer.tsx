@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { Lock, Mail } from "lucide-react";
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Button } from "@/components/Button";
+import { ProblemNotice } from "@/components/Feedback";
 import { Checkbox, Input, Select, Textarea } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
 import { Segmented } from "@/components/Tabs";
 import { useToast } from "@/components/Toast";
 import { useAction } from "@/features/shared/mutation";
@@ -16,8 +17,8 @@ export interface ComposerHandle {
 
 /**
  * Writes a Reply (emailed to the Requester) or a Note (internal unless made public).
- * Internal Notes are tinted so they are never mistaken for a reply (H5). Ctrl+Enter
- * sends; the text survives errors (H9).
+ * Internal Notes are tinted and say so, so they are never mistaken for a reply (H5).
+ * Ctrl+Enter sends; the text survives errors (H9); Discard can be undone (H3).
  */
 export function Composer({
   ticketId,
@@ -25,14 +26,12 @@ export function Composer({
   hasRequester,
   ref,
   onComposingChange,
-  disabled,
 }: {
   ticketId: string;
   requesterName?: string | undefined;
   hasRequester: boolean;
   ref?: Ref<ComposerHandle> | undefined;
   onComposingChange?: ((composing: boolean) => void) | undefined;
-  disabled?: boolean | undefined;
 }) {
   const t = useText();
   const [mode, setMode] = useState<"reply" | "note">(hasRequester ? "reply" : "note");
@@ -94,18 +93,19 @@ export function Composer({
         : t("composer.replyLabelNoName")
       : t("composer.noteLabel");
   const internal = mode === "note" && !isPublic;
+  const activeTemplates = (templates.data ?? []).filter((tpl) => tpl.id && tpl.is_active !== false);
 
   return (
     <section
       aria-labelledby="composer-title"
       className={cn(
         "grid gap-3 rounded-lg border bg-surface p-3 shadow-raised",
-        internal ? "border-warning-text/40" : "border-line",
+        internal ? "border-warning-text/50" : "border-line",
       )}
     >
-      <h2 id="composer-title" className="sr-only">
+      <h3 id="composer-title" className="sr-only">
         {t("composer.title")}
-      </h2>
+      </h3>
       <div className="flex flex-wrap items-center justify-between gap-2">
         {hasRequester ? (
           <Segmented
@@ -120,23 +120,23 @@ export function Composer({
         ) : (
           <p className="text-[0.8125rem] font-semibold">{t("composer.note")}</p>
         )}
-        {mode === "reply" && (templates.data ?? []).length > 0 ? (
-          <Select
-            aria-label={t("composer.template")}
-            value=""
-            onChange={(e) => void insertTemplate(e.target.value)}
-            className="h-8 w-auto"
-          >
-            <option value="">{t("composer.templateNone")}</option>
-            {(templates.data ?? [])
-              .filter((tpl) => tpl.id && tpl.is_active !== false)
-              .map((tpl) => (
-                <option key={tpl.id} value={tpl.id ?? ""}>
-                  {tpl.name}
-                </option>
-              ))}
-          </Select>
-        ) : null}
+        <span
+          className={cn(
+            "inline-flex items-center gap-1.5 text-xs font-medium",
+            internal ? "text-warning-text" : "text-fg-muted",
+          )}
+        >
+          {internal ? (
+            <Lock aria-hidden="true" className="size-3.5" />
+          ) : (
+            <Mail aria-hidden="true" className="size-3.5" />
+          )}
+          {mode === "reply"
+            ? t("composer.goesToRequester")
+            : internal
+              ? t("composer.internalOnly")
+              : t("composer.public")}
+        </span>
       </div>
       {!hasRequester ? (
         <p className="-mt-1 text-xs text-fg-muted">{t("composer.noRequester")}</p>
@@ -157,7 +157,6 @@ export function Composer({
           aria-describedby="composer-hint"
           placeholder={label}
           value={body}
-          disabled={disabled}
           rows={5}
           onChange={(e) => setBody(e.target.value)}
           onKeyDown={(e) => {
@@ -166,21 +165,38 @@ export function Composer({
               send.mutate();
             }
           }}
-          className={internal ? "bg-warning-soft/40" : undefined}
+          className={internal ? "bg-warning-soft/50" : undefined}
         />
         {mode === "reply" ? (
-          <Input
-            aria-label={t("composer.cc")}
-            aria-describedby="composer-cc-hint"
-            placeholder={`${t("composer.cc")} · ${t("composer.ccHint")}`}
-            value={cc}
-            onChange={(e) => setCc(e.target.value)}
-            className="h-8"
-          />
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <Input
+              aria-label={t("composer.cc")}
+              aria-describedby="composer-cc-hint"
+              placeholder={`${t("composer.cc")} · ${t("composer.ccHint")}`}
+              value={cc}
+              onChange={(e) => setCc(e.target.value)}
+              className="h-8"
+            />
+            {activeTemplates.length > 0 ? (
+              <Select
+                aria-label={t("composer.template")}
+                value=""
+                onChange={(e) => void insertTemplate(e.target.value)}
+                className="h-8 w-auto"
+              >
+                <option value="">{t("composer.templateNone")}</option>
+                {activeTemplates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id ?? ""}>
+                    {tpl.name}
+                  </option>
+                ))}
+              </Select>
+            ) : null}
+            <span id="composer-cc-hint" className="sr-only">
+              {t("composer.ccHint")}
+            </span>
+          </div>
         ) : null}
-        <span id="composer-cc-hint" className="sr-only">
-          {t("composer.ccHint")}
-        </span>
         <ProblemNotice error={send.error} />
         <div className="flex flex-wrap items-center gap-3">
           {mode === "note" ? (
@@ -198,7 +214,6 @@ export function Composer({
               <Button
                 variant="ghost"
                 onClick={() => {
-                  // Discarding is undoable, so it needs no confirmation (H3).
                   const previous = body;
                   setBody("");
                   toast({
@@ -211,12 +226,7 @@ export function Composer({
                 {t("composer.discard")}
               </Button>
             ) : null}
-            <Button
-              type="submit"
-              variant="primary"
-              loading={send.isPending}
-              disabled={!hasText || disabled}
-            >
+            <Button type="submit" variant="primary" loading={send.isPending} disabled={!hasText}>
               {mode === "reply" ? t("composer.send") : t("composer.addNote")}
             </Button>
           </div>

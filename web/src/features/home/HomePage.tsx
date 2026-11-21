@@ -1,24 +1,20 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ClipboardCheck, Inbox, SquareKanban } from "lucide-react";
-import type { ReactNode } from "react";
+import { ArrowRight, ClipboardCheck, Inbox, SquareKanban } from "lucide-react";
 import { ColourLabel } from "@/components/Badge";
 import { buttonClass } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { EmptyState } from "@/components/EmptyState";
-import { Page, PageHeader } from "@/components/Page";
-import { QueryState } from "@/components/QueryState";
+import { EmptyState, QueryState } from "@/components/Feedback";
+import { Page, PageHeader, Panel, Stat } from "@/components/Layout";
 import { useCan, useModuleOn, useSession } from "@/features/session/session";
 import { ticketListQuery } from "@/features/tickets/api";
 import { currentTarget, SlaBadge } from "@/features/tickets/Sla";
 import { useFormat, useText } from "@/i18n/useText";
 import { api } from "@/lib/api";
-import { cn } from "@/lib/cn";
 import { call } from "@/lib/request";
 
 /**
- * The start page: the Watchtower counts (FR-RPT, when the Analyst may read reports) and
- * the Analyst's own open tickets, so unfinished work stays visible (Zeigarnik Effect).
+ * The start page: the Watchtower counts (when the Analyst may read reports) and the
+ * Analyst's own open tickets, so unfinished work stays visible (Zeigarnik Effect).
  */
 export function HomePage() {
   const t = useText();
@@ -37,22 +33,18 @@ export function HomePage() {
     <Page>
       <PageHeader
         title={t(greeting, { name: first })}
-        description={
-          <span className="inline-flex flex-wrap items-center gap-1">
-            {t("home.intro", { key: "Ctrl K" })}
-          </span>
-        }
+        description={t("home.intro", { key: "Ctrl K" })}
         actions={
           <>
             {moduleOn("morning-checks") && can("morning-checks.record") ? (
               <Link to="/morning-checks/today" className={buttonClass()}>
-                <ClipboardCheck aria-hidden="true" className="size-4" />
+                <ClipboardCheck aria-hidden="true" />
                 {t("home.recordChecks")}
               </Link>
             ) : null}
             {moduleOn("tasks") && can("tasks.read") ? (
               <Link to="/tasks" search={{ mine: true }} className={buttonClass()}>
-                <SquareKanban aria-hidden="true" className="size-4" />
+                <SquareKanban aria-hidden="true" />
                 {t("home.myTasks")}
               </Link>
             ) : null}
@@ -60,7 +52,7 @@ export function HomePage() {
         }
       />
       {can("reporting.read") ? <Watchtower /> : null}
-      {can("tickets.read") ? <MyTickets /> : null}
+      {can("tickets.read") && moduleOn("tickets") ? <MyTickets /> : null}
       <p className="text-xs text-fg-muted">
         {session.all_companies
           ? t("home.allCompanies")
@@ -89,34 +81,20 @@ function Watchtower() {
         {(w) => (
           <div className="grid gap-4 lg:grid-cols-3">
             {w.tickets ? (
-              <Card title={t("nav.tickets")} headingLevel={3}>
-                <div className="grid grid-cols-3 gap-3">
+              <Panel title={t("nav.tickets")} headingLevel={3}>
+                <div className="grid grid-cols-3 gap-2">
                   <Stat
                     label={t("home.openTickets")}
                     value={w.tickets.total_open}
-                    link={(label) => (
-                      <Link
-                        to="/tickets"
-                        search={{ view: "open" }}
-                        className="after:absolute after:inset-0 hover:underline"
-                      >
-                        {label}
-                      </Link>
-                    )}
+                    to="/tickets"
+                    search={{ view: "open" }}
                   />
                   <Stat
                     label={t("home.unassigned")}
                     value={w.tickets.unassigned}
                     tone={w.tickets.unassigned > 0 ? "warning" : undefined}
-                    link={(label) => (
-                      <Link
-                        to="/tickets"
-                        search={{ view: "unassigned" }}
-                        className="after:absolute after:inset-0 hover:underline"
-                      >
-                        {label}
-                      </Link>
-                    )}
+                    to="/tickets"
+                    search={{ view: "unassigned" }}
                   />
                   <Stat
                     label={t("home.highPriority")}
@@ -127,7 +105,7 @@ function Watchtower() {
                 {w.tickets.by_status.length > 0 ? (
                   <ul
                     aria-label={t("home.byStatus")}
-                    className="mt-4 grid gap-1.5 border-t border-line pt-3 text-sm"
+                    className="mt-3 grid gap-1.5 border-t border-line pt-3 text-sm"
                   >
                     {w.tickets.by_status.map((s) => (
                       <li key={s.id} className="flex items-center justify-between gap-2">
@@ -137,20 +115,12 @@ function Watchtower() {
                     ))}
                   </ul>
                 ) : null}
-              </Card>
+              </Panel>
             ) : null}
             {w.tasks ? (
-              <Card title={t("nav.tasks")} headingLevel={3}>
-                <div className="grid grid-cols-3 gap-3">
-                  <Stat
-                    label={t("home.openTasks")}
-                    value={w.tasks.total_open}
-                    link={(label) => (
-                      <Link to="/tasks" className="after:absolute after:inset-0 hover:underline">
-                        {label}
-                      </Link>
-                    )}
-                  />
+              <Panel title={t("nav.tasks")} headingLevel={3}>
+                <div className="grid grid-cols-3 gap-2">
+                  <Stat label={t("home.openTasks")} value={w.tasks.total_open} to="/tasks" />
                   <Stat
                     label={t("home.overdue")}
                     value={w.tasks.overdue}
@@ -162,68 +132,48 @@ function Watchtower() {
                     tone={w.tasks.due_today > 0 ? "warning" : undefined}
                   />
                 </div>
-              </Card>
+              </Panel>
             ) : null}
             {w.morning_checks ? (
-              <Card title={t("home.checks")} headingLevel={3}>
-                <div className="grid grid-cols-2 gap-3">
-                  <Stat
-                    label={t("home.checksRecorded", {
-                      recorded: w.morning_checks.recorded,
-                      total: w.morning_checks.checks,
-                    })}
-                    value={`${w.morning_checks.checks ? Math.round((w.morning_checks.recorded / w.morning_checks.checks) * 100) : 0}%`}
-                    link={(label) => (
-                      <Link
-                        to="/morning-checks/today"
-                        className="after:absolute after:inset-0 hover:underline"
-                      >
-                        {label}
-                      </Link>
-                    )}
-                  />
-                  <Stat
-                    label={t("home.needAttention")}
-                    value={w.morning_checks.attention}
-                    tone={w.morning_checks.attention > 0 ? "danger" : undefined}
-                  />
+              <Panel title={t("home.checks")} headingLevel={3}>
+                <div className="grid gap-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Stat
+                      label={t("home.checksRecorded", {
+                        recorded: w.morning_checks.recorded,
+                        total: w.morning_checks.checks,
+                      })}
+                      value={`${w.morning_checks.checks ? Math.round((w.morning_checks.recorded / w.morning_checks.checks) * 100) : 0}%`}
+                      to="/morning-checks/today"
+                    />
+                    <Stat
+                      label={t("home.needAttention")}
+                      value={w.morning_checks.attention}
+                      tone={w.morning_checks.attention > 0 ? "danger" : undefined}
+                    />
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-label={t("home.checks")}
+                    aria-valuemin={0}
+                    aria-valuemax={w.morning_checks.checks}
+                    aria-valuenow={w.morning_checks.recorded}
+                    className="h-2 overflow-hidden rounded-full bg-sunken"
+                  >
+                    <div
+                      className="h-full rounded-full bg-accent"
+                      style={{
+                        width: `${w.morning_checks.checks ? (w.morning_checks.recorded / w.morning_checks.checks) * 100 : 0}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-              </Card>
+              </Panel>
             ) : null}
           </div>
         )}
       </QueryState>
     </section>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  tone,
-  link,
-}: {
-  label: string;
-  value: number | string;
-  tone?: "warning" | "danger" | undefined;
-  /** Makes the whole tile a link named by its label. */
-  link?: ((label: ReactNode) => ReactNode) | undefined;
-}) {
-  return (
-    <div
-      className={cn("relative grid gap-0.5 rounded-md p-2", link ? "hover:bg-canvas" : undefined)}
-    >
-      <span
-        className={cn(
-          "text-2xl font-semibold tabular-nums leading-tight",
-          tone === "danger" && "text-danger-text",
-          tone === "warning" && "text-warning-text",
-        )}
-      >
-        {value}
-      </span>
-      <span className="text-xs text-fg-muted">{link ? link(label) : label}</span>
-    </div>
   );
 }
 
@@ -235,16 +185,17 @@ function MyTickets() {
   );
   const tickets = list.data?.pages[0]?.items.slice(0, 8) ?? [];
   return (
-    <Card
+    <Panel
       title={t("home.myTickets")}
       flush
       actions={
         <Link
           to="/tickets"
           search={{ view: "mine" }}
-          className="text-sm font-medium text-accent-text hover:underline"
+          className={buttonClass({ variant: "quiet", size: "sm" })}
         >
           {t("home.seeAll")}
+          <ArrowRight aria-hidden="true" />
         </Link>
       }
     >
@@ -255,7 +206,7 @@ function MyTickets() {
           {tickets.map((tk) => (
             <li
               key={tk.id}
-              className="relative flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 hover:bg-canvas"
+              className="relative flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 hover:bg-sunken/60"
             >
               <span className="font-mono text-xs text-fg-muted">{tk.number}</span>
               <Link
@@ -274,6 +225,6 @@ function MyTickets() {
           ))}
         </ul>
       )}
-    </Card>
+    </Panel>
   );
 }

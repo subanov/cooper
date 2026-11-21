@@ -1,73 +1,48 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-export type Tone = "neutral" | "accent" | "success" | "warning" | "danger" | "muted";
+export type Tone = "neutral" | "muted" | "accent" | "success" | "warning" | "danger" | "info";
 
 const TONES: Record<Tone, string> = {
-  neutral: "border-line bg-surface text-fg",
-  accent: "border-transparent bg-accent-soft text-accent-text",
-  success: "border-transparent bg-success-soft text-success-text",
-  warning: "border-transparent bg-warning-soft text-warning-text",
-  danger: "border-transparent bg-danger-soft text-danger-text",
-  muted: "border-transparent bg-sunken text-fg-muted",
+  neutral: "bg-sunken text-fg border-line",
+  muted: "bg-transparent text-fg-muted border-line",
+  accent: "bg-accent-soft text-accent-text border-transparent",
+  success: "bg-success-soft text-success-text border-transparent",
+  warning: "bg-warning-soft text-warning-text border-transparent",
+  danger: "bg-danger-soft text-danger-text border-transparent",
+  info: "bg-info-soft text-info-text border-transparent",
 };
 
 /**
- * A short label for a state (status, Priority, SLA). The text always names the state;
- * tone and icon only reinforce it (never colour alone).
+ * A short status label. Meaning is always in the text (and often an icon), never in the
+ * colour alone (WCAG 1.4.1).
  */
 export function Badge({
   tone = "neutral",
   icon,
   children,
   className,
-  title,
 }: {
   tone?: Tone | undefined;
-  icon?: ReactNode;
+  icon?: ReactNode | undefined;
   children: ReactNode;
   className?: string | undefined;
-  title?: string | undefined;
 }) {
   return (
     <span
-      title={title}
       className={cn(
-        "inline-flex h-6 max-w-full shrink-0 items-center gap-1 truncate rounded-full border px-2 text-xs font-medium leading-none [&_svg]:size-3.5",
+        "inline-flex h-6 max-w-full items-center gap-1 whitespace-nowrap rounded-full border px-2 text-xs font-medium [&_svg]:size-3.5 [&_svg]:shrink-0",
         TONES[tone],
         className,
       )}
     >
       {icon}
-      {children}
+      <span className="truncate">{children}</span>
     </span>
   );
 }
 
-/** A round swatch of a configured colour (Check Status, category). Decorative only. */
-export function ColourDot({
-  colour,
-  className,
-}: {
-  colour?: string | null | undefined;
-  className?: string | undefined;
-}) {
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "inline-block size-2.5 shrink-0 rounded-full border border-black/15",
-        className,
-      )}
-      ref={(node) => {
-        // Set through the CSSOM: the Content-Security-Policy forbids inline style attributes.
-        if (node) node.style.backgroundColor = colour ?? "transparent";
-      }}
-    />
-  );
-}
-
-/** A label with a configured colour shown as a dot next to the name. */
+/** A name with the colour an Administrator gave it (statuses, categories): dot plus text. */
 export function ColourLabel({
   colour,
   children,
@@ -78,9 +53,13 @@ export function ColourLabel({
   className?: string | undefined;
 }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5", className)}>
-      <ColourDot colour={colour} />
-      {children}
+    <span className={cn("inline-flex min-w-0 items-center gap-1.5", className)}>
+      <span
+        aria-hidden="true"
+        className="size-2.5 shrink-0 rounded-full border border-line-strong"
+        style={colour ? { backgroundColor: colour, borderColor: colour } : undefined}
+      />
+      <span className="truncate">{children}</span>
     </span>
   );
 }

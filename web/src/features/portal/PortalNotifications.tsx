@@ -3,11 +3,14 @@ import { Link } from "@tanstack/react-router";
 import { BellOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { EmptyState } from "@/components/EmptyState";
-import { ProblemNotice } from "@/components/Notice";
-import { PageHeader } from "@/components/Page";
-import { LoadingBlock, LoadMore, QueryState } from "@/components/QueryState";
+import {
+  EmptyState,
+  LoadingBlock,
+  LoadMore,
+  ProblemNotice,
+  QueryState,
+} from "@/components/Feedback";
+import { PageHeader, Panel } from "@/components/Layout";
 import { useAction } from "@/features/shared/mutation";
 import type { MessageId } from "@/i18n/messages";
 import { useFormat, useText } from "@/i18n/useText";
@@ -56,11 +59,9 @@ export function PortalNotificationsPage() {
         }
       />
       <ProblemNotice error={list.error ?? readAll.error} />
-      <Card flush>
+      <Panel flush>
         {list.isPending ? (
-          <div className="p-4">
-            <LoadingBlock />
-          </div>
+          <LoadingBlock className="p-4" />
         ) : items.length === 0 ? (
           <EmptyState
             icon={<BellOff aria-hidden="true" />}
@@ -73,7 +74,7 @@ export function PortalNotificationsPage() {
                 key={n.id}
                 className={cn(
                   "flex flex-wrap items-start gap-3 px-4 py-3",
-                  !n.read_at && "bg-accent-soft/40",
+                  !n.read_at && "bg-accent-soft/50",
                 )}
               >
                 <span
@@ -110,7 +111,7 @@ export function PortalNotificationsPage() {
           </ul>
         )}
         <LoadMore query={list} />
-      </Card>
+      </Panel>
       <Preferences />
     </div>
   );
@@ -141,7 +142,7 @@ function Preferences() {
   const set = (kind: string, key: "in_app" | "email", on: boolean) =>
     setDraft((d) => [...d.filter((p) => p.kind !== kind), { ...get(kind), [key]: on }]);
   return (
-    <Card
+    <Panel
       title={t("portalNotifications.preferences")}
       description={t("portalNotifications.preferencesIntro")}
     >
@@ -210,6 +211,6 @@ function Preferences() {
           </form>
         )}
       </QueryState>
-    </Card>
+    </Panel>
   );
 }

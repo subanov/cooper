@@ -18,7 +18,6 @@ export const common = {
   "common.loadMore": "Load more",
   "common.none": "None",
   "common.noneDash": "—",
-  "common.any": "Any",
   "common.choose": "Choose…",
   "common.yes": "Yes",
   "common.no": "No",

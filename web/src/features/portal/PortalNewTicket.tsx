@@ -3,10 +3,9 @@ import { Link } from "@tanstack/react-router";
 import { CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Button, buttonClass } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { ProblemNotice } from "@/components/Feedback";
 import { SelectField, TextAreaField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { PageHeader } from "@/components/Page";
+import { BackLink, PageHeader, Panel } from "@/components/Layout";
 import { fieldError, useAction } from "@/features/shared/mutation";
 import {
   applicableFields,
@@ -74,7 +73,7 @@ export function PortalNewTicketPage({ category }: { category?: string | undefine
 
   if (created) {
     return (
-      <Card className="mx-auto max-w-xl">
+      <Panel className="mx-auto w-full max-w-xl">
         <div className="grid justify-items-center gap-3 py-6 text-center">
           <CheckCircle2 aria-hidden="true" className="size-12 text-success-text" />
           <h1
@@ -108,7 +107,7 @@ export function PortalNewTicketPage({ category }: { category?: string | undefine
             </Button>
           </div>
         </div>
-      </Card>
+      </Panel>
     );
   }
 
@@ -116,11 +115,11 @@ export function PortalNewTicketPage({ category }: { category?: string | undefine
   return (
     <div className="mx-auto grid max-w-2xl gap-6">
       <PageHeader
-        back={{ to: "/portal", label: t("portal.nav.home") }}
+        back={<BackLink to="/portal">{t("portal.nav.home")}</BackLink>}
         title={t("portalNew.title")}
         description={t("portalNew.intro")}
       />
-      <Card>
+      <Panel>
         <form
           noValidate
           className="grid gap-5"
@@ -204,7 +203,7 @@ export function PortalNewTicketPage({ category }: { category?: string | undefine
             </Button>
           </div>
         </form>
-      </Card>
+      </Panel>
     </div>
   );
 }

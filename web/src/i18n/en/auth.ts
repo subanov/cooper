@@ -52,7 +52,6 @@ export const auth = {
   "totp.code": "Code",
   "totp.confirm": "Turn on two-factor sign-in",
   "totp.wrong": "That code is wrong. Check the time on your device and try again.",
-  "totp.done": "Two-factor sign-in is on.",
 
   "setup.title": "Set up Cooper",
   "setup.intro": "Create the first Company and the first Administrator. This works only once.",
@@ -71,4 +70,9 @@ export const auth = {
   "setup.submit": "Set up Cooper",
   "setup.done": "Cooper is ready. Sign in with the account you just created.",
   "setup.notNeeded": "Cooper is already set up.",
+  "public.headline": "The service desk, in one place.",
+  "public.body":
+    "Tickets, Tasks and the records behind them, for the Analysts who keep IT running.",
+  "public.portalHeadline": "Get help from IT.",
+  "public.portalBody": "Raise a request, follow its progress and find answers, at any time.",
 } as const;

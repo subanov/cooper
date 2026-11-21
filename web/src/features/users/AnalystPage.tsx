@@ -4,13 +4,12 @@ import { KeyRound, ShieldOff, UserCheck, UserX } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { CheckboxList } from "@/components/CheckboxList";
 import { ConfirmDialog } from "@/components/Dialog";
-import { Checkbox, FormGrid, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { LoadingBlock, Notice, ProblemNotice } from "@/components/Feedback";
+import { Checkbox, TextField } from "@/components/Field";
+import { BackLink, Panel } from "@/components/Layout";
+import { DetailHeader } from "@/components/MasterDetail";
 import { rolesQuery } from "@/features/reference/queries";
 import { useSession } from "@/features/session/session";
 import { fieldError, useAction } from "@/features/shared/mutation";
@@ -22,18 +21,39 @@ import { CompanyAccessEditor } from "./CompanyAccessEditor";
 
 type Analyst = Schemas["AnalystDto"];
 
-/** One Analyst: profile, Roles, Company access and security (FR-IAM-001, FR-IAM-005). */
-export function AnalystPage({ id }: { id?: string }) {
+/** One Analyst in the detail pane: profile, Roles, Company access and security (FR-IAM-001, FR-IAM-005). */
+export function AnalystPage({ id }: { id?: string | undefined }) {
+  const t = useText();
   const query = useQuery({
     queryKey: ["users", "analyst", id],
     queryFn: () => call(api.GET("/api/v1/analysts/{id}", { params: { path: { id: id ?? "" } } })),
     enabled: Boolean(id),
   });
   if (!id) return <AnalystView />;
+  if (!query.data) {
+    return (
+      <div className="mx-auto grid max-w-5xl gap-4 p-4 sm:p-6">
+        <DetailHeader
+          back={<BackToAnalysts />}
+          title={query.isError ? t("users.unavailable") : t("common.loading")}
+        />
+        {query.isError ? (
+          <ProblemNotice error={query.error} onRetry={() => void query.refetch()} />
+        ) : (
+          <LoadingBlock lines={8} />
+        )}
+      </div>
+    );
+  }
+  return <AnalystView key={query.data.updated_at} analyst={query.data} />;
+}
+
+function BackToAnalysts() {
+  const t = useText();
   return (
-    <QueryState query={query} loading={<LoadingBlock lines={8} />}>
-      {(analyst) => <AnalystView key={analyst.updated_at} analyst={analyst} />}
-    </QueryState>
+    <BackLink to="/users/analysts" search={true}>
+      {t("users.back")}
+    </BackLink>
   );
 }
 
@@ -74,7 +94,8 @@ function AnalystView({ analyst }: { analyst?: Analyst }) {
       invalidate: [["users"], ["reference", "analysts"]],
       success: (a) => (analyst ? t("users.saved") : t("users.created", { name: a.full_name })),
       onSuccess: (a) => {
-        if (!analyst) void navigate({ to: "/users/analysts/$id", params: { id: a.id } });
+        if (!analyst)
+          void navigate({ to: "/users/analysts/$id", params: { id: a.id }, search: true });
       },
     },
   );
@@ -87,25 +108,29 @@ function AnalystView({ analyst }: { analyst?: Analyst }) {
       form.email !== analyst?.email ||
       form.is_admin !== analyst?.is_admin);
   return (
-    <div className="grid gap-4">
-      <SectionHeader
-        back={{ to: "/users/analysts", label: t("users.back") }}
+    <article className="mx-auto grid max-w-5xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToAnalysts />}
+        eyebrow={analyst ? <span>{analyst.email}</span> : undefined}
         title={analyst ? analyst.full_name : t("users.newAnalystTitle")}
-        description={
+        badges={
           analyst ? (
-            <span className="flex flex-wrap gap-1.5">
+            <>
               {analyst.is_active ? (
                 <Badge tone="success">{t("users.active")}</Badge>
               ) : (
                 <Badge tone="muted">{t("users.deactivated")}</Badge>
               )}
               {analyst.is_admin ? <Badge tone="accent">{t("users.administrator")}</Badge> : null}
-            </span>
+              <Badge tone="neutral">
+                {t("users.twoFactor")}: {analyst.totp_enabled ? t("common.on") : t("common.off")}
+              </Badge>
+            </>
           ) : undefined
         }
       />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card title={t("users.profile")}>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Panel title={t("users.profile")}>
           <RecordForm
             busy={save.isPending}
             error={save.error}
@@ -116,61 +141,59 @@ function AnalystView({ analyst }: { analyst?: Analyst }) {
               if (valid) save.mutate();
             }}
           >
-            <FormGrid columns={1}>
+            <TextField
+              label={t("users.fullName")}
+              required
+              autoComplete="off"
+              value={form.full_name}
+              error={required(form.full_name) ?? err("full_name")}
+              onChange={set("full_name")}
+            />
+            <TextField
+              label={t("users.username")}
+              required
+              autoComplete="off"
+              value={form.username}
+              error={required(form.username) ?? err("username")}
+              onChange={set("username")}
+            />
+            <TextField
+              label={t("users.email")}
+              type="email"
+              required
+              autoComplete="off"
+              value={form.email}
+              error={required(form.email) ?? err("email")}
+              onChange={set("email")}
+            />
+            {!analyst ? (
               <TextField
-                label={t("users.fullName")}
-                required
-                autoComplete="off"
-                value={form.full_name}
-                error={required(form.full_name) ?? err("full_name")}
-                onChange={set("full_name")}
+                label={t("users.password")}
+                hint={t("users.passwordHint")}
+                type="password"
+                autoComplete="new-password"
+                value={form.password}
+                error={err("password")}
+                onChange={set("password")}
               />
-              <TextField
-                label={t("users.username")}
-                required
-                autoComplete="off"
-                value={form.username}
-                error={required(form.username) ?? err("username")}
-                onChange={set("username")}
+            ) : null}
+            {session.is_admin ? (
+              <Checkbox
+                label={t("users.administrator")}
+                hint={t("users.administratorHint")}
+                checked={form.is_admin}
+                onChange={(e) => setForm((x) => ({ ...x, is_admin: e.target.checked }))}
               />
-              <TextField
-                label={t("users.email")}
-                type="email"
-                required
-                autoComplete="off"
-                value={form.email}
-                error={required(form.email) ?? err("email")}
-                onChange={set("email")}
-              />
-              {!analyst ? (
-                <TextField
-                  label={t("users.password")}
-                  hint={t("users.passwordHint")}
-                  type="password"
-                  autoComplete="new-password"
-                  value={form.password}
-                  error={err("password")}
-                  onChange={set("password")}
-                />
-              ) : null}
-              {session.is_admin ? (
-                <Checkbox
-                  label={t("users.administrator")}
-                  hint={t("users.administratorHint")}
-                  checked={form.is_admin}
-                  onChange={(e) => setForm((x) => ({ ...x, is_admin: e.target.checked }))}
-                />
-              ) : null}
-            </FormGrid>
+            ) : null}
           </RecordForm>
-        </Card>
+        </Panel>
         {analyst ? (
           <>
-            <RolesCard analyst={analyst} />
-            <Card title={t("users.companyAccess")} description={t("users.companyAccessHint")}>
-              <AccessCard analyst={analyst} />
-            </Card>
-            <SecurityCard analyst={analyst} />
+            <RolesPanel analyst={analyst} />
+            <Panel title={t("users.companyAccess")} description={t("users.companyAccessHint")}>
+              <AccessForm analyst={analyst} />
+            </Panel>
+            <SecurityPanel analyst={analyst} />
           </>
         ) : (
           <Notice tone="info" live={false}>
@@ -178,11 +201,11 @@ function AnalystView({ analyst }: { analyst?: Analyst }) {
           </Notice>
         )}
       </div>
-    </div>
+    </article>
   );
 }
 
-function RolesCard({ analyst }: { analyst: Analyst }) {
+function RolesPanel({ analyst }: { analyst: Analyst }) {
   const t = useText();
   const roles = useQuery(rolesQuery);
   const [ids, setIds] = useState(analyst.role_ids);
@@ -200,7 +223,7 @@ function RolesCard({ analyst }: { analyst: Analyst }) {
     },
   );
   return (
-    <Card title={t("users.roles")} description={t("users.rolesHint")}>
+    <Panel title={t("users.roles")} description={t("users.rolesHint")}>
       <form
         className="grid gap-3"
         onSubmit={(e) => {
@@ -210,12 +233,12 @@ function RolesCard({ analyst }: { analyst: Analyst }) {
       >
         <CheckboxList
           legend={t("users.roles")}
-          items={(roles.data ?? []).map((r) => ({
-            id: r.id,
+          options={(roles.data ?? []).map((r) => ({
+            value: r.id,
             label: r.name,
             description: r.description || undefined,
           }))}
-          selected={ids}
+          value={ids}
           onChange={setIds}
         />
         <ProblemNotice error={save.error} />
@@ -231,11 +254,11 @@ function RolesCard({ analyst }: { analyst: Analyst }) {
           </Button>
         </div>
       </form>
-    </Card>
+    </Panel>
   );
 }
 
-function AccessCard({ analyst }: { analyst: Analyst }) {
+function AccessForm({ analyst }: { analyst: Analyst }) {
   const save = useAction(
     (access: Schemas["CompanyAccessDto"]) =>
       call(
@@ -258,11 +281,11 @@ function AccessCard({ analyst }: { analyst: Analyst }) {
   );
 }
 
-function SecurityCard({ analyst }: { analyst: Analyst }) {
+function SecurityPanel({ analyst }: { analyst: Analyst }) {
   const t = useText();
   const session = useSession();
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState<"totp" | null>(null);
+  const [confirm, setConfirm] = useState(false);
   const path = { params: { path: { id: analyst.id } } };
   const setPw = useAction(
     () => call(api.PUT("/api/v1/analysts/{id}/password", { ...path, body: { password } })),
@@ -274,7 +297,7 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
   const resetTotp = useAction(() => call(api.POST("/api/v1/analysts/{id}/totp/reset", path)), {
     invalidate: [["users"]],
     success: "users.totpReset",
-    onSuccess: () => setConfirm(null),
+    onSuccess: () => setConfirm(false),
   });
   const reactivate = useAction(() => call(api.POST("/api/v1/analysts/{id}/reactivate", path)), {
     invalidate: [["users"], ["reference", "analysts"]],
@@ -284,14 +307,14 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
   const deactivate = useAction(() => call(api.POST("/api/v1/analysts/{id}/deactivate", path)), {
     invalidate: [["users"], ["reference", "analysts"]],
     success: () => t("users.deactivatedDone", { name: analyst.full_name }),
-    undo: () => ({ label: t("common.undo"), run: () => reactivate.mutate() }),
+    undo: () => ({ label: t("common.undo"), run: (): void => reactivate.mutate() }),
   });
   const self = analyst.id === session.analyst.id;
   return (
-    <Card title={t("users.security")}>
+    <Panel title={t("users.security")}>
       <div className="grid gap-5">
         <form
-          className="flex flex-wrap items-end gap-2"
+          className="flex flex-wrap items-start gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             if (password.length >= 12) setPw.mutate();
@@ -309,10 +332,10 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
           />
           <Button
             type="submit"
-            icon={<KeyRound aria-hidden="true" className="size-4" />}
+            icon={<KeyRound aria-hidden="true" />}
             loading={setPw.isPending}
             disabled={password.length < 12}
-            className="mb-5"
+            className="mt-6"
           >
             {t("users.setPassword")}
           </Button>
@@ -320,10 +343,7 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm">{analyst.totp_enabled ? t("users.totpOn") : t("users.totpOff")}</p>
           {session.is_admin && analyst.totp_enabled ? (
-            <Button
-              icon={<ShieldOff aria-hidden="true" className="size-4" />}
-              onClick={() => setConfirm("totp")}
-            >
+            <Button icon={<ShieldOff aria-hidden="true" />} onClick={() => setConfirm(true)}>
               {t("users.resetTotp")}
             </Button>
           ) : null}
@@ -334,7 +354,7 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
             {analyst.is_active ? (
               <Button
                 variant="danger"
-                icon={<UserX aria-hidden="true" className="size-4" />}
+                icon={<UserX aria-hidden="true" />}
                 loading={deactivate.isPending}
                 onClick={() => deactivate.mutate()}
               >
@@ -342,7 +362,7 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
               </Button>
             ) : (
               <Button
-                icon={<UserCheck aria-hidden="true" className="size-4" />}
+                icon={<UserCheck aria-hidden="true" />}
                 loading={reactivate.isPending}
                 onClick={() => reactivate.mutate()}
               >
@@ -353,8 +373,8 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
         ) : null}
       </div>
       <ConfirmDialog
-        open={confirm === "totp"}
-        onOpenChange={(o) => setConfirm(o ? "totp" : null)}
+        open={confirm}
+        onOpenChange={setConfirm}
         title={t("users.resetTotpTitle", { name: analyst.full_name })}
         confirmLabel={t("users.resetTotp")}
         busy={resetTotp.isPending}
@@ -363,6 +383,6 @@ function SecurityCard({ analyst }: { analyst: Analyst }) {
         <p className="text-sm">{t("users.resetTotpBody")}</p>
         <ProblemNotice error={resetTotp.error} className="mt-3" />
       </ConfirmDialog>
-    </Card>
+    </Panel>
   );
 }

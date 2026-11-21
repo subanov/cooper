@@ -1,34 +1,25 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Checkbox, SelectField, Switch, TextAreaField, TextField } from "./Field";
 
-const meta = {
-  title: "Design system/Field",
-  component: TextField,
-  args: { label: "Subject" },
-} satisfies Meta<typeof TextField>;
-
+const meta: Meta = { title: "Design system/Field" };
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj;
 
-export const Empty: Story = {};
-export const WithHint: Story = {
-  args: { hint: "One line, for example “Laptop will not start”.", required: true },
-};
-export const WithError: Story = { args: { required: true, error: "Enter a subject." } };
 export const Controls: Story = {
   render: () => (
-    <div className="grid w-80 gap-4">
-      <SelectField
-        label="Priority"
-        placeholder="Default"
-        options={[
-          { value: "h", label: "High" },
-          { value: "n", label: "Normal" },
-        ]}
-      />
+    <div className="grid w-96 gap-4">
+      <TextField label="Subject" required defaultValue="Printer on floor 2 is offline" />
+      <SelectField label="Priority" options={[{ value: "n", label: "Normal" }]} defaultValue="n" />
       <TextAreaField label="Description" rows={3} />
-      <Checkbox label="Visible to the Requester" hint="Public Notes appear on the Portal." />
-      <Switch label="Tasks Module" checked onChange={() => {}} stateLabels={["On", "Off"]} />
+      <Checkbox label="Visible to the Requester" />
+      <Switch label="Tasks Module" checked onCheckedChange={() => {}} />
+    </div>
+  ),
+};
+export const WithError: Story = {
+  render: () => (
+    <div className="w-96">
+      <TextField label="Subject" required error="Enter a subject." hint="One line." />
     </div>
   ),
 };

@@ -11,7 +11,6 @@ export const users = {
   "users.newAnalyst": "New Analyst",
   "users.newRequester": "New Requester",
   "users.empty": "Nobody matches.",
-  "users.name": "Name",
   "users.fullName": "Full name",
   "users.username": "Username",
   "users.email": "Email",
@@ -66,4 +65,7 @@ export const users = {
   "users.portalIntro": "Send a link to set a Portal password. It works for 7 days.",
   "users.sendInvitation": "Send Portal invitation",
   "users.invitationSent": "Invitation sent to {email}.",
+  "users.pickAnalyst": "Choose an Analyst",
+  "users.pickRequester": "Choose a Requester",
+  "users.unavailable": "Person unavailable",
 } as const;

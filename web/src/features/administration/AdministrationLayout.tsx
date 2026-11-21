@@ -1,7 +1,6 @@
 import { Link, Navigate, Outlet } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
-import { EmptyState } from "@/components/EmptyState";
-import { Page, PageHeader } from "@/components/Page";
+import { EmptyState } from "@/components/Feedback";
 import { useCan, useModuleOn } from "@/features/session/session";
 import { useText } from "@/i18n/useText";
 import { ADMIN_GROUPS, ADMIN_SECTIONS, type AdminSection } from "./sections";
@@ -14,22 +13,33 @@ function useVisibleSections(): AdminSection[] {
   );
 }
 
-/** Administration: a grouped list of pages beside the open page. */
+/**
+ * Administration as a settings screen (as in most tools: Jakob's Law): grouped pages on the
+ * left, the open page on the right. Only pages the Analyst may use are listed.
+ */
 export function AdministrationLayout() {
   const t = useText();
   const sections = useVisibleSections();
   return (
-    <Page width="full" className="max-w-[90rem]">
-      <PageHeader title={t("admin.title")} description={t("admin.intro")} />
-      <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)]">
-        <nav aria-label={t("admin.sections")} className="lg:sticky lg:top-0 lg:self-start">
-          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+    <div className="flex h-full min-h-0 flex-col lg:flex-row">
+      <aside className="shrink-0 border-b border-line bg-surface lg:w-60 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+        <div className="px-4 pb-2 pt-4">
+          <h1 tabIndex={-1} data-page-heading className="text-lg font-semibold tracking-tight">
+            {t("admin.title")}
+          </h1>
+          <p className="text-xs text-fg-muted">{t("admin.intro")}</p>
+        </div>
+        <nav
+          aria-label={t("admin.sections")}
+          className="max-h-56 overflow-y-auto px-2 pb-4 lg:max-h-none"
+        >
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             {ADMIN_GROUPS.map((group) => {
               const items = sections.filter((s) => s.group === group.id);
               if (items.length === 0) return null;
               return (
                 <div key={group.id}>
-                  <p className="px-2 pb-1 text-[0.6875rem] font-semibold uppercase tracking-wider text-fg-muted">
+                  <p className="px-2 pb-1 pt-2 text-[0.6875rem] font-semibold uppercase tracking-wider text-fg-muted">
                     {t(group.label)}
                   </p>
                   <ul className="grid gap-0.5">
@@ -50,11 +60,13 @@ export function AdministrationLayout() {
             })}
           </div>
         </nav>
-        <div className="grid min-w-0 content-start gap-4">
+      </aside>
+      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+        <div className="mx-auto grid w-full max-w-6xl content-start gap-5 p-4 sm:p-6">
           <Outlet />
         </div>
       </div>
-    </Page>
+    </div>
   );
 }
 

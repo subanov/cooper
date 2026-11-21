@@ -2,14 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ClipboardCheck, X } from "lucide-react";
 import { useState } from "react";
-import { Badge, ColourDot } from "@/components/Badge";
+import { Badge, ColourLabel } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState, ProblemNotice, QueryState } from "@/components/Feedback";
 import { Checkbox, Textarea, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { FilterBar, SectionHeader } from "@/components/Page";
-import { QueryState } from "@/components/QueryState";
+import { Page, PageHeader, Panel } from "@/components/Layout";
 import { useCan } from "@/features/session/session";
 import { useActorName } from "@/features/shared/History";
 import { useAction } from "@/features/shared/mutation";
@@ -22,49 +19,47 @@ import { checkStatusesQuery, roundQuery } from "./api";
 type Item = Schemas["CheckDayItemDto"];
 
 /**
- * The Round of a Check Date (FR-MCK-002): every Check grouped as configured, with a
- * progress bar so the end of the round is in sight (Goal-Gradient Effect).
+ * The Round of a Check Date (FR-MCK-002): every Check grouped as configured, recorded in
+ * place, with a progress bar that keeps the end in sight (Goal-Gradient Effect).
  */
 export function RoundPage({ date, mine }: { date?: string | undefined; mine: boolean }) {
   const t = useText();
   const f = useFormat();
   const navigate = useNavigate();
   const round = useQuery(roundQuery(date, mine));
+  const go = (next: { date?: string | undefined; mine?: boolean }) => {
+    const d = "date" in next ? next.date : date;
+    const m = next.mine ?? mine;
+    void navigate({
+      to: "/morning-checks/today",
+      search: { ...(d ? { date: d } : {}), ...(m ? { mine: true } : {}) },
+    });
+  };
   return (
-    <div className="grid gap-4">
-      <SectionHeader
+    <Page width="narrow" className="max-w-5xl">
+      <PageHeader
+        level={2}
         title={t("checks.round")}
         description={round.data ? f.day(round.data.check_date) : undefined}
+        actions={
+          <>
+            <TextField
+              className="w-44"
+              label={t("checks.date")}
+              type="date"
+              max={round.data?.today}
+              value={date ?? round.data?.check_date ?? ""}
+              onChange={(e) => go({ date: e.target.value || undefined })}
+            />
+            <Checkbox
+              className="self-end pb-2"
+              label={t("checks.mine")}
+              checked={mine}
+              onChange={(e) => go({ mine: e.target.checked })}
+            />
+          </>
+        }
       />
-      <FilterBar label={t("common.filters")}>
-        <TextField
-          className="w-48"
-          label={t("checks.date")}
-          type="date"
-          max={round.data?.today}
-          value={date ?? round.data?.check_date ?? ""}
-          onChange={(e) =>
-            void navigate({
-              to: "/morning-checks/today",
-              search: {
-                ...(e.target.value ? { date: e.target.value } : {}),
-                ...(mine ? { mine: true } : {}),
-              },
-            })
-          }
-        />
-        <Checkbox
-          className="h-9 items-center"
-          label={t("checks.mine")}
-          checked={mine}
-          onChange={(e) =>
-            void navigate({
-              to: "/morning-checks/today",
-              search: { ...(date ? { date } : {}), ...(e.target.checked ? { mine: true } : {}) },
-            })
-          }
-        />
-      </FilterBar>
       <QueryState query={round}>
         {(day) => {
           if (day.items.length === 0) {
@@ -82,22 +77,31 @@ export function RoundPage({ date, mine }: { date?: string | undefined; mine: boo
           }
           return (
             <>
-              <div className="grid gap-1.5">
+              <div className="sticky top-0 z-20 -mx-4 grid gap-1.5 border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
                 <div className="flex justify-between text-sm">
                   <span id="round-progress" className="font-medium">
                     {t("checks.progressLabel")}
                   </span>
-                  <span>{t("checks.progress", { recorded, total: day.items.length })}</span>
+                  <span aria-live="polite">
+                    {t("checks.progress", { recorded, total: day.items.length })}
+                  </span>
                 </div>
-                <progress
+                <div
+                  role="progressbar"
                   aria-labelledby="round-progress"
-                  max={day.items.length}
-                  value={recorded}
-                  className="h-2 w-full overflow-hidden rounded-full [&::-moz-progress-bar]:bg-accent [&::-webkit-progress-bar]:bg-sunken [&::-webkit-progress-value]:bg-accent"
-                />
+                  aria-valuemin={0}
+                  aria-valuemax={day.items.length}
+                  aria-valuenow={recorded}
+                  className="h-2 overflow-hidden rounded-full bg-line"
+                >
+                  <div
+                    className="h-full rounded-full bg-accent transition-[width]"
+                    style={{ width: `${(recorded / day.items.length) * 100}%` }}
+                  />
+                </div>
               </div>
               {[...groups].map(([group, items]) => (
-                <Card key={group || "none"} title={group || t("checks.noGroup")} flush>
+                <Panel key={group || "none"} title={group || t("checks.noGroup")} flush>
                   <ul className="divide-y divide-line">
                     {items.map((item) => (
                       <li key={item.check.id}>
@@ -105,13 +109,13 @@ export function RoundPage({ date, mine }: { date?: string | undefined; mine: boo
                       </li>
                     ))}
                   </ul>
-                </Card>
+                </Panel>
               ))}
             </>
           );
         }}
       </QueryState>
-    </div>
+    </Page>
   );
 }
 
@@ -160,19 +164,23 @@ function CheckRow({ item, date }: { item: Item; date: string }) {
   const current = statuses.data?.find((s) => s.id === result?.status_id);
   return (
     <form
-      className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(12rem,1fr)_auto] md:items-start"
+      className={cn(
+        "grid gap-3 px-4 py-3 md:grid-cols-[minmax(12rem,1fr)_auto] md:items-start",
+        !result && "bg-surface",
+      )}
       onSubmit={(e) => {
         e.preventDefault();
         setTried(true);
         if (statusId && !needsNotes) record.mutate();
+        else if (needsNotes) document.getElementById(`notes-${item.check.id}`)?.focus();
       }}
     >
       <div className="grid gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{item.check.name}</span>
           {current ? (
-            <Badge tone="neutral" icon={<ColourDot colour={current.colour} />}>
-              {current.name}
+            <Badge tone="neutral">
+              <ColourLabel colour={current.colour}>{current.name}</ColourLabel>
             </Badge>
           ) : (
             <Badge tone="muted">{t("checks.notRecorded")}</Badge>
@@ -200,8 +208,8 @@ function CheckRow({ item, date }: { item: Item; date: string }) {
                 <label
                   key={s.id}
                   className={cn(
-                    "inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-md border px-2.5 text-[0.8125rem] font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring",
-                    statusId === s.id ? "border-fg bg-sunken" : "border-line hover:bg-canvas",
+                    "inline-flex h-8 cursor-pointer items-center rounded-md border px-2.5 text-[0.8125rem] font-medium has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring",
+                    statusId === s.id ? "border-fg bg-sunken" : "border-line hover:bg-sunken/60",
                   )}
                 >
                   <input
@@ -212,8 +220,7 @@ function CheckRow({ item, date }: { item: Item; date: string }) {
                     onChange={() => setStatusId(s.id)}
                     className="sr-only"
                   />
-                  <ColourDot colour={s.colour} />
-                  {s.name}
+                  <ColourLabel colour={s.colour}>{s.name}</ColourLabel>
                 </label>
               ))}
           </fieldset>
@@ -258,7 +265,7 @@ function CheckRow({ item, date }: { item: Item; date: string }) {
                 size="sm"
                 tooltip="top"
                 label={t("checks.clearNamed", { check: item.check.name })}
-                icon={<X aria-hidden="true" className="size-4" />}
+                icon={<X aria-hidden="true" />}
                 loading={clear.isPending}
                 onClick={() => clear.mutate()}
               />

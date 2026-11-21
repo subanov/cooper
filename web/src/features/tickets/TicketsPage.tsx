@@ -1,13 +1,31 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Inbox, Search, SearchX } from "lucide-react";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import {
+  AlarmClock,
+  CircleDot,
+  Inbox,
+  MoreHorizontal,
+  Search,
+  SearchX,
+  UserCheck,
+  UserPlus,
+} from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/Badge";
-import { EmptyState } from "@/components/EmptyState";
+import { IconButton } from "@/components/Button";
+import { EmptyState, LoadMore, ProblemNotice, Refreshing, Skeleton } from "@/components/Feedback";
 import { Input, Select } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { LoadMore, Refreshing } from "@/components/QueryState";
-import { Skeleton } from "@/components/Spinner";
+import {
+  ListPane,
+  PickOne,
+  RecordRow,
+  rowLinkClass,
+  SplitView,
+  useDetailOpen,
+  useListKeys,
+  useOpenId,
+} from "@/components/MasterDetail";
+import { Menu, MenuItem } from "@/components/Menu";
 import {
   analystsQuery,
   namesById,
@@ -15,19 +33,21 @@ import {
   teamsQuery,
   ticketLookupQuery,
 } from "@/features/reference/queries";
-import { useSession } from "@/features/session/session";
+import { useCan, useSession } from "@/features/session/session";
 import { useFormat, useText } from "@/i18n/useText";
 import { cn } from "@/lib/cn";
 import { useHotkeys } from "@/lib/hooks";
+import { useTicketActions } from "./actions";
 import { type Ticket, ticketListQuery } from "./api";
 import { BulkBar } from "./BulkBar";
+import { AssignDialog, SnoozeDialog, StatusDialog } from "./dialogs";
 import { currentTarget, SlaBadge } from "./Sla";
 import { DEFAULT_VIEW, SORTS, type TicketSearch, VIEW_LABELS, VIEWS, type View } from "./views";
 
 /**
- * The ticket list and the open ticket side by side (split pane, as in an inbox: Jakob's
- * Law). View, search and sort live in the URL. `j`/`k` move through the list, `/`
- * searches; checkboxes select tickets for bulk actions (FR-TKT-042).
+ * The ticket inbox: Views, search and sort on the left with the open ticket beside it
+ * (FR-TKT-040). Rows offer quick triage in place (assign, status, snooze) with Undo;
+ * `j`/`k` move through the list, `/` searches, checkboxes select for bulk actions.
  */
 export function TicketsPage({ search }: { search: TicketSearch }) {
   const t = useText();
@@ -36,90 +56,81 @@ export function TicketsPage({ search }: { search: TicketSearch }) {
   const view = search.view ?? DEFAULT_VIEW;
   const list = useInfiniteQuery(ticketListQuery(search));
   const tickets = useMemo(() => list.data?.pages.flatMap((p) => p.items) ?? [], [list.data]);
-  const openId = useRouterState({
-    select: (s) => {
-      const leaf = s.matches[s.matches.length - 1];
-      return (leaf?.params as { ticketId?: string } | undefined)?.ticketId;
-    },
-  });
-  const creating = useRouterState({ select: (s) => s.location.pathname === "/tickets/new" });
-  const paneOpen = Boolean(openId) || creating;
+  const openId = useOpenId();
+  const detailOpen = useDetailOpen("/tickets");
   const [selected, setSelected] = useState<string[]>([]);
   const searchBox = useRef<HTMLInputElement>(null);
 
-  // Keep the selection to tickets still in the list.
   useEffect(() => {
     const shown = new Set(tickets.map((tk) => tk.id));
     setSelected((current) => current.filter((id) => shown.has(id)));
   }, [tickets]);
 
-  function step(delta: number) {
-    if (tickets.length === 0) return;
-    const index = tickets.findIndex((tk) => tk.id === openId);
-    const next = tickets[Math.min(Math.max(index + delta, 0), tickets.length - 1)];
-    if (next) {
-      void navigate({ to: "/tickets/$ticketId", params: { ticketId: next.id }, search });
-    }
-  }
-
-  useHotkeys({
-    j: () => step(1),
-    k: () => step(-1),
-    "/": () => searchBox.current?.focus(),
-  });
+  useListKeys(
+    tickets.map((tk) => tk.id),
+    openId,
+    (id) => void navigate({ to: "/tickets/$ticketId", params: { ticketId: id }, search }),
+  );
+  useHotkeys({ "/": () => searchBox.current?.focus() });
 
   const views = VIEWS.filter((v) => v !== "deleted" || session.is_admin);
 
   return (
-    <div className="flex h-full min-h-0">
-      <section
-        aria-labelledby="tickets-title"
-        className={cn(
-          "flex min-h-0 w-full flex-col border-line bg-surface xl:w-[27rem] xl:shrink-0 xl:border-r",
-          paneOpen && "hidden xl:flex",
-        )}
-      >
-        <div className="grid gap-3 border-b border-line px-4 pb-3 pt-4">
-          <div className="flex items-center justify-between gap-3">
-            <h1
-              id="tickets-title"
-              tabIndex={-1}
-              data-page-heading={paneOpen ? undefined : true}
-              className="text-lg font-semibold"
-            >
-              {t("tickets.title")}
-            </h1>
+    <SplitView
+      detailOpen={detailOpen}
+      placeholder={
+        <PickOne icon={<Inbox />} title={t("tickets.pickOne")}>
+          {t("tickets.pickOneBody")}
+        </PickOne>
+      }
+      list={
+        <ListPane
+          title={t("tickets.title")}
+          label={t("tickets.title")}
+          actions={
             <Refreshing active={list.isFetching && !list.isPending && !list.isFetchingNextPage} />
-          </div>
-          <nav aria-label={t("tickets.views")} className="-mx-1 overflow-x-auto">
-            <ul className="flex min-w-max gap-1 px-1">
-              {views.map((v) => (
-                <li key={v}>
-                  <Link
-                    to="/tickets"
-                    search={{ ...search, view: v }}
-                    aria-current={v === view ? "page" : undefined}
-                    className="inline-flex h-8 items-center rounded-full border border-line px-3 text-[0.8125rem] font-medium text-fg-muted hover:bg-sunken hover:text-fg aria-[current=page]:border-transparent aria-[current=page]:bg-fg aria-[current=page]:text-canvas"
-                  >
-                    {t(VIEW_LABELS[v])}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <SearchAndSort search={search} inputRef={searchBox} />
-        </div>
-        {selected.length > 0 ? (
-          <BulkBar
-            ids={selected}
-            tickets={tickets.filter((tk) => selected.includes(tk.id))}
-            onClear={() => setSelected([])}
-          />
-        ) : null}
-        <div className="min-h-0 flex-1 overflow-y-auto">
+          }
+          filters={
+            <>
+              <nav aria-label={t("tickets.views")} className="-mx-1 overflow-x-auto pb-0.5">
+                <ul className="flex min-w-max gap-1 px-1">
+                  {views.map((v) => (
+                    <li key={v}>
+                      <Link
+                        to="/tickets"
+                        search={{ ...search, view: v }}
+                        aria-current={v === view ? "page" : undefined}
+                        className="inline-flex h-8 items-center rounded-full border border-line px-3 text-[0.8125rem] font-medium text-fg-muted hover:bg-sunken hover:text-fg aria-[current=page]:border-transparent aria-[current=page]:bg-accent aria-[current=page]:text-accent-fg"
+                      >
+                        {t(VIEW_LABELS[v])}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <SearchAndSort search={search} inputRef={searchBox} />
+            </>
+          }
+          status={
+            selected.length > 0 ? (
+              <BulkBar
+                ids={selected}
+                tickets={tickets.filter((tk) => selected.includes(tk.id))}
+                onClear={() => setSelected([])}
+              />
+            ) : tickets.length > 0 ? (
+              <SelectAllBar
+                tickets={tickets}
+                selected={selected}
+                onSelect={setSelected}
+                more={Boolean(list.hasNextPage)}
+              />
+            ) : null
+          }
+        >
           {list.isError ? (
             <div className="p-4">
-              <ProblemNotice error={list.error} />
+              <ProblemNotice error={list.error} onRetry={() => void list.refetch()} />
             </div>
           ) : null}
           {list.isPending ? <ListSkeleton /> : null}
@@ -155,22 +166,37 @@ export function TicketsPage({ search }: { search: TicketSearch }) {
             />
           ) : null}
           <LoadMore query={list} />
-        </div>
-      </section>
-      <div
-        className={cn(
-          "min-h-0 min-w-0 flex-1",
-          paneOpen ? "overflow-y-auto" : "hidden xl:grid xl:place-items-center",
-        )}
-      >
-        {paneOpen ? (
-          <Outlet />
-        ) : (
-          <EmptyState icon={<Inbox aria-hidden="true" />} title={t("tickets.pickOne")}>
-            {t("tickets.pickOneBody")}
-          </EmptyState>
-        )}
-      </div>
+        </ListPane>
+      }
+    >
+      <Outlet />
+    </SplitView>
+  );
+}
+
+function SelectAllBar({
+  tickets,
+  selected,
+  onSelect,
+  more,
+}: {
+  tickets: Ticket[];
+  selected: string[];
+  onSelect: (ids: string[]) => void;
+  more: boolean;
+}) {
+  const t = useText();
+  const all = tickets.length > 0 && tickets.every((tk) => selected.includes(tk.id));
+  return (
+    <div className="flex items-center gap-3 border-b border-line px-4 py-1.5 text-xs text-fg-muted">
+      <input
+        type="checkbox"
+        aria-label={t("tickets.selectAll")}
+        checked={all}
+        onChange={(e) => onSelect(e.target.checked ? tickets.map((tk) => tk.id) : [])}
+        className="size-4 cursor-pointer accent-accent"
+      />
+      <span>{t("tickets.count", { count: tickets.length, more: more ? "true" : "false" })}</span>
     </div>
   );
 }
@@ -192,7 +218,7 @@ function SearchAndSort({
   }
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <search className="min-w-56 flex-1">
+      <search className="min-w-48 flex-1">
         <form onSubmit={submit} className="relative">
           <Search
             aria-hidden="true"
@@ -261,35 +287,19 @@ function TicketList({
   const analystNames = namesById(analysts.data, (a) => a.full_name);
   const teamNames = namesById(teams.data);
   const chosen = new Set(selected);
-  const all = tickets.length > 0 && tickets.every((tk) => chosen.has(tk.id));
   return (
-    <>
-      <div className="flex items-center gap-3 border-b border-line px-4 py-1.5 text-xs text-fg-muted">
-        <input
-          type="checkbox"
-          aria-label={t("tickets.selectAll")}
-          checked={all}
-          onChange={(e) => onSelect(e.target.checked ? tickets.map((tk) => tk.id) : [])}
-          className="size-4 cursor-pointer accent-accent"
-        />
-        <span>{t("tickets.count", { count: tickets.length, more: "false" })}</span>
-      </div>
-      <ul aria-label={t("tickets.list", { view: t(VIEW_LABELS[view]) })}>
-        {tickets.map((tk) => {
-          const requester = tk.requester_id ? requesters.data?.get(tk.requester_id) : undefined;
-          const { target } = currentTarget(tk.sla);
-          const open = tk.id === openId;
-          return (
-            <li
-              key={tk.id}
-              className={cn(
-                "relative flex gap-3 border-b border-line px-4 py-3 hover:bg-canvas",
-                open && "bg-accent-soft hover:bg-accent-soft",
-              )}
-            >
-              {open ? (
-                <span aria-hidden="true" className="absolute inset-y-0 left-0 w-0.5 bg-accent" />
-              ) : null}
+    <ul aria-label={t("tickets.list", { view: t(VIEW_LABELS[view]) })}>
+      {tickets.map((tk) => {
+        const requester = tk.requester_id ? requesters.data?.get(tk.requester_id) : undefined;
+        const { target } = currentTarget(tk.sla);
+        const open = tk.id === openId;
+        const breached = target.state === "breached";
+        return (
+          <RecordRow
+            key={tk.id}
+            selected={open}
+            className={cn(breached && !open && "bg-danger-soft/40")}
+            leading={
               <input
                 type="checkbox"
                 aria-label={t("tickets.select", { number: tk.number })}
@@ -299,47 +309,136 @@ function TicketList({
                     e.target.checked ? [...selected, tk.id] : selected.filter((id) => id !== tk.id),
                   )
                 }
-                className="relative z-10 mt-0.5 size-4 shrink-0 cursor-pointer accent-accent"
+                className="size-4 cursor-pointer accent-accent"
               />
-              <div className="grid min-w-0 flex-1 gap-1">
-                <div className="flex items-center justify-between gap-2 text-xs text-fg-muted">
-                  <span className="font-mono">{tk.number}</span>
-                  <time dateTime={tk.updated_at} title={f.dateTime(tk.updated_at)}>
-                    {f.relative(tk.updated_at)}
-                  </time>
-                </div>
-                <Link
-                  to="/tickets/$ticketId"
-                  params={{ ticketId: tk.id }}
-                  search={search}
-                  aria-current={open ? "page" : undefined}
-                  className="line-clamp-2 font-medium text-fg after:absolute after:inset-0 hover:underline [overflow-wrap:anywhere]"
-                >
-                  {tk.subject}
-                </Link>
-                <p className="truncate text-xs text-fg-muted">
-                  {requester?.full_name ?? (tk.requester_id ? "…" : t("tickets.noRequester"))}
-                  {" · "}
-                  {tk.analyst_id
-                    ? (analystNames.get(tk.analyst_id) ?? "…")
-                    : tk.team_id
-                      ? (teamNames.get(tk.team_id) ?? "…")
-                      : t("tickets.unassigned")}
-                </p>
-                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                  <Badge tone="neutral">{statusNames.get(tk.status_id) ?? "…"}</Badge>
-                  <Badge tone="muted">{priorityNames.get(tk.priority_id) ?? "…"}</Badge>
-                  <SlaBadge target={target} />
-                  {tk.sensitivity === "confidential" ? (
-                    <Badge tone="warning">{t("tickets.confidential")}</Badge>
-                  ) : null}
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </>
+            }
+          >
+            <div className="flex items-center justify-between gap-2 text-xs text-fg-muted">
+              <span className="font-mono">{tk.number}</span>
+              <span className="flex items-center gap-1">
+                <time dateTime={tk.updated_at} title={f.dateTime(tk.updated_at)}>
+                  {f.relative(tk.updated_at)}
+                </time>
+                <QuickActions ticket={tk} />
+              </span>
+            </div>
+            <Link
+              to="/tickets/$ticketId"
+              params={{ ticketId: tk.id }}
+              search={search}
+              aria-current={open ? "page" : undefined}
+              className={cn(rowLinkClass, "line-clamp-2")}
+            >
+              {tk.subject}
+            </Link>
+            <p className="truncate text-xs text-fg-muted">
+              {requester?.full_name ?? (tk.requester_id ? "…" : t("tickets.noRequester"))}
+              {" · "}
+              {tk.analyst_id
+                ? (analystNames.get(tk.analyst_id) ?? "…")
+                : tk.team_id
+                  ? (teamNames.get(tk.team_id) ?? "…")
+                  : t("tickets.unassigned")}
+            </p>
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <Badge tone="neutral">{statusNames.get(tk.status_id) ?? "…"}</Badge>
+              <Badge tone="muted">{priorityNames.get(tk.priority_id) ?? "…"}</Badge>
+              <SlaBadge target={target} />
+              {tk.sensitivity === "confidential" ? (
+                <Badge tone="warning">{t("tickets.confidential")}</Badge>
+              ) : null}
+              {tk.snoozed_until ? (
+                <Badge tone="muted">
+                  {t("ticket.snoozedUntil", { date: f.dateTime(tk.snoozed_until) })}
+                </Badge>
+              ) : null}
+            </div>
+          </RecordRow>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Small, frequent changes in place, without opening the ticket (master-detail rule). */
+function QuickActions({ ticket }: { ticket: Ticket }) {
+  const t = useText();
+  const can = useCan();
+  const [dialog, setDialog] = useState<"assign" | "status" | "snooze" | null>(null);
+  const close = () => setDialog(null);
+  const actions = useTicketActions(ticket, close);
+  const deleted = Boolean(ticket.deleted_at);
+  const canAssign = (can("tickets.assign") || can("tickets.update")) && !deleted;
+  const canUpdate = can("tickets.update") && !deleted;
+  if (!canAssign && !canUpdate) return null;
+  return (
+    <span className="relative z-10">
+      <Menu
+        label={t("tickets.quickActions", { number: ticket.number })}
+        trigger={
+          <IconButton
+            size="sm"
+            tooltip="none"
+            label={t("tickets.quickActions", { number: ticket.number })}
+            icon={<MoreHorizontal aria-hidden="true" />}
+            className="size-7"
+          />
+        }
+      >
+        {canAssign && ticket.analyst_id !== actions.me ? (
+          <MenuItem icon={<UserCheck />} onSelect={actions.assignToMe}>
+            {t("ticket.assignToMe")}
+          </MenuItem>
+        ) : null}
+        {canAssign ? (
+          <MenuItem icon={<UserPlus />} onSelect={() => setDialog("assign")}>
+            {t("bulk.assign")}
+          </MenuItem>
+        ) : null}
+        {canUpdate ? (
+          <MenuItem icon={<CircleDot />} onSelect={() => setDialog("status")}>
+            {t("bulk.status")}
+          </MenuItem>
+        ) : null}
+        {canUpdate ? (
+          ticket.snoozed_until ? (
+            <MenuItem icon={<AlarmClock />} onSelect={() => actions.wake.mutate()}>
+              {t("ticket.wake")}
+            </MenuItem>
+          ) : (
+            <MenuItem icon={<AlarmClock />} onSelect={() => setDialog("snooze")}>
+              {t("tickets.snoozeMenu")}
+            </MenuItem>
+          )
+        ) : null}
+      </Menu>
+      <AssignDialog
+        open={dialog === "assign"}
+        onOpenChange={(o) => setDialog(o ? "assign" : null)}
+        title={t("ticket.assignTitle", { number: ticket.number })}
+        initial={{ team_id: ticket.team_id ?? null, analyst_id: ticket.analyst_id ?? null }}
+        busy={actions.assign.isPending}
+        error={actions.assign.error}
+        onSubmit={(a) => actions.assign.mutate(a)}
+      />
+      <StatusDialog
+        open={dialog === "status"}
+        onOpenChange={(o) => setDialog(o ? "status" : null)}
+        title={t("ticket.statusTitle", { number: ticket.number })}
+        currentStatusId={ticket.status_id}
+        busy={actions.status.isPending}
+        error={actions.status.error}
+        onSubmit={(change) => actions.status.mutate(change)}
+      />
+      <SnoozeDialog
+        open={dialog === "snooze"}
+        onOpenChange={(o) => setDialog(o ? "snooze" : null)}
+        title={t("ticket.snoozeTitle", { number: ticket.number })}
+        busy={actions.snooze.isPending}
+        error={actions.snooze.error}
+        onSubmit={(body) => actions.snooze.mutate(body)}
+      />
+    </span>
   );
 }
 

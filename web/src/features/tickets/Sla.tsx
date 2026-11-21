@@ -1,4 +1,5 @@
 import { AlarmClock, CheckCircle2, CircleSlash, PauseCircle, TriangleAlert } from "lucide-react";
+import type { ReactNode } from "react";
 import { Badge, type Tone } from "@/components/Badge";
 import type { MessageId } from "@/i18n/messages";
 import { compactDuration, useText } from "@/i18n/useText";
@@ -6,8 +7,8 @@ import type { Schemas } from "@/lib/api";
 
 type Target = Schemas["SlaTargetDto"];
 
-/** Display of an SLA state. The state and time left always come from the API (FR-SLA-007). */
-const STATES: Record<string, { tone: Tone; icon: React.ReactNode }> = {
+/** How an SLA state looks. The state and time left always come from the API (FR-SLA-007). */
+const STATES: Record<string, { tone: Tone; icon: ReactNode }> = {
   on_track: { tone: "success", icon: <AlarmClock aria-hidden="true" /> },
   warning: { tone: "warning", icon: <TriangleAlert aria-hidden="true" /> },
   breached: { tone: "danger", icon: <TriangleAlert aria-hidden="true" /> },
@@ -34,8 +35,9 @@ export function currentTarget(sla: Schemas["SlaDto"]): {
  */
 export function SlaBadge({ target, showTime = true }: { target: Target; showTime?: boolean }) {
   const t = useText();
-  const state = STATES[target.state] ?? STATES.none;
-  const label = t(`sla.${target.state in STATES ? target.state : "none"}` as MessageId);
+  const known = target.state in STATES;
+  const state = STATES[known ? target.state : "none"];
+  const label = t(`sla.${known ? target.state : "none"}` as MessageId);
   const seconds = target.remaining_seconds;
   const running = ["on_track", "warning", "breached"].includes(target.state);
   const time =

@@ -3,10 +3,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Inbox, Plus } from "lucide-react";
 import { Badge } from "@/components/Badge";
 import { buttonClass } from "@/components/Button";
-import { EmptyState } from "@/components/EmptyState";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { PageHeader } from "@/components/Page";
-import { LoadingBlock, LoadMore } from "@/components/QueryState";
+import { EmptyState, LoadingBlock, LoadMore, Notice, ProblemNotice } from "@/components/Feedback";
+import { PageHeader } from "@/components/Layout";
 import { Segmented } from "@/components/Tabs";
 import { useFormat, useText } from "@/i18n/useText";
 import { portalTicketsQuery } from "./api";
@@ -32,7 +30,7 @@ export function PortalTicketsPage({ show }: { show: Show }) {
             to="/portal/tickets/new"
             className={buttonClass({ variant: "primary", size: "lg" })}
           >
-            <Plus aria-hidden="true" className="size-4" />
+            <Plus aria-hidden="true" />
             {t("portalTickets.new")}
           </Link>
         }

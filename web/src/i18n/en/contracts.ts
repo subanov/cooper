@@ -98,4 +98,12 @@ export const contracts = {
   "contacts.mobile": "Mobile",
   "contacts.notes": "Notes",
   "contacts.active": "Active",
+  "contracts.pickOne": "Choose a Contract",
+  "contracts.allStatuses": "All Contract Statuses",
+  "contracts.allSuppliers": "All Suppliers",
+  "contracts.unavailable": "Contract unavailable",
+  "suppliers.pickOne": "Choose a Supplier",
+  "suppliers.unavailable": "Supplier unavailable",
+  "suppliers.intro":
+    "The vendors behind your Contracts and Assets, and the people you deal with there.",
 } as const;

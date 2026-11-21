@@ -4,10 +4,10 @@ import { Archive, Eye, EyeOff, Pencil, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { LoadingBlock, ProblemNotice, QueryState } from "@/components/Feedback";
 import { FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { Page, PageHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { BackLink, Panel } from "@/components/Layout";
+import { DetailHeader } from "@/components/MasterDetail";
 import { analystsQuery, toOptions } from "@/features/reference/queries";
 import { useCan } from "@/features/session/session";
 import { useActorName } from "@/features/shared/History";
@@ -24,22 +24,37 @@ import {
   foldersQuery,
   versionsQuery,
 } from "./api";
+import { audienceLabel, StateBadge } from "./KnowledgePage";
 
-/** One Article: read it, or edit, publish, archive and restore versions (FR-KNW-001…004). */
-export function ArticlePage({ id }: { id?: string }) {
+/** One Article in the detail pane: read it, or edit, publish, archive and restore versions (FR-KNW-001…004). */
+export function ArticlePage({ id }: { id?: string | undefined }) {
+  const t = useText();
   const query = useQuery({ ...articleQuery(id ?? ""), enabled: Boolean(id) });
   if (!id) return <ArticleEditor />;
-  return (
-    <QueryState
-      query={query}
-      loading={
-        <Page width="medium">
+  if (!query.data) {
+    return (
+      <div className="mx-auto grid max-w-4xl gap-4 p-4 sm:p-6">
+        <DetailHeader
+          back={<BackToKnowledge />}
+          title={query.isError ? t("knowledge.unavailable") : t("common.loading")}
+        />
+        {query.isError ? (
+          <ProblemNotice error={query.error} onRetry={() => void query.refetch()} />
+        ) : (
           <LoadingBlock lines={10} />
-        </Page>
-      }
-    >
-      {(article) => <ArticleView key={article.updated_at} article={article} />}
-    </QueryState>
+        )}
+      </div>
+    );
+  }
+  return <ArticleView key={query.data.updated_at} article={query.data} />;
+}
+
+function BackToKnowledge() {
+  const t = useText();
+  return (
+    <BackLink to="/knowledge" search={true}>
+      {t("knowledge.back")}
+    </BackLink>
   );
 }
 
@@ -52,10 +67,12 @@ function ArticleView({ article }: { article: Article }) {
   const publish = useAction((on: boolean) => articleActions.publish(article.id, on), {
     invalidate,
     success: (_, on) => t(on ? "knowledge.publishedDone" : "knowledge.unpublishedDone"),
+    undo: (_, on) => ({ label: t("common.undo"), run: (): void => publish.mutate(!on) }),
   });
   const archive = useAction(() => articleActions.archive(article.id), {
     invalidate,
     success: "knowledge.archivedDone",
+    undo: () => ({ label: t("common.undo"), run: (): void => restore.mutate() }),
   });
   const restore = useAction(() => articleActions.restore(article.id), {
     invalidate,
@@ -64,24 +81,21 @@ function ArticleView({ article }: { article: Article }) {
   if (editing) return <ArticleEditor article={article} onDone={() => setEditing(false)} />;
   const writer = can("knowledge.write");
   return (
-    <Page width="medium">
-      <PageHeader
-        back={{ to: "/knowledge", label: t("knowledge.back") }}
+    <article className="mx-auto grid max-w-4xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToKnowledge />}
+        eyebrow={
+          <span>
+            {t("knowledge.version", { n: article.version })} ·{" "}
+            {t("knowledge.updated", { date: f.date(article.updated_at) })} ·{" "}
+            {t("knowledge.views", { count: article.view_count })}
+          </span>
+        }
         title={article.title}
-        meta={
+        badges={
           <>
-            {article.is_archived ? (
-              <Badge tone="muted">{t("knowledge.archived")}</Badge>
-            ) : article.is_published ? (
-              <Badge tone="success">{t("knowledge.published")}</Badge>
-            ) : (
-              <Badge tone="warning">{t("knowledge.draft")}</Badge>
-            )}
-            <span className="text-xs text-fg-muted">
-              {t("knowledge.version", { n: article.version })} ·{" "}
-              {t("knowledge.updated", { date: f.date(article.updated_at) })} ·{" "}
-              {t("knowledge.views", { count: article.view_count })}
-            </span>
+            <StateBadge article={article} />
+            <Badge tone="neutral">{t(audienceLabel(article.audience))}</Badge>
           </>
         }
         actions={
@@ -89,37 +103,12 @@ function ArticleView({ article }: { article: Article }) {
             <>
               {!article.is_archived ? (
                 <Button
-                  icon={<Pencil aria-hidden="true" className="size-4" />}
-                  onClick={() => setEditing(true)}
-                >
-                  {t("knowledge.edit")}
-                </Button>
-              ) : null}
-              {article.is_archived ? (
-                <Button
-                  icon={<RotateCcw aria-hidden="true" className="size-4" />}
-                  loading={restore.isPending}
-                  onClick={() => restore.mutate()}
-                >
-                  {t("knowledge.restore")}
-                </Button>
-              ) : (
-                <Button
-                  icon={<Archive aria-hidden="true" className="size-4" />}
-                  loading={archive.isPending}
-                  onClick={() => archive.mutate()}
-                >
-                  {t("knowledge.archive")}
-                </Button>
-              )}
-              {!article.is_archived ? (
-                <Button
                   variant={article.is_published ? "secondary" : "primary"}
                   icon={
                     article.is_published ? (
-                      <EyeOff aria-hidden="true" className="size-4" />
+                      <EyeOff aria-hidden="true" />
                     ) : (
-                      <Eye aria-hidden="true" className="size-4" />
+                      <Eye aria-hidden="true" />
                     )
                   }
                   loading={publish.isPending}
@@ -128,11 +117,35 @@ function ArticleView({ article }: { article: Article }) {
                   {article.is_published ? t("knowledge.unpublish") : t("knowledge.publish")}
                 </Button>
               ) : null}
+              {!article.is_archived ? (
+                <Button icon={<Pencil aria-hidden="true" />} onClick={() => setEditing(true)}>
+                  {t("knowledge.edit")}
+                </Button>
+              ) : null}
+              {article.is_archived ? (
+                <Button
+                  icon={<RotateCcw aria-hidden="true" />}
+                  loading={restore.isPending}
+                  onClick={() => restore.mutate()}
+                >
+                  {t("knowledge.restore")}
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  icon={<Archive aria-hidden="true" />}
+                  loading={archive.isPending}
+                  onClick={() => archive.mutate()}
+                >
+                  {t("knowledge.archive")}
+                </Button>
+              )}
             </>
           ) : undefined
         }
       />
-      <Card>
+      <ProblemNotice error={publish.error ?? archive.error ?? restore.error} />
+      <Panel>
         <ArticleBody html={article.body} />
         {article.tags.length > 0 ? (
           <div className="mt-4 flex flex-wrap gap-1 border-t border-line pt-3">
@@ -143,9 +156,9 @@ function ArticleView({ article }: { article: Article }) {
             ))}
           </div>
         ) : null}
-      </Card>
+      </Panel>
       {writer ? <Versions article={article} /> : null}
-    </Page>
+    </article>
   );
 }
 
@@ -159,7 +172,8 @@ function Versions({ article }: { article: Article }) {
     success: (_, n) => t("knowledge.versionRestored", { n }),
   });
   return (
-    <Card title={t("knowledge.versions")}>
+    <Panel title={t("knowledge.versions")}>
+      <ProblemNotice error={restore.error} className="mb-3" />
       <QueryState query={versions}>
         {(list) => (
           <ol className="grid gap-2 text-sm">
@@ -186,7 +200,7 @@ function Versions({ article }: { article: Article }) {
           </ol>
         )}
       </QueryState>
-    </Card>
+    </Panel>
   );
 }
 
@@ -224,46 +238,46 @@ function ArticleEditor({ article, onDone }: { article?: Article; onDone?: () => 
       success: article ? "knowledge.saved" : "knowledge.created",
       onSuccess: (saved) => {
         if (article) onDone?.();
-        else void navigate({ to: "/knowledge/$id", params: { id: saved.id } });
+        else void navigate({ to: "/knowledge/$id", params: { id: saved.id }, search: true });
       },
     },
   );
+  const titleError =
+    tried && !form.title.trim() ? t("knowledge.titleRequired") : fieldError(save.error, "title");
   return (
-    <Page width="medium">
-      <PageHeader
-        back={{ to: "/knowledge", label: t("knowledge.back") }}
+    <section className="mx-auto grid max-w-4xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToKnowledge />}
         title={article ? article.title : t("knowledge.newTitle")}
         actions={
           article ? <Button onClick={onDone}>{t("knowledge.cancelEdit")}</Button> : undefined
         }
       />
-      <Card>
+      <Panel>
         <RecordForm
           busy={save.isPending}
-          error={save.error}
+          error={titleError ? null : save.error}
           dirty={JSON.stringify(form) !== JSON.stringify(initial) && Boolean(article)}
           submitLabel={article ? t("common.saveChanges") : t("common.create")}
           onSubmit={() => {
             setTried(true);
             if (form.title.trim()) save.mutate();
+            else document.getElementById("article-title")?.focus();
           }}
         >
           <TextField
+            id="article-title"
             label={t("knowledge.titleField")}
             required
             value={form.title}
-            error={
-              tried && !form.title.trim()
-                ? t("knowledge.titleRequired")
-                : fieldError(save.error, "title")
-            }
+            error={titleError}
             onChange={set("title")}
           />
           <TextAreaField
             label={t("knowledge.body")}
             hint={t("knowledge.bodyHint")}
             rows={16}
-            className="font-mono"
+            className="[&_textarea]:font-mono"
             value={form.body}
             onChange={set("body")}
           />
@@ -305,7 +319,7 @@ function ArticleEditor({ article, onDone }: { article?: Article; onDone?: () => 
             />
           </FormGrid>
         </RecordForm>
-      </Card>
-    </Page>
+      </Panel>
+    </section>
   );
 }

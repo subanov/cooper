@@ -15,7 +15,9 @@ export function useAction<TVars, TData>(
     invalidate?: readonly QueryKey[] | undefined;
     success?: MessageId | ((data: TData, vars: TVars) => string) | undefined;
     onSuccess?: ((data: TData, vars: TVars) => void | Promise<void>) | undefined;
-    undo?: ((data: TData, vars: TVars) => { label: string; run: () => void }) | undefined;
+    undo?:
+      | ((data: TData, vars: TVars) => { label: string; run: () => void } | undefined)
+      | undefined;
   } = {},
 ) {
   const queryClient = useQueryClient();

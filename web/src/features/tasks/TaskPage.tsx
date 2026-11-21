@@ -4,14 +4,19 @@ import { Plus, Unlink } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button, buttonClass, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
 import type { PickerOption } from "@/components/Combobox";
+import { LoadingBlock, LoadMore, ProblemNotice, QueryState } from "@/components/Feedback";
 import { FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { Page, PageHeader } from "@/components/Page";
-import { LoadingBlock, LoadMore, QueryState } from "@/components/QueryState";
+import { BackLink, Panel } from "@/components/Layout";
+import { DetailHeader } from "@/components/MasterDetail";
 import { TicketPicker } from "@/features/reference/pickers";
-import { analystsQuery, companiesQuery, teamsQuery, toOptions } from "@/features/reference/queries";
+import {
+  analystsQuery,
+  companiesQuery,
+  namesById,
+  teamsQuery,
+  toOptions,
+} from "@/features/reference/queries";
 import { useCan } from "@/features/session/session";
 import { HistoryTable } from "@/features/shared/History";
 import { fieldError, useAction } from "@/features/shared/mutation";
@@ -30,21 +35,35 @@ import {
   taskStatusesQuery,
 } from "./api";
 
-/** A Task (FR-TSK-001…004): details, comments, links, subtasks and history. */
-export function TaskPage({ id }: { id?: string }) {
+/** A Task in the detail pane (FR-TSK-001…004): details, comments, links, subtasks, history. */
+export function TaskPage({ id }: { id?: string | undefined }) {
+  const t = useText();
   const query = useQuery({ ...taskQuery(id ?? ""), enabled: Boolean(id) });
   if (!id) return <TaskEditor />;
-  return (
-    <QueryState
-      query={query}
-      loading={
-        <Page>
+  if (!query.data) {
+    return (
+      <div className="mx-auto grid max-w-6xl gap-4 p-4 sm:p-6">
+        <DetailHeader
+          back={<BackToTasks />}
+          title={query.isError ? t("tasks.unavailable") : t("common.loading")}
+        />
+        {query.isError ? (
+          <ProblemNotice error={query.error} onRetry={() => void query.refetch()} />
+        ) : (
           <LoadingBlock lines={8} />
-        </Page>
-      }
-    >
-      {(task) => <TaskEditor key={task.updated_at} task={task} />}
-    </QueryState>
+        )}
+      </div>
+    );
+  }
+  return <TaskEditor key={query.data.updated_at} task={query.data} />;
+}
+
+function BackToTasks() {
+  const t = useText();
+  return (
+    <BackLink to="/tasks" search={true}>
+      {t("tasks.back")}
+    </BackLink>
   );
 }
 
@@ -75,8 +94,7 @@ function TaskEditor({ task }: { task?: Task }) {
   const companies = useQuery(companiesQuery);
   const [form, setForm] = useState(() => toForm(task));
   const [tried, setTried] = useState(false);
-  const initial = toForm(task);
-  const dirty = JSON.stringify(form) !== JSON.stringify(initial);
+  const dirty = JSON.stringify(form) !== JSON.stringify(toForm(task));
   const editable = task ? can("tasks.update") : can("tasks.create");
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -101,141 +119,149 @@ function TaskEditor({ task }: { task?: Task }) {
       invalidate: [["tasks"]],
       success: task ? "tasks.saved" : "tasks.created",
       onSuccess: (saved) => {
-        if (!task) void navigate({ to: "/tasks/$id", params: { id: saved.id } });
+        if (!task) void navigate({ to: "/tasks/$id", params: { id: saved.id }, search: true });
       },
     },
   );
   const titleError =
     tried && !form.title.trim() ? t("tasks.titleRequired") : fieldError(save.error, "title");
   const activeCompanies = (companies.data ?? []).filter((c) => c.is_active);
+  const statusName = task ? namesById(statuses.data).get(task.status_id) : undefined;
 
   return (
-    <Page width="wide">
-      <PageHeader
-        back={{ to: "/tasks", label: t("tasks.back") }}
+    <article className="mx-auto grid max-w-6xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToTasks />}
+        eyebrow={
+          task ? <span>{namesById(companies.data).get(task.company_id) ?? ""}</span> : undefined
+        }
         title={task ? task.title : t("tasks.newTitle")}
-        meta={
+        badges={
           task ? (
-            <Badge tone={task.is_closed ? "muted" : "accent"}>
-              {task.is_closed ? t("tasks.closed") : t("tasks.open")}
-            </Badge>
+            <>
+              <Badge tone={task.is_closed ? "muted" : "accent"}>
+                {statusName ?? (task.is_closed ? t("tasks.closed") : t("tasks.open"))}
+              </Badge>
+              <Badge tone="neutral">
+                {namesById(priorities.data).get(task.priority_id) ?? "…"}
+              </Badge>
+            </>
           ) : undefined
         }
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="grid content-start gap-5">
-          <Card title={t("tasks.details")}>
-            <fieldset disabled={!editable} className="contents">
-              <RecordForm
-                busy={save.isPending}
-                error={titleError ? null : save.error}
-                dirty={dirty && Boolean(task)}
-                submitLabel={task ? t("common.saveChanges") : t("common.create")}
-                onSubmit={() => {
-                  setTried(true);
-                  if (form.title.trim()) save.mutate();
-                }}
-              >
+      <div
+        className={task ? "grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]" : "grid max-w-3xl gap-5"}
+      >
+        <div className="grid min-w-0 content-start gap-5">
+          <Panel title={t("tasks.details")}>
+            <RecordForm
+              busy={save.isPending}
+              error={titleError ? null : save.error}
+              dirty={dirty && Boolean(task)}
+              disabled={!editable}
+              submitLabel={task ? t("common.saveChanges") : t("common.create")}
+              onSubmit={() => {
+                setTried(true);
+                if (form.title.trim()) save.mutate();
+                else document.getElementById("task-title")?.focus();
+              }}
+            >
+              <TextField
+                id="task-title"
+                label={t("tasks.titleField")}
+                required
+                value={form.title}
+                error={titleError}
+                onChange={set("title")}
+              />
+              <TextAreaField
+                label={t("tasks.description")}
+                rows={5}
+                value={form.description}
+                onChange={set("description")}
+              />
+              <FormGrid>
+                {!task && activeCompanies.length > 1 ? (
+                  <SelectField
+                    label={t("common.company")}
+                    value={form.company_id}
+                    placeholder={t("common.choose")}
+                    onChange={set("company_id")}
+                    options={activeCompanies.map((c) => ({ value: c.id, label: c.name }))}
+                  />
+                ) : null}
+                <SelectField
+                  label={t("tasks.status")}
+                  value={form.status_id}
+                  placeholder={task ? undefined : t("newTicket.default")}
+                  onChange={set("status_id")}
+                  options={toOptions(statuses.data, (s) => s.name, task?.status_id)}
+                />
+                <SelectField
+                  label={t("tasks.priority")}
+                  value={form.priority_id}
+                  placeholder={task ? undefined : t("newTicket.default")}
+                  onChange={set("priority_id")}
+                  options={toOptions(priorities.data, (s) => s.name, task?.priority_id)}
+                />
+                <SelectField
+                  label={t("tasks.assignee")}
+                  value={form.assigned_analyst_id}
+                  placeholder={t("tickets.unassigned")}
+                  onChange={set("assigned_analyst_id")}
+                  options={toOptions(analysts.data, (a) => a.full_name, task?.assigned_analyst_id)}
+                />
+                <SelectField
+                  label={t("tasks.team")}
+                  value={form.assigned_team_id}
+                  placeholder={t("common.none")}
+                  onChange={set("assigned_team_id")}
+                  options={toOptions(teams.data, (q) => q.name, task?.assigned_team_id)}
+                />
                 <TextField
-                  label={t("tasks.titleField")}
-                  required
-                  value={form.title}
-                  error={titleError}
-                  onChange={set("title")}
+                  label={t("tasks.startDate")}
+                  type="date"
+                  value={form.start_date}
+                  onChange={set("start_date")}
                 />
-                <TextAreaField
-                  label={t("tasks.description")}
-                  rows={5}
-                  value={form.description}
-                  onChange={set("description")}
+                <TextField
+                  label={t("tasks.dueDate")}
+                  type="date"
+                  value={form.due_date}
+                  min={form.start_date || undefined}
+                  error={fieldError(save.error, "due_date")}
+                  onChange={set("due_date")}
                 />
-                <FormGrid>
-                  {!task && activeCompanies.length > 1 ? (
-                    <SelectField
-                      label={t("common.company")}
-                      value={form.company_id}
-                      placeholder={t("common.choose")}
-                      onChange={set("company_id")}
-                      options={activeCompanies.map((c) => ({ value: c.id, label: c.name }))}
-                    />
-                  ) : null}
-                  <SelectField
-                    label={t("tasks.status")}
-                    value={form.status_id}
-                    placeholder={task ? undefined : t("newTicket.default")}
-                    onChange={set("status_id")}
-                    options={toOptions(statuses.data, (s) => s.name, task?.status_id)}
-                  />
-                  <SelectField
-                    label={t("tasks.priority")}
-                    value={form.priority_id}
-                    placeholder={task ? undefined : t("newTicket.default")}
-                    onChange={set("priority_id")}
-                    options={toOptions(priorities.data, (s) => s.name, task?.priority_id)}
-                  />
-                  <SelectField
-                    label={t("tasks.assignee")}
-                    value={form.assigned_analyst_id}
-                    placeholder={t("tickets.unassigned")}
-                    onChange={set("assigned_analyst_id")}
-                    options={toOptions(
-                      analysts.data,
-                      (a) => a.full_name,
-                      task?.assigned_analyst_id,
-                    )}
-                  />
-                  <SelectField
-                    label={t("tasks.team")}
-                    value={form.assigned_team_id}
-                    placeholder={t("common.none")}
-                    onChange={set("assigned_team_id")}
-                    options={toOptions(teams.data, (q) => q.name, task?.assigned_team_id)}
-                  />
-                  <TextField
-                    label={t("tasks.startDate")}
-                    type="date"
-                    value={form.start_date}
-                    onChange={set("start_date")}
-                  />
-                  <TextField
-                    label={t("tasks.dueDate")}
-                    type="date"
-                    value={form.due_date}
-                    min={form.start_date || undefined}
-                    error={fieldError(save.error, "due_date")}
-                    onChange={set("due_date")}
-                  />
-                  <TextField
-                    label={t("tasks.estimate")}
-                    type="number"
-                    min={0}
-                    step={5}
-                    value={form.estimate_minutes}
-                    onChange={set("estimate_minutes")}
-                  />
-                  <TextField
-                    label={t("tasks.tags")}
-                    hint={t("tasks.tagsHint")}
-                    value={form.tags}
-                    onChange={set("tags")}
-                  />
-                </FormGrid>
-              </RecordForm>
-            </fieldset>
-          </Card>
+                <TextField
+                  label={t("tasks.estimate")}
+                  type="number"
+                  min={0}
+                  step={5}
+                  value={form.estimate_minutes}
+                  onChange={set("estimate_minutes")}
+                />
+                <TextField
+                  label={t("tasks.tags")}
+                  hint={t("tasks.tagsHint")}
+                  value={form.tags}
+                  onChange={set("tags")}
+                />
+              </FormGrid>
+            </RecordForm>
+          </Panel>
           {task ? <Comments task={task} /> : null}
         </div>
         {task ? (
-          <aside className="grid content-start gap-4">
+          <aside className="grid content-start gap-4" aria-label={t("tasks.related")}>
             <Links task={task} />
             <Subtasks task={task} />
-            <Card title={t("tasks.history")} flush>
+            <Panel title={t("tasks.history")} flush>
               <TaskHistory id={task.id} />
-            </Card>
+            </Panel>
           </aside>
         ) : null}
       </div>
-    </Page>
+    </article>
   );
 }
 
@@ -251,9 +277,9 @@ function Comments({ task }: { task: Task }) {
     success: "tasks.posted",
     onSuccess: () => setBody(""),
   });
-  const names = new Map((analysts.data ?? []).map((a) => [a.id, a.full_name]));
+  const names = namesById(analysts.data, (a) => a.full_name);
   return (
-    <Card title={t("tasks.comments")}>
+    <Panel title={t("tasks.comments")}>
       <div className="grid gap-4">
         <QueryState query={comments}>
           {(list) =>
@@ -299,7 +325,7 @@ function Comments({ task }: { task: Task }) {
           </form>
         ) : null}
       </div>
-    </Card>
+    </Panel>
   );
 }
 
@@ -324,10 +350,14 @@ function Links({ task }: { task: Task }) {
     {
       invalidate: [["tasks", "detail", task.id]],
       success: "common.unlinked",
+      undo: (_, l) =>
+        l.kind === "ticket"
+          ? { label: t("common.undo"), run: (): void => link.mutate(l.target_id) }
+          : undefined,
     },
   );
   return (
-    <Card title={t("tasks.links")}>
+    <Panel title={t("tasks.links")}>
       <div className="grid gap-3">
         <QueryState query={links}>
           {(list) =>
@@ -357,7 +387,7 @@ function Links({ task }: { task: Task }) {
                         size="sm"
                         tooltip="top"
                         label={t("common.unlinkNamed", { name: l.number })}
-                        icon={<Unlink aria-hidden="true" className="size-4" />}
+                        icon={<Unlink aria-hidden="true" />}
                         onClick={() => unlink.mutate(l)}
                       />
                     ) : null}
@@ -394,7 +424,7 @@ function Links({ task }: { task: Task }) {
                   search={{ task: task.id }}
                   className={buttonClass({ variant: "ghost", size: "sm" })}
                 >
-                  <Plus aria-hidden="true" className="size-4" />
+                  <Plus aria-hidden="true" />
                   {t("tasks.newTicket")}
                 </Link>
               ) : null}
@@ -403,7 +433,7 @@ function Links({ task }: { task: Task }) {
         ) : null}
         <ProblemNotice error={link.error ?? unlink.error} />
       </div>
-    </Card>
+    </Panel>
   );
 }
 
@@ -428,27 +458,30 @@ function Subtasks({ task }: { task: Task }) {
   );
   if (task.parent_task_id) return null;
   return (
-    <Card title={t("tasks.subtasks")}>
+    <Panel title={t("tasks.subtasks")}>
       <div className="grid gap-3">
         {list.isSuccess && items.length === 0 ? (
           <p className="text-sm text-fg-muted">{t("tasks.noSubtasks")}</p>
         ) : null}
-        <ul className="grid gap-1 text-sm">
-          {items.map((s) => (
-            <li key={s.id} className="flex items-center gap-2">
-              <Link
-                to="/tasks/$id"
-                params={{ id: s.id }}
-                className="min-w-0 flex-1 truncate hover:underline"
-              >
-                {s.title}
-              </Link>
-              <Badge tone={s.is_closed ? "muted" : "accent"}>
-                {s.is_closed ? t("tasks.closed") : t("tasks.open")}
-              </Badge>
-            </li>
-          ))}
-        </ul>
+        {items.length > 0 ? (
+          <ul className="grid gap-1 text-sm">
+            {items.map((s) => (
+              <li key={s.id} className="flex items-center gap-2">
+                <Link
+                  to="/tasks/$id"
+                  params={{ id: s.id }}
+                  search={true}
+                  className="min-w-0 flex-1 truncate hover:underline"
+                >
+                  {s.title}
+                </Link>
+                <Badge tone={s.is_closed ? "muted" : "accent"}>
+                  {s.is_closed ? t("tasks.closed") : t("tasks.open")}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <LoadMore query={list} />
         {can("tasks.create") ? (
           <form
@@ -464,14 +497,14 @@ function Subtasks({ task }: { task: Task }) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <Button type="submit" size="md" loading={add.isPending} disabled={!title.trim()}>
+            <Button type="submit" loading={add.isPending} disabled={!title.trim()}>
               {t("common.add")}
             </Button>
           </form>
         ) : null}
         <ProblemNotice error={add.error} />
       </div>
-    </Card>
+    </Panel>
   );
 }
 

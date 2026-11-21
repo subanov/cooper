@@ -3,11 +3,9 @@ import { Download, Paperclip } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { LoadingBlock, ProblemNotice, QueryState } from "@/components/Feedback";
 import { TextAreaField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { PageHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { BackLink, PageHeader, Panel } from "@/components/Layout";
 import { useAction } from "@/features/shared/mutation";
 import { useFormat, useText } from "@/i18n/useText";
 import { cn } from "@/lib/cn";
@@ -45,11 +43,11 @@ function TicketView({ ticket }: { ticket: PortalTicket }) {
   return (
     <div className="grid gap-6">
       <PageHeader
-        back={{ to: "/portal/tickets", label: t("portalTicket.back") }}
+        back={<BackLink to="/portal/tickets">{t("portalTicket.back")}</BackLink>}
         title={ticket.subject}
-        meta={
-          <>
-            <span className="font-mono text-sm text-fg-muted">{ticket.number}</span>
+        eyebrow={
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="font-mono font-medium text-fg">{ticket.number}</span>
             <Badge tone={ticket.is_open ? "accent" : "muted"}>{ticket.status}</Badge>
             <span className="text-xs text-fg-muted">
               {t("portalTicket.opened", { date: f.dateTime(ticket.created_at) })}
@@ -57,16 +55,16 @@ function TicketView({ ticket }: { ticket: PortalTicket }) {
                 ? ` · ${t("portalTicket.closedOn", { date: f.dateTime(ticket.closed_at) })}`
                 : ""}
             </span>
-          </>
+          </span>
         }
       />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="grid content-start gap-6">
-          <Card title={t("portalTicket.description")}>
+          <Panel title={t("portalTicket.description")}>
             <p className="whitespace-pre-wrap text-[0.9375rem] leading-relaxed [overflow-wrap:anywhere]">
               {ticket.description}
             </p>
-          </Card>
+          </Panel>
           <section aria-labelledby="conversation" className="grid gap-3">
             <h2 id="conversation" className="text-[0.9375rem] font-semibold">
               {t("portalTicket.conversation")}
@@ -109,7 +107,7 @@ function TicketView({ ticket }: { ticket: PortalTicket }) {
               }
             </QueryState>
           </section>
-          <Card title={t("portalTicket.reply")}>
+          <Panel title={t("portalTicket.reply")}>
             <form
               className="grid gap-3"
               onSubmit={(e) => {
@@ -138,7 +136,7 @@ function TicketView({ ticket }: { ticket: PortalTicket }) {
                 </Button>
               </div>
             </form>
-          </Card>
+          </Panel>
         </div>
         <Attachments ticketId={ticket.id} />
       </div>
@@ -155,7 +153,7 @@ function Attachments({ ticketId }: { ticketId: string }) {
     success: (a) => t("portalTicket.attached", { name: a.file_name }),
   });
   return (
-    <Card
+    <Panel
       title={t("portalTicket.attachments")}
       className="self-start"
       actions={
@@ -174,7 +172,7 @@ function Attachments({ ticketId }: { ticketId: string }) {
           />
           <Button
             size="sm"
-            icon={<Paperclip aria-hidden="true" className="size-4" />}
+            icon={<Paperclip aria-hidden="true" />}
             loading={add.isPending}
             onClick={() => input.current?.click()}
           >
@@ -194,7 +192,7 @@ function Attachments({ ticketId }: { ticketId: string }) {
                 href={`/api/v1/portal/tickets/${ticketId}/attachments/${a.id}`}
                 download={a.file_name}
                 aria-label={t("portalTicket.download", { name: a.file_name })}
-                className="flex min-h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-canvas"
+                className="flex min-h-11 items-center gap-2 rounded-md px-2 text-sm hover:bg-sunken"
               >
                 <Download aria-hidden="true" className="size-4 shrink-0 text-fg-muted" />
                 <span className="truncate">{a.file_name}</span>
@@ -203,6 +201,6 @@ function Attachments({ ticketId }: { ticketId: string }) {
           ))}
         </ul>
       )}
-    </Card>
+    </Panel>
   );
 }

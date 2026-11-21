@@ -1,11 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { ProblemNotice, QueryState } from "@/components/Feedback";
 import { Input, Select, Switch } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
-import { QueryState } from "@/components/QueryState";
+import { PageHeader, Panel } from "@/components/Layout";
 import { useAction } from "@/features/shared/mutation";
 import { useText } from "@/i18n/useText";
 import { api, type Schemas } from "@/lib/api";
@@ -25,7 +23,7 @@ export function SettingsPage() {
   const [filter, setFilter] = useState("");
   return (
     <>
-      <SectionHeader title={t("admin.settings")} description={t("admin.settings.intro")} />
+      <PageHeader level={2} title={t("admin.settings")} description={t("admin.settings.intro")} />
       <Input
         type="search"
         aria-label={t("admin.settings.search")}
@@ -48,7 +46,7 @@ export function SettingsPage() {
             groups.set(group, [...(groups.get(group) ?? []), s]);
           }
           return [...groups].map(([group, items]) => (
-            <Card
+            <Panel
               key={group}
               title={<span className="capitalize">{group.replaceAll("_", " ")}</span>}
               flush
@@ -60,7 +58,7 @@ export function SettingsPage() {
                   </li>
                 ))}
               </ul>
-            </Card>
+            </Panel>
           ));
         }}
       </QueryState>
@@ -115,14 +113,21 @@ function SettingRow({ setting }: { setting: Setting }) {
     return (
       <div className="grid gap-2 px-4 py-3">
         <div className="flex items-start justify-between gap-4">
-          {about}
+          <div className="grid gap-0.5">
+            <span id={`${id}-label`} className="font-mono text-[0.8125rem] font-medium">
+              {setting.key}
+            </span>
+            <p id={`${id}-about`} className="text-xs text-fg-muted">
+              {setting.description}{" "}
+              {t("admin.settings.default", { value: asText(setting.default) || "—" })}
+            </p>
+          </div>
           <Switch
-            id={id}
+            label={setting.key}
             describedBy={`${id}-about`}
             checked={setting.value === (true as never)}
             disabled={save.isPending}
-            onChange={(on) => save.mutate(on)}
-            stateLabels={[t("common.on"), t("common.off")]}
+            onCheckedChange={(on) => save.mutate(on)}
           />
         </div>
         <ProblemNotice error={save.error} />

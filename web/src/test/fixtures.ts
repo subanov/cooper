@@ -133,3 +133,116 @@ export function analystApi(capabilities: string[], overrides: Partial<Schemas["S
     "GET /api/v1/requesters": { status: 200, body: { items: [] } },
   } as const;
 }
+
+const AT = "2026-03-01T09:00:00Z";
+
+export function task(overrides: Partial<Schemas["TaskDto"]> = {}): Schemas["TaskDto"] {
+  return {
+    id: "00000000-0000-7000-8000-0000000000k1",
+    company_id: COMPANY_ID,
+    title: "Replace the backup tapes",
+    description: "",
+    status_id: "ts-todo",
+    is_closed: false,
+    priority_id: "tp-normal",
+    tags: ["backup"],
+    board_position: 1,
+    created_at: AT,
+    updated_at: AT,
+    ...overrides,
+  };
+}
+
+export function asset(overrides: Partial<Schemas["AssetDto"]> = {}): Schemas["AssetDto"] {
+  return {
+    id: "00000000-0000-7000-8000-0000000000s1",
+    company_id: COMPANY_ID,
+    asset_tag: "LT-0042",
+    hostname: "ada-laptop",
+    is_active: true,
+    created_at: AT,
+    updated_at: AT,
+    ...overrides,
+  };
+}
+
+export function contract(overrides: Partial<Schemas["ContractDto"]> = {}): Schemas["ContractDto"] {
+  return {
+    id: "00000000-0000-7000-8000-0000000000d1",
+    company_id: COMPANY_ID,
+    contract_number: "C-2026-01",
+    title: "Printer lease",
+    description: "",
+    party: "supplier",
+    is_active: true,
+    notice_status: "upcoming",
+    notice_date: "2026-05-01",
+    end_date: "2026-08-01",
+    personal_data_transferred: false,
+    dpia_required: false,
+    created_at: AT,
+    updated_at: AT,
+    ...overrides,
+  } as Schemas["ContractDto"];
+}
+
+export function article(
+  overrides: Partial<Schemas["KnowledgeArticleDto"]> = {},
+): Schemas["KnowledgeArticleDto"] {
+  return {
+    id: "00000000-0000-7000-8000-0000000000e1",
+    title: "Reset your password",
+    body: "<p>Open the sign-in page and choose <strong>Forgot</strong>.</p>",
+    body_text: "Open the sign-in page and choose Forgot.",
+    tags: ["password"],
+    audience: "public",
+    is_published: true,
+    is_archived: false,
+    version: 2,
+    view_count: 12,
+    access: { all: true },
+    created_at: AT,
+    updated_at: AT,
+    ...overrides,
+  } as Schemas["KnowledgeArticleDto"];
+}
+
+/** Task reference data and a Board with one Task. */
+export const TASK_API = {
+  "GET /api/v1/task-statuses": {
+    status: 200,
+    body: [
+      {
+        id: "ts-todo",
+        name: "To do",
+        colour: "#6b7280",
+        is_closed: false,
+        is_active: true,
+        sort_order: 0,
+      },
+      {
+        id: "ts-done",
+        name: "Done",
+        colour: "#16a34a",
+        is_closed: true,
+        is_active: true,
+        sort_order: 1,
+      },
+    ],
+  },
+  "GET /api/v1/task-priorities": {
+    status: 200,
+    body: [{ id: "tp-normal", name: "Normal", is_active: true, is_default: true, sort_order: 0 }],
+  },
+  "GET /api/v1/tasks/board": {
+    status: 200,
+    body: [
+      {
+        status: { id: "ts-todo", name: "To do", colour: "#6b7280" },
+        tasks: [task()],
+        has_more: false,
+      },
+      { status: { id: "ts-done", name: "Done", colour: "#16a34a" }, tasks: [], has_more: false },
+    ],
+  },
+} as const;

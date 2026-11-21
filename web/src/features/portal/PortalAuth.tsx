@@ -3,8 +3,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { KeyRound } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Button, buttonClass } from "@/components/Button";
+import { Notice, ProblemNotice } from "@/components/Feedback";
 import { TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
 import { NewPasswordForm } from "@/features/auth/ResetPassword";
 import { portalSessionQuery } from "@/features/session/session";
 import { PublicLayout } from "@/features/shell/PublicLayout";
@@ -82,6 +82,7 @@ export function PortalSignInPage({ redirect }: { redirect?: string | undefined }
           type="email"
           autoComplete="email"
           required
+          autoFocus
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -113,7 +114,7 @@ export function PortalSignInPage({ redirect }: { redirect?: string | undefined }
           href={`/api/v1/sso/${p.id}/start?audience=requesters&return_to=${encodeURIComponent(target)}`}
           className={buttonClass({ size: "lg" })}
         >
-          <KeyRound aria-hidden="true" className="size-4" />
+          <KeyRound aria-hidden="true" />
           {t("portalSignIn.sso", { provider: p.display_name })}
         </a>
       ))}
@@ -178,14 +179,18 @@ export function PortalSetPasswordPage({ token }: { token?: string | undefined })
         <Notice tone="info">{t("portalPassword.noToken")}</Notice>
       ) : set.isSuccess ? (
         <Notice tone="success" title={t("portalPassword.done")}>
-          <Link to="/portal/sign-in">{t("portalSignIn.submit")}</Link>
+          <Link to="/portal/sign-in" className="font-medium text-accent-text underline">
+            {t("portalSignIn.submit")}
+          </Link>
         </Notice>
       ) : (
         <>
           {invalid ? (
             <Notice tone="danger">
               {t("portalPassword.invalid")}{" "}
-              <Link to="/portal/reset-password">{t("portalReset.submit")}</Link>
+              <Link to="/portal/reset-password" className="font-medium underline">
+                {t("portalReset.submit")}
+              </Link>
             </Notice>
           ) : (
             <ProblemNotice error={set.error} />

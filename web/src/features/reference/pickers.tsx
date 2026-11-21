@@ -41,7 +41,14 @@ export function RequesterPicker({
         .join(" · "),
     }),
   );
-  return <Combobox {...props} options={options} loading={found.isFetching} onQueryChange={setQ} />;
+  return (
+    <Combobox
+      {...props}
+      options={q ? options : []}
+      loading={found.isFetching}
+      onQueryChange={setQ}
+    />
+  );
 }
 
 type LinkPickerProps = PickerProps & {
@@ -83,13 +90,7 @@ export function TicketPicker({
   });
   const options = (found.data?.items ?? [])
     .filter((t) => !exclude?.has(t.id))
-    .map(
-      (t): PickerOption => ({
-        id: t.id,
-        label: `${t.number} · ${t.subject}`,
-        description: undefined,
-      }),
-    );
+    .map((t): PickerOption => ({ id: t.id, label: `${t.number} · ${t.subject}` }));
   return <Combobox {...props} options={options} loading={found.isFetching} onQueryChange={setQ} />;
 }
 
@@ -113,6 +114,6 @@ export function TaskPicker({ companyId, exclude, suggestMine = false, ...props }
   });
   const options = (found.data?.items ?? [])
     .filter((k) => (!companyId || k.company_id === companyId) && !exclude?.has(k.id))
-    .map((k): PickerOption => ({ id: k.id, label: k.title, description: undefined }));
+    .map((k): PickerOption => ({ id: k.id, label: k.title }));
   return <Combobox {...props} options={options} loading={found.isFetching} onQueryChange={setQ} />;
 }

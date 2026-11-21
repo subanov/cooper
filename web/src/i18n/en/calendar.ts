@@ -39,4 +39,6 @@ export const calendar = {
   "calendar.deleteTitle": "Delete “{title}”?",
   "calendar.deleteBody": "The event is removed from the calendar for everyone.",
   "calendar.deleted": "Event deleted.",
+  "calendar.toolbar": "Month and filters",
+  "calendar.newOn": "New event on {date}",
 } as const;

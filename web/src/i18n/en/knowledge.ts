@@ -54,4 +54,6 @@ export const knowledge = {
   "knowledge.versionRestored": "Version {n} restored as a new version.",
   "knowledge.savedBy": "Version {n} · {date}",
   "knowledge.current": "Current",
+  "knowledge.pickOne": "Choose an Article",
+  "knowledge.unavailable": "Article unavailable",
 } as const;

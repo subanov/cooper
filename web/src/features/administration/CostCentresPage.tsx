@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { FormDialog } from "@/components/Dialog";
+import { ProblemNotice } from "@/components/Feedback";
 import { Checkbox, FormGrid, SelectField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
 import { companiesQuery, costCentresQuery, namesById } from "@/features/reference/queries";
 import { fieldError, useAction } from "@/features/shared/mutation";
 import { useText } from "@/i18n/useText";
 import { api, type Schemas } from "@/lib/api";
 import { call } from "@/lib/request";
-import { OrganisationList } from "./OrganisationPages";
+import { AdminList } from "./OrganisationList";
 
 type CostCentre = Schemas["CostCentreDto"];
 
@@ -18,7 +18,7 @@ export function CostCentresPage() {
   const rows = useQuery(costCentresQuery);
   const companies = useQuery(companiesQuery);
   return (
-    <OrganisationList
+    <AdminList
       title={t("admin.costCentres")}
       intro={t("admin.costCentres.intro")}
       rows={rows.data}
@@ -26,14 +26,13 @@ export function CostCentresPage() {
       error={rows.error}
       columns={[
         {
-          id: "code",
+          key: "code",
           header: t("admin.costCentres.code"),
           cell: (c) => <span className="font-mono">{c.code}</span>,
         },
         {
-          id: "company",
+          key: "company",
           header: t("common.company"),
-          wide: true,
           cell: (c) => namesById(companies.data).get(c.company_id) ?? "…",
         },
       ]}
@@ -94,6 +93,7 @@ function CostCentreDialog({
         <TextField
           label={t("ref.name")}
           required
+          autoFocus
           value={form.name}
           onChange={(e) => setForm((x) => ({ ...x, name: e.target.value }))}
         />

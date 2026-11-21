@@ -5,13 +5,17 @@ export type Theme = "system" | "light" | "dark";
 /** Control and row density. */
 export type Density = "comfortable" | "compact";
 
+/** The Analyst navigation: labels shown, or icons only for more room. */
+export type NavMode = "expanded" | "collapsed";
+
 export interface Preferences {
   theme: Theme;
   density: Density;
+  nav: NavMode;
 }
 
 const KEY = "cooper.preferences";
-const DEFAULTS: Preferences = { theme: "system", density: "comfortable" };
+const DEFAULTS: Preferences = { theme: "system", density: "comfortable", nav: "expanded" };
 
 function read(): Preferences {
   try {
@@ -19,6 +23,7 @@ function read(): Preferences {
     return {
       theme: parsed.theme === "light" || parsed.theme === "dark" ? parsed.theme : "system",
       density: parsed.density === "compact" ? "compact" : "comfortable",
+      nav: parsed.nav === "collapsed" ? "collapsed" : "expanded",
     };
   } catch {
     return DEFAULTS;

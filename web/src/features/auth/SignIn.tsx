@@ -3,8 +3,8 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { KeyRound } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Button, buttonClass } from "@/components/Button";
+import { Notice } from "@/components/Feedback";
 import { Checkbox, TextField } from "@/components/Field";
-import { Notice } from "@/components/Notice";
 import { analystSessionQuery } from "@/features/session/session";
 import { PublicLayout } from "@/features/shell/PublicLayout";
 import { useText } from "@/i18n/useText";
@@ -94,7 +94,9 @@ export function SignInPage({ redirect }: { redirect: string | undefined }) {
     >
       {setup.data?.required ? (
         <Notice tone="info" title={t("signIn.setupNeeded")}>
-          <Link to="/setup">{t("signIn.setupLink")}</Link>
+          <Link to="/setup" className="font-medium text-accent-text underline">
+            {t("signIn.setupLink")}
+          </Link>
         </Notice>
       ) : null}
       <form className="grid gap-4" onSubmit={submit}>
@@ -175,7 +177,7 @@ export function SignInPage({ redirect }: { redirect: string | undefined }) {
               href={`/api/v1/sso/${provider.id}/start?audience=analysts&return_to=${encodeURIComponent(target)}`}
               className={buttonClass({ variant: "secondary", size: "lg" })}
             >
-              <KeyRound aria-hidden="true" className="size-4" />
+              <KeyRound aria-hidden="true" />
               {t("signIn.sso", { provider: provider.display_name })}
             </a>
           ))}
