@@ -1,154 +1,124 @@
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
-import { ok } from "@/features/okQuery";
-import { result } from "@/features/result";
 import { api, type Schemas } from "@/lib/api";
+import { call } from "@/lib/request";
 
-/** Filters of the Asset list. Retired Assets are left out unless asked for (FR-AST-005). */
-export interface AssetFilter {
+export type Asset = Schemas["AssetDto"];
+export type AssetLookupKind = "asset-types" | "asset-statuses" | "asset-locations";
+
+export interface AssetSearch {
   q?: string;
-  assetTypeId?: string;
-  assetStatusId?: string;
-  locationId?: string;
-  includeRetired?: boolean;
+  type?: string;
+  status?: string;
+  location?: string;
+  retired?: true;
 }
 
-/** Assets, newest first, page by page. */
-export function assetListQuery(filter: AssetFilter) {
+export function assetLookupQuery(kind: AssetLookupKind) {
+  return queryOptions({
+    queryKey: ["reference", kind],
+    queryFn: () => {
+      switch (kind) {
+        case "asset-types":
+          return call(api.GET("/api/v1/asset-types"));
+        case "asset-statuses":
+          return call(api.GET("/api/v1/asset-statuses"));
+        case "asset-locations":
+          return call(api.GET("/api/v1/asset-locations"));
+      }
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function assetsQuery(search: AssetSearch) {
   return infiniteQueryOptions({
-    queryKey: ["assets", "list", filter],
+    queryKey: ["assets", "list", search],
     queryFn: ({ pageParam }) =>
-      ok(
+      call(
         api.GET("/api/v1/assets", {
           params: {
             query: {
               limit: 50,
-              ...(filter.q ? { q: filter.q } : {}),
-              ...(filter.assetTypeId ? { asset_type_id: filter.assetTypeId } : {}),
-              ...(filter.assetStatusId ? { asset_status_id: filter.assetStatusId } : {}),
-              ...(filter.locationId ? { location_id: filter.locationId } : {}),
-              ...(filter.includeRetired ? { include_retired: true } : {}),
+              ...(search.q ? { q: search.q } : {}),
+              ...(search.type ? { asset_type_id: search.type } : {}),
+              ...(search.status ? { asset_status_id: search.status } : {}),
+              ...(search.location ? { location_id: search.location } : {}),
+              ...(search.retired ? { include_retired: true } : {}),
               ...(pageParam ? { cursor: pageParam } : {}),
             },
           },
         }),
-        "assets",
       ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.next_cursor ?? undefined,
   });
 }
 
-/** Active and retired counts. */
 export const assetSummaryQuery = queryOptions({
   queryKey: ["assets", "summary"],
-  queryFn: () => ok(api.GET("/api/v1/assets/summary"), "asset summary"),
+  queryFn: () => call(api.GET("/api/v1/assets/summary")),
 });
 
-/** One Asset. */
 export const assetQuery = (id: string) =>
   queryOptions({
     queryKey: ["assets", "detail", id],
-    queryFn: () => ok(api.GET("/api/v1/assets/{id}", { params: { path: { id } } }), "asset"),
+    queryFn: () => call(api.GET("/api/v1/assets/{id}", { params: { path: { id } } })),
   });
-
-/** The Check Out log of an Asset. */
-export const assetCheckoutsQuery = (id: string) =>
+export const checkoutsQuery = (id: string) =>
   queryOptions({
-    queryKey: ["assets", "checkouts", id],
-    queryFn: () =>
-      ok(api.GET("/api/v1/assets/{id}/checkouts", { params: { path: { id } } }), "checkouts"),
+    queryKey: ["assets", "detail", id, "checkouts"],
+    queryFn: () => call(api.GET("/api/v1/assets/{id}/checkouts", { params: { path: { id } } })),
   });
-
-/** Linked tickets and Contracts of an Asset. */
-export const assetLinksQuery = (id: string) =>
-  queryOptions({
-    queryKey: ["assets", "links", id],
-    queryFn: () =>
-      ok(api.GET("/api/v1/assets/{id}/links", { params: { path: { id } } }), "asset links"),
-  });
-
-/** The history of an Asset. */
 export const assetHistoryQuery = (id: string) =>
   queryOptions({
-    queryKey: ["assets", "history", id],
-    queryFn: () =>
-      ok(api.GET("/api/v1/assets/{id}/history", { params: { path: { id } } }), "asset history"),
+    queryKey: ["assets", "detail", id, "history"],
+    queryFn: () => call(api.GET("/api/v1/assets/{id}/history", { params: { path: { id } } })),
   });
-
-/** Kinds of Asset reference data (FR-AST-002). */
-export type AssetLookupKind = "asset-types" | "asset-statuses" | "asset-locations";
-
-// The three kinds share one request and response shape; the path is typed once.
-type LookupPath = "/api/v1/asset-types";
-const path = (kind: AssetLookupKind) => `/api/v1/${kind}` as LookupPath;
-const itemPath = (kind: AssetLookupKind) => `/api/v1/${kind}/{id}` as "/api/v1/asset-types/{id}";
-
-/** Every row of one kind of Asset reference data, including inactive rows. */
-export function assetLookupQuery(kind: AssetLookupKind) {
-  return queryOptions({
-    queryKey: ["lookups", kind],
-    queryFn: () => ok(api.GET(path(kind)), kind),
-    staleTime: 5 * 60_000,
+export const assetLinksQuery = (id: string) =>
+  queryOptions({
+    queryKey: ["assets", "detail", id, "links"],
+    queryFn: () => call(api.GET("/api/v1/assets/{id}/links", { params: { path: { id } } })),
   });
+const path = (id: string) => ({ params: { path: { id } } });
+export const assetActions = {
+  create: (body: Schemas["AssetRequest"]) => call(api.POST("/api/v1/assets", { body })),
+  update: (id: string, body: Schemas["AssetRequest"]) =>
+    call(api.PUT("/api/v1/assets/{id}", { ...path(id), body })),
+  checkOut: (id: string, body: Schemas["AssetCheckOutRequest"]) =>
+    call(api.POST("/api/v1/assets/{id}/check-out", { ...path(id), body })),
+  checkIn: (id: string, body: Schemas["AssetCheckInRequest"]) =>
+    call(api.POST("/api/v1/assets/{id}/check-in", { ...path(id), body })),
+  retire: (id: string, body: Schemas["AssetRetireRequest"]) =>
+    call(api.POST("/api/v1/assets/{id}/retire", { ...path(id), body })),
+  link: (id: string, body: Schemas["AssetLinkRequest"]) =>
+    call(api.POST("/api/v1/assets/{id}/links", { ...path(id), body })),
+  unlink: (id: string, kind: string, targetId: string) =>
+    call(
+      api.DELETE("/api/v1/assets/{id}/links/{kind}/{target_id}", {
+        params: { path: { id, kind, target_id: targetId } },
+      }),
+    ),
+};
+
+/** The name an Asset is known by: tag, else hostname, else Service Tag. */
+export function assetName(
+  a: Pick<Asset, "asset_tag" | "hostname" | "service_tag">,
+): string | undefined {
+  return a.asset_tag || a.hostname || a.service_tag || undefined;
 }
 
-/** Creates an Asset Type, Asset Status or Location. */
-export const createAssetLookup = (kind: AssetLookupKind, body: Schemas["AssetLookupRequest"]) =>
-  result(api.POST(path(kind), { body }));
-
-/** Changes an Asset Type, Asset Status or Location. */
-export const updateAssetLookup = (
-  kind: AssetLookupKind,
-  id: string,
-  body: Schemas["AssetLookupRequest"],
-) => result(api.PUT(itemPath(kind), { params: { path: { id } }, body }));
-
-/** Registers an Asset. */
-export const createAsset = (body: Schemas["AssetRequest"]) =>
-  result(api.POST("/api/v1/assets", { body }));
-
-/** Changes an Asset. */
-export const updateAsset = (id: string, body: Schemas["AssetRequest"]) =>
-  result(api.PUT("/api/v1/assets/{id}", { params: { path: { id } }, body }));
-
-/** Checks an Asset out to a Holder. */
-export const checkOutAsset = (id: string, body: Schemas["AssetCheckOutRequest"]) =>
-  result(api.POST("/api/v1/assets/{id}/check-out", { params: { path: { id } }, body }));
-
-/** Checks an Asset back in. */
-export const checkInAsset = (id: string, note: string) =>
-  result(api.POST("/api/v1/assets/{id}/check-in", { params: { path: { id } }, body: { note } }));
-
-/** Retires an Asset. */
-export const retireAsset = (id: string, body: Schemas["AssetRetireRequest"]) =>
-  result(api.POST("/api/v1/assets/{id}/retire", { params: { path: { id } }, body }));
-
-/** Links a ticket or Contract. */
-export const linkAsset = (id: string, body: Schemas["AssetLinkRequest"]) =>
-  result(api.POST("/api/v1/assets/{id}/links", { params: { path: { id } }, body }));
-
-/** Removes a link. */
-export const unlinkAsset = (id: string, kind: string, targetId: string) =>
-  result(
-    api.DELETE("/api/v1/assets/{id}/links/{kind}/{target_id}", {
-      params: { path: { id, kind, target_id: targetId } },
-    }),
-  );
-
-/** Location names with their parents, `London › Floor 2`, for pickers and tables. */
-export function locationPaths(
+/** Location options with their path ("HQ › Floor 2 › Room 4"). */
+export function locationOptions(
   rows: readonly Schemas["AssetLookupDto"][] | undefined,
-): Map<string, string> {
+  current?: string | null,
+) {
   const byId = new Map((rows ?? []).map((r) => [r.id, r]));
-  const out = new Map<string, string>();
-  for (const row of rows ?? []) {
-    const names: string[] = [];
-    let current: Schemas["AssetLookupDto"] | undefined = row;
-    while (current && names.length < 10) {
-      names.unshift(current.name);
-      current = current.parent_id ? byId.get(current.parent_id) : undefined;
-    }
-    out.set(row.id, names.join(" › "));
-  }
-  return out;
+  const pathOf = (r: Schemas["AssetLookupDto"], depth = 0): string => {
+    const parent = r.parent_id && depth < 8 ? byId.get(r.parent_id) : undefined;
+    return parent ? `${pathOf(parent, depth + 1)} › ${r.name}` : r.name;
+  };
+  return (rows ?? [])
+    .filter((r) => r.is_active || r.id === current)
+    .map((r) => ({ value: r.id, label: pathOf(r) }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }

@@ -1,42 +1,32 @@
-import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { ensureAdmin, LOGIN, PASSWORD } from "./admin";
-
-const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+import { ensureAdmin, expectAccessible, signIn } from "./support";
 
 test.beforeAll(async ({ request }) => {
   await ensureAdmin(request);
 });
 
 test("an Analyst triages a ticket from the list by keyboard", async ({ page }) => {
-  // Sign in through the API (the sign-in screen has its own spec) and raise a ticket.
-  const session = await page.request.post("/api/v1/session", {
-    data: { login: LOGIN, password: PASSWORD, totp_code: null, remember_device: false },
-  });
-  expect(session.status()).toBe(200);
-  const { csrf_token: csrf, analyst } = await session.json();
+  const { csrf_token: csrf, analyst } = await signIn(page);
   const companies = await (await page.request.get("/api/v1/companies")).json();
-  const companyId: string = companies.items[0].id;
   const subject = `E2E printer jam ${Date.now()}`;
   const created = await page.request.post("/api/v1/tickets", {
     headers: { "X-CSRF-Token": csrf },
     data: {
       subject,
       description: "Paper stuck in tray 2.",
-      company_id: companyId,
+      company_id: companies.items[0].id,
       analyst_id: analyst.id,
     },
   });
   expect(created.status(), await created.text()).toBe(201);
 
   await page.goto(`/tickets?view=mine&q=${encodeURIComponent(subject)}`);
-  const table = page.getByRole("table", { name: "Tickets: My tickets" });
-  await expect(table.getByRole("link", { name: new RegExp(subject) })).toBeVisible();
-  expect((await new AxeBuilder({ page }).withTags(WCAG).analyze()).violations).toEqual([]);
+  const list = page.getByRole("list", { name: "Tickets in My tickets" });
+  await expect(list.getByRole("link", { name: subject })).toBeVisible();
+  await expectAccessible(page);
 
   await page.keyboard.press("j");
-  const heading = page.getByRole("heading", { name: subject });
-  await expect(heading).toBeFocused();
+  await expect(page.getByRole("heading", { name: subject, level: 2 })).toBeFocused();
   await expect(page.getByText("Paper stuck in tray 2.")).toBeVisible();
 
   await page.keyboard.press("n");
@@ -45,8 +35,21 @@ test("an Analyst triages a ticket from the list by keyboard", async ({ page }) =
   const timeline = page.getByRole("region", { name: "Timeline" });
   await expect(timeline.getByText("Ordered a new roller.")).toBeVisible();
   await expect(timeline.getByText("Internal Note")).toBeVisible();
-  expect((await new AxeBuilder({ page }).withTags(WCAG).analyze()).violations).toEqual([]);
+  await expectAccessible(page);
+});
 
-  await page.emulateMedia({ colorScheme: "dark" });
-  expect((await new AxeBuilder({ page }).withTags(WCAG).analyze()).violations).toEqual([]);
+test("the command palette opens a ticket by its number", async ({ page }) => {
+  const { csrf_token: csrf } = await signIn(page);
+  const companies = await (await page.request.get("/api/v1/companies")).json();
+  const created = await page.request.post("/api/v1/tickets", {
+    headers: { "X-CSRF-Token": csrf },
+    data: { subject: `E2E palette ${Date.now()}`, company_id: companies.items[0].id },
+  });
+  const tk = await created.json();
+  await page.goto("/");
+  await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
+  await page.keyboard.press("Control+k");
+  await page.getByPlaceholder(/Type a screen/).fill(tk.number);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: tk.subject, level: 2 })).toBeVisible();
 });

@@ -9,225 +9,114 @@ import {
   type RouteComponent,
   redirect,
 } from "@tanstack/react-router";
-import type { LookupKind } from "./features/administration/resources";
-import { parseMonth } from "./features/calendar/month";
-import type { ContractLookupKind } from "./features/contracts/api";
-import { analystSessionQuery, portalSessionQuery } from "./features/session/queries";
+import { SignInPage } from "./features/auth/SignIn";
+import { analystSessionQuery, portalSessionQuery } from "./features/session/session";
+import { AnalystLayout } from "./features/shell/AnalystLayout";
+import { NotFound } from "./features/shell/NotFound";
 import { parseTicketSearch } from "./features/tickets/views";
-import { AnalystLayout } from "./routes/analyst/AnalystLayout";
-import { SignInPage } from "./routes/auth/SignIn";
-import { NotFound } from "./routes/NotFound";
-import { PortalLayout } from "./routes/portal/PortalLayout";
+import { isDayKey, parseMonth } from "./lib/dates";
+import { compact, flag, oneOf, text } from "./routes/search";
 
-/* Pages load on demand, so the first download holds only the app shell. */
-const AdministrationLayout = lazyRouteComponent(
-  () => import("./routes/analyst/administration/AdministrationLayout"),
-  "AdministrationLayout",
-);
-const JobsPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/JobsPage"),
-  "JobsPage",
-);
-const ModulesPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/ModulesPage"),
-  "ModulesPage",
-);
-const AssetLookupsPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/AssetLookupsPage"),
-  "AssetLookupsPage",
-);
-const CalendarCategoriesPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/CalendarCategoriesPage"),
-  "CalendarCategoriesPage",
-);
-const CategoriesPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/CategoriesPage"),
-  "CategoriesPage",
-);
-const CompaniesPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/CompaniesPage"),
-  "CompaniesPage",
-);
-const ContractLookupPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/ContractLookupPage"),
-  "ContractLookupPage",
-);
-const CostCentresPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/CostCentresPage"),
-  "CostCentresPage",
-);
-const DepartmentsPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/DepartmentsPage"),
-  "DepartmentsPage",
-);
-const LookupAdminPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/LookupAdminPage"),
-  "LookupAdminPage",
-);
-const MailboxesPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/MailboxesPage"),
-  "MailboxesPage",
-);
-const RolesPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/RolesPage"),
-  "RolesPage",
-);
-const TeamsPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/resources/TeamsPage"),
-  "TeamsPage",
-);
-const SettingsPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/SettingsPage"),
-  "SettingsPage",
-);
-const SystemLogPage = lazyRouteComponent(
-  () => import("./routes/analyst/administration/SystemLogPage"),
-  "SystemLogPage",
-);
-const AssetEditor = lazyRouteComponent(
-  () => import("./routes/analyst/assets/AssetEditor"),
-  "AssetEditor",
-);
-const AssetsPage = lazyRouteComponent(
-  () => import("./routes/analyst/assets/AssetsPage"),
-  "AssetsPage",
-);
-const ComingSoon = lazyRouteComponent(() => import("./routes/analyst/ComingSoon"), "ComingSoon");
-const CalendarPage = lazyRouteComponent(
-  () => import("./routes/analyst/calendar/CalendarPage"),
-  "CalendarPage",
-);
-const ContractEditor = lazyRouteComponent(
-  () => import("./routes/analyst/contracts/ContractEditor"),
-  "ContractEditor",
-);
-const ContractsPage = lazyRouteComponent(
-  () => import("./routes/analyst/contracts/ContractsPage"),
-  "ContractsPage",
-);
-const SupplierEditor = lazyRouteComponent(
-  () => import("./routes/analyst/contracts/SupplierEditor"),
-  "SupplierEditor",
-);
-const SuppliersPage = lazyRouteComponent(
-  () => import("./routes/analyst/contracts/SuppliersPage"),
-  "SuppliersPage",
-);
-const Home = lazyRouteComponent(() => import("./routes/analyst/Home"), "Home");
-const ArticlePage = lazyRouteComponent(
-  () => import("./routes/analyst/knowledge/ArticlePage"),
-  "ArticlePage",
-);
-const KnowledgePage = lazyRouteComponent(
-  () => import("./routes/analyst/knowledge/KnowledgePage"),
-  "KnowledgePage",
-);
-const ChecksPage = lazyRouteComponent(
-  () => import("./routes/analyst/morning-checks/ChecksPage"),
-  "ChecksPage",
-);
-const MorningChecksLayout = lazyRouteComponent(
-  () => import("./routes/analyst/morning-checks/MorningChecksLayout"),
-  "MorningChecksLayout",
-);
-const TodayPage = lazyRouteComponent(
-  () => import("./routes/analyst/morning-checks/TodayPage"),
-  "TodayPage",
-);
-const IncidentEditor = lazyRouteComponent(
-  () => import("./routes/analyst/service-status/IncidentEditor"),
-  "IncidentEditor",
-);
-const IncidentsPage = lazyRouteComponent(
-  () => import("./routes/analyst/service-status/IncidentsPage"),
-  "IncidentsPage",
-);
-const OverviewPage = lazyRouteComponent(
-  () => import("./routes/analyst/service-status/OverviewPage"),
-  "OverviewPage",
-);
-const ServiceStatusLayout = lazyRouteComponent(
-  () => import("./routes/analyst/service-status/ServiceStatusLayout"),
-  "ServiceStatusLayout",
-);
-const ServicesPage = lazyRouteComponent(
-  () => import("./routes/analyst/service-status/ServicesPage"),
-  "ServicesPage",
-);
-const TaskEditor = lazyRouteComponent(
-  () => import("./routes/analyst/tasks/TaskEditor"),
-  "TaskEditor",
-);
-const TasksPage = lazyRouteComponent(() => import("./routes/analyst/tasks/TasksPage"), "TasksPage");
-const NewTicket = lazyRouteComponent(
-  () => import("./routes/analyst/tickets/NewTicket"),
-  "NewTicket",
-);
-const TicketDetail = lazyRouteComponent(
-  () => import("./routes/analyst/tickets/TicketDetail"),
-  "TicketDetail",
-);
-const TicketsPage = lazyRouteComponent(
-  () => import("./routes/analyst/tickets/TicketsPage"),
-  "TicketsPage",
-);
-const AnalystEditor = lazyRouteComponent(
-  () => import("./routes/analyst/users/AnalystEditor"),
-  "AnalystEditor",
-);
-const AnalystsPage = lazyRouteComponent(
-  () => import("./routes/analyst/users/AnalystsPage"),
-  "AnalystsPage",
-);
-const RequesterEditor = lazyRouteComponent(
-  () => import("./routes/analyst/users/RequesterEditor"),
-  "RequesterEditor",
-);
-const RequestersPage = lazyRouteComponent(
-  () => import("./routes/analyst/users/RequestersPage"),
-  "RequestersPage",
-);
-const UsersLayout = lazyRouteComponent(
-  () => import("./routes/analyst/users/UsersLayout"),
-  "UsersLayout",
-);
-const ResetPasswordPage = lazyRouteComponent(
-  () => import("./routes/auth/ResetPassword"),
-  "ResetPasswordPage",
-);
-const TwoFactorSetupPage = lazyRouteComponent(
-  () => import("./routes/auth/TwoFactorSetup"),
-  "TwoFactorSetupPage",
-);
-const PortalHome = lazyRouteComponent(() => import("./routes/portal/PortalHome"), "PortalHome");
-const PortalResetPage = lazyRouteComponent(
-  () => import("./routes/portal/PortalPassword"),
-  "PortalResetPage",
-);
-const PortalSetPasswordPage = lazyRouteComponent(
-  () => import("./routes/portal/PortalPassword"),
-  "PortalSetPasswordPage",
-);
-const PortalRegisterPage = lazyRouteComponent(
-  () => import("./routes/portal/PortalRegister"),
-  "PortalRegisterPage",
-);
-const PortalSignInPage = lazyRouteComponent(
-  () => import("./routes/portal/PortalSignIn"),
-  "PortalSignInPage",
-);
+/* Screens load on demand, so the first download holds only the frame. */
+const lazy = <M extends Record<string, unknown>, K extends keyof M & string>(
+  load: () => Promise<M>,
+  name: K,
+) => lazyRouteComponent(load as () => Promise<Record<string, unknown>>, name);
 
-/**
- * A route component that renders a lazy page with route props. It preloads the page, so the
- * router loads the chunk before it shows the route instead of suspending mid-render.
- */
-function withPage<P>(
-  page: AsyncRouteComponent<P>,
+const P = {
+  ResetPassword: lazy(() => import("./features/auth/ResetPassword"), "ResetPasswordPage"),
+  TwoFactor: lazy(() => import("./features/auth/TwoFactorSetup"), "TwoFactorSetupPage"),
+  Setup: lazy(() => import("./features/auth/Setup"), "SetupPage"),
+  Home: lazy(() => import("./features/home/HomePage"), "HomePage"),
+  Notifications: lazy(
+    () => import("./features/notifications/NotificationsPage"),
+    "NotificationsPage",
+  ),
+  Account: lazy(() => import("./features/account/AccountPage"), "AccountPage"),
+  Tickets: lazy(() => import("./features/tickets/TicketsPage"), "TicketsPage"),
+  Ticket: lazy(() => import("./features/tickets/TicketDetail"), "TicketDetail"),
+  NewTicket: lazy(() => import("./features/tickets/NewTicket"), "NewTicket"),
+  Tasks: lazy(() => import("./features/tasks/TasksPage"), "TasksPage"),
+  Task: lazy(() => import("./features/tasks/TaskPage"), "TaskPage"),
+  Assets: lazy(() => import("./features/assets/AssetsPage"), "AssetsPage"),
+  Asset: lazy(() => import("./features/assets/AssetPage"), "AssetPage"),
+  Contracts: lazy(() => import("./features/contracts/ContractsPage"), "ContractsPage"),
+  Contract: lazy(() => import("./features/contracts/ContractPage"), "ContractPage"),
+  Suppliers: lazy(() => import("./features/contracts/SuppliersPage"), "SuppliersPage"),
+  Supplier: lazy(() => import("./features/contracts/SupplierPage"), "SupplierPage"),
+  Calendar: lazy(() => import("./features/calendar/CalendarPage"), "CalendarPage"),
+  Knowledge: lazy(() => import("./features/knowledge/KnowledgePage"), "KnowledgePage"),
+  Article: lazy(() => import("./features/knowledge/ArticlePage"), "ArticlePage"),
+  StatusLayout: lazy(
+    () => import("./features/service-status/ServiceStatusLayout"),
+    "ServiceStatusLayout",
+  ),
+  StatusOverview: lazy(() => import("./features/service-status/OverviewPage"), "OverviewPage"),
+  Incidents: lazy(() => import("./features/service-status/IncidentsPage"), "IncidentsPage"),
+  Incident: lazy(() => import("./features/service-status/IncidentPage"), "IncidentPage"),
+  Services: lazy(() => import("./features/service-status/ServicesPage"), "ServicesPage"),
+  ChecksLayout: lazy(
+    () => import("./features/morning-checks/MorningChecksLayout"),
+    "MorningChecksLayout",
+  ),
+  Round: lazy(() => import("./features/morning-checks/RoundPage"), "RoundPage"),
+  Checks: lazy(() => import("./features/morning-checks/ChecksPage"), "ChecksPage"),
+  UsersLayout: lazy(() => import("./features/users/UsersLayout"), "UsersLayout"),
+  Analysts: lazy(() => import("./features/users/AnalystsPage"), "AnalystsPage"),
+  Analyst: lazy(() => import("./features/users/AnalystPage"), "AnalystPage"),
+  Requesters: lazy(() => import("./features/users/RequestersPage"), "RequestersPage"),
+  Requester: lazy(() => import("./features/users/RequesterPage"), "RequesterPage"),
+  AdminLayout: lazy(
+    () => import("./features/administration/AdministrationLayout"),
+    "AdministrationLayout",
+  ),
+  AdminIndex: lazy(
+    () => import("./features/administration/AdministrationLayout"),
+    "AdministrationIndex",
+  ),
+  Settings: lazy(() => import("./features/administration/SettingsPage"), "SettingsPage"),
+  Modules: lazy(() => import("./features/administration/ModulesPage"), "ModulesPage"),
+  Jobs: lazy(() => import("./features/administration/JobsPage"), "JobsPage"),
+  SystemLog: lazy(() => import("./features/administration/SystemLogPage"), "SystemLogPage"),
+  Reference: lazy(() => import("./features/administration/ReferencePage"), "ReferencePage"),
+  Categories: lazy(() => import("./features/administration/CategoriesPage"), "CategoriesPage"),
+  Mailboxes: lazy(() => import("./features/administration/MailboxesPage"), "MailboxesPage"),
+  Companies: lazy(() => import("./features/administration/CompaniesPage"), "CompaniesPage"),
+  Teams: lazy(() => import("./features/administration/TeamsPage"), "TeamsPage"),
+  Departments: lazy(() => import("./features/administration/DepartmentsPage"), "DepartmentsPage"),
+  CostCentres: lazy(() => import("./features/administration/CostCentresPage"), "CostCentresPage"),
+  Roles: lazy(() => import("./features/administration/RolesPage"), "RolesPage"),
+  PortalLayout: lazy(() => import("./features/portal/PortalLayout"), "PortalLayout"),
+  PortalSignIn: lazy(() => import("./features/portal/PortalAuth"), "PortalSignInPage"),
+  PortalReset: lazy(() => import("./features/portal/PortalAuth"), "PortalResetPage"),
+  PortalSetPassword: lazy(() => import("./features/portal/PortalAuth"), "PortalSetPasswordPage"),
+  PortalRegister: lazy(() => import("./features/portal/PortalAuth"), "PortalRegisterPage"),
+  PortalHome: lazy(() => import("./features/portal/PortalHome"), "PortalHome"),
+  PortalTickets: lazy(() => import("./features/portal/PortalTickets"), "PortalTicketsPage"),
+  PortalNewTicket: lazy(() => import("./features/portal/PortalNewTicket"), "PortalNewTicketPage"),
+  PortalTicket: lazy(() => import("./features/portal/PortalTicket"), "PortalTicketPage"),
+  PortalKnowledge: lazy(() => import("./features/portal/PortalKnowledge"), "PortalKnowledgePage"),
+  PortalArticle: lazy(() => import("./features/portal/PortalKnowledge"), "PortalArticlePage"),
+  PortalStatus: lazy(() => import("./features/portal/PortalStatus"), "PortalStatusPage"),
+  PortalNotifications: lazy(
+    () => import("./features/portal/PortalNotifications"),
+    "PortalNotificationsPage",
+  ),
+};
+
+/** A route component that renders a lazy page with route props; preloaded with the route. */
+function withPage(
+  page: AsyncRouteComponent<unknown>,
   component: () => React.JSX.Element,
 ): RouteComponent {
   const { preload } = page;
   return preload ? Object.assign(component, { preload }) : component;
 }
+
+/* biome-ignore-start lint/suspicious/noExplicitAny: lazy pages take their props from the route wrappers below */
+type AnyPage = React.ComponentType<any>;
+/* biome-ignore-end lint/suspicious/noExplicitAny: end */
+const pageOf = (page: AsyncRouteComponent<unknown>) => page as unknown as AnyPage;
 
 /** What every route can use: the query cache, for loading data before rendering. */
 export interface RouterContext {
@@ -235,505 +124,517 @@ export interface RouterContext {
 }
 
 /**
- * Two route trees share one app (ADR-0010): the Analyst console at `/` and the
- * Self-Service Portal at `/portal`. List filters, sort and selection will live in the URL.
+ * Two route trees in one app (ADR-0010): the Analyst console at `/` and the
+ * Self-Service Portal at `/portal`. Paths use Vocabulary terms.
  */
-const rootRoute = createRootRouteWithContext<RouterContext>()({
-  component: Outlet,
-  notFoundComponent: NotFound,
-});
+const rootRoute = createRootRouteWithContext<RouterContext>()({ component: Outlet });
+
+const redirectSearch = (s: Record<string, unknown>): { redirect?: string } =>
+  compact({ redirect: text(s, "redirect") });
+const tokenSearch = (s: Record<string, unknown>): { token?: string } =>
+  compact({ token: text(s, "token") });
 
 const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sign-in",
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
-    typeof search.redirect === "string" ? { redirect: search.redirect } : {},
+  validateSearch: redirectSearch,
   component: function SignInRoute() {
-    const { redirect: target } = signInRoute.useSearch();
-    return <SignInPage redirect={target} />;
+    return <SignInPage redirect={signInRoute.useSearch().redirect} />;
   },
 });
-
 const resetRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/reset-password",
-  validateSearch: (search: Record<string, unknown>): { token?: string } =>
-    typeof search.token === "string" ? { token: search.token } : {},
-  component: withPage(ResetPasswordPage, function ResetRoute() {
-    const { token } = resetRoute.useSearch();
-    return <ResetPasswordPage token={token} />;
+  validateSearch: tokenSearch,
+  component: withPage(P.ResetPassword, function ResetRoute() {
+    const Page = pageOf(P.ResetPassword);
+    return <Page token={resetRoute.useSearch().token} />;
   }),
 });
-
+const setupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/setup",
+  component: P.Setup,
+});
 const twoFactorRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/two-factor/setup",
   beforeLoad: async ({ context }) => {
-    const session = await context.queryClient.ensureQueryData(analystSessionQuery);
-    if (!session) {
+    if (!(await context.queryClient.ensureQueryData(analystSessionQuery))) {
       throw redirect({ to: "/sign-in" });
     }
   },
-  component: TwoFactorSetupPage,
+  component: P.TwoFactor,
 });
 
-/** Signed-in Analyst screens: sign-in and required two-factor setup come first. */
+/** The signed-in Analyst console: sign-in and required two-factor setup come first. */
 const analystRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: "analyst",
   beforeLoad: async ({ context, location }) => {
     const session = await context.queryClient.ensureQueryData(analystSessionQuery);
-    if (!session) {
-      throw redirect({ to: "/sign-in", search: { redirect: location.href } });
-    }
-    if (session.totp_enrollment_required) {
-      throw redirect({ to: "/two-factor/setup" });
-    }
+    if (!session) throw redirect({ to: "/sign-in", search: { redirect: location.href } });
+    if (session.totp_enrollment_required) throw redirect({ to: "/two-factor/setup" });
   },
   component: AnalystLayout,
 });
 
-const homeRoute = createRoute({ getParentRoute: () => analystRoute, path: "/", component: Home });
+const child = <Path extends string>(path: Path, component: RouteComponent) =>
+  createRoute({ getParentRoute: () => analystRoute, path, component });
 
-/** The ticket list; view, search and sort are in the URL (FR-TKT-040). */
+const homeRoute = child("/", P.Home);
+const notificationsRoute = child("/notifications", P.Notifications);
+const accountRoute = child("/account", P.Account);
+
+/** Tickets: the list with a split pane (FR-TKT-040); view, search and sort in the URL. */
 const ticketsRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/tickets",
   validateSearch: parseTicketSearch,
-  component: TicketsPage,
+  component: withPage(P.Tickets, function TicketsRoute() {
+    const Page = pageOf(P.Tickets);
+    return <Page search={ticketsRoute.useSearch()} />;
+  }),
 });
-
-/** A ticket opened beside the list (split pane). */
 const ticketRoute = createRoute({
   getParentRoute: () => ticketsRoute,
   path: "$ticketId",
-  component: withPage(TicketDetail, function TicketRoute() {
+  component: withPage(P.Ticket, function TicketRoute() {
+    const Page = pageOf(P.Ticket);
     const { ticketId } = ticketRoute.useParams();
-    return <TicketDetail key={ticketId} ticketId={ticketId} />;
+    return <Page key={ticketId} ticketId={ticketId} />;
   }),
 });
-
-/** The New ticket form, in the split pane beside the list. */
 const newTicketRoute = createRoute({
   getParentRoute: () => ticketsRoute,
   path: "new",
-  component: NewTicket,
-});
-
-const tasksRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/tasks",
-  component: TasksPage,
-});
-const newTaskRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/tasks/new",
-  component: withPage(TaskEditor, () => <TaskEditor />),
-});
-const taskByIdRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/tasks/$id",
-  component: withPage(TaskEditor, function TaskRoute() {
-    const { id } = taskByIdRoute.useParams();
-    return <TaskEditor key={id} id={id} />;
+  /** `task`: the Task the new ticket is linked to once created (FR-TSK-004). */
+  validateSearch: (s: Record<string, unknown>) => compact({ task: text(s, "task") }),
+  component: withPage(P.NewTicket, function NewTicketRoute() {
+    const Page = pageOf(P.NewTicket);
+    return <Page taskId={newTicketRoute.useSearch().task} />;
   }),
 });
 
-const assetsRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/assets",
-  component: AssetsPage,
-});
-const newAssetRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/assets/new",
-  component: withPage(AssetEditor, () => <AssetEditor />),
-});
-const assetByIdRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/assets/$id",
-  component: withPage(AssetEditor, function AssetRoute() {
-    const { id } = assetByIdRoute.useParams();
-    return <AssetEditor key={id} id={id} />;
+/** A list screen with URL search state, plus its New and detail screens. */
+function recordRoutes<
+  B extends "/tasks" | "/assets" | "/contracts" | "/suppliers" | "/knowledge",
+  S,
+>(
+  base: B,
+  list: AsyncRouteComponent<unknown>,
+  detail: AsyncRouteComponent<unknown>,
+  validateSearch: (s: Record<string, unknown>) => S,
+) {
+  const listRoute = createRoute({
+    getParentRoute: () => analystRoute,
+    path: base,
+    validateSearch,
+    // biome-ignore lint/correctness/noComponentHookFactories: route factories run once, at module load
+    component: withPage(list, function ListRoute() {
+      const Page = pageOf(list);
+      return <Page search={listRoute.useSearch()} />;
+    }),
+  });
+  const newRoute = createRoute({
+    getParentRoute: () => analystRoute,
+    path: `${base}/new` as `${B}/new`,
+    // biome-ignore lint/correctness/noComponentHookFactories: route factories run once, at module load
+    component: withPage(detail, function NewRoute() {
+      const Page = pageOf(detail);
+      return <Page />;
+    }),
+  });
+  const byIdRoute = createRoute({
+    getParentRoute: () => analystRoute,
+    path: `${base}/$id` as `${B}/$id`,
+    // biome-ignore lint/correctness/noComponentHookFactories: route factories run once, at module load
+    component: withPage(detail, function DetailRoute() {
+      const Page = pageOf(detail);
+      const { id } = byIdRoute.useParams() as { id: string };
+      return <Page key={id} id={id} />;
+    }),
+  });
+  return [listRoute, newRoute, byIdRoute] as const;
+}
+
+const tasksRoutes = recordRoutes("/tasks", P.Tasks, P.Task, (s) =>
+  compact({ q: text(s, "q"), mine: flag(s, "mine"), closed: flag(s, "closed") }),
+);
+const assetsRoutes = recordRoutes("/assets", P.Assets, P.Asset, (s) =>
+  compact({
+    q: text(s, "q"),
+    type: text(s, "type"),
+    status: text(s, "status"),
+    location: text(s, "location"),
+    retired: flag(s, "retired"),
   }),
-});
-const contractsRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/contracts",
-  component: ContractsPage,
-});
-const newContractRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/contracts/new",
-  component: withPage(ContractEditor, () => <ContractEditor />),
-});
-const contractByIdRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/contracts/$id",
-  component: withPage(ContractEditor, function ContractRoute() {
-    const { id } = contractByIdRoute.useParams();
-    return <ContractEditor key={id} id={id} />;
+);
+const contractsRoutes = recordRoutes("/contracts", P.Contracts, P.Contract, (s) =>
+  compact({
+    q: text(s, "q"),
+    status: text(s, "status"),
+    supplier: text(s, "supplier"),
+    notice: flag(s, "notice"),
   }),
-});
-const suppliersRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/suppliers",
-  component: SuppliersPage,
-});
-const newSupplierRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/suppliers/new",
-  component: withPage(SupplierEditor, () => <SupplierEditor />),
-});
-const supplierByIdRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/suppliers/$id",
-  component: withPage(SupplierEditor, function SupplierRoute() {
-    const { id } = supplierByIdRoute.useParams();
-    return <SupplierEditor key={id} id={id} />;
+);
+const suppliersRoutes = recordRoutes("/suppliers", P.Suppliers, P.Supplier, (s) =>
+  compact({ q: text(s, "q") }),
+);
+const knowledgeRoutes = recordRoutes("/knowledge", P.Knowledge, P.Article, (s) =>
+  compact({
+    q: text(s, "q"),
+    folder: text(s, "folder"),
+    state: oneOf(s, "state", ["live", "current", "archived"] as const),
   }),
-});
-/** The IT Calendar; the month and Category filter are in the URL (FR-CAL-001). */
+);
+
+/** The IT Calendar; month and Calendar Category in the URL (FR-CAL-001). */
 const calendarRoute = createRoute({
   getParentRoute: () => analystRoute,
   path: "/calendar",
-  validateSearch: (search: Record<string, unknown>): { month?: string; category?: string } => ({
-    ...(typeof search.month === "string" ? { month: search.month } : {}),
-    ...(typeof search.category === "string" && search.category
-      ? { category: search.category }
-      : {}),
-  }),
-  component: withPage(CalendarPage, function CalendarRoute() {
+  validateSearch: (s: Record<string, unknown>) =>
+    compact({ month: text(s, "month"), category: text(s, "category") }),
+  component: withPage(P.Calendar, function CalendarRoute() {
+    const Page = pageOf(P.Calendar);
     const { month, category } = calendarRoute.useSearch();
-    return <CalendarPage month={parseMonth(month)} {...(category ? { category } : {})} />;
+    return <Page month={parseMonth(month)} category={category} />;
   }),
 });
 
-const knowledgeRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/knowledge",
-  component: KnowledgePage,
-});
-const newArticleRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/knowledge/new",
-  component: withPage(ArticlePage, () => <ArticlePage />),
-});
-const articleByIdRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/knowledge/$id",
-  component: withPage(ArticlePage, function ArticleRoute() {
-    const { id } = articleByIdRoute.useParams();
-    return <ArticlePage key={id} id={id} />;
-  }),
-});
+/** A section with tabs and an index that opens its first tab. */
+function section(
+  path: "/service-status" | "/morning-checks" | "/users" | "/administration",
+  layout: RouteComponent,
+) {
+  return createRoute({ getParentRoute: () => analystRoute, path, component: layout });
+}
 
-const serviceStatusRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/service-status",
-  component: ServiceStatusLayout,
-});
-const serviceStatusIndexRoute = createRoute({
-  getParentRoute: () => serviceStatusRoute,
+const statusRoute = section("/service-status", P.StatusLayout);
+const statusIndex = createRoute({
+  getParentRoute: () => statusRoute,
   path: "/",
   beforeLoad: () => {
     throw redirect({ to: "/service-status/overview" });
   },
 });
-const statusOverviewRoute = createRoute({
-  getParentRoute: () => serviceStatusRoute,
+const statusOverview = createRoute({
+  getParentRoute: () => statusRoute,
   path: "/overview",
-  component: OverviewPage,
+  component: P.StatusOverview,
 });
-const statusIncidentsRoute = createRoute({
-  getParentRoute: () => serviceStatusRoute,
+const incidentsRoute = createRoute({
+  getParentRoute: () => statusRoute,
   path: "/incidents",
-  component: IncidentsPage,
-});
-const statusNewIncidentRoute = createRoute({
-  getParentRoute: () => serviceStatusRoute,
-  path: "/incidents/new",
-  component: withPage(IncidentEditor, () => <IncidentEditor />),
-});
-const statusIncidentRoute = createRoute({
-  getParentRoute: () => serviceStatusRoute,
-  path: "/incidents/$id",
-  component: withPage(IncidentEditor, function IncidentRoute() {
-    const { id } = statusIncidentRoute.useParams();
-    return <IncidentEditor key={id} id={id} />;
+  validateSearch: (s: Record<string, unknown>) => compact({ all: flag(s, "all") }),
+  component: withPage(P.Incidents, function IncidentsRoute() {
+    const Page = pageOf(P.Incidents);
+    return <Page all={Boolean(incidentsRoute.useSearch().all)} />;
   }),
 });
-const statusServicesRoute = createRoute({
-  getParentRoute: () => serviceStatusRoute,
+const newIncidentRoute = createRoute({
+  getParentRoute: () => statusRoute,
+  path: "/incidents/new",
+  component: withPage(P.Incident, function NewIncidentRoute() {
+    const Page = pageOf(P.Incident);
+    return <Page />;
+  }),
+});
+const incidentRoute = createRoute({
+  getParentRoute: () => statusRoute,
+  path: "/incidents/$id",
+  component: withPage(P.Incident, function IncidentRoute() {
+    const Page = pageOf(P.Incident);
+    const { id } = incidentRoute.useParams();
+    return <Page key={id} id={id} />;
+  }),
+});
+const servicesRoute = createRoute({
+  getParentRoute: () => statusRoute,
   path: "/services",
-  component: ServicesPage,
+  component: P.Services,
 });
 
-const morningChecksRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/morning-checks",
-  component: MorningChecksLayout,
-});
-const morningChecksIndexRoute = createRoute({
-  getParentRoute: () => morningChecksRoute,
+const checksRoute = section("/morning-checks", P.ChecksLayout);
+const checksIndex = createRoute({
+  getParentRoute: () => checksRoute,
   path: "/",
   beforeLoad: () => {
     throw redirect({ to: "/morning-checks/today" });
   },
 });
-const checksTodayRoute = createRoute({
-  getParentRoute: () => morningChecksRoute,
+const roundRoute = createRoute({
+  getParentRoute: () => checksRoute,
   path: "/today",
-  component: TodayPage,
+  validateSearch: (s: Record<string, unknown>) => {
+    const date = text(s, "date");
+    return compact({ date: isDayKey(date) ? date : undefined, mine: flag(s, "mine") });
+  },
+  component: withPage(P.Round, function RoundRoute() {
+    const Page = pageOf(P.Round);
+    const { date, mine } = roundRoute.useSearch();
+    return <Page date={date} mine={Boolean(mine)} />;
+  }),
 });
 const checksListRoute = createRoute({
-  getParentRoute: () => morningChecksRoute,
+  getParentRoute: () => checksRoute,
   path: "/checks",
-  component: ChecksPage,
+  component: P.Checks,
 });
 
-const usersRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/users",
-  component: UsersLayout,
-});
-const usersIndexRoute = createRoute({
+const usersRoute = section("/users", P.UsersLayout);
+const usersIndex = createRoute({
   getParentRoute: () => usersRoute,
   path: "/",
-  beforeLoad: () => {
-    throw redirect({ to: "/users/analysts" });
+  beforeLoad: async ({ context }) => {
+    const session = await context.queryClient.ensureQueryData(analystSessionQuery);
+    const analysts =
+      session && (session.is_admin || session.capabilities.includes("analysts.manage"));
+    throw redirect({ to: analysts ? "/users/analysts" : "/users/requesters" });
   },
 });
-const analystsRoute = createRoute({
-  getParentRoute: () => usersRoute,
-  path: "/analysts",
-  component: AnalystsPage,
-});
-const newAnalystRoute = createRoute({
-  getParentRoute: () => usersRoute,
-  path: "/analysts/new",
-  component: withPage(AnalystEditor, () => <AnalystEditor />),
-});
-const analystRouteById = createRoute({
-  getParentRoute: () => usersRoute,
-  path: "/analysts/$id",
-  component: withPage(AnalystEditor, function AnalystRoute() {
-    const { id } = analystRouteById.useParams();
-    return <AnalystEditor key={id} id={id} />;
-  }),
-});
-const requestersRoute = createRoute({
-  getParentRoute: () => usersRoute,
-  path: "/requesters",
-  component: RequestersPage,
-});
-const newRequesterRoute = createRoute({
-  getParentRoute: () => usersRoute,
-  path: "/requesters/new",
-  component: withPage(RequesterEditor, () => <RequesterEditor />),
-});
-const requesterRouteById = createRoute({
-  getParentRoute: () => usersRoute,
-  path: "/requesters/$id",
-  component: withPage(RequesterEditor, function RequesterRoute() {
-    const { id } = requesterRouteById.useParams();
-    return <RequesterEditor key={id} id={id} />;
-  }),
-});
-
-const administrationRoute = createRoute({
-  getParentRoute: () => analystRoute,
-  path: "/administration",
-  component: AdministrationLayout,
-});
-
-const administrationIndexRoute = createRoute({
-  getParentRoute: () => administrationRoute,
-  path: "/",
-  beforeLoad: () => {
-    throw redirect({ to: "/administration/settings" });
-  },
-});
-const administrationSettingsRoute = createRoute({
-  getParentRoute: () => administrationRoute,
-  path: "/settings",
-  component: SettingsPage,
-});
-const administrationModulesRoute = createRoute({
-  getParentRoute: () => administrationRoute,
-  path: "/modules",
-  component: ModulesPage,
-});
-const administrationJobsRoute = createRoute({
-  getParentRoute: () => administrationRoute,
-  path: "/jobs",
-  component: JobsPage,
-});
-const administrationLogRoute = createRoute({
-  getParentRoute: () => administrationRoute,
-  path: "/log",
-  component: SystemLogPage,
-});
-
-/** An Administration page for ticket reference data or an organisation list. */
-function adminPage<P extends string>(path: P, component: RouteComponent) {
-  return createRoute({ getParentRoute: () => administrationRoute, path, component });
+const peopleSearch = (s: Record<string, unknown>) =>
+  compact({ q: text(s, "q"), inactive: flag(s, "inactive") });
+function peopleRoutes<B extends "/analysts" | "/requesters">(
+  base: B,
+  list: AsyncRouteComponent<unknown>,
+  detail: AsyncRouteComponent<unknown>,
+) {
+  const listRoute = createRoute({
+    getParentRoute: () => usersRoute,
+    path: base,
+    validateSearch: peopleSearch,
+    // biome-ignore lint/correctness/noComponentHookFactories: route factories run once, at module load
+    component: withPage(list, function PeopleRoute() {
+      const Page = pageOf(list);
+      return <Page search={listRoute.useSearch()} />;
+    }),
+  });
+  const newRoute = createRoute({
+    getParentRoute: () => usersRoute,
+    path: `${base}/new` as `${B}/new`,
+    // biome-ignore lint/correctness/noComponentHookFactories: route factories run once, at module load
+    component: withPage(detail, function NewPersonRoute() {
+      const Page = pageOf(detail);
+      return <Page />;
+    }),
+  });
+  const byIdRoute = createRoute({
+    getParentRoute: () => usersRoute,
+    path: `${base}/$id` as `${B}/$id`,
+    // biome-ignore lint/correctness/noComponentHookFactories: route factories run once, at module load
+    component: withPage(detail, function PersonRoute() {
+      const Page = pageOf(detail);
+      const { id } = byIdRoute.useParams() as { id: string };
+      return <Page key={id} id={id} />;
+    }),
+  });
+  return [listRoute, newRoute, byIdRoute] as const;
 }
-const lookupPage = (kind: LookupKind) =>
-  withPage(LookupAdminPage, () => <LookupAdminPage kind={kind} />);
-const contractLookupPage = (kind: ContractLookupKind) =>
-  withPage(ContractLookupPage, () => <ContractLookupPage kind={kind} />);
-const adminReferenceRoutes = [
-  adminPage("/ticket-statuses", lookupPage("ticket-statuses")),
-  adminPage("/ticket-priorities", lookupPage("ticket-priorities")),
-  adminPage("/ticket-types", lookupPage("ticket-types")),
-  adminPage("/ticket-origins", lookupPage("ticket-origins")),
-  adminPage("/resolution-codes", lookupPage("resolution-codes")),
-  adminPage("/ticket-categories", CategoriesPage),
-  adminPage("/mailboxes", MailboxesPage),
-  adminPage("/companies", CompaniesPage),
-  adminPage("/teams", TeamsPage),
-  adminPage("/departments", DepartmentsPage),
-  adminPage("/cost-centres", CostCentresPage),
-  adminPage("/roles", RolesPage),
-  adminPage(
-    "/asset-types",
-    withPage(AssetLookupsPage, () => <AssetLookupsPage kind="asset-types" />),
-  ),
-  adminPage(
-    "/asset-statuses",
-    withPage(AssetLookupsPage, () => <AssetLookupsPage kind="asset-statuses" />),
-  ),
-  adminPage(
-    "/asset-locations",
-    withPage(AssetLookupsPage, () => <AssetLookupsPage kind="asset-locations" />),
-  ),
-  adminPage("/supplier-types", contractLookupPage("supplier-types")),
-  adminPage("/supplier-statuses", contractLookupPage("supplier-statuses")),
-  adminPage("/contract-statuses", contractLookupPage("contract-statuses")),
-  adminPage("/payment-schedules", contractLookupPage("payment-schedules")),
-  adminPage("/calendar-categories", CalendarCategoriesPage),
-] as const;
+const analystsRoutes = peopleRoutes("/analysts", P.Analysts, P.Analyst);
+const requestersRoutes = peopleRoutes("/requesters", P.Requesters, P.Requester);
 
+const adminRoute = section("/administration", P.AdminLayout);
+const adminIndex = createRoute({
+  getParentRoute: () => adminRoute,
+  path: "/",
+  component: P.AdminIndex,
+});
+const adminPage = <Path extends string>(path: Path, component: RouteComponent) =>
+  createRoute({ getParentRoute: () => adminRoute, path, component });
+const referenceRoute = <K extends string>(kind: K) =>
+  adminPage(
+    `/${kind}` as `/${K}`,
+    // biome-ignore lint/correctness/noComponentHookFactories: route factories run once, at module load
+    withPage(P.Reference, function ReferenceRoute() {
+      const Page = pageOf(P.Reference);
+      return <Page kind={kind} />;
+    }),
+  );
+const mailboxesRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: "/mailboxes",
+  validateSearch: (s: Record<string, unknown>) =>
+    compact({ mailbox_consent: text(s, "mailbox_consent"), mailbox: text(s, "mailbox") }),
+  component: withPage(P.Mailboxes, function MailboxesRoute() {
+    const Page = pageOf(P.Mailboxes);
+    return <Page search={mailboxesRoute.useSearch()} />;
+  }),
+});
+const logRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: "/log",
+  validateSearch: (s: Record<string, unknown>) =>
+    compact({ level: oneOf(s, "level", ["warn", "error"] as const), q: text(s, "q") }),
+  component: withPage(P.SystemLog, function LogRoute() {
+    const Page = pageOf(P.SystemLog);
+    return <Page search={logRoute.useSearch()} />;
+  }),
+});
+const adminRoutes = [
+  adminIndex,
+  adminPage("/settings", P.Settings),
+  adminPage("/modules", P.Modules),
+  adminPage("/jobs", P.Jobs),
+  logRoute,
+  referenceRoute("ticket-statuses"),
+  referenceRoute("ticket-priorities"),
+  referenceRoute("ticket-types"),
+  referenceRoute("ticket-origins"),
+  referenceRoute("resolution-codes"),
+  referenceRoute("asset-types"),
+  referenceRoute("asset-statuses"),
+  referenceRoute("asset-locations"),
+  referenceRoute("supplier-types"),
+  referenceRoute("supplier-statuses"),
+  referenceRoute("contract-statuses"),
+  referenceRoute("payment-schedules"),
+  referenceRoute("calendar-categories"),
+  adminPage("/ticket-categories", P.Categories),
+  mailboxesRoute,
+  adminPage("/companies", P.Companies),
+  adminPage("/teams", P.Teams),
+  adminPage("/departments", P.Departments),
+  adminPage("/cost-centres", P.CostCentres),
+  adminPage("/roles", P.Roles),
+];
+
+/* Self-Service Portal (FR-PRT-001…007). */
 const portalSignInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal/sign-in",
-  validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
-    typeof search.redirect === "string" ? { redirect: search.redirect } : {},
-  component: withPage(PortalSignInPage, function PortalSignInRoute() {
-    const { redirect: target } = portalSignInRoute.useSearch();
-    return <PortalSignInPage redirect={target} />;
+  validateSearch: redirectSearch,
+  component: withPage(P.PortalSignIn, function PortalSignInRoute() {
+    const Page = pageOf(P.PortalSignIn);
+    return <Page redirect={portalSignInRoute.useSearch().redirect} />;
   }),
 });
-
 const portalResetRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal/reset-password",
-  component: PortalResetPage,
+  component: P.PortalReset,
 });
-
 /** The link in Portal Invitation, reset and Self-Registration emails. */
 const portalSetPasswordRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal/set-password",
-  validateSearch: (search: Record<string, unknown>): { token?: string } =>
-    typeof search.token === "string" ? { token: search.token } : {},
-  component: withPage(PortalSetPasswordPage, function PortalSetPasswordRoute() {
-    const { token } = portalSetPasswordRoute.useSearch();
-    return <PortalSetPasswordPage token={token} />;
+  validateSearch: tokenSearch,
+  component: withPage(P.PortalSetPassword, function PortalSetPasswordRoute() {
+    const Page = pageOf(P.PortalSetPassword);
+    return <Page token={portalSetPasswordRoute.useSearch().token} />;
   }),
 });
-
 const portalRegisterRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal/register",
-  component: PortalRegisterPage,
+  component: P.PortalRegister,
 });
 
-/** Signed-in Portal screens (Requesters, FR-PRT-001). */
 const portalRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/portal",
   beforeLoad: async ({ context, location }) => {
-    const session = await context.queryClient.ensureQueryData(portalSessionQuery);
-    if (!session) {
+    if (!(await context.queryClient.ensureQueryData(portalSessionQuery))) {
       throw redirect({ to: "/portal/sign-in", search: { redirect: location.href } });
     }
   },
-  component: PortalLayout,
+  component: P.PortalLayout,
 });
-
-const portalHomeRoute = createRoute({
-  getParentRoute: () => portalRoute,
-  path: "/",
-  component: PortalHome,
-});
-
+const portalChild = <Path extends string>(path: Path, component: RouteComponent) =>
+  createRoute({ getParentRoute: () => portalRoute, path, component });
 const portalTicketsRoute = createRoute({
   getParentRoute: () => portalRoute,
   path: "/tickets",
-  component: withPage(ComingSoon, () => <ComingSoon section="portalNav.tickets" />),
+  validateSearch: (s: Record<string, unknown>) =>
+    compact({ show: oneOf(s, "show", ["open", "closed", "managed"] as const) }),
+  component: withPage(P.PortalTickets, function PortalTicketsRoute() {
+    const Page = pageOf(P.PortalTickets);
+    return <Page show={portalTicketsRoute.useSearch().show ?? "open"} />;
+  }),
+});
+const portalNewTicketRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "/tickets/new",
+  validateSearch: (s: Record<string, unknown>) => compact({ category: text(s, "category") }),
+  component: withPage(P.PortalNewTicket, function PortalNewTicketRoute() {
+    const Page = pageOf(P.PortalNewTicket);
+    return <Page category={portalNewTicketRoute.useSearch().category} />;
+  }),
+});
+const portalTicketRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "/tickets/$id",
+  component: withPage(P.PortalTicket, function PortalTicketRoute() {
+    const Page = pageOf(P.PortalTicket);
+    const { id } = portalTicketRoute.useParams();
+    return <Page key={id} id={id} />;
+  }),
+});
+const portalKnowledgeRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "/knowledge",
+  validateSearch: (s: Record<string, unknown>) => compact({ q: text(s, "q") }),
+  component: withPage(P.PortalKnowledge, function PortalKnowledgeRoute() {
+    const Page = pageOf(P.PortalKnowledge);
+    return <Page q={portalKnowledgeRoute.useSearch().q} />;
+  }),
+});
+const portalArticleRoute = createRoute({
+  getParentRoute: () => portalRoute,
+  path: "/knowledge/$id",
+  component: withPage(P.PortalArticle, function PortalArticleRoute() {
+    const Page = pageOf(P.PortalArticle);
+    const { id } = portalArticleRoute.useParams();
+    return <Page key={id} id={id} />;
+  }),
 });
 
 export const routeTree = rootRoute.addChildren([
   signInRoute,
   resetRoute,
+  setupRoute,
   twoFactorRoute,
   analystRoute.addChildren([
     homeRoute,
+    notificationsRoute,
+    accountRoute,
     ticketsRoute.addChildren([newTicketRoute, ticketRoute]),
-    tasksRoute,
-    newTaskRoute,
-    taskByIdRoute,
-    assetsRoute,
-    newAssetRoute,
-    assetByIdRoute,
-    contractsRoute,
-    newContractRoute,
-    contractByIdRoute,
-    suppliersRoute,
-    newSupplierRoute,
-    supplierByIdRoute,
+    ...tasksRoutes,
+    ...assetsRoutes,
+    ...contractsRoutes,
+    ...suppliersRoutes,
+    ...knowledgeRoutes,
     calendarRoute,
-    knowledgeRoute,
-    newArticleRoute,
-    articleByIdRoute,
-    serviceStatusRoute.addChildren([
-      serviceStatusIndexRoute,
-      statusOverviewRoute,
-      statusIncidentsRoute,
-      statusNewIncidentRoute,
-      statusIncidentRoute,
-      statusServicesRoute,
+    statusRoute.addChildren([
+      statusIndex,
+      statusOverview,
+      incidentsRoute,
+      newIncidentRoute,
+      incidentRoute,
+      servicesRoute,
     ]),
-    morningChecksRoute.addChildren([morningChecksIndexRoute, checksTodayRoute, checksListRoute]),
-    usersRoute.addChildren([
-      usersIndexRoute,
-      analystsRoute,
-      newAnalystRoute,
-      analystRouteById,
-      requestersRoute,
-      newRequesterRoute,
-      requesterRouteById,
-    ]),
-    administrationRoute.addChildren([
-      administrationIndexRoute,
-      administrationSettingsRoute,
-      administrationModulesRoute,
-      administrationJobsRoute,
-      administrationLogRoute,
-      ...adminReferenceRoutes,
-    ]),
+    checksRoute.addChildren([checksIndex, roundRoute, checksListRoute]),
+    usersRoute.addChildren([usersIndex, ...analystsRoutes, ...requestersRoutes]),
+    adminRoute.addChildren(adminRoutes),
   ]),
   portalSignInRoute,
   portalResetRoute,
   portalSetPasswordRoute,
   portalRegisterRoute,
-  portalRoute.addChildren([portalHomeRoute, portalTicketsRoute]),
+  portalRoute.addChildren([
+    portalChild("/", P.PortalHome),
+    portalTicketsRoute,
+    portalNewTicketRoute,
+    portalTicketRoute,
+    portalKnowledgeRoute,
+    portalArticleRoute,
+    portalChild("/service-status", P.PortalStatus),
+    portalChild("/notifications", P.PortalNotifications),
+  ]),
 ]);
 
-/** Server state: no global client store (ADR-0010). */
-export function makeQueryClient() {
+/** Server state lives in TanStack Query; no global client store (ADR-0010). */
+export function makeQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: true } },
   });
@@ -748,6 +649,8 @@ export function makeRouter(
     routeTree,
     context: { queryClient },
     defaultPreload: "intent",
+    defaultNotFoundComponent: NotFound,
+    notFoundMode: "root",
     ...options,
   });
 }

@@ -1,30 +1,38 @@
-import { describe, expect, it } from "vitest";
-import { csrfMiddleware, setCsrfToken } from "./api";
+import { mockApi } from "@/test/render";
+import { api, areaOf, setCsrfToken } from "./api";
 
-async function headerFor(method: string, path: string) {
-  const request = new Request(`http://localhost${path}`, { method });
-  const onRequest = csrfMiddleware.onRequest;
-  if (!onRequest) {
-    throw new Error("missing onRequest");
-  }
-  const out = (await onRequest({
-    request,
-    schemaPath: path,
-    params: {},
-    options: {} as never,
-    id: "1",
-  })) as Request;
-  return out.headers.get("X-CSRF-Token");
-}
+describe("the API client", () => {
+  afterEach(() => {
+    setCsrfToken("analyst", undefined);
+    setCsrfToken("portal", undefined);
+  });
 
-describe("CSRF middleware", () => {
-  it("sends each area's token on unsafe requests only", async () => {
+  it("sends the CSRF token of the right session on unsafe requests only", async () => {
+    const calls = mockApi({
+      "/api/v1/tickets/1/notes": { status: 201, body: {} },
+      "/api/v1/portal/tickets": { status: 201, body: {} },
+      "/api/v1/session": { status: 200, body: {} },
+    });
     setCsrfToken("analyst", "analyst-token");
     setCsrfToken("portal", "portal-token");
-    expect(await headerFor("GET", "/api/v1/tickets")).toBeNull();
-    expect(await headerFor("POST", "/api/v1/tickets")).toBe("analyst-token");
-    expect(await headerFor("DELETE", "/api/v1/portal/session")).toBe("portal-token");
-    setCsrfToken("portal", undefined);
-    expect(await headerFor("POST", "/api/v1/portal/tickets")).toBeNull();
+    await api.POST("/api/v1/tickets/{id}/notes", {
+      params: { path: { id: "1" } },
+      body: { body: "x" },
+    });
+    await api.POST("/api/v1/portal/tickets", { body: { subject: "x" } });
+    await api.GET("/api/v1/session");
+    expect(calls[0]?.headers.get("X-CSRF-Token")).toBe("analyst-token");
+    expect(calls[1]?.headers.get("X-CSRF-Token")).toBe("portal-token");
+    expect(calls[2]?.headers.get("X-CSRF-Token")).toBeNull();
+  });
+
+  it("never stores tokens in localStorage", async () => {
+    setCsrfToken("analyst", "secret");
+    expect(JSON.stringify({ ...window.localStorage })).not.toContain("secret");
+  });
+
+  it("tells the Portal and Analyst areas apart", () => {
+    expect(areaOf("/api/v1/portal/session")).toBe("portal");
+    expect(areaOf("/api/v1/tickets")).toBe("analyst");
   });
 });

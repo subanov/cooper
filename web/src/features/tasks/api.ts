@@ -1,139 +1,122 @@
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
-import { ok } from "@/features/okQuery";
-import { result } from "@/features/result";
 import { api, type Schemas } from "@/lib/api";
+import { call } from "@/lib/request";
 
-/** The Task board: one column per Task Status, open Tasks only unless `open` is false. */
-export function taskBoardQuery(filter: { q?: string; mine?: string; open?: boolean }) {
+export type Task = Schemas["TaskDto"];
+
+const LOOKUP = { staleTime: 5 * 60_000 } as const;
+
+export const taskStatusesQuery = queryOptions({
+  queryKey: ["reference", "task-statuses"],
+  queryFn: () => call(api.GET("/api/v1/task-statuses")),
+  ...LOOKUP,
+});
+
+export const taskPrioritiesQuery = queryOptions({
+  queryKey: ["reference", "task-priorities"],
+  queryFn: () => call(api.GET("/api/v1/task-priorities")),
+  ...LOOKUP,
+});
+
+export interface TaskSearch {
+  q?: string;
+  mine?: true;
+  closed?: true;
+}
+
+/** The Board (FR-TSK-005): a column per active status, top-level Tasks in order. */
+export function boardQuery(search: TaskSearch) {
   return queryOptions({
-    queryKey: ["tasks", "board", filter],
+    queryKey: ["tasks", "board", search],
     queryFn: () =>
-      ok(
+      call(
         api.GET("/api/v1/tasks/board", {
           params: {
             query: {
-              open: filter.open ?? true,
-              ...(filter.q ? { q: filter.q } : {}),
-              ...(filter.mine ? { assignee: filter.mine } : {}),
+              ...(search.q ? { q: search.q } : {}),
+              ...(search.mine ? { assignee: "me" } : {}),
+              ...(search.closed ? {} : { open: true }),
             },
           },
         }),
-        "task board",
       ),
   });
 }
 
-/** Tasks as a list, page by page. */
-export function taskListQuery(filter: { q?: string; open?: boolean }) {
+/** Tasks linked to a ticket. */
+export function ticketTasksQuery(ticketId: string) {
+  return queryOptions({
+    queryKey: ["tasks", "by-ticket", ticketId],
+    queryFn: async () =>
+      (
+        await call(
+          api.GET("/api/v1/tasks", { params: { query: { ticket_id: ticketId, limit: 100 } } }),
+        )
+      ).items,
+  });
+}
+
+export function taskQuery(id: string) {
+  return queryOptions({
+    queryKey: ["tasks", "detail", id],
+    queryFn: () => call(api.GET("/api/v1/tasks/{id}", { params: { path: { id } } })),
+  });
+}
+
+export function taskCommentsQuery(id: string) {
+  return queryOptions({
+    queryKey: ["tasks", "detail", id, "comments"],
+    queryFn: () => call(api.GET("/api/v1/tasks/{id}/comments", { params: { path: { id } } })),
+  });
+}
+
+export function taskLinksQuery(id: string) {
+  return queryOptions({
+    queryKey: ["tasks", "detail", id, "links"],
+    queryFn: () => call(api.GET("/api/v1/tasks/{id}/links", { params: { path: { id } } })),
+  });
+}
+
+export function taskHistoryQuery(id: string) {
+  return queryOptions({
+    queryKey: ["tasks", "detail", id, "history"],
+    queryFn: () => call(api.GET("/api/v1/tasks/{id}/history", { params: { path: { id } } })),
+  });
+}
+
+/** Subtasks of a Task. */
+export function subtasksQuery(id: string) {
   return infiniteQueryOptions({
-    queryKey: ["tasks", "list", filter],
+    queryKey: ["tasks", "detail", id, "subtasks"],
     queryFn: ({ pageParam }) =>
-      ok(
+      call(
         api.GET("/api/v1/tasks", {
           params: {
-            query: {
-              limit: 50,
-              open: filter.open ?? true,
-              ...(filter.q ? { q: filter.q } : {}),
-              ...(pageParam ? { cursor: pageParam } : {}),
-            },
+            query: { parent_task_id: id, limit: 50, ...(pageParam ? { cursor: pageParam } : {}) },
           },
         }),
-        "tasks",
       ),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.next_cursor ?? undefined,
   });
 }
 
-/** One Task. */
-export const taskQuery = (id: string) =>
-  queryOptions({
-    queryKey: ["tasks", "detail", id],
-    queryFn: () => ok(api.GET("/api/v1/tasks/{id}", { params: { path: { id } } }), "task"),
-  });
+const path = (id: string) => ({ params: { path: { id } } });
 
-/** Comments of a Task. */
-export const taskCommentsQuery = (id: string) =>
-  queryOptions({
-    queryKey: ["tasks", "comments", id],
-    queryFn: () =>
-      ok(api.GET("/api/v1/tasks/{id}/comments", { params: { path: { id } } }), "task comments"),
-  });
-
-/** Tickets and Changes linked to a Task (FR-TSK-004). */
-export const taskLinksQuery = (id: string) =>
-  queryOptions({
-    queryKey: ["tasks", "links", id],
-    queryFn: () =>
-      ok(api.GET("/api/v1/tasks/{id}/links", { params: { path: { id } } }), "task links"),
-  });
-
-/** Tasks linked to a ticket, open and closed (FR-TSK-004, FR-TKT-030). */
-export const ticketTasksQuery = (ticketId: string) =>
-  queryOptions({
-    queryKey: ["tasks", "for-ticket", ticketId],
-    queryFn: async () =>
-      (
-        await ok(
-          api.GET("/api/v1/tasks", { params: { query: { ticket_id: ticketId, limit: 200 } } }),
-          "linked tasks",
-        )
-      ).items,
-  });
-
-/** Open Tasks whose title matches `q`, to choose one to link. */
-export const taskSearchQuery = (q: string) =>
-  queryOptions({
-    queryKey: ["tasks", "search", q],
-    queryFn: async () =>
-      (
-        await ok(
-          api.GET("/api/v1/tasks", { params: { query: { q, open: true, limit: 20 } } }),
-          "task search",
-        )
-      ).items,
-    enabled: q.trim() !== "",
-  });
-
-/** Links a ticket or Change of the Task's Company. */
-export const linkTask = (id: string, body: Schemas["TaskLinkRequest"]) =>
-  result(api.POST("/api/v1/tasks/{id}/links", { params: { path: { id } }, body }));
-
-/** Removes a link. */
-export const unlinkTask = (id: string, kind: string, targetId: string) =>
-  result(
-    api.DELETE("/api/v1/tasks/{id}/links/{kind}/{target_id}", {
-      params: { path: { id, kind, target_id: targetId } },
-    }),
-  );
-
-/** Task Statuses. */
-export const taskStatusesQuery = queryOptions({
-  queryKey: ["lookups", "task-statuses"],
-  queryFn: () => ok(api.GET("/api/v1/task-statuses"), "task statuses"),
-  staleTime: 5 * 60_000,
-});
-
-/** Task Priorities. */
-export const taskPrioritiesQuery = queryOptions({
-  queryKey: ["lookups", "task-priorities"],
-  queryFn: () => ok(api.GET("/api/v1/task-priorities"), "task priorities"),
-  staleTime: 5 * 60_000,
-});
-
-/** Creates a Task. */
-export const createTask = (body: Schemas["TaskRequest"]) =>
-  result(api.POST("/api/v1/tasks", { body }));
-
-/** Changes a Task. */
-export const updateTask = (id: string, body: Schemas["TaskRequest"]) =>
-  result(api.PUT("/api/v1/tasks/{id}", { params: { path: { id } }, body }));
-
-/** Moves a Task to another Status (closing needs a closed Status). */
-export const moveTask = (id: string, status_id: string) =>
-  result(api.POST("/api/v1/tasks/{id}/status", { params: { path: { id } }, body: { status_id } }));
-
-/** Adds a comment to a Task. */
-export const addTaskComment = (id: string, body: string) =>
-  result(api.POST("/api/v1/tasks/{id}/comments", { params: { path: { id } }, body: { body } }));
+export const taskActions = {
+  create: (body: Schemas["TaskRequest"]) => call(api.POST("/api/v1/tasks", { body })),
+  update: (id: string, body: Schemas["TaskRequest"]) =>
+    call(api.PUT("/api/v1/tasks/{id}", { ...path(id), body })),
+  move: (id: string, body: Schemas["TaskMoveRequest"]) =>
+    call(api.POST("/api/v1/tasks/{id}/status", { ...path(id), body })),
+  comment: (id: string, body: string) =>
+    call(api.POST("/api/v1/tasks/{id}/comments", { ...path(id), body: { body } })),
+  link: (id: string, body: Schemas["TaskLinkRequest"]) =>
+    call(api.POST("/api/v1/tasks/{id}/links", { ...path(id), body })),
+  unlink: (id: string, kind: string, targetId: string) =>
+    call(
+      api.DELETE("/api/v1/tasks/{id}/links/{kind}/{target_id}", {
+        params: { path: { id, kind, target_id: targetId } },
+      }),
+    ),
+};
