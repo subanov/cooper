@@ -1,9 +1,9 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Unlink } from "lucide-react";
+import { Plus, Unlink } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
-import { Button, IconButton } from "@/components/Button";
+import { Button, buttonClass, IconButton } from "@/components/Button";
 import { Card } from "@/components/Card";
 import type { PickerOption } from "@/components/Combobox";
 import { FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
@@ -307,6 +307,9 @@ function Links({ task }: { task: Task }) {
   const t = useText();
   const can = useCan();
   const links = useQuery(taskLinksQuery(task.id));
+  const linkedTickets = new Set(
+    (links.data ?? []).filter((l) => l.kind === "ticket").map((l) => l.target_id),
+  );
   const [pick, setPick] = useState<PickerOption | null>(null);
   const link = useAction(
     (targetId: string) => taskActions.link(task.id, { kind: "ticket", target_id: targetId }),
@@ -376,13 +379,25 @@ function Links({ task }: { task: Task }) {
               label={t("tasks.linkTicket")}
               hint={t("tasks.linkTicketHint")}
               companyId={task.company_id}
+              exclude={linkedTickets}
+              suggestMine
               value={pick}
               onChange={setPick}
             />
-            <div>
+            <div className="flex flex-wrap gap-2">
               <Button type="submit" size="sm" disabled={!pick} loading={link.isPending}>
                 {t("common.link")}
               </Button>
+              {can("tickets.create") ? (
+                <Link
+                  to="/tickets/new"
+                  search={{ task: task.id }}
+                  className={buttonClass({ variant: "ghost", size: "sm" })}
+                >
+                  <Plus aria-hidden="true" className="size-4" />
+                  {t("tasks.newTicket")}
+                </Link>
+              ) : null}
             </div>
           </form>
         ) : null}

@@ -208,7 +208,12 @@ const ticketRoute = createRoute({
 const newTicketRoute = createRoute({
   getParentRoute: () => ticketsRoute,
   path: "new",
-  component: P.NewTicket,
+  /** `task`: the Task the new ticket is linked to once created (FR-TSK-004). */
+  validateSearch: (s: Record<string, unknown>) => compact({ task: text(s, "task") }),
+  component: withPage(P.NewTicket, function NewTicketRoute() {
+    const Page = pageOf(P.NewTicket);
+    return <Page taskId={newTicketRoute.useSearch().task} />;
+  }),
 });
 
 /** A list screen with URL search state, plus its New and detail screens. */

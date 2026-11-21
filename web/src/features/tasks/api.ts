@@ -43,22 +43,6 @@ export function boardQuery(search: TaskSearch) {
   });
 }
 
-/** Tasks matching a title search, for linking. */
-export function taskSearchQuery(q: string, extra: { ticket_id?: string } = {}) {
-  return queryOptions({
-    queryKey: ["tasks", "search", q, extra],
-    queryFn: async () =>
-      (
-        await call(
-          api.GET("/api/v1/tasks", {
-            params: { query: { limit: 20, ...(q ? { q } : {}), ...extra } },
-          }),
-        )
-      ).items,
-    enabled: q.length > 0 || Boolean(extra.ticket_id),
-  });
-}
-
 /** Tasks linked to a ticket. */
 export function ticketTasksQuery(ticketId: string) {
   return queryOptions({

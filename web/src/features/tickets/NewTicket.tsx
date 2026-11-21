@@ -5,7 +5,8 @@ import { useState } from "react";
 import { Button, buttonClass } from "@/components/Button";
 import type { PickerOption } from "@/components/Combobox";
 import { Fieldset, FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
+import { Notice, ProblemNotice } from "@/components/Notice";
+import { useToast } from "@/components/Toast";
 import { RequesterPicker } from "@/features/reference/pickers";
 import {
   analystsQuery,
@@ -19,6 +20,7 @@ import {
 } from "@/features/reference/queries";
 import { useCan, useSession } from "@/features/session/session";
 import { fieldError, useAction } from "@/features/shared/mutation";
+import { taskActions, taskQuery } from "@/features/tasks/api";
 import { useText } from "@/i18n/useText";
 import type { Schemas } from "@/lib/api";
 import { problemOf } from "@/lib/problem";
@@ -35,9 +37,12 @@ import {
  * urgent, who works on it (H2). The API fills in defaults (Priority, Sensitivity) and
  * validates; only the subject is checked here.
  */
-export function NewTicket() {
+export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
   const t = useText();
   const navigate = useNavigate();
+  const toast = useToast();
+  const linkTo = useQuery({ ...taskQuery(taskId ?? ""), enabled: Boolean(taskId) });
+  const task = taskId ? linkTo.data : undefined;
   const can = useCan();
   const session = useSession();
   const companies = useQuery(companiesQuery);
@@ -52,7 +57,8 @@ export function NewTicket() {
   const activeCompanies = (companies.data ?? []).filter((c) => c.is_active);
   const defaultCompany = activeCompanies.find((c) => c.is_default) ?? activeCompanies[0];
   const [companyId, setCompanyId] = useState<string>("");
-  const company = companyId || defaultCompany?.id || "";
+  // A ticket linked to a Task belongs to the Task's Company (links stay within one Company).
+  const company = task?.company_id ?? (companyId || defaultCompany?.id || "");
   const [requester, setRequester] = useState<PickerOption | null>(null);
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
@@ -69,8 +75,8 @@ export function NewTicket() {
   const shownFields = applicableFields(fields.data, typeId || null);
 
   const create = useAction(
-    () =>
-      ticketActions.create({
+    async () => {
+      const ticket = await ticketActions.create({
         subject: subject.trim(),
         description,
         company_id: company || null,
@@ -91,12 +97,40 @@ export function NewTicket() {
               >,
             }
           : {}),
-      }),
+      });
+      if (!task) return { ticket, linked: false };
+      try {
+        await taskActions.link(task.id, { kind: "ticket", target_id: ticket.id });
+        return { ticket, linked: true };
+      } catch {
+        return { ticket, linked: false };
+      }
+    },
     {
-      invalidate: [["tickets", "list"], ["home"]],
-      success: (ticket) => t("newTicket.created", { number: ticket.number }),
-      onSuccess: (ticket) =>
-        navigate({ to: "/tickets/$ticketId", params: { ticketId: ticket.id }, search: true }),
+      invalidate: [["tickets", "list"], ["home"], ["tasks"]],
+      onSuccess: ({ ticket, linked }) => {
+        const open = () =>
+          navigate({ to: "/tickets/$ticketId", params: { ticketId: ticket.id }, search: true });
+        if (!task) {
+          toast({ tone: "success", message: t("newTicket.created", { number: ticket.number }) });
+          return open();
+        }
+        // Back to the Task the work started from; the new ticket is one click away.
+        toast(
+          linked
+            ? {
+                tone: "success",
+                message: t("newTicket.createdLinked", { number: ticket.number, title: task.title }),
+                action: { label: t("newTicket.openTicket"), onClick: () => void open() },
+              }
+            : {
+                tone: "danger",
+                message: t("newTicket.createdNotLinked", { number: ticket.number }),
+              },
+        );
+        if (!linked) return open();
+        return navigate({ to: "/tasks/$id", params: { id: task.id } });
+      },
     },
   );
   const missing = create.error ? problemOf(create.error).fields : [];
@@ -105,14 +139,25 @@ export function NewTicket() {
 
   return (
     <section aria-labelledby="new-ticket-title" className="mx-auto grid max-w-3xl gap-5 p-4 sm:p-6">
-      <Link
-        to="/tickets"
-        search={true}
-        className="inline-flex w-fit items-center gap-1 text-[0.8125rem] font-medium text-accent-text hover:underline"
-      >
-        <ArrowLeft aria-hidden="true" className="size-3.5" />
-        {t("tickets.backToList")}
-      </Link>
+      {taskId ? (
+        <Link
+          to="/tasks/$id"
+          params={{ id: taskId }}
+          className="inline-flex w-fit items-center gap-1 text-[0.8125rem] font-medium text-accent-text hover:underline"
+        >
+          <ArrowLeft aria-hidden="true" className="size-3.5" />
+          {t("newTicket.backToTask")}
+        </Link>
+      ) : (
+        <Link
+          to="/tickets"
+          search={true}
+          className="inline-flex w-fit items-center gap-1 text-[0.8125rem] font-medium text-accent-text hover:underline"
+        >
+          <ArrowLeft aria-hidden="true" className="size-3.5" />
+          {t("tickets.backToList")}
+        </Link>
+      )}
       <header className="grid gap-1">
         <h2 id="new-ticket-title" tabIndex={-1} data-page-heading className="text-xl font-semibold">
           {t("newTicket.title")}
@@ -132,10 +177,11 @@ export function NewTicket() {
           create.mutate();
         }}
       >
-        <ProblemNotice error={create.error} />
+        <ProblemNotice error={create.error ?? linkTo.error} />
+        {task ? <Notice>{t("newTicket.linkedTo", { title: task.title })}</Notice> : null}
         <Fieldset legend={t("newTicket.who")}>
           <FormGrid>
-            {activeCompanies.length > 1 ? (
+            {activeCompanies.length > 1 && !taskId ? (
               <SelectField
                 label={t("ticket.company")}
                 value={company}
@@ -152,7 +198,7 @@ export function NewTicket() {
               companyId={company || undefined}
               value={requester}
               onChange={setRequester}
-              className={activeCompanies.length > 1 ? undefined : "sm:col-span-2"}
+              className={activeCompanies.length > 1 && !taskId ? undefined : "sm:col-span-2"}
             />
           </FormGrid>
         </Fieldset>
@@ -270,11 +316,22 @@ export function NewTicket() {
           missing={missing}
         />
         <div className="flex flex-wrap justify-end gap-2 border-t border-line pt-4">
-          <Link to="/tickets" search={true} className={buttonClass()}>
-            {t("common.cancel")}
-          </Link>
-          <Button type="submit" variant="primary" loading={create.isPending}>
-            {t("newTicket.submit")}
+          {taskId ? (
+            <Link to="/tasks/$id" params={{ id: taskId }} className={buttonClass()}>
+              {t("common.cancel")}
+            </Link>
+          ) : (
+            <Link to="/tickets" search={true} className={buttonClass()}>
+              {t("common.cancel")}
+            </Link>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            loading={create.isPending}
+            disabled={Boolean(taskId) && !task}
+          >
+            {taskId ? t("newTicket.submitLinked") : t("newTicket.submit")}
           </Button>
         </div>
       </form>

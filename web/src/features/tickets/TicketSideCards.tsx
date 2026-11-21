@@ -1,16 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Download, Paperclip, Unlink } from "lucide-react";
+import { Download, Paperclip, Plus, Unlink } from "lucide-react";
 import { useRef, useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { Combobox, type PickerOption } from "@/components/Combobox";
+import type { PickerOption } from "@/components/Combobox";
+import { FormDialog } from "@/components/Dialog";
+import { Checkbox, TextField } from "@/components/Field";
 import { ProblemNotice } from "@/components/Notice";
 import { LoadingBlock } from "@/components/QueryState";
-import { useCan, useModuleOn } from "@/features/session/session";
-import { useAction } from "@/features/shared/mutation";
-import { taskActions, taskSearchQuery, ticketTasksQuery } from "@/features/tasks/api";
+import { useToast } from "@/components/Toast";
+import { TaskPicker } from "@/features/reference/pickers";
+import { useCan, useModuleOn, useSession } from "@/features/session/session";
+import { fieldError, useAction } from "@/features/shared/mutation";
+import { taskActions, ticketTasksQuery } from "@/features/tasks/api";
 import { useFormat, useText } from "@/i18n/useText";
 import { attachmentsQuery, relatedQuery, type Ticket, ticketActions } from "./api";
 
@@ -100,14 +104,11 @@ export function TicketTasksCard({ ticket }: { ticket: Ticket }) {
 
 function TasksCardBody({ ticket, canLink }: { ticket: Ticket; canLink: boolean }) {
   const t = useText();
+  const can = useCan();
   const linked = useQuery(ticketTasksQuery(ticket.id));
-  const [q, setQ] = useState("");
   const [pick, setPick] = useState<PickerOption | null>(null);
-  const found = useQuery(taskSearchQuery(q));
+  const [creating, setCreating] = useState(false);
   const linkedIds = new Set((linked.data ?? []).map((k) => k.id));
-  const options = (found.data ?? [])
-    .filter((k) => k.company_id === ticket.company_id && !linkedIds.has(k.id) && !k.is_closed)
-    .map((k) => ({ id: k.id, label: k.title }));
   const invalidate = [["tasks"]] as const;
   const link = useAction(
     (taskId: string) => taskActions.link(taskId, { kind: "ticket", target_id: ticket.id }),
@@ -155,30 +156,112 @@ function TasksCardBody({ ticket, canLink }: { ticket: Ticket; canLink: boolean }
         </ul>
         {canLink ? (
           <form
-            className="flex items-end gap-2"
+            className="grid gap-2"
             onSubmit={(e) => {
               e.preventDefault();
               if (pick) link.mutate(pick.id);
             }}
           >
-            <Combobox
-              className="flex-1"
+            <TaskPicker
               label={t("ticketTasks.find")}
               hint={t("ticketTasks.findHint")}
+              companyId={ticket.company_id}
+              exclude={linkedIds}
+              suggestMine
               value={pick}
               onChange={setPick}
-              options={options}
-              loading={found.isFetching}
-              onQueryChange={setQ}
             />
-            <Button type="submit" disabled={!pick} loading={link.isPending} className="mb-5">
-              {t("common.link")}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" size="sm" disabled={!pick} loading={link.isPending}>
+                {t("common.link")}
+              </Button>
+              {can("tasks.create") ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={<Plus aria-hidden="true" className="size-4" />}
+                  onClick={() => setCreating(true)}
+                >
+                  {t("ticketTasks.new")}
+                </Button>
+              ) : null}
+            </div>
           </form>
         ) : null}
         <ProblemNotice error={link.error ?? unlink.error} />
       </div>
+      {creating ? <NewLinkedTaskDialog ticket={ticket} onClose={() => setCreating(false)} /> : null}
     </Card>
+  );
+}
+
+/** A new Task for this ticket, created and linked in one step (FR-TSK-004). */
+function NewLinkedTaskDialog({ ticket, onClose }: { ticket: Ticket; onClose: () => void }) {
+  const t = useText();
+  const session = useSession();
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [mine, setMine] = useState(true);
+  const [tried, setTried] = useState(false);
+  const create = useMutation({
+    mutationFn: async () => {
+      const task = await taskActions.create({
+        title: title.trim(),
+        company_id: ticket.company_id,
+        assigned_analyst_id: mine ? session.analyst.id : null,
+      });
+      try {
+        await taskActions.link(task.id, { kind: "ticket", target_id: ticket.id });
+        return { task, linked: true };
+      } catch {
+        return { task, linked: false };
+      }
+    },
+    onSuccess: async ({ task, linked }) => {
+      await queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast(
+        linked
+          ? { tone: "success", message: t("ticketTasks.createdLinked", { title: task.title }) }
+          : { tone: "danger", message: t("ticketTasks.createdNotLinked", { title: task.title }) },
+      );
+      onClose();
+    },
+  });
+  const titleError =
+    tried && !title.trim() ? t("tasks.titleRequired") : fieldError(create.error, "title");
+  return (
+    <FormDialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      size="sm"
+      title={t("ticketTasks.newTitle")}
+      description={t("ticketTasks.newIntro", { number: ticket.number })}
+      submitLabel={t("ticketTasks.createAndLink")}
+      busy={create.isPending}
+      onSubmit={() => {
+        setTried(true);
+        if (title.trim()) create.mutate();
+      }}
+    >
+      {titleError ? null : <ProblemNotice error={create.error} />}
+      <TextField
+        label={t("tasks.titleField")}
+        required
+        autoFocus
+        autoComplete="off"
+        value={title}
+        error={titleError}
+        onChange={(e) => setTitle(e.target.value)}
+      />
+      <Checkbox
+        label={t("ticketTasks.assignToMe")}
+        checked={mine}
+        onChange={(e) => setMine(e.target.checked)}
+      />
+    </FormDialog>
   );
 }
 

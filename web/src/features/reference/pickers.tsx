@@ -44,31 +44,75 @@ export function RequesterPicker({
   return <Combobox {...props} options={options} loading={found.isFetching} onQueryChange={setQ} />;
 }
 
-/** Finds a ticket by number or subject as you type, optionally within one Company. */
+type LinkPickerProps = PickerProps & {
+  companyId?: string | undefined;
+  /** Records already linked, left out of the list. */
+  exclude?: ReadonlySet<string> | undefined;
+  /** Before anything is typed, offer the Analyst's own open records (H6, recognition). */
+  suggestMine?: boolean | undefined;
+};
+
+/**
+ * Finds a ticket by number or subject as you type, optionally within one Company. With
+ * `suggestMine`, an empty search lists the open tickets assigned to the signed-in Analyst.
+ */
 export function TicketPicker({
   companyId,
+  exclude,
+  suggestMine = false,
   ...props
-}: PickerProps & { companyId?: string | undefined }) {
+}: LinkPickerProps) {
   const [q, setQ] = useState("");
+  const mine = suggestMine && q.length === 0;
   const found = useQuery({
-    queryKey: ["tickets", "picker", q, companyId ?? null],
+    queryKey: ["tickets", "picker", mine ? "mine" : q, companyId ?? null],
     queryFn: () =>
       call(
         api.GET("/api/v1/tickets", {
           params: {
-            query: { q, limit: 15, ...(companyId ? { company_id: companyId } : {}) },
+            query: {
+              limit: 15,
+              ...(mine ? { view: "mine", sort: "updated_at" } : { q }),
+              ...(companyId ? { company_id: companyId } : {}),
+            },
           },
         }),
       ),
-    enabled: q.length > 0,
+    enabled: mine || q.length > 0,
     staleTime: 30_000,
   });
-  const options = (found.data?.items ?? []).map(
-    (t): PickerOption => ({
-      id: t.id,
-      label: `${t.number} · ${t.subject}`,
-      description: undefined,
-    }),
-  );
+  const options = (found.data?.items ?? [])
+    .filter((t) => !exclude?.has(t.id))
+    .map(
+      (t): PickerOption => ({
+        id: t.id,
+        label: `${t.number} · ${t.subject}`,
+        description: undefined,
+      }),
+    );
+  return <Combobox {...props} options={options} loading={found.isFetching} onQueryChange={setQ} />;
+}
+
+/**
+ * Finds an open Task by title as you type, optionally within one Company. With
+ * `suggestMine`, an empty search lists the open Tasks assigned to the signed-in Analyst.
+ */
+export function TaskPicker({ companyId, exclude, suggestMine = false, ...props }: LinkPickerProps) {
+  const [q, setQ] = useState("");
+  const mine = suggestMine && q.length === 0;
+  const found = useQuery({
+    queryKey: ["tasks", "picker", mine ? "mine" : q],
+    queryFn: () =>
+      call(
+        api.GET("/api/v1/tasks", {
+          params: { query: { limit: 20, open: true, ...(mine ? { assignee: "me" } : { q }) } },
+        }),
+      ),
+    enabled: mine || q.length > 0,
+    staleTime: 30_000,
+  });
+  const options = (found.data?.items ?? [])
+    .filter((k) => (!companyId || k.company_id === companyId) && !exclude?.has(k.id))
+    .map((k): PickerOption => ({ id: k.id, label: k.title, description: undefined }));
   return <Combobox {...props} options={options} loading={found.isFetching} onQueryChange={setQ} />;
 }
