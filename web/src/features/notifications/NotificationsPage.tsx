@@ -1,27 +1,28 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { BellOff, CheckCheck } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { EmptyState } from "@/components/EmptyState";
-import { ProblemNotice } from "@/components/Notice";
-import { Page, PageHeader } from "@/components/Page";
-import { LoadingBlock, LoadMore } from "@/components/QueryState";
+import { EmptyState, LoadingBlock, LoadMore, ProblemNotice } from "@/components/Feedback";
+import { Page, PageHeader, Panel } from "@/components/Layout";
 import { Segmented } from "@/components/Tabs";
 import { useAction } from "@/features/shared/mutation";
 import { useFormat, useText } from "@/i18n/useText";
 import { cn } from "@/lib/cn";
 import { markAllRead, markRead, notificationHref, notificationsQuery } from "./api";
 
-/** Every Notification of the signed-in Analyst (FR-GEN-006), newest first. */
-export function NotificationsPage() {
+/** Every Notification of the signed-in Analyst (FR-GEN-006), newest first; filter in the URL. */
+export function NotificationsPage({
+  all,
+  onShowChange,
+}: {
+  all: boolean;
+  onShowChange: (all: boolean) => void;
+}) {
   const t = useText();
   const f = useFormat();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [show, setShow] = useState<"unread" | "all">("unread");
-  const list = useInfiniteQuery(notificationsQuery(show === "unread"));
+  const list = useInfiniteQuery(notificationsQuery(!all));
   const items = list.data?.pages.flatMap((p) => p.items) ?? [];
   const readAll = useAction(markAllRead, {
     invalidate: [["notifications"]],
@@ -35,13 +36,13 @@ export function NotificationsPage() {
     if (href) router.history.push(href);
   }
   return (
-    <Page width="medium">
+    <Page width="narrow">
       <PageHeader
         title={t("notifications.title")}
         description={t("notifications.intro")}
         actions={
           <Button
-            icon={<CheckCheck aria-hidden="true" className="size-4" />}
+            icon={<CheckCheck aria-hidden="true" />}
             loading={readAll.isPending}
             onClick={() => readAll.mutate()}
           >
@@ -51,23 +52,21 @@ export function NotificationsPage() {
       />
       <Segmented
         label={t("common.filters")}
-        value={show}
-        onChange={setShow}
+        value={all ? "all" : "unread"}
+        onChange={(v) => onShowChange(v === "all")}
         options={[
           { value: "unread", label: t("notifications.unreadOnly") },
           { value: "all", label: t("notifications.all") },
         ]}
       />
       <ProblemNotice error={list.error ?? readAll.error} />
-      <Card flush>
+      <Panel flush>
         {list.isPending ? (
-          <div className="p-4">
-            <LoadingBlock />
-          </div>
+          <LoadingBlock className="p-4" />
         ) : items.length === 0 ? (
           <EmptyState
             icon={<BellOff aria-hidden="true" />}
-            title={show === "unread" ? t("notifications.emptyUnread") : t("notifications.empty")}
+            title={all ? t("notifications.empty") : t("notifications.emptyUnread")}
           />
         ) : (
           <ul className="divide-y divide-line">
@@ -77,7 +76,7 @@ export function NotificationsPage() {
               return (
                 <li
                   key={n.id}
-                  className={cn("flex items-start gap-3 px-4 py-3", unread && "bg-accent-soft/40")}
+                  className={cn("flex items-start gap-3 px-4 py-3", unread && "bg-accent-soft/50")}
                 >
                   <span
                     aria-hidden="true"
@@ -98,7 +97,7 @@ export function NotificationsPage() {
                       {f.dateTime(n.created_at)}
                     </time>
                   </div>
-                  <div className="flex shrink-0 gap-1.5">
+                  <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
                     {href ? (
                       <Button size="sm" onClick={() => void open(n.id, href, unread)}>
                         {t("notifications.open")}
@@ -120,7 +119,7 @@ export function NotificationsPage() {
           </ul>
         )}
         <LoadMore query={list} />
-      </Card>
+      </Panel>
     </Page>
   );
 }

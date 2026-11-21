@@ -1,4 +1,3 @@
-import { ChevronDown } from "lucide-react";
 import {
   type InputHTMLAttributes,
   type ReactNode,
@@ -10,11 +9,26 @@ import {
 import { useText } from "@/i18n/useText";
 import { cn } from "@/lib/cn";
 
-/** Classes of text inputs, selects and text areas. Borders keep 3:1 contrast (WCAG 1.4.11). */
-export const controlClass =
-  "w-full min-w-0 rounded-md border border-control bg-surface px-2.5 text-sm text-fg shadow-[inset_0_1px_1px_rgb(0_0_0/0.04)] placeholder:text-fg-muted disabled:cursor-not-allowed disabled:bg-sunken disabled:opacity-70 aria-invalid:border-danger-text aria-invalid:ring-1 aria-invalid:ring-danger-text";
+/** One choice of a select. */
+export interface Option {
+  value: string;
+  label: string;
+}
 
-/** What a control inside a `Field` receives to stay linked to its label, hint and error. */
+/** What a labelled field shows around its control. */
+export interface FieldShellProps {
+  label: ReactNode;
+  hint?: ReactNode | undefined;
+  /** Shown under the control and announced with it (H9: next to the field). */
+  error?: string | undefined;
+  required?: boolean | undefined;
+  className?: string | undefined;
+  id?: string | undefined;
+  /** Keeps the label for screen readers only, when a heading already names the field. */
+  labelHidden?: boolean | undefined;
+}
+
+/** Props a control gets from its field: its id and descriptions. */
 export interface ControlProps {
   id: string;
   "aria-describedby": string | undefined;
@@ -22,36 +36,26 @@ export interface ControlProps {
   required: boolean | undefined;
 }
 
-export interface FieldShellProps {
-  label: ReactNode;
-  /** Short guidance under the label (H10: help in context). */
-  hint?: ReactNode;
-  /** A field error from the API or form feedback, shown next to the field (H9). */
-  error?: string | undefined;
-  required?: boolean | undefined;
-  /** Hides the label visually; it stays the accessible name. */
-  labelHidden?: boolean | undefined;
-  className?: string | undefined;
-  id?: string | undefined;
-}
+const control =
+  "w-full rounded-md border border-control bg-surface px-2.5 text-sm text-fg placeholder:text-fg-muted transition-colors hover:border-fg-muted disabled:cursor-not-allowed disabled:bg-sunken disabled:opacity-70 aria-invalid:border-danger-text";
 
-/** Label, control, hint and error, linked for assistive technology. */
+/** Label, hint and error around a control. The control gets ids that tie them together. */
 export function Field({
   label,
   hint,
   error,
   required,
-  labelHidden,
   className,
-  id: givenId,
+  id: given,
+  labelHidden,
   children,
 }: FieldShellProps & { children: (control: ControlProps) => ReactNode }) {
   const t = useText();
-  const autoId = useId();
-  const id = givenId ?? autoId;
+  const auto = useId();
+  const id = given ?? auto;
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [errorId, hintId].filter(Boolean).join(" ") || undefined;
+  const described = [errorId, hintId].filter(Boolean).join(" ") || undefined;
   return (
     <div className={cn("grid content-start gap-1.5", className)}>
       <label
@@ -60,144 +64,145 @@ export function Field({
       >
         {label}
         {required ? (
-          <span className="ml-0.5 text-danger-text" aria-hidden="true">
-            *
-          </span>
+          <span className="ml-1 font-normal text-fg-muted">({t("form.required")})</span>
         ) : null}
-        {required ? <span className="sr-only"> ({t("form.required")})</span> : null}
       </label>
       {children({
         id,
-        "aria-describedby": describedBy,
+        "aria-describedby": described,
         "aria-invalid": error ? true : undefined,
         required,
       })}
-      {hint ? (
-        <p id={hintId} className="text-xs text-fg-muted">
-          {hint}
-        </p>
-      ) : null}
       {error ? (
         <p id={errorId} className="text-xs font-medium text-danger-text">
           {error}
+        </p>
+      ) : null}
+      {hint ? (
+        <p id={hintId} className="text-xs text-fg-muted">
+          {hint}
         </p>
       ) : null}
     </div>
   );
 }
 
-type InputProps = InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> };
-
-/** A bare text input. Prefer `TextField`, which adds the label. */
-export function Input({ className, ...props }: InputProps) {
-  return <input className={cn(controlClass, "h-9 read-only:bg-sunken", className)} {...props} />;
+export function Input({
+  className,
+  ref,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> | undefined }) {
+  return <input ref={ref} className={cn(control, "h-9", className)} {...props} />;
 }
 
-type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
-  ref?: Ref<HTMLTextAreaElement>;
-};
-
-/** A bare text area. */
-export function Textarea({ className, ...props }: TextareaProps) {
+export function Textarea({
+  className,
+  ref,
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & { ref?: Ref<HTMLTextAreaElement> | undefined }) {
   return (
     <textarea
-      className={cn(controlClass, "min-h-24 py-2 leading-relaxed read-only:bg-sunken", className)}
+      ref={ref}
+      className={cn(control, "min-h-20 py-2 leading-relaxed", className)}
       {...props}
     />
   );
 }
 
-type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & { ref?: Ref<HTMLSelectElement> };
-
-const WIDTH = /^(?:[a-z]+:)?(?:w-|min-w-|max-w-|flex-1|hidden$|block$)/;
-
-/**
- * A bare native select: constrained input, keyboard and screen reader friendly (H5).
- * Styled the same in every browser, with its own chevron.
- */
-export function Select({ className, ...props }: SelectProps) {
-  const classes = (className ?? "").split(/\s+/).filter(Boolean);
-  const outer = classes.filter((c) => WIDTH.test(c));
-  const inner = classes.filter((c) => !WIDTH.test(c));
-  return (
-    <span className={cn("relative block", outer.length ? outer : "w-full")}>
-      <select
-        className={cn(controlClass, "h-9 w-full cursor-pointer appearance-none pr-8", inner)}
-        {...props}
-      />
-      <ChevronDown
-        aria-hidden="true"
-        className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-fg-muted"
-      />
-    </span>
-  );
+export function Select({
+  className,
+  ref,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement> & { ref?: Ref<HTMLSelectElement> | undefined }) {
+  return <select ref={ref} className={cn(control, "h-9 pr-8", className)} {...props} />;
 }
 
-type Shell = Omit<FieldShellProps, "id">;
+type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & {
+  ref?: Ref<HTMLInputElement> | undefined;
+};
 
 /** A labelled text input. */
 export function TextField({
   label,
   hint,
   error,
-  labelHidden,
-  className,
   required,
-  ...props
-}: Shell & Omit<InputProps, "className">) {
+  className,
+  id,
+  labelHidden,
+  ...input
+}: FieldShellProps & InputProps) {
   return (
-    <Field {...{ label, hint, error, labelHidden, className, required }} id={props.id}>
-      {(control) => <Input {...props} {...control} />}
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      className={className}
+      id={id}
+      labelHidden={labelHidden}
+    >
+      {(c) => <Input {...c} {...input} />}
     </Field>
   );
 }
 
-/** A labelled text area. */
+/** A labelled multi-line input. */
 export function TextAreaField({
   label,
   hint,
   error,
-  labelHidden,
-  className,
   required,
-  ...props
-}: Shell & Omit<TextareaProps, "className">) {
+  className,
+  id,
+  labelHidden,
+  ...input
+}: FieldShellProps & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "id">) {
   return (
-    <Field {...{ label, hint, error, labelHidden, className, required }} id={props.id}>
-      {(control) => <Textarea {...props} {...control} />}
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      className={className}
+      id={id}
+      labelHidden={labelHidden}
+    >
+      {(c) => <Textarea {...c} {...input} />}
     </Field>
   );
 }
 
-export interface Option {
-  value: string;
-  label: string;
-  disabled?: boolean | undefined;
-}
-
-/** A labelled select. `placeholder` adds an empty first option (for "none" or "choose"). */
+/** A labelled select. `placeholder` adds an empty first choice ("None", "Choose…"). */
 export function SelectField({
   label,
   hint,
   error,
-  labelHidden,
-  className,
   required,
+  className,
+  id,
   options,
   placeholder,
-  ...props
-}: Shell &
-  Omit<SelectProps, "className" | "children"> & {
+  ...select
+}: FieldShellProps &
+  Omit<SelectHTMLAttributes<HTMLSelectElement>, "id"> & {
     options: readonly Option[];
     placeholder?: string | undefined;
   }) {
   return (
-    <Field {...{ label, hint, error, labelHidden, className, required }} id={props.id}>
-      {(control) => (
-        <Select {...props} {...control}>
+    <Field
+      label={label}
+      hint={hint}
+      error={error}
+      required={required}
+      className={className}
+      id={id}
+    >
+      {(c) => (
+        <Select {...c} {...select}>
           {placeholder !== undefined ? <option value="">{placeholder}</option> : null}
           {options.map((o) => (
-            <option key={o.value} value={o.value} disabled={o.disabled}>
+            <option key={o.value} value={o.value}>
               {o.label}
             </option>
           ))}
@@ -207,23 +212,25 @@ export function SelectField({
   );
 }
 
-/** A checkbox with its label on the right and an optional hint. */
+/** A checkbox with its label to the right (a big hit target: Fitts's Law). */
 export function Checkbox({
   label,
   hint,
   className,
-  ...props
-}: Omit<InputProps, "type"> & { label: ReactNode; hint?: ReactNode }) {
-  const autoId = useId();
-  const id = props.id ?? autoId;
+  ...input
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & {
+  label: ReactNode;
+  hint?: ReactNode | undefined;
+}) {
+  const id = useId();
   return (
     <div className={cn("flex items-start gap-2.5", className)}>
       <input
-        type="checkbox"
         id={id}
+        type="checkbox"
         aria-describedby={hint ? `${id}-hint` : undefined}
-        className="mt-0.5 size-4 shrink-0 cursor-pointer accent-accent disabled:cursor-not-allowed"
-        {...props}
+        className="mt-0.5 size-4 shrink-0 cursor-pointer accent-accent"
+        {...input}
       />
       <div className="grid gap-0.5">
         <label htmlFor={id} className="cursor-pointer text-sm leading-5">
@@ -239,60 +246,46 @@ export function Checkbox({
   );
 }
 
-/** An on/off switch for settings that apply at once. State is never shown by colour alone. */
+/** An on/off switch that acts at once (settings, Modules). */
 export function Switch({
-  checked,
-  onChange,
   label,
-  id,
-  describedBy,
+  checked,
+  onCheckedChange,
   disabled,
-  stateLabels,
+  describedBy,
 }: {
+  label: string;
   checked: boolean;
-  onChange: (checked: boolean) => void;
-  /** The accessible name, unless a <label htmlFor={id}> names the switch. */
-  label?: string | undefined;
-  id?: string | undefined;
-  describedBy?: string | undefined;
+  onCheckedChange: (checked: boolean) => void;
   disabled?: boolean | undefined;
-  /** Visible "On"/"Off" text next to the switch. */
-  stateLabels?: [on: string, off: string] | undefined;
+  describedBy?: string | undefined;
 }) {
   return (
-    <span className="inline-flex items-center gap-2">
-      <button
-        type="button"
-        role="switch"
-        id={id}
-        aria-checked={checked}
-        aria-label={label}
-        aria-describedby={describedBy}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      aria-describedby={describedBy}
+      disabled={disabled}
+      onClick={() => onCheckedChange(!checked)}
+      className={cn(
+        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        checked ? "border-accent bg-accent" : "border-control bg-sunken",
+      )}
+    >
+      <span
+        aria-hidden="true"
         className={cn(
-          "relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-55",
-          checked ? "border-accent bg-accent" : "border-control bg-sunken",
+          "inline-block size-4.5 rounded-full shadow-raised transition-transform",
+          checked ? "translate-x-5.5 bg-accent-fg" : "translate-x-0.5 bg-fg-muted",
         )}
-      >
-        <span
-          aria-hidden="true"
-          className={cn(
-            "inline-block size-4 rounded-full shadow-raised transition-transform",
-            checked ? "translate-x-5 bg-accent-fg" : "translate-x-1 bg-control",
-          )}
-        />
-      </button>
-      {stateLabels ? (
-        <span aria-hidden="true" className="text-xs font-medium text-fg-muted">
-          {checked ? stateLabels[0] : stateLabels[1]}
-        </span>
-      ) : null}
-    </span>
+      />
+    </button>
   );
 }
 
-/** Groups related fields under a heading (Gestalt: common region). */
+/** Related fields under a legend (chunking: Miller's Law). */
 export function Fieldset({
   legend,
   description,
@@ -300,39 +293,32 @@ export function Fieldset({
   className,
 }: {
   legend: ReactNode;
-  description?: ReactNode;
+  description?: ReactNode | undefined;
   children: ReactNode;
   className?: string | undefined;
 }) {
   return (
     <fieldset className={cn("grid min-w-0 gap-4", className)}>
-      <legend className="mb-1 w-full border-b border-line pb-1.5 text-xs font-semibold uppercase tracking-wider text-fg-muted">
-        {legend}
-      </legend>
-      {description ? <p className="-mt-2 text-xs text-fg-muted">{description}</p> : null}
+      <legend className="mb-1 text-[0.9375rem] font-semibold">{legend}</legend>
+      {description ? <p className="-mt-3 text-xs text-fg-muted">{description}</p> : null}
       {children}
     </fieldset>
   );
 }
 
-/** A responsive grid of fields: one column on narrow screens, two (or three) on wide ones. */
+/** Two columns of fields on wide screens, one on narrow ones. */
 export function FormGrid({
   children,
-  columns = 2,
   className,
+  columns = 2,
 }: {
   children: ReactNode;
-  columns?: 1 | 2 | 3 | undefined;
   className?: string | undefined;
+  columns?: 2 | 3 | undefined;
 }) {
   return (
     <div
-      className={cn(
-        "grid gap-4",
-        columns === 2 && "sm:grid-cols-2",
-        columns === 3 && "sm:grid-cols-2 lg:grid-cols-3",
-        className,
-      )}
+      className={cn("grid gap-4", columns === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2", className)}
     >
       {children}
     </div>

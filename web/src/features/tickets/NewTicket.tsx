@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Button, buttonClass } from "@/components/Button";
 import type { PickerOption } from "@/components/Combobox";
+import { Notice, ProblemNotice } from "@/components/Feedback";
 import { Fieldset, FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
+import { BackLink, PageHeader } from "@/components/Layout";
 import { useToast } from "@/components/Toast";
 import { RequesterPicker } from "@/features/reference/pickers";
 import {
@@ -33,11 +33,11 @@ import {
 } from "./TicketFieldInputs";
 
 /**
- * A new ticket, beside the list. Fields follow the work: who needs help, what with, how
- * urgent, who works on it (H2). The API fills in defaults (Priority, Sensitivity) and
- * validates; only the subject is checked here.
+ * A new ticket, in the detail pane beside the list. Fields follow the work: who needs help,
+ * what with, how urgent, who works on it (H2). The API fills in defaults (Priority,
+ * Sensitivity, Ticket Type) and validates; only the subject is checked here.
  */
-export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
+export function NewTicket({ taskId }: { taskId?: string | undefined }) {
   const t = useText();
   const navigate = useNavigate();
   const toast = useToast();
@@ -56,7 +56,7 @@ export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
   const fields = useQuery({ ...ticketFieldsQuery, enabled: can("tickets.read") });
   const activeCompanies = (companies.data ?? []).filter((c) => c.is_active);
   const defaultCompany = activeCompanies.find((c) => c.is_default) ?? activeCompanies[0];
-  const [companyId, setCompanyId] = useState<string>("");
+  const [companyId, setCompanyId] = useState("");
   // A ticket linked to a Task belongs to the Task's Company (links stay within one Company).
   const company = task?.company_id ?? (companyId || defaultCompany?.id || "");
   const [requester, setRequester] = useState<PickerOption | null>(null);
@@ -73,6 +73,7 @@ export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
   const [values, setValues] = useState<FieldValues>({});
   const [tried, setTried] = useState(false);
   const shownFields = applicableFields(fields.data, typeId || null);
+  const showCompany = activeCompanies.length > 1 && !taskId;
 
   const create = useAction(
     async () => {
@@ -136,34 +137,24 @@ export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
   const missing = create.error ? problemOf(create.error).fields : [];
   const subjectError =
     tried && !subject.trim() ? t("newTicket.subjectRequired") : fieldError(create.error, "subject");
+  const back = taskId ? (
+    <BackLink to="/tasks/$id" params={{ id: taskId }}>
+      {t("newTicket.backToTask")}
+    </BackLink>
+  ) : (
+    <BackLink to="/tickets" search={true} className="xl:hidden">
+      {t("tickets.backToList")}
+    </BackLink>
+  );
 
   return (
-    <section aria-labelledby="new-ticket-title" className="mx-auto grid max-w-3xl gap-5 p-4 sm:p-6">
-      {taskId ? (
-        <Link
-          to="/tasks/$id"
-          params={{ id: taskId }}
-          className="inline-flex w-fit items-center gap-1 text-[0.8125rem] font-medium text-accent-text hover:underline"
-        >
-          <ArrowLeft aria-hidden="true" className="size-3.5" />
-          {t("newTicket.backToTask")}
-        </Link>
-      ) : (
-        <Link
-          to="/tickets"
-          search={true}
-          className="inline-flex w-fit items-center gap-1 text-[0.8125rem] font-medium text-accent-text hover:underline"
-        >
-          <ArrowLeft aria-hidden="true" className="size-3.5" />
-          {t("tickets.backToList")}
-        </Link>
-      )}
-      <header className="grid gap-1">
-        <h2 id="new-ticket-title" tabIndex={-1} data-page-heading className="text-xl font-semibold">
-          {t("newTicket.title")}
-        </h2>
-        <p className="text-sm text-fg-muted">{t("newTicket.intro")}</p>
-      </header>
+    <section className="mx-auto grid max-w-3xl gap-5 p-4 sm:p-6">
+      <PageHeader
+        level={2}
+        back={back}
+        title={t("newTicket.title")}
+        description={t("newTicket.intro")}
+      />
       <form
         noValidate
         className="grid gap-6 rounded-lg border border-line bg-surface p-4 shadow-raised sm:p-6"
@@ -177,11 +168,11 @@ export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
           create.mutate();
         }}
       >
-        <ProblemNotice error={create.error ?? linkTo.error} />
+        {subjectError ? null : <ProblemNotice error={create.error ?? linkTo.error} />}
         {task ? <Notice>{t("newTicket.linkedTo", { title: task.title })}</Notice> : null}
         <Fieldset legend={t("newTicket.who")}>
           <FormGrid>
-            {activeCompanies.length > 1 && !taskId ? (
+            {showCompany ? (
               <SelectField
                 label={t("ticket.company")}
                 value={company}
@@ -198,7 +189,7 @@ export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
               companyId={company || undefined}
               value={requester}
               onChange={setRequester}
-              className={activeCompanies.length > 1 && !taskId ? undefined : "sm:col-span-2"}
+              className={showCompany ? undefined : "sm:col-span-2"}
             />
           </FormGrid>
         </Fieldset>
@@ -287,10 +278,8 @@ export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
             </FormGrid>
           </Fieldset>
         ) : null}
-        <details className="group grid gap-4">
-          <summary className="cursor-pointer text-sm font-semibold text-fg">
-            {t("newTicket.more")}
-          </summary>
+        <details className="grid gap-4">
+          <summary className="cursor-pointer text-sm font-semibold">{t("newTicket.more")}</summary>
           <FormGrid className="mt-4">
             <SelectField
               label={t("ticket.origin")}
@@ -317,11 +306,15 @@ export function NewTicket({ taskId }: { taskId?: string | undefined } = {}) {
         />
         <div className="flex flex-wrap justify-end gap-2 border-t border-line pt-4">
           {taskId ? (
-            <Link to="/tasks/$id" params={{ id: taskId }} className={buttonClass()}>
+            <Link
+              to="/tasks/$id"
+              params={{ id: taskId }}
+              className={buttonClass({ variant: "ghost" })}
+            >
               {t("common.cancel")}
             </Link>
           ) : (
-            <Link to="/tickets" search={true} className={buttonClass()}>
+            <Link to="/tickets" search={true} className={buttonClass({ variant: "ghost" })}>
               {t("common.cancel")}
             </Link>
           )}

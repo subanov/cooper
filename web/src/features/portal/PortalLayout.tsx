@@ -3,11 +3,11 @@ import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { Bell, Building2, LogOut, Menu as MenuIcon } from "lucide-react";
 import { useState } from "react";
 import { Button, buttonClass } from "@/components/Button";
-import { Menu, MenuItem, MenuLabel, MenuRadioGroup, MenuSeparator } from "@/components/Menu";
+import { Menu, MenuItem, MenuLabel, MenuRadio, MenuSeparator } from "@/components/Menu";
 import { useToast } from "@/components/Toast";
 import { portalSessionQuery } from "@/features/session/session";
+import { useFocusOnNavigate } from "@/features/shell/focus";
 import { Logo } from "@/features/shell/Logo";
-import { useFocusOnNavigate } from "@/features/shell/useFocusOnNavigate";
 import { useText } from "@/i18n/useText";
 import { api, setCsrfToken } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -47,7 +47,7 @@ export function PortalLayout() {
       >
         {t("app.skipToContent")}
       </a>
-      <header className="border-b border-line bg-surface">
+      <header className="border-b border-line bg-surface shadow-raised">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4">
           <Link to="/portal" className="flex items-center gap-2.5 rounded-md">
             <Logo />
@@ -73,7 +73,7 @@ export function PortalLayout() {
                 className: "relative w-11 px-0",
               })}
             >
-              <Bell aria-hidden="true" className="size-5" />
+              <Bell aria-hidden="true" className="size-5!" />
               {unread > 0 ? (
                 <span
                   aria-hidden="true"
@@ -93,7 +93,7 @@ export function PortalLayout() {
               aria-controls="portal-mobile-nav"
               onClick={() => setMenuOpen((o) => !o)}
             >
-              <MenuIcon aria-hidden="true" className="size-5" />
+              <MenuIcon aria-hidden="true" className="size-5!" />
             </Button>
           </div>
         </div>
@@ -134,7 +134,7 @@ function PortalNav({
             onClick={onNavigate}
             activeOptions={{ exact: item.exact }}
             activeProps={{ "aria-current": "page" }}
-            className="flex h-11 items-center rounded-md px-3 text-[0.9375rem] font-medium text-fg-muted hover:bg-sunken hover:text-fg aria-[current=page]:text-accent-text aria-[current=page]:underline aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-8"
+            className="flex h-11 items-center rounded-md px-3 text-[0.9375rem] font-medium text-fg-muted hover:bg-sunken hover:text-fg aria-[current=page]:bg-accent-soft aria-[current=page]:text-accent-text"
           >
             {t(item.label)}
           </Link>
@@ -177,12 +177,7 @@ function AccountMenu() {
     <Menu
       label={t("portal.account", { name })}
       trigger={
-        <Button
-          variant="ghost"
-          size="lg"
-          className="gap-2 px-2"
-          title={t("portal.account", { name })}
-        >
+        <Button variant="ghost" size="lg" className="gap-2 px-2">
           <span
             aria-hidden="true"
             className="grid size-8 place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent-text"
@@ -194,8 +189,11 @@ function AccountMenu() {
               .slice(0, 2)
               .toUpperCase()}
           </span>
-          <span className="sr-only">{name}, </span>
-          <span className="sr-only max-w-40 truncate text-sm sm:not-sr-only">
+          {/* The name and Company are the accessible name; wide screens also show the Company. */}
+          <span className="sr-only">
+            {name}, {session.requester.company_name}
+          </span>
+          <span aria-hidden="true" className="hidden max-w-40 truncate text-sm sm:inline">
             {session.requester.company_name}
           </span>
         </Button>
@@ -214,10 +212,11 @@ function AccountMenu() {
       {session.requesters.length > 1 ? (
         <>
           <MenuSeparator />
-          <MenuRadioGroup
+          <MenuLabel>{t("portal.switchCompany")}</MenuLabel>
+          <MenuRadio
             label={t("portal.switchCompany")}
             value={session.requester.id}
-            onChange={(id) => void switchTo(id)}
+            onChange={(id: string) => void switchTo(id)}
             options={session.requesters.map((r) => ({ value: r.id, label: r.company_name }))}
           />
         </>

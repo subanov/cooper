@@ -2,42 +2,34 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Plus, Trash2 } from "lucide-react";
 import { Button, IconButton } from "./Button";
 
-const meta = {
-  title: "Design system/Button",
-  component: Button,
-  args: { children: "Save changes" },
-} satisfies Meta<typeof Button>;
-
+const meta: Meta<typeof Button> = { title: "Design system/Button", component: Button };
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof Button>;
 
-export const Primary: Story = {
-  args: { variant: "primary", icon: <Plus aria-hidden="true" className="size-4" /> },
-};
-export const Secondary: Story = { args: { variant: "secondary" } };
-export const Ghost: Story = { args: { variant: "ghost" } };
-export const Danger: Story = {
-  args: {
-    variant: "danger",
-    children: "Delete ticket",
-    icon: <Trash2 aria-hidden="true" className="size-4" />,
-  },
-};
-export const Loading: Story = { args: { variant: "primary", loading: true } };
-export const Disabled: Story = { args: { disabled: true } };
-export const Sizes: Story = {
+export const Variants: Story = {
   render: () => (
-    <div className="flex items-center gap-2">
-      <Button size="sm">Small</Button>
-      <Button>Medium</Button>
-      <Button size="lg" variant="primary">
-        Large (touch)
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="primary" icon={<Plus aria-hidden="true" />}>
+        New ticket
       </Button>
-      <IconButton
-        label="Add"
-        icon={<Plus aria-hidden="true" className="size-4" />}
-        variant="secondary"
-      />
+      <Button>Assign</Button>
+      <Button variant="ghost">Cancel</Button>
+      <Button variant="quiet">See all</Button>
+      <Button variant="danger" icon={<Trash2 aria-hidden="true" />}>
+        Delete ticket
+      </Button>
     </div>
   ),
 };
+export const Sizes: Story = {
+  render: () => (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button size="sm">Small</Button>
+      <Button>Medium</Button>
+      <Button size="lg">Large</Button>
+      <IconButton label="Add" icon={<Plus aria-hidden="true" />} variant="secondary" />
+    </div>
+  ),
+};
+export const Loading: Story = { args: { loading: true, variant: "primary", children: "Saving" } };
+export const Disabled: Story = { args: { disabled: true, children: "Assign to me" } };

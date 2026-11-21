@@ -1,209 +1,199 @@
-import { Check, ChevronsUpDown, X } from "lucide-react";
-import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
+import { Loader2, X } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useText } from "@/i18n/useText";
 import { cn } from "@/lib/cn";
-import { useDebounced } from "@/lib/hooks";
-import { controlClass, Field, type FieldShellProps } from "./Field";
-import { Spinner } from "./Spinner";
+import { Field, type FieldShellProps } from "./Field";
 
+/** One choice of a search-as-you-type picker. */
 export interface PickerOption {
   id: string;
   label: string;
-  /** A second line that tells similar options apart (email, Company, Ticket Number). */
   description?: string | undefined;
 }
 
+export interface ComboboxProps extends Omit<FieldShellProps, "id"> {
+  value: PickerOption | null;
+  onChange: (option: PickerOption | null) => void;
+  /**
+   * Choices for the current text. With `onQueryChange` the parent fetches them as the user
+   * types; without it, the picker filters this (short) list itself.
+   */
+  options: readonly PickerOption[];
+  onQueryChange?: ((query: string) => void) | undefined;
+  loading?: boolean | undefined;
+  placeholder?: string | undefined;
+  disabled?: boolean | undefined;
+}
+
 /**
- * Search-as-you-type selection from a long list (Requesters, tickets, Tasks), so nobody
- * has to remember IDs (H6, Hick's Law). Follows the ARIA 1.2 combobox pattern: arrow
- * keys move, Enter picks, Escape closes.
+ * A searchable picker for long lists (Hick's Law): type, then choose with the arrow keys
+ * and Enter, or the pointer. ARIA 1.2 combobox pattern; Escape closes the list.
  */
 export function Combobox({
   label,
   hint,
   error,
   required,
-  labelHidden,
   className,
   value,
   onChange,
-  options: given,
-  loading = false,
+  options,
   onQueryChange,
+  loading,
   placeholder,
   disabled,
-  clearable = true,
-}: Omit<FieldShellProps, "id"> & {
-  value: PickerOption | null;
-  onChange: (option: PickerOption | null) => void;
-  /** The options to offer. Without `onQueryChange` they are filtered here as the user types. */
-  options: readonly PickerOption[];
-  loading?: boolean | undefined;
-  /** Called (debounced) with the typed text, for options searched on the server. */
-  onQueryChange?: ((query: string) => void) | undefined;
-  placeholder?: string | undefined;
-  disabled?: boolean | undefined;
-  clearable?: boolean | undefined;
-}) {
+}: ComboboxProps) {
   const t = useText();
   const listId = useId();
   const [text, setText] = useState(value?.label ?? "");
   const [open, setOpen] = useState(false);
-  const [activeRaw, setActive] = useState(0);
+  const [active, setActive] = useState(0);
   const input = useRef<HTMLInputElement>(null);
-  const query = useDebounced(open ? text.trim() : "", 200);
-  const searching = open && value?.label !== text;
-  const effective = searching ? query : "";
-  useEffect(() => {
-    onQueryChange?.(effective);
-  }, [effective, onQueryChange]);
-  const options = onQueryChange ? given : filterOptions(given, effective);
-  const active = Math.min(activeRaw, Math.max(options.length - 1, 0));
+  const shownValue = useRef(value?.id);
 
   useEffect(() => {
-    setText(value?.label ?? "");
-  }, [value?.label]);
+    if (shownValue.current !== value?.id) {
+      shownValue.current = value?.id;
+      setText(value?.label ?? "");
+    }
+  }, [value]);
 
-  function pick(option: PickerOption) {
+  function choose(option: PickerOption) {
+    shownValue.current = option.id;
     onChange(option);
     setText(option.label);
     setOpen(false);
   }
 
-  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setOpen(true);
-      setActive((i) => Math.min(i + 1, Math.max(options.length - 1, 0)));
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setActive((i) => Math.max(i - 1, 0));
-    } else if (event.key === "Enter" && open) {
-      const option = options[active];
-      if (option) {
-        event.preventDefault();
-        pick(option);
-      }
-    } else if (event.key === "Escape" && open) {
-      event.preventDefault();
-      event.stopPropagation();
-      setOpen(false);
-      setText(value?.label ?? "");
-    }
-  }
-
-  const expanded = open && (options.length > 0 || loading || effective !== "");
-  const activeId = expanded && options[active] ? `${listId}-${active}` : undefined;
+  const needle = text.trim().toLowerCase();
+  const shown =
+    onQueryChange || !needle || (value && text === value.label)
+      ? options
+      : options.filter((o) => `${o.label} ${o.description ?? ""}`.toLowerCase().includes(needle));
+  const report = (q: string) => onQueryChange?.(q);
+  const expanded = open && (shown.length > 0 || (text.trim() !== "" && !loading));
+  const activeOption = expanded ? shown[active] : undefined;
 
   return (
-    <Field {...{ label, hint, error, required, labelHidden, className }}>
-      {(control) => (
+    <Field label={label} hint={hint} error={error} required={required} className={className}>
+      {(c) => (
         <div className="relative">
           <input
-            {...control}
+            {...c}
             ref={input}
             type="text"
             role="combobox"
-            autoComplete="off"
             aria-autocomplete="list"
             aria-expanded={expanded}
             aria-controls={listId}
-            aria-activedescendant={activeId}
+            aria-activedescendant={activeOption ? `${listId}-${activeOption.id}` : undefined}
+            autoComplete="off"
             disabled={disabled}
             placeholder={placeholder ?? t("picker.placeholder")}
             value={text}
             onChange={(e) => {
               setText(e.target.value);
+              setActive(0);
               setOpen(true);
+              report(e.target.value.trim());
+              if (value && e.target.value !== value.label) {
+                shownValue.current = undefined;
+                onChange(null);
+              }
             }}
-            onFocus={() => setOpen(true)}
-            onClick={() => setOpen(true)}
-            onBlur={() => {
-              // Let a click on an option land first.
-              setTimeout(() => {
+            onFocus={() => {
+              setOpen(true);
+              report(value ? "" : text.trim());
+            }}
+            onBlur={() => setTimeout(() => setOpen(false), 120)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setOpen(true);
+                setActive((i) => Math.min(i + 1, Math.max(shown.length - 1, 0)));
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setActive((i) => Math.max(i - 1, 0));
+              } else if (e.key === "Enter" && expanded && activeOption) {
+                e.preventDefault();
+                choose(activeOption);
+              } else if (e.key === "Escape" && open) {
+                e.preventDefault();
+                e.stopPropagation();
                 setOpen(false);
-                if (!text.trim() && value && clearable) onChange(null);
-                else setText(value?.label ?? "");
-              }, 150);
+              }
             }}
-            onKeyDown={onKeyDown}
-            className={cn(controlClass, "h-9 pr-16")}
+            className={cn(
+              "h-9 w-full rounded-md border border-control bg-surface pl-2.5 pr-16 text-sm text-fg placeholder:text-fg-muted hover:border-fg-muted disabled:cursor-not-allowed disabled:bg-sunken aria-invalid:border-danger-text",
+            )}
           />
-          <span className="absolute inset-y-0 right-1 flex items-center gap-0.5">
-            {loading ? <Spinner className="mr-1 text-fg-muted" /> : null}
-            {value && clearable && !disabled ? (
+          <div className="absolute inset-y-0 right-1 flex items-center gap-0.5">
+            {loading ? (
+              <Loader2 aria-hidden="true" className="size-4 animate-spin text-fg-muted" />
+            ) : null}
+            {value && !disabled ? (
               <button
                 type="button"
-                aria-label={t("picker.clear", { label: value.label })}
-                className="grid size-7 place-items-center rounded-sm text-fg-muted hover:bg-sunken"
+                aria-label={t("picker.clear", {
+                  label: typeof label === "string" ? label : value.label,
+                })}
                 onClick={() => {
+                  shownValue.current = undefined;
                   onChange(null);
                   setText("");
+                  report("");
                   input.current?.focus();
                 }}
+                className="grid size-7 place-items-center rounded text-fg-muted hover:bg-sunken hover:text-fg"
               >
-                <X aria-hidden="true" className="size-3.5" />
+                <X aria-hidden="true" className="size-4" />
               </button>
-            ) : (
-              <ChevronsUpDown aria-hidden="true" className="mr-2 size-3.5 text-fg-muted" />
-            )}
-          </span>
+            ) : null}
+          </div>
+          {/* ARIA 1.2 combobox: focus stays in the input; options are announced through
+              aria-activedescendant, so they are not focusable themselves. */}
           <div
             id={listId}
             role="listbox"
             aria-label={typeof label === "string" ? label : undefined}
-            hidden={!expanded}
-            className="absolute inset-x-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-md border border-line bg-surface p-1 shadow-overlay"
+            className={cn(
+              "absolute inset-x-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border border-line bg-raised p-1 shadow-overlay",
+              expanded ? "block" : "hidden",
+            )}
           >
-            {options.map((option, index) => (
-              // The input keeps focus and handles the keyboard (aria-activedescendant).
-              // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/useFocusableInteractive: ARIA combobox pattern
+            {shown.map((option, index) => (
+              // biome-ignore lint/a11y/useFocusableInteractive: options are reached with aria-activedescendant
+              // biome-ignore lint/a11y/useKeyWithClickEvents: the input handles the keys (arrows, Enter)
               <div
                 key={option.id}
-                id={`${listId}-${index}`}
+                id={`${listId}-${option.id}`}
                 role="option"
-                aria-selected={value?.id === option.id}
+                aria-selected={index === active}
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pick(option)}
+                onClick={() => choose(option)}
                 onMouseEnter={() => setActive(index)}
-                className={cn(
-                  "flex cursor-pointer items-start gap-2 rounded-sm px-2 py-1.5",
-                  index === active && "bg-sunken",
-                )}
+                className="grid cursor-pointer gap-0.5 rounded px-2 py-1.5 text-sm aria-selected:bg-accent-soft"
               >
-                <Check
-                  aria-hidden="true"
-                  className={cn(
-                    "mt-0.5 size-4 shrink-0",
-                    value?.id === option.id ? "text-accent-text" : "invisible",
-                  )}
-                />
-                <span className="grid min-w-0">
-                  <span className="truncate">{option.label}</span>
-                  {option.description ? (
-                    <span className="truncate text-xs text-fg-muted">{option.description}</span>
-                  ) : null}
-                </span>
+                <span className="truncate font-medium">{option.label}</span>
+                {option.description ? (
+                  <span className="truncate text-xs text-fg-muted">{option.description}</span>
+                ) : null}
               </div>
             ))}
-            {!loading && options.length === 0 && effective !== "" ? (
-              <div className="px-2 py-1.5 text-fg-muted">{t("picker.noMatches")}</div>
+            {shown.length === 0 && !loading ? (
+              // biome-ignore lint/a11y/useFocusableInteractive: an informative, disabled option
+              <div
+                role="option"
+                aria-disabled="true"
+                aria-selected="false"
+                className="px-2 py-2 text-sm text-fg-muted"
+              >
+                {t("picker.noMatches")}
+              </div>
             ) : null}
           </div>
         </div>
       )}
     </Field>
   );
-}
-
-/** Filters options by the typed text, case-insensitively (Postel's Law). */
-function filterOptions(all: readonly PickerOption[], query: string): PickerOption[] {
-  const q = query.toLowerCase();
-  return (
-    q
-      ? all.filter(
-          (o) => o.label.toLowerCase().includes(q) || o.description?.toLowerCase().includes(q),
-        )
-      : all
-  ).slice(0, 50);
 }

@@ -5,9 +5,9 @@ import { useState } from "react";
 import { ColourLabel } from "@/components/Badge";
 import { Button, buttonClass } from "@/components/Button";
 import { ConfirmDialog, Dialog, FormDialog } from "@/components/Dialog";
-import { Facts } from "@/components/Facts";
+import { Notice, ProblemNotice } from "@/components/Feedback";
 import { Checkbox, FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
+import { Facts } from "@/components/Layout";
 import { companiesQuery } from "@/features/reference/queries";
 import { useCan } from "@/features/session/session";
 import { fieldError, orNull, useAction } from "@/features/shared/mutation";
@@ -20,8 +20,8 @@ import type { CalendarEvent } from "./CalendarPage";
 type Category = Schemas["CalendarCategoryDto"];
 
 /**
- * A Calendar Event: generated ones are shown read-only with a link to their Source;
- * manual ones open as a form (when the Analyst may change them).
+ * A Calendar Event: generated ones are shown read-only with a link to their Source; manual
+ * ones open as a form (when the Analyst may change them).
  */
 export function EventDialog({
   event,
@@ -35,9 +35,8 @@ export function EventDialog({
   onClose: () => void;
 }) {
   const can = useCan();
-  if (event && (!event.editable || event.source || !can("calendar.update"))) {
+  if (event && (!event.editable || event.source || !can("calendar.update")))
     return <EventDetails event={event} onClose={onClose} />;
-  }
   return <EventForm event={event} day={day} categories={categories} onClose={onClose} />;
 }
 
@@ -216,6 +215,7 @@ function EventForm({
         <TextField
           label={t("calendar.titleField")}
           required
+          autoFocus
           value={form.title}
           error={titleError ?? fieldError(save.error, "title")}
           onChange={set("title")}
@@ -300,7 +300,7 @@ function EventForm({
             <Button
               variant="ghost"
               className="text-danger-text"
-              icon={<Trash2 aria-hidden="true" className="size-4" />}
+              icon={<Trash2 aria-hidden="true" />}
               onClick={() => setConfirm(true)}
             >
               {t("calendar.delete")}

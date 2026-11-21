@@ -12,11 +12,9 @@ import {
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { DataTable } from "@/components/DataTable";
+import { type Column, DataTable } from "@/components/DataTable";
 import { Dialog, FormDialog } from "@/components/Dialog";
-import { EmptyState } from "@/components/EmptyState";
-import { Facts } from "@/components/Facts";
+import { EmptyState, Notice, ProblemNotice, QueryState } from "@/components/Feedback";
 import {
   Checkbox,
   Fieldset,
@@ -26,9 +24,7 @@ import {
   SelectField,
   TextField,
 } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
-import { QueryState } from "@/components/QueryState";
+import { Facts, PageHeader, Panel } from "@/components/Layout";
 import {
   companiesQuery,
   departmentsQuery,
@@ -43,6 +39,7 @@ import { api, type Schemas } from "@/lib/api";
 import { call } from "@/lib/request";
 
 type Mailbox = Schemas["MailboxDto"];
+type Rejected = Schemas["RejectedEmailDto"];
 
 const mailboxesQuery = {
   queryKey: ["administration", "mailboxes"],
@@ -64,13 +61,14 @@ export function MailboxesPage({
   const [rejected, setRejected] = useState<Mailbox | null>(null);
   return (
     <>
-      <SectionHeader
+      <PageHeader
+        level={2}
         title={t("admin.mailboxes")}
         description={t("admin.mailboxes.intro")}
         actions={
           <Button
             variant="primary"
-            icon={<Plus aria-hidden="true" className="size-4" />}
+            icon={<Plus aria-hidden="true" />}
             onClick={() => setEditing("new")}
           >
             {t("admin.mailboxes.add")}
@@ -155,7 +153,7 @@ function MailboxCard({
     (mailbox.provider === "microsoft" && mailbox.auth_mode === "delegated");
   const h = mailbox.health;
   return (
-    <Card
+    <Panel
       title={mailbox.name}
       description={`${mailbox.address} · ${t(`admin.mailboxes.provider.${mailbox.provider}` as MessageId)}`}
       actions={
@@ -166,7 +164,7 @@ function MailboxCard({
             size="sm"
             tooltip="top"
             label={t("admin.mailboxes.edit", { name: mailbox.name })}
-            icon={<Pencil aria-hidden="true" className="size-3.5" />}
+            icon={<Pencil aria-hidden="true" />}
             onClick={onEdit}
           />
         </>
@@ -174,7 +172,6 @@ function MailboxCard({
     >
       <div className="grid gap-4">
         <Facts
-          layout="inline"
           items={[
             {
               key: "polled",
@@ -208,7 +205,7 @@ function MailboxCard({
         <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
-            icon={<ShieldCheck aria-hidden="true" className="size-4" />}
+            icon={<ShieldCheck aria-hidden="true" />}
             loading={check.isPending}
             onClick={() => check.mutate()}
           >
@@ -217,7 +214,7 @@ function MailboxCard({
           {needsConsent && mailbox.has_secret ? (
             <Button
               size="sm"
-              icon={<Link2 aria-hidden="true" className="size-4" />}
+              icon={<Link2 aria-hidden="true" />}
               loading={consent.isPending}
               onClick={() => consent.mutate()}
             >
@@ -229,7 +226,7 @@ function MailboxCard({
           </Button>
         </div>
       </div>
-    </Card>
+    </Panel>
   );
 }
 
@@ -245,6 +242,17 @@ function RejectedDialog({ mailbox, onClose }: { mailbox: Mailbox; onClose: () =>
         }),
       ),
   });
+  const columns: Column<Rejected>[] = [
+    {
+      key: "received",
+      header: t("admin.mailboxes.received"),
+      className: "whitespace-nowrap",
+      cell: (r) => f.dateTime(r.received_at),
+    },
+    { key: "from", header: t("admin.mailboxes.from"), cell: (r) => r.from },
+    { key: "subject", header: t("admin.mailboxes.subject"), cell: (r) => r.subject },
+    { key: "reason", header: t("admin.mailboxes.reason"), cell: (r) => r.reason },
+  ];
   return (
     <Dialog
       open
@@ -259,17 +267,7 @@ function RejectedDialog({ mailbox, onClose }: { mailbox: Mailbox; onClose: () =>
             rows={rows}
             rowKey={(r) => `${r.received_at}-${r.from}`}
             empty={<p className="py-4 text-sm text-fg-muted">{t("admin.mailboxes.noRejected")}</p>}
-            columns={[
-              {
-                id: "received",
-                header: t("admin.mailboxes.received"),
-                className: "whitespace-nowrap",
-                cell: (r) => f.dateTime(r.received_at),
-              },
-              { id: "from", header: t("admin.mailboxes.from"), cell: (r) => r.from },
-              { id: "subject", header: t("admin.mailboxes.subject"), cell: (r) => r.subject },
-              { id: "reason", header: t("admin.mailboxes.reason"), cell: (r) => r.reason },
-            ]}
+            columns={columns}
           />
         )}
       </QueryState>
@@ -584,7 +582,7 @@ function MailboxDialog({
               <IconButton
                 tooltip="top"
                 label={t("admin.mailboxes.removePattern", { number: index + 1 })}
-                icon={<Trash2 aria-hidden="true" className="size-4" />}
+                icon={<Trash2 aria-hidden="true" />}
                 onClick={() => setWhitelist((w) => w.filter((_, i) => i !== index))}
               />
             </li>
@@ -593,7 +591,7 @@ function MailboxDialog({
         <div>
           <Button
             size="sm"
-            icon={<Plus aria-hidden="true" className="size-4" />}
+            icon={<Plus aria-hidden="true" />}
             onClick={() => setWhitelist((w) => [...w, { pattern: "", allow: true }])}
           >
             {t("admin.mailboxes.addPattern")}

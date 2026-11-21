@@ -98,14 +98,33 @@ Before you start, read `AGENTS.md` (§2 and §6.1), `docs/VOCABULARY.md`, and
 - **Selective Attention / Banner Blindness.** Do not put critical information in places
   that look like ads or decoration; inline it next to the related data.
 
+## Screen structure: list and detail
+
+Use the **Master-Detail** pattern: a list leads to a detail page. The list stays simple;
+the detail page is for focused work. Going back and forth is slow for small edits, so mix
+both:
+
+- **In the list** (or a card or side panel), offer quick actions for small, frequent
+  changes: status, assign, snooze, link, add a subtask or comment. Do them in place, with
+  feedback and Undo. Do not leave the page.
+- **On the detail page**, do complex work: many fields, long text, history, related
+  records, or several steps.
+- **Rule of thumb:** more than about three fields, or a lot of context needed → detail
+  page. Otherwise, also offer it in place.
+- **Keep the user's place.** Filters, selection and scroll survive a round trip. A flow
+  started from a record returns to that record.
+- **Repeat the key facts** on the detail page (number, title, status, Company, assignee),
+  so nobody has to go back to check.
+- Quick actions and detail pages use the same components, labels and API calls.
+
 ## How to work
 
 1. **Understand the task.** Find the requirement IDs (`FR-…`) in
    `docs/FUNCTIONAL_REQUIREMENTS.md`, the user (Analyst or Requester) and the workflow.
    If FreeITSM has the feature, take its *intent*, not its layout or quirks (AGENTS.md §1.1).
-2. **Design or review** against every heuristic and the relevant laws above. Cover all
-   states: empty, loading, partial, error, no permission, very long content, many rows,
-   narrow screens, dark theme, keyboard only, screen reader.
+2. **Design or review** against every heuristic, the relevant laws and the list and
+   detail rules above. Cover all states: empty, loading, partial, error, no permission,
+   very long content, many rows, narrow screens, dark theme, keyboard only, screen reader.
 3. **Implement** (when asked) with design-system components, catalogue messages and tests:
    Vitest + Testing Library with axe for components, Storybook stories for new UI
    components, Playwright for flows. Run `just web-check`.

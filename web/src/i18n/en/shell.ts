@@ -108,4 +108,9 @@ export const shell = {
   "account.turnOff": "Turn off two-factor sign-in",
   "account.turnOffCode": "Current code from your authenticator app",
   "account.turnedOff": "Two-factor sign-in is off.",
+  "shell.collapseNav": "Collapse navigation",
+  "shell.expandNav": "Expand navigation",
+  "palette.notFound": "No ticket has the number {number}.",
+  "shortcuts.lists": "Lists",
+  "shortcuts.send": "Send the reply or add the Note",
 } as const;

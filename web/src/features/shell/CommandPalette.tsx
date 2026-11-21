@@ -2,6 +2,7 @@ import * as RadixDialog from "@radix-ui/react-dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { Command } from "cmdk";
 import {
+  Bell,
   Keyboard,
   LogOut,
   Monitor,
@@ -11,9 +12,10 @@ import {
   Search,
   Sun,
   TicketCheck,
+  UserRound,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { Kbd } from "@/components/Facts";
+import { Kbd } from "@/components/Layout";
 import { useToast } from "@/components/Toast";
 import { useCan, useModuleOn, useSession, useSignOut } from "@/features/session/session";
 import { useText } from "@/i18n/useText";
@@ -22,11 +24,14 @@ import { setPreferences, usePreferences } from "@/lib/preferences";
 import { visibleNav } from "./nav";
 
 const itemClass =
-  "flex h-9 cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 text-sm data-[selected=true]:bg-accent-soft data-[selected=true]:text-fg [&_svg]:size-4 [&_svg]:text-fg-muted";
+  "flex h-10 cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 text-sm data-[selected=true]:bg-accent-soft data-[selected=true]:text-fg [&_svg]:size-4 [&_svg]:text-fg-muted";
+const groupClass =
+  "[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-fg-muted";
 
 /**
  * The command palette (Ctrl/⌘+K): every screen and common action by name, and a Ticket
- * Number to open it straight away (Jakob's Law: as in Linear or GitHub).
+ * Number to open it straight away (Jakob's Law: as in Linear or GitHub). Everything here
+ * also has a visible control elsewhere (H7).
  */
 export function CommandPalette({
   open,
@@ -48,8 +53,9 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const items = visibleNav(session, moduleOn);
   const trimmed = query.trim();
+  const tickets = can("tickets.read") && moduleOn("tickets");
 
-  function run(action: () => void | Promise<void>) {
+  function run(action: () => unknown) {
     onOpenChange(false);
     setQuery("");
     void action();
@@ -60,19 +66,23 @@ export function CommandPalette({
       params: { path: { number } },
     });
     if (data) {
-      await navigate({ to: "/tickets/$ticketId", params: { ticketId: data.id } });
+      await navigate({
+        to: "/tickets/$ticketId",
+        params: { ticketId: data.id },
+        search: { view: "open" },
+      });
     } else {
-      toast({ tone: "danger", message: t("problem.notFound") });
+      toast({ tone: "danger", message: t("palette.notFound", { number }) });
     }
   }
 
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
-        <RadixDialog.Overlay className="fixed inset-0 z-40 bg-overlay" />
+        <RadixDialog.Overlay className="fixed inset-0 z-50 bg-overlay" />
         <RadixDialog.Content
           aria-describedby={undefined}
-          className="fixed left-1/2 top-[12vh] z-50 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-lg border border-line bg-surface shadow-overlay"
+          className="fixed left-1/2 top-[12vh] z-50 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-lg border border-line bg-raised shadow-overlay"
         >
           <RadixDialog.Title className="sr-only">{t("palette.title")}</RadixDialog.Title>
           <Command label={t("palette.title")} loop>
@@ -84,12 +94,13 @@ export function CommandPalette({
                 placeholder={t("palette.placeholder")}
                 className="h-12 w-full bg-transparent text-sm outline-none placeholder:text-fg-muted"
               />
+              <Kbd>Esc</Kbd>
             </div>
             <Command.List className="max-h-[60vh] overflow-y-auto p-2">
               <Command.Empty className="px-3 py-6 text-center text-sm text-fg-muted">
                 {t("palette.empty")}
               </Command.Empty>
-              {trimmed && can("tickets.read") ? (
+              {trimmed && tickets ? (
                 <Command.Group heading={t("nav.tickets")} className={groupClass}>
                   {/\d/.test(trimmed) ? (
                     <Command.Item
@@ -126,23 +137,19 @@ export function CommandPalette({
                     <Shortcut keys={["g", item.shortcut]} />
                   </Command.Item>
                 ))}
-                <Command.Item
-                  value={t("nav.notifications")}
+                <PaletteItem
+                  icon={<Bell />}
+                  label={t("nav.notifications")}
                   onSelect={() => run(() => navigate({ to: "/notifications" }))}
-                  className={itemClass}
-                >
-                  <span className="flex-1 pl-[1.625rem]">{t("nav.notifications")}</span>
-                </Command.Item>
-                <Command.Item
-                  value={t("nav.account")}
+                />
+                <PaletteItem
+                  icon={<UserRound />}
+                  label={t("nav.account")}
                   onSelect={() => run(() => navigate({ to: "/account" }))}
-                  className={itemClass}
-                >
-                  <span className="flex-1 pl-[1.625rem]">{t("nav.account")}</span>
-                </Command.Item>
+                />
               </Command.Group>
               <Command.Group heading={t("palette.actions")} className={groupClass}>
-                {can("tickets.create") ? (
+                {can("tickets.create") && moduleOn("tickets") ? (
                   <PaletteItem
                     icon={<Plus />}
                     label={t("shell.newTicket")}
@@ -203,9 +210,6 @@ export function CommandPalette({
     </RadixDialog.Root>
   );
 }
-
-const groupClass =
-  "[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-fg-muted";
 
 function PaletteItem({
   icon,

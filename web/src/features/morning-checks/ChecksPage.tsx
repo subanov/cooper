@@ -3,13 +3,11 @@ import { ClipboardList, Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { DataTable } from "@/components/DataTable";
+import { type Column, DataTable } from "@/components/DataTable";
 import { FormDialog } from "@/components/Dialog";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState, ProblemNotice } from "@/components/Feedback";
 import { Checkbox, FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
+import { Page, PageHeader, Panel } from "@/components/Layout";
 import {
   analystsQuery,
   companiesQuery,
@@ -41,15 +39,65 @@ export function ChecksPage() {
       : c.routing.team_id
         ? namesById(teams.data).get(c.routing.team_id)
         : undefined;
+  const columns: Column<Check>[] = [
+    {
+      key: "name",
+      header: t("checks.name"),
+      cell: (c) => (
+        <span className="grid">
+          <span className="font-medium">{c.name}</span>
+          {c.description ? <span className="text-xs text-fg-muted">{c.description}</span> : null}
+        </span>
+      ),
+    },
+    {
+      key: "group",
+      header: t("checks.group"),
+      cell: (c) => c.check_group_name ?? t("common.noneDash"),
+    },
+    {
+      key: "routing",
+      header: t("checks.routing"),
+      cell: (c) => routing(c) ?? t("common.noneDash"),
+    },
+    {
+      key: "round",
+      header: t("common.status"),
+      cell: (c) =>
+        c.in_round ? (
+          <Badge tone="success">{t("checks.inRound")}</Badge>
+        ) : (
+          <Badge tone="muted">{c.is_active ? t("checks.notInRound") : t("common.inactive")}</Badge>
+        ),
+    },
+  ];
+  if (editable) {
+    columns.push({
+      key: "edit",
+      header: t("common.actions"),
+      hideHeader: true,
+      className: "w-12 text-right",
+      cell: (c) => (
+        <IconButton
+          size="sm"
+          tooltip="top"
+          label={t("checks.editCheck", { name: c.name })}
+          icon={<Pencil aria-hidden="true" />}
+          onClick={() => setEditing(c)}
+        />
+      ),
+    });
+  }
   return (
-    <div className="grid gap-4">
-      <SectionHeader
+    <Page>
+      <PageHeader
+        level={2}
         title={t("checks.checks")}
         actions={
           editable ? (
             <Button
               variant="primary"
-              icon={<Plus aria-hidden="true" className="size-4" />}
+              icon={<Plus aria-hidden="true" />}
               onClick={() => setEditing("new")}
             >
               {t("checks.addCheck")}
@@ -58,7 +106,7 @@ export function ChecksPage() {
         }
       />
       <ProblemNotice error={checks.error} />
-      <Card flush>
+      <Panel flush>
         <DataTable
           caption={t("checks.list")}
           rows={checks.data}
@@ -67,71 +115,16 @@ export function ChecksPage() {
           empty={
             <EmptyState icon={<ClipboardList aria-hidden="true" />} title={t("checks.emptyList")} />
           }
-          columns={[
-            {
-              id: "name",
-              header: t("checks.name"),
-              rowHeader: true,
-              cell: (c) => (
-                <span className="grid">
-                  <span className="font-medium">{c.name}</span>
-                  {c.description ? (
-                    <span className="text-xs text-fg-muted">{c.description}</span>
-                  ) : null}
-                </span>
-              ),
-            },
-            {
-              id: "group",
-              header: t("checks.group"),
-              cell: (c) => c.check_group_name ?? t("common.noneDash"),
-            },
-            {
-              id: "routing",
-              header: t("checks.routing"),
-              wide: true,
-              cell: (c) => routing(c) ?? t("common.noneDash"),
-            },
-            {
-              id: "round",
-              header: t("common.status"),
-              cell: (c) =>
-                c.in_round ? (
-                  <Badge tone="success">{t("checks.inRound")}</Badge>
-                ) : (
-                  <Badge tone="muted">
-                    {c.is_active ? t("checks.notInRound") : t("common.inactive")}
-                  </Badge>
-                ),
-            },
-            ...(editable
-              ? [
-                  {
-                    id: "edit",
-                    header: <span className="sr-only">{t("common.actions")}</span>,
-                    className: "w-12 text-right",
-                    cell: (c: Check) => (
-                      <IconButton
-                        size="sm"
-                        tooltip="top"
-                        label={t("checks.editCheck", { name: c.name })}
-                        icon={<Pencil aria-hidden="true" className="size-3.5" />}
-                        onClick={() => setEditing(c)}
-                      />
-                    ),
-                  },
-                ]
-              : []),
-          ]}
+          columns={columns}
         />
-      </Card>
+      </Panel>
       {editing ? (
         <CheckDialog
           check={editing === "new" ? undefined : editing}
           onClose={() => setEditing(null)}
         />
       ) : null}
-    </div>
+    </Page>
   );
 }
 
@@ -184,7 +177,13 @@ function CheckDialog({ check, onClose }: { check?: Check | undefined; onClose: (
       onSubmit={() => save.mutate()}
     >
       <ProblemNotice error={save.error} />
-      <TextField label={t("checks.name")} required value={form.name} onChange={set("name")} />
+      <TextField
+        label={t("checks.name")}
+        required
+        autoFocus
+        value={form.name}
+        onChange={set("name")}
+      />
       <TextAreaField
         label={t("common.description")}
         rows={2}

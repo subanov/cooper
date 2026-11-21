@@ -1,21 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { Badge, ColourLabel } from "@/components/Badge";
-import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { type Column, DataTable } from "@/components/DataTable";
+import type { Column } from "@/components/DataTable";
 import { FormDialog } from "@/components/Dialog";
-import { EmptyState } from "@/components/EmptyState";
+import { Notice, ProblemNotice } from "@/components/Feedback";
 import { Checkbox, FormGrid, SelectField, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
 import { useCan } from "@/features/session/session";
 import { useAction } from "@/features/shared/mutation";
 import type { MessageId } from "@/i18n/messages";
 import { useText } from "@/i18n/useText";
 import { api } from "@/lib/api";
 import { call } from "@/lib/request";
+import { AdminList } from "./OrganisationList";
 
 /** A row of any reference list: the union of the lookup DTOs. */
 interface Row {
@@ -191,6 +187,9 @@ const CONFIGS: Record<string, Config> = {
   },
 };
 
+/** Every kind of reference data this page edits (the route paths under Administration). */
+export const REFERENCE_KINDS = Object.keys(CONFIGS);
+
 /**
  * Reference data (statuses, Priorities, types, …): one generic list and form, so every
  * lookup works the same way (H4). Rows are deactivated, never deleted.
@@ -205,39 +204,21 @@ function ReferenceList({ config }: { config: Config }) {
   const t = useText();
   const can = useCan();
   const rows = useQuery({ queryKey: ["reference", config.queryKey], queryFn: config.list });
-  const [editing, setEditing] = useState<Row | "new" | null>(null);
-  const editable = can(config.capability);
   const byId = new Map((rows.data ?? []).map((r) => [r.id, r]));
   const sorted = [...(rows.data ?? [])].sort(
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.name.localeCompare(b.name),
   );
-  const columns: Column<Row>[] = [
-    {
-      id: "name",
-      header: t("ref.name"),
-      rowHeader: true,
-      cell: (r) => (
-        <span className="flex flex-wrap items-center gap-1.5 font-medium">
-          {config.extras.includes("colour") ? (
-            <ColourLabel colour={r.colour}>{r.name}</ColourLabel>
-          ) : (
-            r.name
-          )}
-          {r.system_key ? <Badge tone="muted">{t("ref.system")}</Badge> : null}
-        </span>
-      ),
-    },
-  ];
+  const columns: Column<Row>[] = [];
   if (config.extras.includes("parent")) {
     columns.push({
-      id: "parent",
+      key: "parent",
       header: t("ref.parent"),
       cell: (r) => (r.parent_id ? (byId.get(r.parent_id)?.name ?? "…") : t("ref.topLevel")),
     });
   }
   if (config.flags.length || config.extras.some((e) => e === "targets" || e === "prefix")) {
     columns.push({
-      id: "props",
+      key: "props",
       header: t("ref.properties"),
       cell: (r) => (
         <span className="flex flex-wrap gap-1">
@@ -264,75 +245,30 @@ function ReferenceList({ config }: { config: Config }) {
     });
   }
   if (config.ordered)
-    columns.push({
-      id: "order",
-      header: t("ref.order"),
-      wide: true,
-      cell: (r) => r.sort_order ?? 0,
-    });
-  columns.push({
-    id: "status",
-    header: t("ref.status"),
-    cell: (r) =>
-      r.is_active ? (
-        <Badge tone="success">{t("common.active")}</Badge>
-      ) : (
-        <Badge tone="muted">{t("common.inactive")}</Badge>
-      ),
-  });
-  if (editable) {
-    columns.push({
-      id: "edit",
-      header: <span className="sr-only">{t("common.actions")}</span>,
-      className: "w-12 text-right",
-      cell: (r) => (
-        <IconButton
-          size="sm"
-          tooltip="top"
-          label={t("ref.edit", { name: r.name })}
-          icon={<Pencil aria-hidden="true" className="size-3.5" />}
-          onClick={() => setEditing(r)}
-        />
-      ),
-    });
-  }
+    columns.push({ key: "order", header: t("ref.order"), cell: (r) => r.sort_order ?? 0 });
   return (
-    <>
-      <SectionHeader
-        title={t(config.title)}
-        description={t(config.intro)}
-        actions={
-          editable ? (
-            <Button
-              variant="primary"
-              icon={<Plus aria-hidden="true" className="size-4" />}
-              onClick={() => setEditing("new")}
-            >
-              {t("ref.add")}
-            </Button>
-          ) : undefined
-        }
-      />
-      <ProblemNotice error={rows.error} />
-      <Card flush>
-        <DataTable
-          caption={t(config.title)}
-          rows={rows.data ? sorted : undefined}
-          loading={rows.isPending}
-          rowKey={(r) => r.id}
-          empty={<EmptyState title={t("ref.empty")} />}
-          columns={columns}
-        />
-      </Card>
-      {editing ? (
-        <RowDialog
-          config={config}
-          row={editing === "new" ? undefined : editing}
-          rows={rows.data ?? []}
-          onClose={() => setEditing(null)}
-        />
-      ) : null}
-    </>
+    <AdminList
+      title={t(config.title)}
+      intro={t(config.intro)}
+      rows={rows.data ? sorted : undefined}
+      loading={rows.isPending}
+      error={rows.error}
+      columns={columns}
+      canEdit={can(config.capability)}
+      name={(r) => (
+        <span className="flex flex-wrap items-center gap-1.5 font-medium">
+          {config.extras.includes("colour") ? (
+            <ColourLabel colour={r.colour}>{r.name}</ColourLabel>
+          ) : (
+            r.name
+          )}
+          {r.system_key ? <Badge tone="muted">{t("ref.system")}</Badge> : null}
+        </span>
+      )}
+      renderEditor={(row, close) => (
+        <RowDialog config={config} row={row} rows={rows.data ?? []} onClose={close} />
+      )}
+    />
   );
 }
 
@@ -359,7 +295,7 @@ function RowDialog({
     response_minutes: row?.response_minutes != null ? String(row.response_minutes) : "",
     resolution_minutes: row?.resolution_minutes != null ? String(row.resolution_minutes) : "",
     number_prefix: row?.number_prefix ?? "",
-    colour: row?.colour ?? "#2f5bd3",
+    colour: row?.colour ?? "#3d3ac4",
     parent_id: row?.parent_id ?? "",
   });
   const text = (key: keyof typeof form) => (e: { target: { value: string } }) =>
@@ -400,7 +336,13 @@ function RowDialog({
         </Notice>
       ) : null}
       <FormGrid>
-        <TextField label={t("ref.name")} required value={form.name} onChange={text("name")} />
+        <TextField
+          label={t("ref.name")}
+          required
+          autoFocus
+          value={form.name}
+          onChange={text("name")}
+        />
         {config.ordered ? (
           <TextField
             label={t("ref.order")}

@@ -2,14 +2,14 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Pencil, Plus } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { FormDialog } from "@/components/Dialog";
+import { LoadingBlock, ProblemNotice, QueryState } from "@/components/Feedback";
 import { Checkbox, FormGrid, SelectField, TextAreaField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { Page, PageHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
-import { companiesQuery, toOptions } from "@/features/reference/queries";
+import { BackLink, Panel } from "@/components/Layout";
+import { DetailHeader } from "@/components/MasterDetail";
+import { companiesQuery, namesById, toOptions } from "@/features/reference/queries";
 import { useCan } from "@/features/session/session";
 import { HistoryTable } from "@/features/shared/History";
 import { fieldError, orNull, useAction } from "@/features/shared/mutation";
@@ -29,21 +29,35 @@ import { NoticeBadge } from "./NoticeBadge";
 
 type Contact = Schemas["ContactDto"];
 
-/** One Supplier with its Contacts and Contracts (FR-CON-005). */
-export function SupplierPage({ id }: { id?: string }) {
+/** One Supplier in the detail pane, with its Contacts and Contracts (FR-CON-005). */
+export function SupplierPage({ id }: { id?: string | undefined }) {
+  const t = useText();
   const query = useQuery({ ...supplierQuery(id ?? ""), enabled: Boolean(id) });
   if (!id) return <SupplierView />;
-  return (
-    <QueryState
-      query={query}
-      loading={
-        <Page>
+  if (!query.data) {
+    return (
+      <div className="mx-auto grid max-w-6xl gap-4 p-4 sm:p-6">
+        <DetailHeader
+          back={<BackToSuppliers />}
+          title={query.isError ? t("suppliers.unavailable") : t("common.loading")}
+        />
+        {query.isError ? (
+          <ProblemNotice error={query.error} onRetry={() => void query.refetch()} />
+        ) : (
           <LoadingBlock lines={8} />
-        </Page>
-      }
-    >
-      {(supplier) => <SupplierView key={supplier.updated_at} supplier={supplier} />}
-    </QueryState>
+        )}
+      </div>
+    );
+  }
+  return <SupplierView key={query.data.updated_at} supplier={query.data} />;
+}
+
+function BackToSuppliers() {
+  const t = useText();
+  return (
+    <BackLink to="/suppliers" search={true}>
+      {t("suppliers.back")}
+    </BackLink>
   );
 }
 
@@ -93,40 +107,70 @@ function SupplierView({ supplier }: { supplier?: Supplier }) {
       invalidate: [["contracts"]],
       success: supplier ? "suppliers.saved" : "suppliers.created",
       onSuccess: (saved) => {
-        if (!supplier) void navigate({ to: "/suppliers/$id", params: { id: saved.id } });
+        if (!supplier)
+          void navigate({ to: "/suppliers/$id", params: { id: saved.id }, search: true });
       },
     },
   );
   const activeCompanies = (companies.data ?? []).filter((c) => c.is_active);
+  const nameError =
+    tried && !form.legal_name.trim()
+      ? t("contracts.required")
+      : fieldError(save.error, "legal_name");
   return (
-    <Page>
-      <PageHeader
-        back={{ to: "/suppliers", label: t("suppliers.back") }}
+    <article className="mx-auto grid max-w-6xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToSuppliers />}
+        eyebrow={
+          supplier ? (
+            <>
+              {supplier.trading_name ? <span>{supplier.trading_name}</span> : null}
+              <span>{namesById(companies.data).get(supplier.company_id) ?? ""}</span>
+            </>
+          ) : undefined
+        }
         title={supplier ? supplier.legal_name : t("suppliers.newTitle")}
+        badges={
+          supplier ? (
+            <>
+              <Badge tone={supplier.is_active ? "success" : "muted"}>
+                {supplier.is_active ? t("common.active") : t("common.inactive")}
+              </Badge>
+              {supplier.supplier_status_id ? (
+                <Badge tone="neutral">
+                  {namesById(statuses.data).get(supplier.supplier_status_id) ?? "…"}
+                </Badge>
+              ) : null}
+            </>
+          ) : undefined
+        }
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <Card title={t("suppliers.details")}>
-          <fieldset disabled={!can("contracts.write")} className="contents">
+      <div
+        className={
+          supplier ? "grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]" : "grid max-w-3xl gap-5"
+        }
+      >
+        <div className="grid min-w-0 content-start gap-5">
+          <Panel title={t("suppliers.details")}>
             <RecordForm
               busy={save.isPending}
-              error={save.error}
+              error={nameError ? null : save.error}
               dirty={dirty && Boolean(supplier)}
+              disabled={!can("contracts.write")}
               submitLabel={supplier ? t("common.saveChanges") : t("common.create")}
               onSubmit={() => {
                 setTried(true);
                 if (form.legal_name.trim()) save.mutate();
+                else document.getElementById("supplier-name")?.focus();
               }}
             >
               <FormGrid>
                 <TextField
+                  id="supplier-name"
                   label={t("suppliers.legalName")}
                   required
                   value={form.legal_name}
-                  error={
-                    tried && !form.legal_name.trim()
-                      ? t("contracts.required")
-                      : fieldError(save.error, "legal_name")
-                  }
+                  error={nameError}
                   onChange={set("legal_name")}
                 />
                 <TextField
@@ -180,21 +224,21 @@ function SupplierView({ supplier }: { supplier?: Supplier }) {
                 onChange={(e) => setForm((x) => ({ ...x, is_active: e.target.checked }))}
               />
             </RecordForm>
-          </fieldset>
-        </Card>
+          </Panel>
+          {supplier ? (
+            <Panel title={t("suppliers.history")} flush>
+              <SupplierHistory id={supplier.id} />
+            </Panel>
+          ) : null}
+        </div>
         {supplier ? (
-          <aside className="grid content-start gap-4">
+          <aside className="grid content-start gap-4" aria-label={t("suppliers.contacts")}>
             <Contacts supplier={supplier} />
             <SupplierContracts supplierId={supplier.id} />
           </aside>
         ) : null}
       </div>
-      {supplier ? (
-        <Card title={t("suppliers.history")} flush>
-          <SupplierHistory id={supplier.id} />
-        </Card>
-      ) : null}
-    </Page>
+    </article>
   );
 }
 
@@ -204,13 +248,14 @@ function Contacts({ supplier }: { supplier: Supplier }) {
   const contacts = useQuery(contactsQuery(supplier.id));
   const [editing, setEditing] = useState<Contact | "new" | null>(null);
   return (
-    <Card
+    <Panel
       title={t("suppliers.contacts")}
       actions={
         can("contracts.write") ? (
           <Button
             size="sm"
-            icon={<Plus aria-hidden="true" className="size-4" />}
+            variant="ghost"
+            icon={<Plus aria-hidden="true" />}
             onClick={() => setEditing("new")}
           >
             {t("suppliers.addContact")}
@@ -255,7 +300,7 @@ function Contacts({ supplier }: { supplier: Supplier }) {
                       size="sm"
                       tooltip="top"
                       label={t("suppliers.editContact", { name: c.full_name })}
-                      icon={<Pencil aria-hidden="true" className="size-3.5" />}
+                      icon={<Pencil aria-hidden="true" />}
                       onClick={() => setEditing(c)}
                     />
                   ) : null}
@@ -272,7 +317,7 @@ function Contacts({ supplier }: { supplier: Supplier }) {
           onClose={() => setEditing(null)}
         />
       ) : null}
-    </Card>
+    </Panel>
   );
 }
 
@@ -384,7 +429,7 @@ function SupplierContracts({ supplierId }: { supplierId: string }) {
   const list = useInfiniteQuery(contractsQuery({ supplier: supplierId }));
   const rows = list.data?.pages.flatMap((p) => p.items) ?? [];
   return (
-    <Card title={t("suppliers.contracts")}>
+    <Panel title={t("suppliers.contracts")}>
       {list.isPending ? (
         <LoadingBlock lines={2} />
       ) : rows.length === 0 ? (
@@ -406,7 +451,7 @@ function SupplierContracts({ supplierId }: { supplierId: string }) {
           ))}
         </ul>
       )}
-    </Card>
+    </Panel>
   );
 }
 

@@ -4,13 +4,12 @@ import { Archive, LogIn, LogOut, Unlink } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button, IconButton } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { Combobox, type PickerOption } from "@/components/Combobox";
 import { FormDialog } from "@/components/Dialog";
+import { LoadingBlock, Notice, ProblemNotice, QueryState } from "@/components/Feedback";
 import { Fieldset, FormGrid, SelectField, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { Page, PageHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { BackLink, Panel } from "@/components/Layout";
+import { DetailHeader } from "@/components/MasterDetail";
 import { Segmented } from "@/components/Tabs";
 import { allSuppliersQuery } from "@/features/contracts/api";
 import { RequesterPicker, TicketPicker } from "@/features/reference/pickers";
@@ -19,6 +18,7 @@ import {
   analystsQuery,
   companiesQuery,
   costCentresQuery,
+  namesById,
   toOptions,
 } from "@/features/reference/queries";
 import { useCan, useModuleOn } from "@/features/session/session";
@@ -41,21 +41,35 @@ import {
 } from "./api";
 import { HolderName } from "./HolderName";
 
-/** One Asset: details, custody, retirement, links and history (FR-AST-001…006). */
-export function AssetPage({ id }: { id?: string }) {
+/** One Asset in the detail pane: details, custody, retirement, links, history (FR-AST-001…006). */
+export function AssetPage({ id }: { id?: string | undefined }) {
+  const t = useText();
   const query = useQuery({ ...assetQuery(id ?? ""), enabled: Boolean(id) });
   if (!id) return <AssetView />;
-  return (
-    <QueryState
-      query={query}
-      loading={
-        <Page>
+  if (!query.data) {
+    return (
+      <div className="mx-auto grid max-w-6xl gap-4 p-4 sm:p-6">
+        <DetailHeader
+          back={<BackToAssets />}
+          title={query.isError ? t("assets.unavailable") : t("common.loading")}
+        />
+        {query.isError ? (
+          <ProblemNotice error={query.error} onRetry={() => void query.refetch()} />
+        ) : (
           <LoadingBlock lines={8} />
-        </Page>
-      }
-    >
-      {(asset) => <AssetView key={asset.updated_at} asset={asset} />}
-    </QueryState>
+        )}
+      </div>
+    );
+  }
+  return <AssetView key={query.data.updated_at} asset={query.data} />;
+}
+
+function BackToAssets() {
+  const t = useText();
+  return (
+    <BackLink to="/assets" search={true}>
+      {t("assets.back")}
+    </BackLink>
   );
 }
 
@@ -127,20 +141,33 @@ function AssetView({ asset }: { asset?: Asset }) {
       invalidate: [["assets"]],
       success: asset ? "assets.saved" : "assets.created",
       onSuccess: (saved) => {
-        if (!asset) void navigate({ to: "/assets/$id", params: { id: saved.id } });
+        if (!asset) void navigate({ to: "/assets/$id", params: { id: saved.id }, search: true });
       },
     },
   );
   const err = (field: string) => fieldError(save.error, field);
   const name = asset ? (assetName(asset) ?? t("assets.unnamed")) : t("assets.new");
   const activeCompanies = (companies.data ?? []).filter((c) => c.is_active);
+  const canCustody = Boolean(asset) && can("assets.update") && !asset?.retired_on;
 
   return (
-    <Page>
-      <PageHeader
-        back={{ to: "/assets", label: t("assets.back") }}
+    <article className="mx-auto grid max-w-6xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToAssets />}
+        eyebrow={
+          asset ? (
+            <>
+              <span>
+                {(asset.asset_type_id && namesById(types.data).get(asset.asset_type_id)) ||
+                  t("assets.asset")}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>{namesById(companies.data).get(asset.company_id) ?? ""}</span>
+            </>
+          ) : undefined
+        }
         title={name}
-        meta={
+        badges={
           asset ? (
             asset.retired_on ? (
               <Badge tone="muted">{t("assets.retired")}</Badge>
@@ -148,6 +175,27 @@ function AssetView({ asset }: { asset?: Asset }) {
               <Badge tone="accent">{t("assets.checkedOut")}</Badge>
             ) : (
               <Badge tone="success">{t("assets.available")}</Badge>
+            )
+          ) : undefined
+        }
+        actions={
+          canCustody && asset ? (
+            asset.checkout ? (
+              <Button
+                variant="primary"
+                icon={<LogIn aria-hidden="true" />}
+                onClick={() => setDialog("in")}
+              >
+                {t("assets.checkIn")}
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                icon={<LogOut aria-hidden="true" />}
+                onClick={() => setDialog("out")}
+              >
+                {t("assets.checkOut")}
+              </Button>
             )
           ) : undefined
         }
@@ -160,17 +208,21 @@ function AssetView({ asset }: { asset?: Asset }) {
           })}
         </Notice>
       ) : null}
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <Card>
-          <fieldset disabled={!editable} className="contents">
+      <div
+        className={asset ? "grid gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]" : "grid max-w-3xl gap-5"}
+      >
+        <div className="grid min-w-0 content-start gap-5">
+          <Panel>
             <RecordForm
               busy={save.isPending}
               error={save.error}
               dirty={dirty && Boolean(asset)}
+              disabled={!editable}
               submitLabel={asset ? t("common.saveChanges") : t("common.create")}
               onSubmit={() => {
                 setTried(true);
                 if (hasIdentity) save.mutate();
+                else document.getElementById("asset-tag")?.focus();
               }}
             >
               <Fieldset legend={t("assets.identity")} description={t("assets.identityHint")}>
@@ -179,6 +231,7 @@ function AssetView({ asset }: { asset?: Asset }) {
                 ) : null}
                 <FormGrid columns={3}>
                   <TextField
+                    id="asset-tag"
                     label={t("assets.assetTag")}
                     value={form.asset_tag}
                     error={err("asset_tag")}
@@ -306,62 +359,44 @@ function AssetView({ asset }: { asset?: Asset }) {
                 </FormGrid>
               </Fieldset>
             </RecordForm>
-          </fieldset>
-        </Card>
+          </Panel>
+          {asset ? (
+            <Panel title={t("assets.history")} flush>
+              <AssetHistory id={asset.id} />
+            </Panel>
+          ) : null}
+        </div>
         {asset ? (
-          <aside className="grid content-start gap-4">
-            <Card title={t("assets.custody")}>
-              <div className="grid gap-3">
-                {asset.checkout ? (
-                  <div className="grid gap-0.5 text-sm">
-                    <span className="font-semibold">
-                      <HolderName holder={asset.checkout.holder} />
-                    </span>
+          <aside className="grid content-start gap-4" aria-label={t("assets.related")}>
+            <Panel title={t("assets.custody")}>
+              {asset.checkout ? (
+                <div className="grid gap-0.5 text-sm">
+                  <span className="font-semibold">
+                    <HolderName holder={asset.checkout.holder} />
+                  </span>
+                  <span className="text-xs text-fg-muted">
+                    {t("assets.heldSince", { date: f.date(asset.checkout.checked_out_at) })}
+                  </span>
+                  {asset.checkout.due_back_on ? (
                     <span className="text-xs text-fg-muted">
-                      {t("assets.heldSince", { date: f.date(asset.checkout.checked_out_at) })}
+                      {t("assets.dueBack", { date: f.day(asset.checkout.due_back_on) })}
                     </span>
-                    {asset.checkout.due_back_on ? (
-                      <span className="text-xs text-fg-muted">
-                        {t("assets.dueBack", { date: f.day(asset.checkout.due_back_on) })}
-                      </span>
-                    ) : null}
-                  </div>
-                ) : (
-                  <p className="text-sm">{t("assets.notOut")}</p>
-                )}
-                {can("assets.update") && !asset.retired_on ? (
-                  <div className="flex flex-wrap gap-2">
-                    {asset.checkout ? (
-                      <Button
-                        variant="primary"
-                        icon={<LogIn aria-hidden="true" className="size-4" />}
-                        onClick={() => setDialog("in")}
-                      >
-                        {t("assets.checkIn")}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        icon={<LogOut aria-hidden="true" className="size-4" />}
-                        onClick={() => setDialog("out")}
-                      >
-                        {t("assets.checkOut")}
-                      </Button>
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            </Card>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm">{t("assets.notOut")}</p>
+              )}
+            </Panel>
             <AssetLinks asset={asset} />
             <CheckoutLog id={asset.id} />
-            {can("assets.update") && !asset.retired_on ? (
-              <Card>
+            {canCustody ? (
+              <Panel title={t("assets.retire")}>
                 <div className="grid gap-2">
                   <p className="text-xs text-fg-muted">{t("assets.retireIntro")}</p>
                   <div>
                     <Button
                       variant="danger"
-                      icon={<Archive aria-hidden="true" className="size-4" />}
+                      icon={<Archive aria-hidden="true" />}
                       disabled={Boolean(asset.checkout)}
                       onClick={() => setDialog("retire")}
                     >
@@ -369,16 +404,13 @@ function AssetView({ asset }: { asset?: Asset }) {
                     </Button>
                   </div>
                 </div>
-              </Card>
+              </Panel>
             ) : null}
           </aside>
         ) : null}
       </div>
       {asset ? (
         <>
-          <Card title={t("assets.history")} flush>
-            <AssetHistory id={asset.id} />
-          </Card>
           <CheckOutDialog
             asset={asset}
             name={name}
@@ -399,7 +431,7 @@ function AssetView({ asset }: { asset?: Asset }) {
           />
         </>
       ) : null}
-    </Page>
+    </article>
   );
 }
 
@@ -446,7 +478,7 @@ function CheckOutDialog({
     >
       <ProblemNotice error={out.error} />
       <Segmented
-        hideLabel={false}
+        showLabel
         label={t("assets.holderKind")}
         value={kind}
         onChange={(k) => {
@@ -561,6 +593,7 @@ function RetireDialog({
       title={t("assets.retireTitle", { name })}
       description={t("assets.retireIntro")}
       submitLabel={t("assets.retire")}
+      tone="danger"
       busy={retire.isPending}
       onSubmit={() => {
         setTried(true);
@@ -615,10 +648,14 @@ function AssetLinks({ asset }: { asset: Asset }) {
     {
       invalidate: [["assets", "detail", asset.id]],
       success: "common.unlinked",
+      undo: (_, l) =>
+        l.kind === "ticket"
+          ? { label: t("common.undo"), run: (): void => link.mutate(l.target_id) }
+          : undefined,
     },
   );
   return (
-    <Card title={t("assets.links")}>
+    <Panel title={t("assets.links")}>
       <div className="grid gap-3">
         <QueryState query={links}>
           {(list) =>
@@ -654,7 +691,7 @@ function AssetLinks({ asset }: { asset: Asset }) {
                         size="sm"
                         tooltip="top"
                         label={t("common.unlinkNamed", { name: l.number })}
-                        icon={<Unlink aria-hidden="true" className="size-4" />}
+                        icon={<Unlink aria-hidden="true" />}
                         onClick={() => unlink.mutate(l)}
                       />
                     ) : null}
@@ -687,7 +724,7 @@ function AssetLinks({ asset }: { asset: Asset }) {
         ) : null}
         <ProblemNotice error={link.error ?? unlink.error} />
       </div>
-    </Card>
+    </Panel>
   );
 }
 
@@ -696,7 +733,7 @@ function CheckoutLog({ id }: { id: string }) {
   const f = useFormat();
   const log = useQuery(checkoutsQuery(id));
   return (
-    <Card title={t("assets.checkoutLog")}>
+    <Panel title={t("assets.checkoutLog")}>
       <QueryState query={log}>
         {(rows) =>
           rows.length === 0 ? (
@@ -725,7 +762,7 @@ function CheckoutLog({ id }: { id: string }) {
           )
         }
       </QueryState>
-    </Card>
+    </Panel>
   );
 }
 

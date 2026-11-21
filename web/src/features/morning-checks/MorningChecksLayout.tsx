@@ -1,22 +1,21 @@
 import { Outlet } from "@tanstack/react-router";
-import { Page, PageHeader } from "@/components/Page";
-import { NavTabs } from "@/components/Tabs";
+import { SectionFrame } from "@/components/MasterDetail";
 import { useText } from "@/i18n/useText";
 
-/** Morning Checks sections: today's Round and the Checks. */
+/** Morning Checks sections: today's Round and the Checks behind it. */
 export function MorningChecksLayout() {
   const t = useText();
   return (
-    <Page width="wide">
-      <PageHeader title={t("checks.title")} description={t("checks.intro")} />
-      <NavTabs
-        label={t("checks.sections")}
-        items={[
-          { to: "/morning-checks/today", label: t("checks.round") },
-          { to: "/morning-checks/checks", label: t("checks.checks") },
-        ]}
-      />
+    <SectionFrame
+      title={t("checks.title")}
+      description={t("checks.intro")}
+      tabsLabel={t("checks.sections")}
+      tabs={[
+        { to: "/morning-checks/today", label: t("checks.round") },
+        { to: "/morning-checks/checks", label: t("checks.checks") },
+      ]}
+    >
       <Outlet />
-    </Page>
+    </SectionFrame>
   );
 }

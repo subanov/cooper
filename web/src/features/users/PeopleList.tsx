@@ -1,8 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Search } from "lucide-react";
-import { type FormEvent, useEffect, useState } from "react";
-import { Checkbox, Input } from "@/components/Field";
-import { FilterBar } from "@/components/Page";
+import { Checkbox } from "@/components/Field";
+import { SearchBox } from "@/components/ListSearch";
 import { useText } from "@/i18n/useText";
 
 export interface PeopleSearch {
@@ -20,32 +18,15 @@ export function PeopleFilters({
 }) {
   const t = useText();
   const navigate = useNavigate();
-  const [q, setQ] = useState(search.q ?? "");
-  useEffect(() => setQ(search.q ?? ""), [search.q]);
   return (
-    <FilterBar label={t("common.filters")}>
-      <form
-        className="relative w-full max-w-xs"
-        onSubmit={(e: FormEvent) => {
-          e.preventDefault();
-          void navigate({ to, search: { ...search, q: q.trim() || undefined } });
-        }}
-      >
-        <Search
-          aria-hidden="true"
-          className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-fg-muted"
-        />
-        <Input
-          type="search"
-          aria-label={t("users.search")}
-          placeholder={t("users.searchPlaceholder")}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="pl-8"
-        />
-      </form>
+    <>
+      <SearchBox
+        label={t("users.search")}
+        placeholder={t("users.searchPlaceholder")}
+        value={search.q}
+        onSubmit={(q) => void navigate({ to, search: { ...search, q } })}
+      />
       <Checkbox
-        className="h-9 items-center"
         label={t("users.includeInactive")}
         checked={Boolean(search.inactive)}
         onChange={(e) =>
@@ -55,6 +36,6 @@ export function PeopleFilters({
           })
         }
       />
-    </FilterBar>
+    </>
   );
 }

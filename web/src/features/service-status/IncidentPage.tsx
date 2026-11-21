@@ -4,8 +4,8 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { Badge, ColourLabel } from "@/components/Badge";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
 import { FormDialog } from "@/components/Dialog";
+import { LoadingBlock, Notice, ProblemNotice } from "@/components/Feedback";
 import {
   Checkbox,
   Fieldset,
@@ -14,9 +14,8 @@ import {
   TextAreaField,
   TextField,
 } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { BackLink, Panel } from "@/components/Layout";
+import { DetailHeader } from "@/components/MasterDetail";
 import { namesById, toOptions } from "@/features/reference/queries";
 import { useCan } from "@/features/session/session";
 import { useActorName } from "@/features/shared/History";
@@ -29,14 +28,35 @@ import { impactLevelsQuery, incidentQuery, incidentStatusesQuery, servicesQuery 
 
 type Impacts = Record<string, string>;
 
-/** A Service Incident: open a new one, or follow and update an existing one (FR-SST-002…004). */
-export function IncidentPage({ id }: { id?: string }) {
+/** A Service Incident in the detail pane: open a new one, or follow and update one (FR-SST-002…004). */
+export function IncidentPage({ id }: { id?: string | undefined }) {
+  const t = useText();
   const query = useQuery({ ...incidentQuery(id ?? ""), enabled: Boolean(id) });
   if (!id) return <NewIncident />;
+  if (!query.data) {
+    return (
+      <div className="mx-auto grid max-w-5xl gap-4 p-4 sm:p-6">
+        <DetailHeader
+          back={<BackToIncidents />}
+          title={query.isError ? t("status.unavailable") : t("common.loading")}
+        />
+        {query.isError ? (
+          <ProblemNotice error={query.error} onRetry={() => void query.refetch()} />
+        ) : (
+          <LoadingBlock lines={8} />
+        )}
+      </div>
+    );
+  }
+  return <IncidentView detail={query.data} />;
+}
+
+function BackToIncidents() {
+  const t = useText();
   return (
-    <QueryState query={query} loading={<LoadingBlock lines={8} />}>
-      {(detail) => <IncidentView detail={detail} />}
-    </QueryState>
+    <BackLink to="/service-status/incidents" search={true}>
+      {t("status.back")}
+    </BackLink>
   );
 }
 
@@ -58,7 +78,7 @@ function ImpactEditor({
   const active = (services.data ?? []).filter((s) => s.is_active);
   return (
     <Fieldset legend={legend}>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         {active.map((s) => (
           <div key={s.id} className="grid gap-1">
             <label htmlFor={`impact-${s.id}`} className="text-[0.8125rem] font-medium">
@@ -118,27 +138,29 @@ function NewIncident() {
       invalidate: [["service-status"]],
       success: "status.opened",
       onSuccess: (d) =>
-        navigate({ to: "/service-status/incidents/$id", params: { id: d.incident.id } }),
+        navigate({
+          to: "/service-status/incidents/$id",
+          params: { id: d.incident.id },
+          search: true,
+        }),
     },
   );
   return (
-    <div className="grid gap-4">
-      <SectionHeader
-        back={{ to: "/service-status/incidents", label: t("status.back") }}
-        title={t("status.newTitle")}
-      />
-      <Card>
+    <section className="mx-auto grid max-w-3xl gap-5 p-4 sm:p-6">
+      <DetailHeader back={<BackToIncidents />} title={t("status.newTitle")} />
+      <Panel>
         <RecordForm
           busy={open.isPending}
           error={open.error}
-          dirty={false}
           submitLabel={t("status.openIncident")}
           onSubmit={() => {
             setTried(true);
             if (title.trim() && services.length > 0) open.mutate();
+            else if (!title.trim()) document.getElementById("incident-title")?.focus();
           }}
         >
           <TextField
+            id="incident-title"
             label={t("status.titleField")}
             required
             value={title}
@@ -169,8 +191,8 @@ function NewIncident() {
             onChange={(e) => setIsPublic(e.target.checked)}
           />
         </RecordForm>
-      </Card>
-    </div>
+      </Panel>
+    </section>
   );
 }
 
@@ -189,41 +211,47 @@ function IncidentView({ detail }: { detail: Schemas["ServiceIncidentDetailDto"] 
   const levelById = new Map((levels.data ?? []).map((l) => [l.id, l]));
   const updates = [...detail.updates].sort((a, b) => b.posted_at.localeCompare(a.posted_at));
   return (
-    <div className="grid gap-4">
-      <SectionHeader
-        back={{ to: "/service-status/incidents", label: t("status.back") }}
+    <article className="mx-auto grid max-w-5xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToIncidents />}
+        eyebrow={
+          <span>
+            {t("status.started")} {f.dateTime(incident.started_at)}
+            {incident.resolved_at
+              ? ` · ${t("status.resolved")} ${f.dateTime(incident.resolved_at)}`
+              : ""}
+          </span>
+        }
         title={incident.title}
-        description={`${t("status.started")} ${f.dateTime(incident.started_at)}${incident.resolved_at ? ` · ${t("status.resolved")} ${f.dateTime(incident.resolved_at)}` : ""}`}
+        badges={
+          <>
+            <Badge tone={incident.is_resolved ? "muted" : "warning"}>
+              {statusNames.get(incident.status_id) ?? "…"}
+            </Badge>
+            {incident.services.map((s) => {
+              const level = levelById.get(s.impact_level_id);
+              return (
+                <span
+                  key={s.service_id}
+                  className="inline-flex h-6 items-center gap-1.5 rounded-full border border-line px-2 text-xs"
+                >
+                  {serviceNames.get(s.service_id) ?? "…"}:
+                  <ColourLabel colour={level?.colour}>{level?.name ?? "…"}</ColourLabel>
+                </span>
+              );
+            })}
+          </>
+        }
         actions={
           can("service-status.update") ? (
-            <Button
-              icon={<Pencil aria-hidden="true" className="size-4" />}
-              onClick={() => setRename(true)}
-            >
+            <Button icon={<Pencil aria-hidden="true" />} onClick={() => setRename(true)}>
               {t("status.rename")}
             </Button>
           ) : undefined
         }
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={incident.is_resolved ? "muted" : "warning"}>
-          {statusNames.get(incident.status_id) ?? "…"}
-        </Badge>
-        {incident.services.map((s) => {
-          const level = levelById.get(s.impact_level_id);
-          return (
-            <span
-              key={s.service_id}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-xs"
-            >
-              {serviceNames.get(s.service_id) ?? "…"}:
-              <ColourLabel colour={level?.colour}>{level?.name ?? "…"}</ColourLabel>
-            </span>
-          );
-        })}
-      </div>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
-        <Card title={t("status.updates")}>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <Panel title={t("status.updates")}>
           {updates.length === 0 ? (
             <p className="text-sm text-fg-muted">{t("status.noUpdates")}</p>
           ) : (
@@ -244,11 +272,11 @@ function IncidentView({ detail }: { detail: Schemas["ServiceIncidentDetailDto"] 
               ))}
             </ol>
           )}
-        </Card>
+        </Panel>
         {can("service-status.update") ? <PostUpdate incident={incident} /> : null}
       </div>
       {rename ? <RenameDialog incident={incident} onClose={() => setRename(false)} /> : null}
-    </div>
+    </article>
   );
 }
 
@@ -292,7 +320,7 @@ function PostUpdate({ incident }: { incident: Schemas["ServiceIncidentDto"] }) {
     },
   );
   return (
-    <Card title={t("status.postUpdate")}>
+    <Panel title={t("status.postUpdate")} className="self-start">
       <form
         className="grid gap-4"
         onSubmit={(e) => {
@@ -337,7 +365,7 @@ function PostUpdate({ incident }: { incident: Schemas["ServiceIncidentDto"] }) {
           </Button>
         </div>
       </form>
-    </Card>
+    </Panel>
   );
 }
 
@@ -375,6 +403,7 @@ function RenameDialog({
       <TextField
         label={t("status.titleField")}
         required
+        autoFocus
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />

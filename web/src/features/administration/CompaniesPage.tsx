@@ -3,14 +3,14 @@ import { useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
 import { FormDialog } from "@/components/Dialog";
+import { ProblemNotice } from "@/components/Feedback";
 import { FormGrid, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
 import { companiesQuery } from "@/features/reference/queries";
 import { fieldError, useAction } from "@/features/shared/mutation";
 import { useText } from "@/i18n/useText";
 import { api, type Schemas } from "@/lib/api";
 import { call } from "@/lib/request";
-import { OrganisationList } from "./OrganisationPages";
+import { AdminList } from "./OrganisationList";
 
 type Company = Schemas["CompanyDto"];
 
@@ -19,29 +19,28 @@ export function CompaniesPage() {
   const t = useText();
   const companies = useQuery(companiesQuery);
   return (
-    <OrganisationList
+    <AdminList
       title={t("admin.companies")}
       intro={t("admin.companies.intro")}
       rows={companies.data}
       loading={companies.isPending}
       error={companies.error}
+      name={(c) => (
+        <span className="flex flex-wrap items-center gap-1.5 font-medium">
+          {c.name}
+          {c.is_default ? <Badge tone="accent">{t("admin.companies.default")}</Badge> : null}
+        </span>
+      )}
       columns={[
         {
-          id: "code",
+          key: "code",
           header: t("admin.companies.ticketCode"),
           cell: (c) => <span className="font-mono">{c.ticket_code}</span>,
         },
         {
-          id: "domains",
+          key: "domains",
           header: t("admin.companies.senderDomains"),
-          wide: true,
           cell: (c) => c.sender_domains.join(", ") || t("common.noneDash"),
-        },
-        {
-          id: "default",
-          header: <span className="sr-only">{t("admin.companies.default")}</span>,
-          cell: (c) =>
-            c.is_default ? <Badge tone="accent">{t("admin.companies.default")}</Badge> : null,
         },
       ]}
       renderEditor={(row, close) => <CompanyDialog company={row} onClose={close} />}
@@ -64,7 +63,7 @@ function CompanyDialog({
     name: name.trim(),
     ticket_code: code.trim().toUpperCase(),
     sender_domains: domains
-      .split(",")
+      .split(/[,\s]+/)
       .map((d) => d.trim())
       .filter(Boolean),
   });
@@ -84,23 +83,30 @@ function CompanyDialog({
       onSuccess: onClose,
     },
   );
-  const toggle = useAction(
+  const reactivate = useAction(
     () =>
-      company?.is_active
-        ? call(
-            api.POST("/api/v1/companies/{id}/deactivate", { params: { path: { id: company.id } } }),
-          )
-        : call(
-            api.POST("/api/v1/companies/{id}/reactivate", {
-              params: { path: { id: company?.id ?? "" } },
-            }),
-          ),
+      call(
+        api.POST("/api/v1/companies/{id}/reactivate", {
+          params: { path: { id: company?.id ?? "" } },
+        }),
+      ),
     {
       invalidate: [["reference", "companies"]],
-      success: () =>
-        t(company?.is_active ? "admin.companies.deactivated" : "admin.companies.reactivated", {
-          name: company?.name ?? "",
+      success: () => t("admin.companies.reactivated", { name: company?.name ?? "" }),
+      onSuccess: onClose,
+    },
+  );
+  const deactivate = useAction(
+    () =>
+      call(
+        api.POST("/api/v1/companies/{id}/deactivate", {
+          params: { path: { id: company?.id ?? "" } },
         }),
+      ),
+    {
+      invalidate: [["reference", "companies"]],
+      success: () => t("admin.companies.deactivated", { name: company?.name ?? "" }),
+      undo: () => ({ label: t("common.undo"), run: (): void => reactivate.mutate() }),
       onSuccess: onClose,
     },
   );
@@ -114,11 +120,12 @@ function CompanyDialog({
       submitDisabled={!name.trim() || !code.trim()}
       onSubmit={() => save.mutate()}
     >
-      <ProblemNotice error={save.error ?? toggle.error} />
+      <ProblemNotice error={save.error ?? deactivate.error ?? reactivate.error} />
       <FormGrid>
         <TextField
           label={t("ref.name")}
           required
+          autoFocus
           value={name}
           error={fieldError(save.error, "name")}
           onChange={(e) => setName(e.target.value)}
@@ -142,14 +149,20 @@ function CompanyDialog({
       />
       {company && !company.is_default ? (
         <div className="border-t border-line pt-3">
-          <Button
-            variant={company.is_active ? "ghost" : "secondary"}
-            className={company.is_active ? "text-danger-text" : undefined}
-            loading={toggle.isPending}
-            onClick={() => toggle.mutate()}
-          >
-            {company.is_active ? t("admin.companies.deactivate") : t("admin.companies.reactivate")}
-          </Button>
+          {company.is_active ? (
+            <Button
+              variant="ghost"
+              className="text-danger-text"
+              loading={deactivate.isPending}
+              onClick={() => deactivate.mutate()}
+            >
+              {t("admin.companies.deactivate")}
+            </Button>
+          ) : (
+            <Button loading={reactivate.isPending} onClick={() => reactivate.mutate()}>
+              {t("admin.companies.reactivate")}
+            </Button>
+          )}
         </div>
       ) : null}
     </FormDialog>

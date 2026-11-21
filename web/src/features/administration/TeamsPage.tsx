@@ -3,15 +3,16 @@ import { useState } from "react";
 import { Button } from "@/components/Button";
 import { CheckboxList } from "@/components/CheckboxList";
 import { Dialog } from "@/components/Dialog";
+import { Notice, ProblemNotice } from "@/components/Feedback";
 import { Checkbox, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
+import { Tabs } from "@/components/Tabs";
 import { analystsQuery, rolesQuery, teamsQuery } from "@/features/reference/queries";
 import { useAction } from "@/features/shared/mutation";
 import { CompanyAccessEditor } from "@/features/users/CompanyAccessEditor";
 import { useText } from "@/i18n/useText";
 import { api, type Schemas } from "@/lib/api";
 import { call } from "@/lib/request";
-import { OrganisationList } from "./OrganisationPages";
+import { AdminList } from "./OrganisationList";
 
 type Team = Schemas["TeamDto"];
 
@@ -20,7 +21,7 @@ export function TeamsPage() {
   const t = useText();
   const teams = useQuery(teamsQuery);
   return (
-    <OrganisationList
+    <AdminList
       title={t("admin.teams")}
       intro={t("admin.teams.intro")}
       rows={teams.data}
@@ -28,14 +29,13 @@ export function TeamsPage() {
       error={teams.error}
       columns={[
         {
-          id: "members",
+          key: "members",
           header: t("admin.teams.members"),
           cell: (q) => t("admin.teams.memberCount", { count: q.analyst_ids.length }),
         },
         {
-          id: "description",
+          key: "description",
           header: t("common.description"),
-          wide: true,
           cell: (q) => q.description || t("common.noneDash"),
         },
       ]}
@@ -44,6 +44,7 @@ export function TeamsPage() {
   );
 }
 
+/** A Team in one dialog, its parts as tabs (chunking: Miller's Law). */
 function TeamDialog({ teamId, onClose }: { teamId?: string | undefined; onClose: () => void }) {
   const t = useText();
   const teams = useQuery(teamsQuery);
@@ -56,20 +57,32 @@ function TeamDialog({ teamId, onClose }: { teamId?: string | undefined; onClose:
       title={team ? t("ref.edit", { name: team.name }) : t("ref.add")}
       size="lg"
     >
-      <div className="grid gap-6">
-        <TeamDetails team={team} onCreated={setCreatedId} />
-        {team ? (
-          <>
-            <TeamMembers team={team} />
-            <TeamRoles team={team} />
-            <TeamAccess team={team} />
-          </>
-        ) : (
+      {team ? (
+        <Tabs
+          label={t("admin.teams.parts")}
+          tabs={[
+            {
+              id: "details",
+              label: t("admin.teams.details"),
+              content: <TeamDetails team={team} onCreated={setCreatedId} />,
+            },
+            {
+              id: "members",
+              label: t("admin.teams.members"),
+              content: <TeamMembers team={team} />,
+            },
+            { id: "roles", label: t("users.roles"), content: <TeamRoles team={team} /> },
+            { id: "access", label: t("users.companyAccess"), content: <TeamAccess team={team} /> },
+          ]}
+        />
+      ) : (
+        <div className="grid gap-4">
+          <TeamDetails onCreated={setCreatedId} />
           <Notice tone="info" live={false}>
             {t("admin.teams.saveFirst")}
           </Notice>
-        )}
-      </div>
+        </div>
+      )}
     </Dialog>
   );
 }
@@ -116,6 +129,7 @@ function TeamDetails({
       <TextField
         label={t("ref.name")}
         required
+        autoFocus
         value={form.name}
         onChange={(e) => setForm((x) => ({ ...x, name: e.target.value }))}
       />
@@ -162,23 +176,23 @@ function TeamMembers({ team }: { team: Team }) {
     },
   );
   return (
-    <section className="grid gap-3 border-t border-line pt-4">
+    <div className="grid gap-3">
       <CheckboxList
         legend={t("admin.teams.members")}
         columns={2}
-        items={(analysts.data ?? [])
+        options={(analysts.data ?? [])
           .filter((a) => a.is_active || ids.includes(a.id))
-          .map((a) => ({ id: a.id, label: a.full_name, description: a.email }))}
-        selected={ids}
+          .map((a) => ({ value: a.id, label: a.full_name, description: a.email }))}
+        value={ids}
         onChange={setIds}
       />
       <ProblemNotice error={save.error} />
       <div>
-        <Button loading={save.isPending} onClick={() => save.mutate()}>
+        <Button variant="primary" loading={save.isPending} onClick={() => save.mutate()}>
           {t("admin.teams.saveMembers")}
         </Button>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -200,29 +214,28 @@ function TeamRoles({ team }: { team: Team }) {
     },
   );
   return (
-    <section className="grid gap-3 border-t border-line pt-4">
+    <div className="grid gap-3">
       <CheckboxList
         legend={t("users.roles")}
-        items={(roles.data ?? []).map((r) => ({
-          id: r.id,
+        options={(roles.data ?? []).map((r) => ({
+          value: r.id,
           label: r.name,
           description: r.description || undefined,
         }))}
-        selected={ids}
+        value={ids}
         onChange={setIds}
       />
       <ProblemNotice error={save.error} />
       <div>
-        <Button loading={save.isPending} onClick={() => save.mutate()}>
+        <Button variant="primary" loading={save.isPending} onClick={() => save.mutate()}>
           {t("users.saveRoles")}
         </Button>
       </div>
-    </section>
+    </div>
   );
 }
 
 function TeamAccess({ team }: { team: Team }) {
-  const t = useText();
   const save = useAction(
     (access: Schemas["CompanyAccessDto"]) =>
       call(
@@ -234,14 +247,13 @@ function TeamAccess({ team }: { team: Team }) {
     { invalidate: [["reference", "teams"]], success: "users.accessSaved" },
   );
   return (
-    <section className="grid gap-3 border-t border-line pt-4">
-      <h3 className="text-sm font-semibold">{t("users.companyAccess")}</h3>
+    <div className="grid gap-3">
       <CompanyAccessEditor
         value={team.company_access}
         busy={save.isPending}
         onSave={(a) => save.mutate(a)}
       />
       <ProblemNotice error={save.error} />
-    </section>
+    </div>
   );
 }

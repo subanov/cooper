@@ -1,15 +1,20 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { FileText, Plus, Search } from "lucide-react";
-import { type FormEvent, useEffect, useState } from "react";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { FileText, Plus } from "lucide-react";
 import { buttonClass } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { DataTable, rowLinkClass } from "@/components/DataTable";
-import { EmptyState } from "@/components/EmptyState";
-import { Checkbox, Input, SelectField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { FilterBar, Page, PageHeader } from "@/components/Page";
-import { LoadMore } from "@/components/QueryState";
+import { EmptyState, LoadingBlock, LoadMore, ProblemNotice } from "@/components/Feedback";
+import { Checkbox } from "@/components/Field";
+import { FilterSelect, SearchBox } from "@/components/ListSearch";
+import {
+  ListPane,
+  PickOne,
+  RecordRow,
+  rowLinkClass,
+  SplitView,
+  useDetailOpen,
+  useListKeys,
+  useOpenId,
+} from "@/components/MasterDetail";
 import { namesById, toOptions } from "@/features/reference/queries";
 import { useCan } from "@/features/session/session";
 import { useFormat, useText } from "@/i18n/useText";
@@ -18,7 +23,7 @@ import { allSuppliersQuery, type ContractSearch, contractLookupQuery, contractsQ
 import { ContractsTabs } from "./ContractsTabs";
 import { NoticeBadge } from "./NoticeBadge";
 
-/** Contracts by number, with their Notice Date and where it stands (FR-CON-001). */
+/** Contracts (FR-CON-001) beside the open Contract; filters in the URL. */
 export function ContractsPage({ search }: { search: ContractSearch }) {
   const t = useText();
   const f = useFormat();
@@ -28,131 +33,120 @@ export function ContractsPage({ search }: { search: ContractSearch }) {
   const statuses = useQuery(contractLookupQuery("contract-statuses"));
   const suppliers = useQuery(allSuppliersQuery);
   const rows = list.data?.pages.flatMap((p) => p.items) ?? [];
-  const [q, setQ] = useState(search.q ?? "");
-  useEffect(() => setQ(search.q ?? ""), [search.q]);
+  const openId = useOpenId();
+  const detailOpen = useDetailOpen("/contracts");
   const setSearch = (next: SearchPatch<ContractSearch>) =>
     void navigate({ to: "/contracts", search: { ...search, ...next } });
   const supplierNames = namesById(suppliers.data, (s) => s.legal_name);
   const filtered = Boolean(search.q || search.status || search.supplier || search.notice);
+  useListKeys(
+    rows.map((c) => c.id),
+    openId,
+    (id) => void navigate({ to: "/contracts/$id", params: { id }, search }),
+  );
   return (
-    <Page>
-      <PageHeader
-        title={t("contracts.title")}
-        description={t("contracts.intro")}
-        actions={
-          can("contracts.write") ? (
-            <Link to="/contracts/new" className={buttonClass({ variant: "primary" })}>
-              <Plus aria-hidden="true" className="size-4" />
-              {t("contracts.new")}
-            </Link>
-          ) : undefined
-        }
-      />
-      <ContractsTabs />
-      <FilterBar label={t("common.filters")}>
-        <form
-          className="relative w-full max-w-xs"
-          onSubmit={(e: FormEvent) => {
-            e.preventDefault();
-            setSearch({ q: q.trim() || undefined });
-          }}
+    <SplitView
+      detailOpen={detailOpen}
+      placeholder={
+        <PickOne icon={<FileText />} title={t("contracts.pickOne")}>
+          {t("contracts.intro")}
+        </PickOne>
+      }
+      list={
+        <ListPane
+          title={t("contracts.title")}
+          label={t("contracts.title")}
+          actions={
+            can("contracts.write") ? (
+              <Link
+                to="/contracts/new"
+                search={search}
+                className={buttonClass({ variant: "primary", size: "sm" })}
+              >
+                <Plus aria-hidden="true" />
+                {t("contracts.new")}
+              </Link>
+            ) : undefined
+          }
+          filters={
+            <>
+              <ContractsTabs />
+              <SearchBox
+                label={t("contracts.search")}
+                placeholder={t("contracts.searchPlaceholder")}
+                value={search.q}
+                onSubmit={(q) => setSearch({ q })}
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <FilterSelect
+                  label={t("contracts.status")}
+                  allLabel={t("contracts.allStatuses")}
+                  value={search.status}
+                  options={toOptions(statuses.data, (s) => s.name)}
+                  onChange={(status) => setSearch({ status })}
+                />
+                <FilterSelect
+                  label={t("contracts.supplier")}
+                  allLabel={t("contracts.allSuppliers")}
+                  value={search.supplier}
+                  options={toOptions(suppliers.data, (s) => s.legal_name)}
+                  onChange={(supplier) => setSearch({ supplier })}
+                />
+                <Checkbox
+                  label={t("contracts.noticeDueOnly")}
+                  checked={Boolean(search.notice)}
+                  onChange={(e) => setSearch({ notice: e.target.checked ? true : undefined })}
+                />
+              </div>
+            </>
+          }
         >
-          <Search
-            aria-hidden="true"
-            className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-fg-muted"
-          />
-          <Input
-            type="search"
-            aria-label={t("contracts.search")}
-            placeholder={t("contracts.searchPlaceholder")}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="pl-8"
-          />
-        </form>
-        <SelectField
-          className="w-48"
-          label={t("contracts.status")}
-          value={search.status ?? ""}
-          placeholder={t("common.any")}
-          options={toOptions(statuses.data, (s) => s.name)}
-          onChange={(e) => setSearch({ status: e.target.value || undefined })}
-        />
-        <SelectField
-          className="w-56"
-          label={t("contracts.supplier")}
-          value={search.supplier ?? ""}
-          placeholder={t("common.any")}
-          options={toOptions(suppliers.data, (s) => s.legal_name)}
-          onChange={(e) => setSearch({ supplier: e.target.value || undefined })}
-        />
-        <Checkbox
-          className="h-9 items-center"
-          label={t("contracts.noticeDueOnly")}
-          checked={Boolean(search.notice)}
-          onChange={(e) => setSearch({ notice: e.target.checked ? true : undefined })}
-        />
-      </FilterBar>
-      <ProblemNotice error={list.error} />
-      <Card flush>
-        <DataTable
-          caption={t("contracts.list")}
-          rows={list.data ? rows : undefined}
-          loading={list.isPending}
-          rowKey={(c) => c.id}
-          empty={
+          {list.isError ? (
+            <ProblemNotice error={list.error} className="m-4" onRetry={() => void list.refetch()} />
+          ) : null}
+          {list.isPending ? <LoadingBlock className="p-4" lines={6} /> : null}
+          {list.isSuccess && rows.length === 0 ? (
             <EmptyState
               icon={<FileText aria-hidden="true" />}
               title={filtered ? t("contracts.empty") : t("contracts.emptyStart")}
             />
-          }
-          columns={[
-            {
-              id: "contract",
-              header: t("contracts.contracts"),
-              rowHeader: true,
-              cell: (c) => (
-                <span className="grid">
-                  <span className="font-mono text-xs text-fg-muted">{c.contract_number}</span>
-                  <Link to="/contracts/$id" params={{ id: c.id }} className={rowLinkClass}>
+          ) : null}
+          {rows.length > 0 ? (
+            <ul aria-label={t("contracts.list")}>
+              {rows.map((c) => (
+                <RecordRow key={c.id} selected={c.id === openId}>
+                  <div className="flex items-center justify-between gap-2 text-xs text-fg-muted">
+                    <span className="font-mono">{c.contract_number}</span>
+                    <NoticeBadge contract={c} />
+                  </div>
+                  <Link
+                    to="/contracts/$id"
+                    params={{ id: c.id }}
+                    search={search}
+                    aria-current={c.id === openId ? "page" : undefined}
+                    className={rowLinkClass}
+                  >
                     {c.title}
                   </Link>
-                </span>
-              ),
-            },
-            {
-              id: "supplier",
-              header: t("contracts.supplier"),
-              cell: (c) =>
-                (c.supplier_id && supplierNames.get(c.supplier_id)) || t("common.noneDash"),
-            },
-            {
-              id: "status",
-              header: t("contracts.status"),
-              wide: true,
-              cell: (c) =>
-                (c.status_id && namesById(statuses.data).get(c.status_id)) || t("common.noneDash"),
-            },
-            {
-              id: "end",
-              header: t("contracts.ends"),
-              wide: true,
-              cell: (c) => (c.end_date ? f.day(c.end_date) : t("common.noneDash")),
-            },
-            {
-              id: "notice",
-              header: t("contracts.noticeDate"),
-              cell: (c) => (
-                <span className="flex flex-wrap items-center gap-1.5">
-                  {c.notice_date ? f.day(c.notice_date) : t("common.noneDash")}
-                  <NoticeBadge contract={c} />
-                </span>
-              ),
-            },
-          ]}
-        />
-        <LoadMore query={list} />
-      </Card>
-    </Page>
+                  <p className="truncate text-xs text-fg-muted">
+                    {[
+                      c.supplier_id ? supplierNames.get(c.supplier_id) : null,
+                      c.status_id ? namesById(statuses.data).get(c.status_id) : null,
+                      c.end_date ? `${t("contracts.ends")} ${f.day(c.end_date)}` : null,
+                      c.notice_date ? `${t("contracts.noticeDate")} ${f.day(c.notice_date)}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </RecordRow>
+              ))}
+            </ul>
+          ) : null}
+          <LoadMore query={list} />
+        </ListPane>
+      }
+    >
+      <Outlet />
+    </SplitView>
   );
 }

@@ -2,14 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { CheckboxList } from "@/components/CheckboxList";
 import { FormDialog } from "@/components/Dialog";
+import { ProblemNotice } from "@/components/Feedback";
 import { Checkbox, SelectField, TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
 import { departmentsQuery, namesById, teamsQuery } from "@/features/reference/queries";
 import { useAction } from "@/features/shared/mutation";
 import { useText } from "@/i18n/useText";
 import { api, type Schemas } from "@/lib/api";
 import { call } from "@/lib/request";
-import { OrganisationList } from "./OrganisationPages";
+import { AdminList } from "./OrganisationList";
 
 type Department = Schemas["DepartmentDto"];
 
@@ -19,7 +19,7 @@ export function DepartmentsPage() {
   const rows = useQuery(departmentsQuery);
   const teams = useQuery(teamsQuery);
   return (
-    <OrganisationList
+    <AdminList
       title={t("admin.departments")}
       intro={t("admin.departments.intro")}
       rows={rows.data}
@@ -27,7 +27,7 @@ export function DepartmentsPage() {
       error={rows.error}
       columns={[
         {
-          id: "sensitivity",
+          key: "sensitivity",
           header: t("admin.departments.defaultSensitivity"),
           cell: (d) =>
             t(
@@ -37,9 +37,8 @@ export function DepartmentsPage() {
             ),
         },
         {
-          id: "teams",
+          key: "teams",
           header: t("admin.departments.teams"),
-          wide: true,
           cell: (d) =>
             d.team_ids.map((id) => namesById(teams.data).get(id) ?? "…").join(", ") ||
             t("common.noneDash"),
@@ -96,6 +95,7 @@ function DepartmentDialog({
       <TextField
         label={t("ref.name")}
         required
+        autoFocus
         value={form.name}
         onChange={(e) => setForm((x) => ({ ...x, name: e.target.value }))}
       />
@@ -108,14 +108,19 @@ function DepartmentDialog({
           { value: "confidential", label: t("ticket.sensitivity.confidential") },
         ]}
       />
-      <CheckboxList
-        legend={t("admin.departments.teams")}
-        items={(teams.data ?? [])
-          .filter((q) => q.is_active)
-          .map((q) => ({ id: q.id, label: q.name }))}
-        selected={form.team_ids}
-        onChange={(team_ids) => setForm((x) => ({ ...x, team_ids }))}
-      />
+      <fieldset className="grid gap-2">
+        <legend className="mb-1 text-[0.8125rem] font-medium">
+          {t("admin.departments.teams")}
+        </legend>
+        <CheckboxList
+          legend={t("admin.departments.teams")}
+          options={(teams.data ?? [])
+            .filter((q) => q.is_active)
+            .map((q) => ({ value: q.id, label: q.name }))}
+          value={form.team_ids}
+          onChange={(team_ids) => setForm((x) => ({ ...x, team_ids }))}
+        />
+      </fieldset>
       <Checkbox
         label={t("common.active")}
         checked={form.is_active}

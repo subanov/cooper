@@ -32,7 +32,7 @@ export function BulkBar({
     (body: Omit<Schemas["BulkRequest"], "ticket_ids">) =>
       ticketActions.bulk({ ...body, ticket_ids: ids }),
     {
-      invalidate: [["tickets"]],
+      invalidate: [["tickets"], ["home"]],
       onSuccess: (results) => {
         const failed = results.filter((r) => !r.ok);
         const ok = results.length - failed.length;
@@ -54,9 +54,9 @@ export function BulkBar({
   return (
     <section
       aria-label={t("bulk.selected", { count: ids.length })}
-      className="flex flex-wrap items-center gap-2 border-b border-line bg-accent-soft px-4 py-2"
+      className="flex flex-wrap items-center gap-1.5 border-b border-line bg-accent-soft px-4 py-2"
     >
-      <p className="mr-auto text-[0.8125rem] font-semibold">
+      <p className="mr-auto text-[0.8125rem] font-semibold" aria-live="polite">
         {t("bulk.selected", { count: ids.length })}
       </p>
       {canAssign ? (

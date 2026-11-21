@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { History as HistoryIcon } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState } from "@/components/Feedback";
 import { analystsQuery, namesById } from "@/features/reference/queries";
 import { type Text, useFormat, useText } from "@/i18n/useText";
 
@@ -38,7 +38,7 @@ export function useActorName(): (actor: unknown) => string {
   };
 }
 
-/** A value from an audit entry as text; IDs and objects are shown compactly. */
+/** A value from an audit entry as text; objects are shown compactly. */
 export function auditValue(value: unknown, t: Text): string {
   if (value === null || value === undefined || value === "") return t("common.noneDash");
   if (typeof value === "boolean") return value ? t("common.yes") : t("common.no");
@@ -46,10 +46,7 @@ export function auditValue(value: unknown, t: Text): string {
   return String(value);
 }
 
-/**
- * The audit trail of a record (FR-GEN-001): when, who, and what changed from what to
- * what, newest first.
- */
+/** The audit trail of a record (FR-GEN-001): when, who, and what changed, newest first. */
 export function HistoryTable({
   entries,
   caption,
@@ -64,9 +61,8 @@ export function HistoryTable({
   const f = useFormat();
   const actorName = useActorName();
   const rows = [...entries].sort((a, b) => b.at.localeCompare(a.at));
-  if (rows.length === 0) {
+  if (rows.length === 0)
     return <EmptyState icon={<HistoryIcon aria-hidden="true" />} title={t("common.noHistory")} />;
-  }
   return (
     <DataTable
       caption={caption}
@@ -74,14 +70,14 @@ export function HistoryTable({
       rowKey={(r) => r.id ?? `${r.at}-${r.field ?? r.action}`}
       columns={[
         {
-          id: "when",
+          key: "when",
           header: t("common.when"),
           cell: (r) => <time dateTime={r.at}>{f.dateTime(r.at)}</time>,
           className: "whitespace-nowrap",
         },
-        { id: "who", header: t("common.who"), cell: (r) => actorName(r.actor) },
+        { key: "who", header: t("common.who"), cell: (r) => actorName(r.actor) },
         {
-          id: "what",
+          key: "what",
           header: t("common.change"),
           cell: (r) =>
             r.field ? (

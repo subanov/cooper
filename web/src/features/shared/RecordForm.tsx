@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/Button";
-import { ProblemNotice } from "@/components/Notice";
+import { ProblemNotice } from "@/components/Feedback";
 import { useText } from "@/i18n/useText";
 
 /**
- * The form of a record screen: fields, the problem (if any) and Save at the end, where
- * the eye finishes (Fitts's Law). Enter submits.
+ * The form of a record: fields, the problem (if any), and Save at the end where the eye
+ * finishes (Fitts's Law). Unsaved changes are flagged (Von Restorff). Enter submits.
  */
 export function RecordForm({
   children,
@@ -13,8 +13,9 @@ export function RecordForm({
   busy,
   error,
   submitLabel,
-  dirty = true,
+  dirty = false,
   secondary,
+  disabled,
 }: {
   children: ReactNode;
   onSubmit: () => void;
@@ -22,7 +23,8 @@ export function RecordForm({
   error: unknown;
   submitLabel: string;
   dirty?: boolean | undefined;
-  secondary?: ReactNode;
+  secondary?: ReactNode | undefined;
+  disabled?: boolean | undefined;
 }) {
   const t = useText();
   return (
@@ -31,22 +33,30 @@ export function RecordForm({
       className="grid gap-5"
       onSubmit={(e) => {
         e.preventDefault();
-        onSubmit();
+        if (!disabled) onSubmit();
       }}
     >
-      {children}
+      <fieldset disabled={disabled} className="grid min-w-0 gap-5">
+        {children}
+      </fieldset>
       <ProblemNotice error={error} />
-      <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4">
-        {dirty ? (
-          <span className="mr-auto text-xs font-medium text-warning-text">
-            {t("common.unsaved")}
-          </span>
-        ) : null}
-        {secondary}
-        <Button type="submit" variant="primary" loading={busy}>
-          {submitLabel}
-        </Button>
-      </div>
+      {disabled ? null : (
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4">
+          {dirty ? (
+            <span
+              role="status"
+              className="mr-auto inline-flex items-center gap-1.5 text-xs font-medium text-warning-text"
+            >
+              <span aria-hidden="true" className="size-2 rounded-full bg-warning-text" />
+              {t("common.unsaved")}
+            </span>
+          ) : null}
+          {secondary}
+          <Button type="submit" variant="primary" loading={busy}>
+            {submitLabel}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

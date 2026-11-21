@@ -1,4 +1,4 @@
-import { CheckCircle2, X, XCircle } from "lucide-react";
+import { CheckCircle2, Info, TriangleAlert, X } from "lucide-react";
 import {
   createContext,
   type ReactNode,
@@ -13,8 +13,8 @@ import { cn } from "@/lib/cn";
 
 export interface ToastInput {
   message: string;
-  tone?: "success" | "danger" | "info" | undefined;
-  /** A reversible action offers Undo instead of asking for confirmation first (H3). */
+  tone?: "success" | "info" | "danger" | undefined;
+  /** One action, typically Undo (H3: undo instead of confirming). */
   action?: { label: string; onClick: () => void } | undefined;
 }
 
@@ -24,89 +24,108 @@ interface ToastItem extends ToastInput {
 
 const ToastContext = createContext<(toast: ToastInput) => void>(() => {});
 
-/** Shows short confirmations ("Saved.") and Undo offers after a mutation. */
+/**
+ * Shows a short message after an action (H1). The live regions stay mounted so screen
+ * readers announce what is added; errors are assertive. They carry no role, so a page's own
+ * status and alert messages remain the only ones a test or assistive tool finds by role.
+ */
 export function useToast(): (toast: ToastInput) => void {
   return useContext(ToastContext);
 }
 
-/**
- * Holds the toast region. It is a polite live region, so confirmations are announced
- * without moving focus. Toasts pause while hovered or focused (WCAG 2.2.1).
- */
+let nextId = 1;
+
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<ToastItem[]>([]);
-  const next = useRef(1);
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const dismiss = useCallback(
+    (id: number) => setToasts((all) => all.filter((t) => t.id !== id)),
+    [],
+  );
   const show = useCallback((toast: ToastInput) => {
-    const id = next.current++;
-    setItems((current) => [...current.slice(-2), { ...toast, id }]);
-  }, []);
-  const dismiss = useCallback((id: number) => {
-    setItems((current) => current.filter((t) => t.id !== id));
+    const id = nextId++;
+    setToasts((all) => [...all.slice(-3), { ...toast, id }]);
   }, []);
   return (
     <ToastContext.Provider value={show}>
       {children}
-      <section
-        aria-live="polite"
-        aria-relevant="additions"
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] flex flex-col items-center gap-2 p-4 sm:items-end"
-      >
-        {items.map((item) => (
-          <ToastView key={item.id} item={item} onDismiss={() => dismiss(item.id)} />
-        ))}
-      </section>
+      <div className="pointer-events-none fixed bottom-4 left-1/2 z-[80] grid w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 gap-2 sm:left-auto sm:right-4 sm:translate-x-0">
+        <div aria-live="polite" className="grid gap-2">
+          {toasts
+            .filter((t) => t.tone !== "danger")
+            .map((t) => (
+              <ToastView key={t.id} toast={t} onDismiss={() => dismiss(t.id)} />
+            ))}
+        </div>
+        <div aria-live="assertive" className="grid gap-2">
+          {toasts
+            .filter((t) => t.tone === "danger")
+            .map((t) => (
+              <ToastView key={t.id} toast={t} onDismiss={() => dismiss(t.id)} />
+            ))}
+        </div>
+      </div>
     </ToastContext.Provider>
   );
 }
 
-function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: () => void }) {
+function ToastView({ toast, onDismiss }: { toast: ToastItem; onDismiss: () => void }) {
   const t = useText();
   const [paused, setPaused] = useState(false);
+  const ms = toast.action ? 10_000 : toast.tone === "danger" ? 12_000 : 5_000;
+  const left = useRef(ms);
   useEffect(() => {
     if (paused) return;
-    const timer = setTimeout(onDismiss, item.action ? 10_000 : 5_000);
-    return () => clearTimeout(timer);
-  }, [paused, item.action, onDismiss]);
+    const started = Date.now();
+    const timer = setTimeout(onDismiss, left.current);
+    return () => {
+      clearTimeout(timer);
+      left.current -= Date.now() - started;
+    };
+  }, [paused, onDismiss]);
+  const Icon =
+    toast.tone === "danger" ? TriangleAlert : toast.tone === "success" ? CheckCircle2 : Info;
   return (
-    // biome-ignore lint/a11y/useSemanticElements: a group of message and buttons, not a form fieldset
+    // Pausing on hover and focus gives time to read and to reach Undo (WCAG 2.2.1).
+    // biome-ignore lint/a11y/noStaticElementInteractions: hover only pauses the timer
     <div
-      role="group"
-      aria-label={item.message}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
-      className="pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm shadow-overlay"
-    >
-      {item.tone === "danger" ? (
-        <XCircle aria-hidden="true" className="size-4 shrink-0 text-danger-text" />
-      ) : (
-        <CheckCircle2
-          aria-hidden="true"
-          className={cn(
-            "size-4 shrink-0",
-            item.tone === "info" ? "text-accent-text" : "text-success-text",
-          )}
-        />
+      className={cn(
+        "pointer-events-auto flex items-start gap-2.5 rounded-lg border bg-raised px-3.5 py-3 text-sm shadow-overlay",
+        toast.tone === "danger" ? "border-danger-text/50" : "border-line",
       )}
-      <p className="min-w-0 flex-1">{item.message}</p>
-      {item.action ? (
+    >
+      <Icon
+        aria-hidden="true"
+        className={cn(
+          "mt-0.5 size-4 shrink-0",
+          toast.tone === "danger"
+            ? "text-danger-text"
+            : toast.tone === "success"
+              ? "text-success-text"
+              : "text-info-text",
+        )}
+      />
+      <p className="min-w-0 flex-1 [overflow-wrap:anywhere]">{toast.message}</p>
+      {toast.action ? (
         <button
           type="button"
-          className="h-8 rounded-md px-2 font-semibold text-accent-text hover:bg-accent-soft"
           onClick={() => {
-            item.action?.onClick();
+            toast.action?.onClick();
             onDismiss();
           }}
+          className="shrink-0 rounded px-1.5 font-semibold text-accent-text hover:underline"
         >
-          {item.action.label}
+          {toast.action.label}
         </button>
       ) : null}
       <button
         type="button"
         aria-label={t("common.dismiss")}
-        className="grid size-8 place-items-center rounded-md text-fg-muted hover:bg-sunken"
         onClick={onDismiss}
+        className="-m-1 grid size-7 shrink-0 place-items-center rounded text-fg-muted hover:bg-sunken hover:text-fg"
       >
         <X aria-hidden="true" className="size-4" />
       </button>

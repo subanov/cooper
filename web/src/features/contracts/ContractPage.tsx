@@ -3,10 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
 import type { PickerOption } from "@/components/Combobox";
 import { ConfirmDialog } from "@/components/Dialog";
-import { Facts } from "@/components/Facts";
+import { LoadingBlock, ProblemNotice, QueryState } from "@/components/Feedback";
 import {
   Checkbox,
   Fieldset,
@@ -15,15 +14,15 @@ import {
   TextAreaField,
   TextField,
 } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { Page, PageHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { BackLink, Facts, Panel } from "@/components/Layout";
+import { DetailHeader } from "@/components/MasterDetail";
 import { Segmented } from "@/components/Tabs";
 import { RequesterPicker } from "@/features/reference/pickers";
 import {
   analystsQuery,
   companiesQuery,
   costCentresQuery,
+  namesById,
   requesterOption,
   requestersByIdQuery,
   toOptions,
@@ -44,21 +43,35 @@ import {
 } from "./api";
 import { NoticeBadge } from "./NoticeBadge";
 
-/** One Contract (FR-CON-001…004). Cooper calculates the Notice Date. */
-export function ContractPage({ id }: { id?: string }) {
+/** One Contract in the detail pane (FR-CON-001…004). Cooper calculates the Notice Date. */
+export function ContractPage({ id }: { id?: string | undefined }) {
+  const t = useText();
   const query = useQuery({ ...contractQuery(id ?? ""), enabled: Boolean(id) });
   if (!id) return <ContractView />;
-  return (
-    <QueryState
-      query={query}
-      loading={
-        <Page>
+  if (!query.data) {
+    return (
+      <div className="mx-auto grid max-w-6xl gap-4 p-4 sm:p-6">
+        <DetailHeader
+          back={<BackToContracts />}
+          title={query.isError ? t("contracts.unavailable") : t("common.loading")}
+        />
+        {query.isError ? (
+          <ProblemNotice error={query.error} onRetry={() => void query.refetch()} />
+        ) : (
           <LoadingBlock lines={8} />
-        </Page>
-      }
-    >
-      {(contract) => <ContractView key={contract.updated_at} contract={contract} />}
-    </QueryState>
+        )}
+      </div>
+    );
+  }
+  return <ContractView key={query.data.updated_at} contract={query.data} />;
+}
+
+function BackToContracts() {
+  const t = useText();
+  return (
+    <BackLink to="/contracts" search={true}>
+      {t("contracts.back")}
+    </BackLink>
   );
 }
 
@@ -159,65 +172,85 @@ function ContractView({ contract }: { contract?: Contract }) {
       invalidate: [["contracts"]],
       success: contract ? "contracts.saved" : "contracts.created",
       onSuccess: (saved) => {
-        if (!contract) void navigate({ to: "/contracts/$id", params: { id: saved.id } });
+        if (!contract)
+          void navigate({ to: "/contracts/$id", params: { id: saved.id }, search: true });
       },
     },
   );
   const remove = useAction(() => contractActions.remove(contract?.id ?? ""), {
     invalidate: [["contracts"]],
     success: "contracts.deleted",
-    onSuccess: () => navigate({ to: "/contracts" }),
+    onSuccess: () => navigate({ to: "/contracts", search: true }),
   });
-  const err = (field: string) =>
+  const required = (field: "contract_number" | "title") =>
     fieldError(save.error, field) ??
-    (tried &&
-    !String(form[field as keyof typeof form] ?? "").trim() &&
-    (field === "contract_number" || field === "title")
-      ? t("contracts.required")
-      : undefined);
+    (tried && !form[field].trim() ? t("contracts.required") : undefined);
   const activeCompanies = (companies.data ?? []).filter((c) => c.is_active);
 
   return (
-    <Page>
-      <PageHeader
-        back={{ to: "/contracts", label: t("contracts.back") }}
-        title={contract ? contract.title : t("contracts.newTitle")}
-        meta={
+    <article className="mx-auto grid max-w-6xl gap-5 p-4 sm:p-6">
+      <DetailHeader
+        back={<BackToContracts />}
+        eyebrow={
           contract ? (
             <>
-              <span className="font-mono text-sm text-fg-muted">{contract.contract_number}</span>
-              <NoticeBadge contract={contract} />
+              <span className="font-mono font-medium text-fg">{contract.contract_number}</span>
+              <span aria-hidden="true">·</span>
+              <span>{namesById(companies.data).get(contract.company_id) ?? ""}</span>
+              {contract.supplier_id ? (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span>
+                    {namesById(suppliers.data, (s) => s.legal_name).get(contract.supplier_id) ?? ""}
+                  </span>
+                </>
+              ) : null}
             </>
           ) : undefined
         }
+        title={contract ? contract.title : t("contracts.newTitle")}
+        badges={contract ? <NoticeBadge contract={contract} /> : undefined}
       />
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card>
-          <fieldset disabled={!editable} className="contents">
+      <div
+        className={
+          contract ? "grid gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]" : "grid max-w-3xl gap-5"
+        }
+      >
+        <div className="grid min-w-0 content-start gap-5">
+          <Panel>
             <RecordForm
               busy={save.isPending}
               error={save.error}
               dirty={dirty && Boolean(contract)}
+              disabled={!editable}
               submitLabel={contract ? t("common.saveChanges") : t("common.create")}
               onSubmit={() => {
                 setTried(true);
                 if (valid) save.mutate();
+                else
+                  document
+                    .getElementById(
+                      form.contract_number.trim() ? "contract-title" : "contract-number",
+                    )
+                    ?.focus();
               }}
             >
               <Fieldset legend={t("contracts.basics")}>
                 <FormGrid>
                   <TextField
+                    id="contract-number"
                     label={t("contracts.number")}
                     required
                     value={form.contract_number}
-                    error={err("contract_number")}
+                    error={required("contract_number")}
                     onChange={set("contract_number")}
                   />
                   <TextField
+                    id="contract-title"
                     label={t("contracts.titleField")}
                     required
                     value={form.title}
-                    error={err("title")}
+                    error={required("title")}
                     onChange={set("title")}
                   />
                   {!contract && activeCompanies.length > 1 ? (
@@ -245,7 +278,7 @@ function ContractView({ contract }: { contract?: Contract }) {
                   />
                 </FormGrid>
                 <Segmented
-                  hideLabel={false}
+                  showLabel
                   label={t("contracts.party")}
                   value={party}
                   onChange={setParty}
@@ -391,11 +424,16 @@ function ContractView({ contract }: { contract?: Contract }) {
                 ) : null}
               </Fieldset>
             </RecordForm>
-          </fieldset>
-        </Card>
+          </Panel>
+          {contract ? (
+            <Panel title={t("contracts.history")} flush>
+              <ContractHistory id={contract.id} />
+            </Panel>
+          ) : null}
+        </div>
         {contract ? (
-          <aside className="grid content-start gap-4">
-            <Card title={t("contracts.noticeDate")}>
+          <aside className="grid content-start gap-4" aria-label={t("contracts.noticeDate")}>
+            <Panel title={t("contracts.noticeDate")}>
               <Facts
                 items={[
                   {
@@ -412,40 +450,35 @@ function ContractView({ contract }: { contract?: Contract }) {
                   },
                 ]}
               />
-            </Card>
+            </Panel>
             {editable ? (
-              <Card>
+              <Panel title={t("contracts.delete")}>
                 <Button
                   variant="danger"
-                  icon={<Trash2 aria-hidden="true" className="size-4" />}
+                  icon={<Trash2 aria-hidden="true" />}
                   onClick={() => setConfirm(true)}
                 >
                   {t("contracts.delete")}
                 </Button>
-              </Card>
+              </Panel>
             ) : null}
           </aside>
         ) : null}
       </div>
       {contract ? (
-        <>
-          <Card title={t("contracts.history")} flush>
-            <ContractHistory id={contract.id} />
-          </Card>
-          <ConfirmDialog
-            open={confirm}
-            onOpenChange={setConfirm}
-            title={t("contracts.deleteTitle", { number: contract.contract_number })}
-            confirmLabel={t("contracts.delete")}
-            busy={remove.isPending}
-            onConfirm={() => remove.mutate()}
-          >
-            <p className="text-sm">{t("contracts.deleteBody", { title: contract.title })}</p>
-            <ProblemNotice error={remove.error} className="mt-3" />
-          </ConfirmDialog>
-        </>
+        <ConfirmDialog
+          open={confirm}
+          onOpenChange={setConfirm}
+          title={t("contracts.deleteTitle", { number: contract.contract_number })}
+          confirmLabel={t("contracts.delete")}
+          busy={remove.isPending}
+          onConfirm={() => remove.mutate()}
+        >
+          <p className="text-sm">{t("contracts.deleteBody", { title: contract.title })}</p>
+          <ProblemNotice error={remove.error} className="mt-3" />
+        </ConfirmDialog>
       ) : null}
-    </Page>
+    </article>
   );
 }
 

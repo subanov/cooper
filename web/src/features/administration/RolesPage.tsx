@@ -3,14 +3,14 @@ import { useState } from "react";
 import { Button } from "@/components/Button";
 import { CheckboxList } from "@/components/CheckboxList";
 import { ConfirmDialog, FormDialog } from "@/components/Dialog";
+import { ProblemNotice } from "@/components/Feedback";
 import { TextField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
 import { rolesQuery } from "@/features/reference/queries";
 import { useAction } from "@/features/shared/mutation";
 import { useText } from "@/i18n/useText";
 import { api, type Schemas } from "@/lib/api";
 import { call } from "@/lib/request";
-import { OrganisationList } from "./OrganisationPages";
+import { AdminList } from "./OrganisationList";
 
 type Role = Schemas["RoleDto"];
 
@@ -19,7 +19,7 @@ export function RolesPage() {
   const t = useText();
   const roles = useQuery(rolesQuery);
   return (
-    <OrganisationList
+    <AdminList
       title={t("admin.roles")}
       intro={t("admin.roles.intro")}
       rows={roles.data}
@@ -27,14 +27,13 @@ export function RolesPage() {
       error={roles.error}
       columns={[
         {
-          id: "caps",
+          key: "caps",
           header: t("admin.roles.capabilities"),
           cell: (r) => t("admin.roles.count", { count: r.capabilities.length }),
         },
         {
-          id: "description",
+          key: "description",
           header: t("common.description"),
-          wide: true,
           cell: (r) => r.description || t("common.noneDash"),
         },
       ]}
@@ -76,8 +75,8 @@ function RoleDialog({ role, onClose }: { role?: Role | undefined; onClose: () =>
       onSuccess: onClose,
     },
   );
-  // Group Capabilities by Module ("tickets.update" → tickets) for scanning (Miller's Law).
-  const items = (capabilities.data ?? []).map((c) => ({ id: c, label: c, description: undefined }));
+  // Capabilities read "<module>.<action>", so sorting groups them by Module (Miller's Law).
+  const options = [...(capabilities.data ?? [])].sort().map((c) => ({ value: c, label: c }));
   return (
     <>
       <FormDialog
@@ -94,6 +93,7 @@ function RoleDialog({ role, onClose }: { role?: Role | undefined; onClose: () =>
         <TextField
           label={t("ref.name")}
           required
+          autoFocus
           value={form.name}
           onChange={(e) => setForm((x) => ({ ...x, name: e.target.value }))}
         />
@@ -102,13 +102,18 @@ function RoleDialog({ role, onClose }: { role?: Role | undefined; onClose: () =>
           value={form.description}
           onChange={(e) => setForm((x) => ({ ...x, description: e.target.value }))}
         />
-        <CheckboxList
-          legend={t("admin.roles.capabilities")}
-          columns={2}
-          items={items}
-          selected={form.capabilities}
-          onChange={(caps) => setForm((x) => ({ ...x, capabilities: caps }))}
-        />
+        <fieldset className="grid gap-2">
+          <legend className="mb-1 text-[0.8125rem] font-medium">
+            {t("admin.roles.capabilities")}
+          </legend>
+          <CheckboxList
+            legend={t("admin.roles.capabilities")}
+            columns={2}
+            options={options}
+            value={form.capabilities}
+            onChange={(caps) => setForm((x) => ({ ...x, capabilities: caps }))}
+          />
+        </fieldset>
         {role ? (
           <div className="border-t border-line pt-3">
             <Button variant="ghost" className="text-danger-text" onClick={() => setConfirm(true)}>

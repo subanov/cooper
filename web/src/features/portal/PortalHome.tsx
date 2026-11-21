@@ -4,9 +4,9 @@ import { ChevronRight, CircleAlert, CircleCheck, Search } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Badge } from "@/components/Badge";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
+import { LoadingBlock } from "@/components/Feedback";
 import { Input } from "@/components/Field";
-import { LoadingBlock } from "@/components/QueryState";
+import { Panel } from "@/components/Layout";
 import { useFormat, useText } from "@/i18n/useText";
 import { catalogueQuery, portalStatusQuery, portalTicketsQuery } from "./api";
 import { usePortalSession } from "./PortalLayout";
@@ -31,7 +31,7 @@ export function PortalHome() {
     <div className="grid gap-8">
       <section
         aria-labelledby="portal-welcome"
-        className="grid gap-4 rounded-xl border border-line bg-surface p-6 shadow-raised sm:p-8"
+        className="grid gap-4 rounded-xl bg-nav p-6 text-nav-fg shadow-overlay sm:p-10"
       >
         <h1
           id="portal-welcome"
@@ -60,10 +60,10 @@ export function PortalHome() {
                 placeholder={t("portalHome.searchPlaceholder")}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                className="h-12 pl-10 text-base"
+                className="h-12 border-transparent pl-10 text-base"
               />
             </div>
-            <Button type="submit" size="lg" className="h-12">
+            <Button type="submit" variant="primary" size="lg" className="h-12">
               {t("portalHome.search")}
             </Button>
           </form>
@@ -76,9 +76,9 @@ export function PortalHome() {
           className="flex items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3 text-sm hover:border-control"
         >
           {issues ? (
-            <CircleAlert aria-hidden="true" className="size-5 text-warning-text" />
+            <CircleAlert aria-hidden="true" className="size-5 shrink-0 text-warning-text" />
           ) : (
-            <CircleCheck aria-hidden="true" className="size-5 text-success-text" />
+            <CircleCheck aria-hidden="true" className="size-5 shrink-0 text-success-text" />
           )}
           <span className="flex-1">
             {issues ? t("portalHome.statusIssues") : t("portalHome.statusOk")}
@@ -123,7 +123,7 @@ export function PortalHome() {
         )}
       </section>
 
-      <Card
+      <Panel
         title={t("portalHome.open")}
         flush
         actions={
@@ -136,9 +136,7 @@ export function PortalHome() {
         }
       >
         {open.isPending ? (
-          <div className="p-4">
-            <LoadingBlock lines={2} />
-          </div>
+          <LoadingBlock lines={2} className="p-4" />
         ) : tickets.length === 0 ? (
           <p className="px-4 py-6 text-sm text-fg-muted">{t("portalHome.noOpen")}</p>
         ) : (
@@ -146,7 +144,7 @@ export function PortalHome() {
             {tickets.map((tk) => (
               <li
                 key={tk.id}
-                className="relative flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-canvas"
+                className="relative flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-sunken/60"
               >
                 <span className="font-mono text-xs text-fg-muted">{tk.number}</span>
                 <Link
@@ -162,7 +160,7 @@ export function PortalHome() {
             ))}
           </ul>
         )}
-      </Card>
+      </Panel>
     </div>
   );
 }

@@ -2,9 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/Button";
+import { LoadingBlock, Notice, ProblemNotice } from "@/components/Feedback";
 import { TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { LoadingBlock } from "@/components/QueryState";
 import { analystSessionQuery } from "@/features/session/session";
 import { PublicLayout } from "@/features/shell/PublicLayout";
 import { useText } from "@/i18n/useText";
@@ -49,32 +48,54 @@ export function TotpEnrollment({ onDone }: { onDone: () => void }) {
         confirm.mutate();
       }}
     >
-      <ol className="grid list-decimal gap-4 pl-5 text-sm marker:font-semibold">
-        <li className="grid gap-2">
-          <p>{t("totp.step1")}</p>
-          <p className="text-xs text-fg-muted">{t("totp.secret")}</p>
-          <code className="select-all break-all rounded-md border border-line bg-sunken px-3 py-2 font-mono text-sm tracking-wider">
-            {secret.secret.replace(/(.{4})/g, "$1 ").trim()}
-          </code>
-          <a href={secret.otpauth_uri} className="w-fit text-accent-text hover:underline">
-            {t("totp.openApp")}
-          </a>
+      <ol className="grid gap-5 text-sm">
+        <li className="grid grid-cols-[1.75rem_1fr] gap-3">
+          <span
+            aria-hidden="true"
+            className="grid size-7 place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent-text"
+          >
+            1
+          </span>
+          <div className="grid gap-2">
+            <p>{t("totp.step1")}</p>
+            <p className="text-xs text-fg-muted">{t("totp.secret")}</p>
+            <code className="select-all break-all rounded-md border border-line bg-sunken px-3 py-2 font-mono text-sm tracking-wider">
+              {secret.secret.replace(/(.{4})/g, "$1 ").trim()}
+            </code>
+            <a href={secret.otpauth_uri} className="w-fit text-accent-text hover:underline">
+              {t("totp.openApp")}
+            </a>
+          </div>
         </li>
-        <li className="grid gap-2">
-          <p>{t("totp.step2")}</p>
-          <TextField
-            label={t("totp.code")}
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            required
-            value={code}
-            error={wrong ? t("totp.wrong") : undefined}
-            onChange={(e) => setCode(e.target.value)}
-          />
+        <li className="grid grid-cols-[1.75rem_1fr] gap-3">
+          <span
+            aria-hidden="true"
+            className="grid size-7 place-items-center rounded-full bg-accent-soft text-xs font-semibold text-accent-text"
+          >
+            2
+          </span>
+          <div className="grid gap-2">
+            <p>{t("totp.step2")}</p>
+            <TextField
+              label={t("totp.code")}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              required
+              value={code}
+              error={wrong ? t("totp.wrong") : undefined}
+              onChange={(e) => setCode(e.target.value)}
+            />
+          </div>
         </li>
       </ol>
       {confirm.isError && !wrong ? <ProblemNotice error={confirm.error} /> : null}
-      <Button type="submit" variant="primary" size="lg" loading={confirm.isPending}>
+      <Button
+        type="submit"
+        variant="primary"
+        size="lg"
+        loading={confirm.isPending}
+        disabled={!code.trim()}
+      >
         {t("totp.confirm")}
       </Button>
     </form>

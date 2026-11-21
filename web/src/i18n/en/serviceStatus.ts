@@ -49,4 +49,6 @@ export const serviceStatus = {
   "status.shared": "Shared with every Company",
   "status.sortOrder": "Order",
   "status.companyHint": "Leave empty to share the Service with every Company.",
+  "status.pickOne": "Choose an Incident",
+  "status.unavailable": "Incident unavailable",
 } as const;

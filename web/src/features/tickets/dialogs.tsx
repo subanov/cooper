@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { FormDialog } from "@/components/Dialog";
-import { Field, Select, SelectField } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
+import { ProblemNotice } from "@/components/Feedback";
+import { Field, Select, SelectField, TextField } from "@/components/Field";
 import {
   analystsQuery,
   categoriesQuery,
@@ -12,6 +12,7 @@ import {
   toOptions,
 } from "@/features/reference/queries";
 import { useText } from "@/i18n/useText";
+import { fromLocalInput, localDay, toLocalInput } from "@/lib/dates";
 
 export interface Assignment {
   team_id: string | null;
@@ -27,7 +28,6 @@ export function AssignDialog({
   onSubmit,
   busy,
   error,
-  submitLabel,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,7 +36,6 @@ export function AssignDialog({
   onSubmit: (assignment: Assignment) => void;
   busy: boolean;
   error: unknown;
-  submitLabel?: string | undefined;
 }) {
   const t = useText();
   const teams = useQuery(teamsQuery);
@@ -59,7 +58,8 @@ export function AssignDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      submitLabel={submitLabel ?? t("ticket.assign")}
+      size="sm"
+      submitLabel={t("ticket.assign")}
       busy={busy}
       onSubmit={() => onSubmit({ team_id: teamId || null, analyst_id: analystId || null })}
     >
@@ -115,6 +115,7 @@ export function StatusDialog({
   onOpenChange,
   title,
   currentStatusId,
+  initialStatusId,
   onSubmit,
   busy,
   error,
@@ -123,6 +124,8 @@ export function StatusDialog({
   onOpenChange: (open: boolean) => void;
   title: string;
   currentStatusId?: string | undefined;
+  /** Preselects a target status (chosen in a list or the Properties panel). */
+  initialStatusId?: string | undefined;
   onSubmit: (change: StatusChange) => void;
   busy: boolean;
   error: unknown;
@@ -131,16 +134,16 @@ export function StatusDialog({
   const statuses = useQuery(ticketLookupQuery("ticket-statuses"));
   const codes = useQuery(ticketLookupQuery("resolution-codes"));
   const categories = useQuery(categoriesQuery);
-  const [statusId, setStatusId] = useState(currentStatusId ?? "");
+  const [statusId, setStatusId] = useState(initialStatusId ?? currentStatusId ?? "");
   const [codeId, setCodeId] = useState("");
   const [closureId, setClosureId] = useState("");
   useEffect(() => {
     if (open) {
-      setStatusId(currentStatusId ?? "");
+      setStatusId(initialStatusId ?? currentStatusId ?? "");
       setCodeId("");
       setClosureId("");
     }
-  }, [open, currentStatusId]);
+  }, [open, currentStatusId, initialStatusId]);
   const target = statuses.data?.find((s) => s.id === statusId);
   const closing = Boolean(target?.is_closed);
   return (
@@ -148,6 +151,7 @@ export function StatusDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
+      size="sm"
       submitLabel={t("ticket.changeStatus")}
       busy={busy}
       submitDisabled={!statusId || statusId === currentStatusId || (closing && !codeId)}
@@ -217,6 +221,7 @@ export function PriorityDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
+      size="sm"
       submitLabel={t("common.save")}
       busy={busy}
       submitDisabled={!priorityId}
@@ -230,6 +235,143 @@ export function PriorityDialog({
         onChange={(e) => setPriorityId(e.target.value)}
         placeholder={t("common.choose")}
         options={toOptions(priorities.data, (p) => p.name)}
+      />
+    </FormDialog>
+  );
+}
+
+/** Tomorrow at 09:00, the first snooze time offered. */
+function tomorrow(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(9, 0, 0, 0);
+  return toLocalInput(d);
+}
+
+/** Snoozes a ticket until a time, with a reason. Tomorrow 09:00 is offered first. */
+export function SnoozeDialog({
+  open,
+  onOpenChange,
+  title,
+  onSubmit,
+  busy,
+  error,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  onSubmit: (body: { until: string; reason: string }) => void;
+  busy: boolean;
+  error: unknown;
+}) {
+  const t = useText();
+  const [until, setUntil] = useState(tomorrow);
+  const [reason, setReason] = useState("");
+  useEffect(() => {
+    if (open) {
+      setUntil(tomorrow());
+      setReason("");
+    }
+  }, [open]);
+  const instant = fromLocalInput(until);
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={t("ticket.snoozeIntro")}
+      size="sm"
+      submitLabel={t("ticket.snooze")}
+      busy={busy}
+      submitDisabled={!instant}
+      onSubmit={() => instant && onSubmit({ until: instant, reason })}
+    >
+      <ProblemNotice error={error} />
+      <TextField
+        label={t("ticket.snoozeUntil")}
+        type="datetime-local"
+        required
+        value={until}
+        min={toLocalInput(new Date())}
+        onChange={(e) => setUntil(e.target.value)}
+      />
+      <TextField
+        label={t("ticket.snoozeReason")}
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+      />
+    </FormDialog>
+  );
+}
+
+/** Logs whole minutes of work, optionally on an earlier day. */
+export function TimeDialog({
+  open,
+  onOpenChange,
+  title,
+  onSubmit,
+  busy,
+  error,
+  minutesError,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  onSubmit: (body: { minutes: number; note: string; work_date: string | null }) => void;
+  busy: boolean;
+  error: unknown;
+  minutesError?: string | undefined;
+}) {
+  const t = useText();
+  const [minutes, setMinutes] = useState("");
+  const [date, setDate] = useState("");
+  const [note, setNote] = useState("");
+  useEffect(() => {
+    if (open) {
+      setMinutes("");
+      setDate("");
+      setNote("");
+    }
+  }, [open]);
+  const value = Number(minutes.trim());
+  const valid = Number.isInteger(value) && value > 0;
+  return (
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      size="sm"
+      submitLabel={t("ticket.logTime")}
+      busy={busy}
+      submitDisabled={!valid}
+      onSubmit={() => onSubmit({ minutes: value, note, work_date: date || null })}
+    >
+      <ProblemNotice error={minutesError ? undefined : error} />
+      <TextField
+        label={t("ticket.minutes")}
+        hint={t("ticket.minutesHint")}
+        type="number"
+        inputMode="numeric"
+        min={1}
+        step={1}
+        required
+        autoFocus
+        value={minutes}
+        error={minutesError}
+        onChange={(e) => setMinutes(e.target.value)}
+      />
+      <TextField
+        label={t("ticket.workDate")}
+        hint={t("ticket.workDateHint")}
+        type="date"
+        max={localDay()}
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+      />
+      <TextField
+        label={t("ticket.timeNote")}
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
       />
     </FormDialog>
   );

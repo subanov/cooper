@@ -2,9 +2,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/Button";
+import { LoadingBlock, Notice, ProblemNotice } from "@/components/Feedback";
 import { Fieldset, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { LoadingBlock } from "@/components/QueryState";
 import { fieldError } from "@/features/shared/mutation";
 import { PublicLayout } from "@/features/shell/PublicLayout";
 import { useText } from "@/i18n/useText";
@@ -35,7 +34,7 @@ export function SetupPage() {
             company_name: form.company_name.trim(),
             ticket_code: form.ticket_code.trim().toUpperCase(),
             sender_domains: form.sender_domains
-              .split(",")
+              .split(/[,\s]+/)
               .map((d) => d.trim())
               .filter(Boolean),
           },
@@ -49,11 +48,15 @@ export function SetupPage() {
         <LoadingBlock />
       ) : setup.isSuccess ? (
         <Notice tone="success" title={t("setup.done")}>
-          <Link to="/sign-in">{t("signIn.submit")}</Link>
+          <Link to="/sign-in" className="font-medium text-accent-text underline">
+            {t("signIn.submit")}
+          </Link>
         </Notice>
       ) : status.data && !status.data.required ? (
         <Notice tone="info" title={t("setup.notNeeded")}>
-          <Link to="/sign-in">{t("signIn.submit")}</Link>
+          <Link to="/sign-in" className="font-medium text-accent-text underline">
+            {t("signIn.submit")}
+          </Link>
         </Notice>
       ) : (
         <form

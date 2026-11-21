@@ -19,7 +19,8 @@ export function NotificationsBell() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const unread = useQuery(unreadCountQuery).data?.unread ?? 0;
-  const recent = useQuery({ ...recentNotificationsQuery, enabled: true });
+  const recent = useQuery(recentNotificationsQuery);
+  const items = recent.data?.items ?? [];
   return (
     <Menu
       label={t("notifications.recent")}
@@ -42,10 +43,10 @@ export function NotificationsBell() {
       }
     >
       <MenuLabel>{t("notifications.recent")}</MenuLabel>
-      {(recent.data?.items ?? []).length === 0 ? (
-        <p className="px-2 py-3 text-sm text-fg-muted">{t("notifications.empty")}</p>
+      {items.length === 0 ? (
+        <p className="px-2.5 py-3 text-sm text-fg-muted">{t("notifications.empty")}</p>
       ) : null}
-      {(recent.data?.items ?? []).map((n) => (
+      {items.map((n) => (
         <MenuItem
           key={n.id}
           onSelect={async () => {
@@ -57,7 +58,7 @@ export function NotificationsBell() {
             if (href) router.history.push(href);
           }}
         >
-          <span className="grid max-w-80 gap-0.5 py-1">
+          <span className="grid max-w-72 gap-0.5 py-1.5">
             <span className="flex items-center gap-1.5 font-medium">
               {!n.read_at ? (
                 <span className="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true" />

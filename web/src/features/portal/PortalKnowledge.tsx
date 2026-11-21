@@ -3,11 +3,9 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { BookOpen, Search } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
 import { Button, buttonClass } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState, LoadingBlock, QueryState } from "@/components/Feedback";
 import { Input } from "@/components/Field";
-import { PageHeader } from "@/components/Page";
-import { LoadingBlock, QueryState } from "@/components/QueryState";
+import { BackLink, PageHeader, Panel } from "@/components/Layout";
 import { ArticleBody } from "@/features/knowledge/ArticleBody";
 import { useFormat, useText } from "@/i18n/useText";
 import { api } from "@/lib/api";
@@ -50,7 +48,7 @@ export function PortalKnowledgePage({ q }: { q?: string | undefined }) {
               className="h-11 pl-10"
             />
           </div>
-          <Button type="submit" size="lg">
+          <Button type="submit" variant="primary" size="lg">
             {t("portalHome.search")}
           </Button>
         </form>
@@ -110,13 +108,13 @@ export function PortalArticlePage({ id }: { id: string }) {
       {(a) => (
         <div className="grid gap-6">
           <PageHeader
-            back={{ to: "/portal/knowledge", label: t("portalKnowledge.back") }}
+            back={<BackLink to="/portal/knowledge">{t("portalKnowledge.back")}</BackLink>}
             title={a.title}
             description={t("portalKnowledge.updated", { date: f.date(a.updated_at) })}
           />
-          <Card>
+          <Panel>
             <ArticleBody html={a.body} />
-          </Card>
+          </Panel>
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-4">
             <p className="flex-1 font-medium">{t("portalKnowledge.notSolved")}</p>
             <Link

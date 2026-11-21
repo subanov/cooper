@@ -51,4 +51,9 @@ export const tasks = {
   "tasks.open": "Open",
   "tasks.kind.ticket": "Ticket",
   "tasks.kind.change": "Change",
+  "tasks.emptyBoard": "No Tasks yet",
+  "tasks.emptyBoardHint":
+    "Create a Task for work that is not a ticket, or turn on “Include closed”.",
+  "tasks.unavailable": "Task unavailable",
+  "tasks.related": "Links, subtasks and history",
 } as const;

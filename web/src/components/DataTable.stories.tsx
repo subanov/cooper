@@ -1,53 +1,49 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Badge } from "./Badge";
-import { Card } from "./Card";
 import { DataTable } from "./DataTable";
-import { EmptyState } from "./EmptyState";
+import { EmptyState } from "./Feedback";
 
-interface Row {
-  id: string;
-  name: string;
-  status: string;
-}
+const meta: Meta = { title: "Design system/DataTable" };
+export default meta;
+type Story = StoryObj;
 
-function Table({ rows, loading }: { rows: Row[] | undefined; loading: boolean }) {
-  return (
-    <Card flush className="w-[36rem]">
+const rows = [
+  { id: "1", name: "Open", active: true },
+  { id: "2", name: "Awaiting Response", active: true },
+  { id: "3", name: "Legacy", active: false },
+];
+
+export const Rows: Story = {
+  render: () => (
+    <div className="w-[32rem] rounded-lg border border-line bg-surface">
       <DataTable
-        caption="Assets"
+        caption="Ticket Statuses"
         rows={rows}
-        loading={loading}
         rowKey={(r) => r.id}
-        empty={<EmptyState title="No Assets match." />}
         columns={[
+          { key: "name", header: "Name", cell: (r) => r.name },
           {
-            id: "name",
-            header: "Asset",
-            rowHeader: true,
-            cell: (r) => <span className="font-medium">{r.name}</span>,
+            key: "status",
+            header: "Status",
+            cell: (r) => (
+              <Badge tone={r.active ? "success" : "muted"}>
+                {r.active ? "Active" : "Inactive"}
+              </Badge>
+            ),
           },
-          { id: "status", header: "Status", cell: (r) => <Badge tone="success">{r.status}</Badge> },
         ]}
       />
-    </Card>
-  );
-}
-
-const meta = {
-  title: "Design system/DataTable",
-  component: Table,
-  args: {
-    rows: [
-      { id: "1", name: "LT-0042", status: "In use" },
-      { id: "2", name: "SRV-DB-01", status: "In use" },
-    ],
-    loading: false,
-  },
-} satisfies Meta<typeof Table>;
-
-export default meta;
-type Story = StoryObj<typeof meta>;
-
-export const Rows: Story = {};
-export const Empty: Story = { args: { rows: [] } };
-export const Loading: Story = { args: { rows: undefined, loading: true } };
+    </div>
+  ),
+};
+export const Empty: Story = {
+  render: () => (
+    <DataTable
+      caption="Ticket Statuses"
+      rows={[] as typeof rows}
+      rowKey={(r) => r.id}
+      columns={[{ key: "name", header: "Name", cell: (r) => r.name }]}
+      empty={<EmptyState title="Nothing here yet." />}
+    />
+  ),
+};

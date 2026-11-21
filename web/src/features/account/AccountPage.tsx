@@ -3,11 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { Facts } from "@/components/Facts";
+import { Notice, ProblemNotice } from "@/components/Feedback";
 import { TextAreaField, TextField } from "@/components/Field";
-import { Notice, ProblemNotice } from "@/components/Notice";
-import { Page, PageHeader } from "@/components/Page";
+import { Facts, Page, PageHeader, Panel } from "@/components/Layout";
 import { useToast } from "@/components/Toast";
 import { NewPasswordForm } from "@/features/auth/ResetPassword";
 import { TotpEnrollment } from "@/features/auth/TwoFactorSetup";
@@ -23,26 +21,25 @@ export function AccountPage() {
   const session = useSession();
   const a = session.analyst;
   return (
-    <Page width="medium">
+    <Page width="narrow">
       <PageHeader title={t("account.title")} description={t("account.intro")} />
-      <Card title={t("account.profile")} description={t("account.profileHint")}>
+      <Panel title={t("account.profile")} description={t("account.profileHint")}>
         <Facts
-          layout="inline"
           items={[
             { key: "name", term: t("common.name"), value: a.full_name },
             { key: "username", term: t("account.username"), value: a.username },
             { key: "email", term: t("account.email"), value: a.email },
           ]}
         />
-      </Card>
-      <SignatureCard initial={a.signature} />
-      <PasswordCard />
-      <TwoFactorCard enabled={a.totp_enabled} required={session.totp_enrollment_required} />
+      </Panel>
+      <SignaturePanel initial={a.signature} />
+      <PasswordPanel />
+      <TwoFactorPanel enabled={a.totp_enabled} required={session.totp_enrollment_required} />
     </Page>
   );
 }
 
-function SignatureCard({ initial }: { initial: string }) {
+function SignaturePanel({ initial }: { initial: string }) {
   const t = useText();
   const [signature, setSignature] = useState(initial);
   const save = useAction(
@@ -53,7 +50,7 @@ function SignatureCard({ initial }: { initial: string }) {
     },
   );
   return (
-    <Card title={t("account.signature")}>
+    <Panel title={t("account.signature")}>
       <form
         className="grid gap-3"
         onSubmit={(e) => {
@@ -63,7 +60,6 @@ function SignatureCard({ initial }: { initial: string }) {
       >
         <TextAreaField
           label={t("account.signature")}
-          labelHidden
           hint={t("account.signatureHint")}
           rows={4}
           value={signature}
@@ -81,11 +77,11 @@ function SignatureCard({ initial }: { initial: string }) {
           </Button>
         </div>
       </form>
-    </Card>
+    </Panel>
   );
 }
 
-function PasswordCard() {
+function PasswordPanel() {
   const t = useText();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -106,7 +102,7 @@ function PasswordCard() {
     },
   });
   return (
-    <Card title={t("account.password")} description={t("account.passwordIntro")}>
+    <Panel title={t("account.password")} description={t("account.passwordIntro")}>
       <div className="grid max-w-md gap-4">
         <TextField
           label={t("account.currentPassword")}
@@ -123,11 +119,11 @@ function PasswordCard() {
           onSubmit={(next) => change.mutate(next)}
         />
       </div>
-    </Card>
+    </Panel>
   );
 }
 
-function TwoFactorCard({ enabled, required }: { enabled: boolean; required: boolean }) {
+function TwoFactorPanel({ enabled, required }: { enabled: boolean; required: boolean }) {
   const t = useText();
   const queryClient = useQueryClient();
   const [setup, setSetup] = useState(false);
@@ -141,7 +137,7 @@ function TwoFactorCard({ enabled, required }: { enabled: boolean; required: bool
     },
   );
   return (
-    <Card title={t("account.twoFactor")}>
+    <Panel title={t("account.twoFactor")}>
       <div className="grid gap-4">
         <Notice tone={enabled ? "success" : "warning"} live={false}>
           {enabled ? t("account.twoFactorOn") : t("account.twoFactorOff")}
@@ -189,7 +185,7 @@ function TwoFactorCard({ enabled, required }: { enabled: boolean; required: bool
           <div>
             <Button
               variant="primary"
-              icon={<ShieldCheck aria-hidden="true" className="size-4" />}
+              icon={<ShieldCheck aria-hidden="true" />}
               onClick={() => setSetup(true)}
             >
               {t("account.setUp")}
@@ -197,6 +193,6 @@ function TwoFactorCard({ enabled, required }: { enabled: boolean; required: bool
           </div>
         )}
       </div>
-    </Card>
+    </Panel>
   );
 }

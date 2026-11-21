@@ -1,25 +1,25 @@
+import { Loader2 } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { cn } from "@/lib/cn";
-import { Spinner } from "./Spinner";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "quiet";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-accent-fg shadow-raised hover:brightness-110 active:brightness-95",
-  secondary:
-    "border border-control/60 bg-surface text-fg shadow-raised hover:bg-sunken active:bg-sunken",
-  ghost: "text-fg hover:bg-sunken active:bg-sunken",
-  danger: "bg-danger text-danger-fg shadow-raised hover:brightness-110 active:brightness-95",
+  primary: "bg-accent text-accent-fg hover:bg-accent-hover border border-transparent shadow-raised",
+  secondary: "bg-surface text-fg border border-line-strong hover:bg-sunken shadow-raised",
+  ghost: "bg-transparent text-fg border border-transparent hover:bg-sunken",
+  danger: "bg-danger text-danger-fg border border-transparent hover:brightness-110 shadow-raised",
+  quiet: "bg-transparent text-accent-text border border-transparent hover:bg-accent-soft",
 };
 
 const SIZES: Record<ButtonSize, string> = {
   sm: "h-8 gap-1.5 px-2.5 text-[0.8125rem]",
   md: "h-9 gap-2 px-3.5 text-sm",
-  lg: "h-11 gap-2 px-5 text-base",
+  lg: "h-11 gap-2 px-5 text-[0.9375rem]",
 };
 
-/** Button classes, for links that look like buttons. */
+/** Classes of a button, for links that look like one (same look, same place: H4). */
 export function buttonClass({
   variant = "secondary",
   size = "md",
@@ -30,7 +30,9 @@ export function buttonClass({
   className?: string | undefined;
 } = {}): string {
   return cn(
-    "inline-flex shrink-0 cursor-pointer select-none items-center justify-center whitespace-nowrap rounded-md font-medium transition-[background-color,filter] disabled:cursor-not-allowed disabled:opacity-55 aria-disabled:cursor-not-allowed aria-disabled:opacity-55",
+    "inline-flex shrink-0 select-none items-center justify-center whitespace-nowrap rounded-md font-medium transition-colors",
+    "disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
+    "[&_svg]:size-4 [&_svg]:shrink-0",
     VARIANTS[variant],
     SIZES[size],
     className,
@@ -40,51 +42,50 @@ export function buttonClass({
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant | undefined;
   size?: ButtonSize | undefined;
+  /** An icon before the label (decorative: give it aria-hidden). */
+  icon?: ReactNode | undefined;
   /** Shows a spinner and blocks repeated clicks while a request runs (H1). */
   loading?: boolean | undefined;
-  /** An icon before the label. */
-  icon?: ReactNode;
   ref?: Ref<HTMLButtonElement> | undefined;
 }
 
-/**
- * The one button of the design system. One `primary` button per view (Hick's Law);
- * `danger` only for destructive actions, kept apart from frequent ones (Fitts's Law).
- */
+/** A button. Default type is "button", so it never submits a form by accident. */
 export function Button({
   variant,
   size,
-  loading = false,
   icon,
+  loading,
   className,
   children,
   disabled,
   type = "button",
-  ...props
+  ref,
+  ...rest
 }: ButtonProps) {
   return (
     <button
+      ref={ref}
       type={type}
-      className={buttonClass({ variant, size, className })}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      {...props}
+      className={buttonClass({ variant, size, className })}
+      {...rest}
     >
-      {loading ? <Spinner /> : icon}
+      {loading ? <Loader2 aria-hidden="true" className="animate-spin" /> : icon}
       {children}
     </button>
   );
 }
 
 export interface IconButtonProps extends Omit<ButtonProps, "children" | "icon"> {
-  /** The accessible name, also shown as a tooltip on hover and keyboard focus. */
+  /** The accessible name, also shown as a tooltip. */
   label: string;
   icon: ReactNode;
-  /** Where the tooltip appears. */
-  tooltip?: "top" | "bottom" | "none" | undefined;
+  /** Where the tooltip shows; "none" when a visible label sits next to it. */
+  tooltip?: "bottom" | "top" | "none" | undefined;
 }
 
-/** A square button with only an icon. Its label is its accessible name and tooltip. */
+/** A square button with only an icon. Its name is the label, shown on hover and focus. */
 export function IconButton({
   label,
   icon,
@@ -92,29 +93,22 @@ export function IconButton({
   size = "md",
   tooltip = "bottom",
   className,
-  ...props
+  ...rest
 }: IconButtonProps) {
-  const square = size === "sm" ? "w-8 px-0" : size === "lg" ? "w-11 px-0" : "w-9 px-0";
   return (
     <Button
+      aria-label={label}
+      data-tip={tooltip === "none" ? undefined : label}
+      data-tip-side={tooltip === "top" ? "top" : undefined}
       variant={variant}
       size={size}
-      aria-label={label}
-      className={cn("group relative", square, className)}
-      {...props}
-    >
-      {icon}
-      {tooltip === "none" ? null : (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-sm bg-fg px-2 py-1 text-xs font-normal text-canvas opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100",
-            tooltip === "top" ? "bottom-full mb-1.5" : "top-full mt-1.5",
-          )}
-        >
-          {label}
-        </span>
+      icon={icon}
+      className={cn(
+        tooltip === "none" ? undefined : "tip",
+        size === "sm" ? "w-8 px-0" : size === "lg" ? "w-11 px-0" : "w-9 px-0",
+        className,
       )}
-    </Button>
+      {...rest}
+    />
   );
 }

@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/Badge";
-import { Card } from "@/components/Card";
+import { ProblemNotice, QueryState } from "@/components/Feedback";
 import { Switch } from "@/components/Field";
-import { ProblemNotice } from "@/components/Notice";
-import { SectionHeader } from "@/components/Page";
-import { QueryState } from "@/components/QueryState";
+import { PageHeader, Panel } from "@/components/Layout";
 import { modulesQuery } from "@/features/session/session";
 import { useAction } from "@/features/shared/mutation";
 import { useText } from "@/i18n/useText";
@@ -26,15 +24,19 @@ export function ModulesPage() {
     {
       invalidate: [["modules"]],
       success: (_, m) => t(m.on ? "admin.modules.on" : "admin.modules.off", { name: m.name }),
+      undo: (_, m) => ({
+        label: t("common.undo"),
+        run: (): void => toggle.mutate({ ...m, on: !m.on }),
+      }),
     },
   );
   return (
     <>
-      <SectionHeader title={t("admin.modules")} description={t("admin.modules.intro")} />
+      <PageHeader level={2} title={t("admin.modules")} description={t("admin.modules.intro")} />
       <ProblemNotice error={toggle.error} />
       <QueryState query={modules}>
         {(list) => (
-          <Card flush>
+          <Panel flush>
             <ul className="divide-y divide-line">
               {list.map((m) => (
                 <li key={m.key} className="flex items-center justify-between gap-4 px-4 py-3">
@@ -42,19 +44,23 @@ export function ModulesPage() {
                     {m.name}
                     {!m.can_disable ? <Badge tone="muted">{t("admin.modules.core")}</Badge> : null}
                   </span>
-                  <Switch
-                    label={t("admin.modules.toggle", { name: m.name })}
-                    checked={m.is_enabled}
-                    disabled={
-                      !m.can_disable || (toggle.isPending && toggle.variables?.key === m.key)
-                    }
-                    onChange={(on) => toggle.mutate({ key: m.key, name: m.name, on })}
-                    stateLabels={[t("common.on"), t("common.off")]}
-                  />
+                  <span className="flex items-center gap-2 text-xs text-fg-muted">
+                    <span aria-hidden="true">
+                      {m.is_enabled ? t("common.on") : t("common.off")}
+                    </span>
+                    <Switch
+                      label={t("admin.modules.toggle", { name: m.name })}
+                      checked={m.is_enabled}
+                      disabled={
+                        !m.can_disable || (toggle.isPending && toggle.variables?.key === m.key)
+                      }
+                      onCheckedChange={(on) => toggle.mutate({ key: m.key, name: m.name, on })}
+                    />
+                  </span>
                 </li>
               ))}
             </ul>
-          </Card>
+          </Panel>
         )}
       </QueryState>
     </>
