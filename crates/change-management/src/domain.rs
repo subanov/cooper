@@ -1370,23 +1370,28 @@ macro_rules! change_event {
 
 change_event!(
     /// A Change was submitted for approval (a new Approval Round opened).
-    ChangeSubmitted, "change.submitted"
+    ChangeSubmitted,
+    "change.submitted"
 );
 change_event!(
     /// An Approval Round approved the Change.
-    ChangeApproved, "change.approved"
+    ChangeApproved,
+    "change.approved"
 );
 change_event!(
     /// An Approval Round rejected the Change; it went back to draft.
-    ChangeRejected, "change.rejected"
+    ChangeRejected,
+    "change.rejected"
 );
 change_event!(
     /// The Change entered implementation (scheduled or under way).
-    ChangeScheduled, "change.scheduled"
+    ChangeScheduled,
+    "change.scheduled"
 );
 change_event!(
     /// The Change was completed or failed.
-    ChangeCompleted, "change.completed"
+    ChangeCompleted,
+    "change.completed"
 );
 
 #[cfg(test)]
