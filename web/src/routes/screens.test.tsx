@@ -419,4 +419,68 @@ describe("administration", () => {
     expect(calls.find((c) => c.method === "PUT")?.body).toEqual({ is_enabled: false });
     expect(await screen.findByText("tasks is off.")).toBeInTheDocument();
   });
+  it("edits the Suggested Reply Instructions and shows the fixed rules", async () => {
+    const user = userEvent.setup();
+    const current = {
+      body: "Be polite.",
+      is_default: true,
+      updated_at: null,
+      default_body: "Be polite.",
+      fixed_rules: "These rules always apply.",
+      placeholders: ["{analyst_name}", "{ticket_number}"],
+      max_chars: 8000,
+    };
+    const calls = mockApi({
+      ...analystApi(["tickets.configure"]),
+      "/api/v1/suggested-reply-instructions": { status: 200, body: current },
+      "PUT /api/v1/suggested-reply-instructions": {
+        status: 200,
+        body: {
+          ...current,
+          body: "Answer in German.",
+          is_default: false,
+          updated_at: "2026-11-23T10:00:00Z",
+        },
+      },
+      "DELETE /api/v1/suggested-reply-instructions": { status: 200, body: current },
+    });
+    const { container } = renderApp("/administration/suggested-reply-instructions");
+    const box = await screen.findByLabelText(/^Instructions/);
+    expect(box).toHaveValue("Be polite.");
+    expect(screen.getByText("These rules always apply.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reset to default" })).toBeDisabled();
+    expect(await axeViolations(container)).toEqual([]);
+    await user.clear(box);
+    await user.type(box, "Answer in German.");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(calls.some((c) => c.method === "PUT")).toBe(true));
+    expect(calls.find((c) => c.method === "PUT")?.body).toEqual({ body: "Answer in German." });
+    expect(await screen.findByText("Suggested Reply Instructions saved.")).toBeInTheDocument();
+  });
+
+  it("asks before resetting the Suggested Reply Instructions", async () => {
+    const user = userEvent.setup();
+    const calls = mockApi({
+      ...analystApi(["tickets.configure"]),
+      "/api/v1/suggested-reply-instructions": {
+        status: 200,
+        body: {
+          body: "Answer in German.",
+          is_default: false,
+          updated_at: "2026-11-23T10:00:00Z",
+          default_body: "Be polite.",
+          fixed_rules: "These rules always apply.",
+          placeholders: ["{analyst_name}", "{ticket_number}"],
+          max_chars: 8000,
+        },
+      },
+      "DELETE /api/v1/suggested-reply-instructions": { status: 200, body: {} },
+    });
+    renderApp("/administration/suggested-reply-instructions");
+    await user.click(await screen.findByRole("button", { name: "Reset to default" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(calls.some((c) => c.method === "DELETE")).toBe(false);
+    await user.click(within(dialog).getByRole("button", { name: "Reset to default" }));
+    await waitFor(() => expect(calls.some((c) => c.method === "DELETE")).toBe(true));
+  });
 });

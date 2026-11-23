@@ -90,6 +90,10 @@ const P = {
   Reference: lazy(() => import("./features/administration/ReferencePage"), "ReferencePage"),
   Categories: lazy(() => import("./features/administration/CategoriesPage"), "CategoriesPage"),
   Mailboxes: lazy(() => import("./features/administration/MailboxesPage"), "MailboxesPage"),
+  SuggestedReplyInstructions: lazy(
+    () => import("./features/administration/SuggestedReplyInstructionsPage"),
+    "SuggestedReplyInstructionsPage",
+  ),
   Companies: lazy(() => import("./features/administration/CompaniesPage"), "CompaniesPage"),
   Teams: lazy(() => import("./features/administration/TeamsPage"), "TeamsPage"),
   Departments: lazy(() => import("./features/administration/DepartmentsPage"), "DepartmentsPage"),
@@ -472,6 +476,7 @@ const adminRoutes = [
   referenceRoute("calendar-categories"),
   adminPage("/ticket-categories", P.Categories),
   mailboxesRoute,
+  adminPage("/suggested-reply-instructions", P.SuggestedReplyInstructions),
   adminPage("/companies", P.Companies),
   adminPage("/teams", P.Teams),
   adminPage("/departments", P.Departments),

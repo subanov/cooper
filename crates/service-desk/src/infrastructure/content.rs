@@ -1,4 +1,4 @@
-//! Ticket emails, Reply Templates and attachment metadata.
+//! Ticket emails, Reply Templates, Suggested Reply Instructions and attachment metadata.
 
 use async_trait::async_trait;
 use cooper_kernel::{AnalystId, AuditRecord, EventEnvelope, TenantId, TenantScope, TicketId};
@@ -8,7 +8,7 @@ use cooper_platform::tenancy;
 use super::{PgServiceDeskStore, db_err, record, ticket_changed};
 use crate::domain::{
     AttachmentInfo, ContentRepository, Direction, EmailTemplate, EmailTemplateEvent,
-    EmailTemplateInput, ReplyTemplate, RepoError, TicketEmail,
+    EmailTemplateInput, ReplyTemplate, RepoError, SuggestedReplyInstructions, TicketEmail,
 };
 
 #[async_trait]
@@ -246,6 +246,51 @@ impl ContentRepository for PgServiceDeskStore {
         .execute(&mut *tx)
         .await
         .map_err(db_err)?;
+        record(&mut tx, audit, &[]).await?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn suggested_reply_instructions(
+        &self,
+    ) -> Result<Option<SuggestedReplyInstructions>, RepoError> {
+        let row = sqlx::query!("SELECT body, updated_at FROM suggested_reply_instructions")
+            .fetch_optional(&self.pool)
+            .await
+            .map_err(db_err)?;
+        Ok(row.map(|r| SuggestedReplyInstructions::restore(r.body, r.updated_at)))
+    }
+
+    async fn save_suggested_reply_instructions(
+        &self,
+        i: &SuggestedReplyInstructions,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        let updated_at = i
+            .updated_at()
+            .ok_or_else(|| RepoError::Storage("the default instructions are not stored".into()))?;
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        sqlx::query!(
+            "INSERT INTO suggested_reply_instructions (id, body, updated_at) VALUES (true, $1, $2)
+             ON CONFLICT (id) DO UPDATE SET body = EXCLUDED.body, updated_at = EXCLUDED.updated_at",
+            i.body(),
+            updated_at
+        )
+        .execute(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        record(&mut tx, audit, &[]).await?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn delete_suggested_reply_instructions(
+        &self,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError> {
+        let mut tx = self.pool.begin().await.map_err(db_err)?;
+        sqlx::query!("DELETE FROM suggested_reply_instructions")
+            .execute(&mut *tx)
+            .await
+            .map_err(db_err)?;
         record(&mut tx, audit, &[]).await?;
         tx.commit().await.map_err(db_err)
     }

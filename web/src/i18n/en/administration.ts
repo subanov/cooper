@@ -241,4 +241,24 @@ export const administration = {
   "admin.categories.addInside": "Add a Category inside {name}",
   "admin.teams.parts": "Parts of the Team",
   "admin.teams.details": "Details",
+  "admin.suggestedReplyInstructions": "Suggested Reply Instructions",
+  "admin.suggestedReplyInstructions.intro":
+    "What the AI provider is told when an Analyst asks for a Suggested Reply. Changes apply to the next suggestion.",
+  "admin.suggestedReplyInstructions.body": "Instructions",
+  "admin.suggestedReplyInstructions.placeholders":
+    "Placeholders: {placeholders}. {summary} first asks the AI for a Ticket Summary, so suggestions take a few seconds longer. At most {max} characters.",
+  "admin.suggestedReplyInstructions.usingDefault": "Cooper's default instructions are in use.",
+  "admin.suggestedReplyInstructions.changed": "Changed {at}.",
+  "admin.suggestedReplyInstructions.saved": "Suggested Reply Instructions saved.",
+  "admin.suggestedReplyInstructions.discard": "Discard changes",
+  "admin.suggestedReplyInstructions.reset": "Reset to default",
+  "admin.suggestedReplyInstructions.resetTitle": "Reset the Suggested Reply Instructions?",
+  "admin.suggestedReplyInstructions.resetBody":
+    "Your instructions are replaced by Cooper's default. This cannot be undone.",
+  "admin.suggestedReplyInstructions.resetDone": "Default instructions restored.",
+  "admin.suggestedReplyInstructions.fixedRules": "Rules Cooper always adds",
+  "admin.suggestedReplyInstructions.fixedRulesIntro":
+    "Sent after your instructions and take precedence. They keep internal Notes private and protect against instructions hidden in ticket text.",
+  "admin.suggestedReplyInstructions.thread":
+    "Each suggestion also gets the whole conversation: subject, description, emails and Notes, oldest first, and any text the Analyst has already typed in the reply box.",
 } as const;

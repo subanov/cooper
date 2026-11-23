@@ -322,6 +322,15 @@ fn check_template(name: &str, body: &str) -> Result<(String, String), TicketErro
 
 /// Rejects `{unknown_placeholder}` tokens in a template text.
 pub(super) fn check_placeholders(field: &'static str, text: &str) -> Result<(), TicketError> {
+    check_placeholders_in(field, text, PLACEHOLDERS)
+}
+
+/// Rejects `{placeholder}`-like tokens in `text` that are not in `allowed`.
+pub(super) fn check_placeholders_in(
+    field: &'static str,
+    text: &str,
+    allowed: &[&str],
+) -> Result<(), TicketError> {
     let mut rest = text;
     while let Some(start) = rest.find('{') {
         let Some(end) = rest[start..].find('}') else {
@@ -331,14 +340,11 @@ pub(super) fn check_placeholders(field: &'static str, text: &str) -> Result<(), 
         if token
             .chars()
             .all(|c| c.is_ascii_lowercase() || c == '_' || c == '{' || c == '}')
-            && !PLACEHOLDERS.contains(&token)
+            && !allowed.contains(&token)
         {
             return Err(TicketError::invalid(
                 field,
-                format!(
-                    "unknown placeholder {token}; use {}",
-                    PLACEHOLDERS.join(", ")
-                ),
+                format!("unknown placeholder {token}; use {}", allowed.join(", ")),
             ));
         }
         rest = &rest[start + end + 1..];

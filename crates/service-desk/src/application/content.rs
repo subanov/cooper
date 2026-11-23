@@ -1,14 +1,22 @@
 //! Replies (FR-TKT-021), Reply Templates (FR-TKT-022) and attachments (FR-GEN-007).
 
+use std::time::Duration;
+
 use cooper_kernel::{Actor, AuditAction, AuditRecord, EventEnvelope, Principal, TicketId};
 use uuid::Uuid;
 
 use super::{AppError, ServiceDesk, capabilities, require};
 use crate::domain::{
-    AttachmentInfo, Direction, Placeholders, ReplyContext, ReplyDraft, ReplyEmail, ReplyTemplate,
-    SuggestError, SuggestedReply, SuggestedReplyRequest, ThreadEntry, ThreadEntryKind, TicketEmail,
-    TicketError, TicketReplySent, audit_record,
+    AttachmentInfo, Direction, Placeholders, ReplyContext, ReplyDraft, ReplyEmail, ReplySuggester,
+    ReplyTemplate, SuggestError, SuggestedReply, SuggestedReplyInstructions, SuggestedReplyRequest,
+    ThreadEntry, ThreadEntryKind, TicketEmail, TicketError, TicketReplySent, audit_record,
 };
+
+/// Time for a whole suggestion, summary included: below the server's request timeout.
+const SUGGESTION_TIME_LIMIT: Duration = Duration::from_secs(25);
+/// Time for the `{ticket_summary}` call; the Reply gets the rest of
+/// [`SUGGESTION_TIME_LIMIT`].
+const SUMMARY_TIME_LIMIT: Duration = Duration::from_secs(10);
 
 /// A Reply request.
 #[derive(Debug, Clone, Default)]
@@ -279,6 +287,86 @@ impl ServiceDesk {
         self.ports.suggester.is_some() && require(principal, capabilities::UPDATE).is_ok()
     }
 
+    /// The Suggested Reply Instructions in force: the stored ones or the default
+    /// (FR-AI-003). Needs `tickets.configure`.
+    ///
+    /// # Errors
+    ///
+    /// Forbidden or storage.
+    pub async fn suggested_reply_instructions(
+        &self,
+        principal: &Principal,
+    ) -> Result<SuggestedReplyInstructions, AppError> {
+        require(principal, capabilities::CONFIGURE)?;
+        self.current_instructions().await
+    }
+
+    /// Replaces the Suggested Reply Instructions. Needs `tickets.configure`.
+    ///
+    /// # Errors
+    ///
+    /// Forbidden, blank or too long text, an unknown placeholder, or storage.
+    pub async fn update_suggested_reply_instructions(
+        &self,
+        principal: &Principal,
+        body: &str,
+    ) -> Result<SuggestedReplyInstructions, AppError> {
+        require(principal, capabilities::CONFIGURE)?;
+        let before = self.current_instructions().await?;
+        let now = self.ports.clock.now();
+        let after = SuggestedReplyInstructions::new(body, now)?;
+        let action = if before.is_default() {
+            AuditAction::Created
+        } else {
+            AuditAction::Updated
+        };
+        let audit = audit_record(Some(&before), &after, action, principal.actor(), now);
+        if !before.is_default() && !audit.is_meaningful() {
+            return Ok(before);
+        }
+        self.ports
+            .content
+            .save_suggested_reply_instructions(&after, &audit)
+            .await?;
+        Ok(after)
+    }
+
+    /// Goes back to the default Suggested Reply Instructions. Needs `tickets.configure`.
+    ///
+    /// # Errors
+    ///
+    /// Forbidden or storage.
+    pub async fn reset_suggested_reply_instructions(
+        &self,
+        principal: &Principal,
+    ) -> Result<SuggestedReplyInstructions, AppError> {
+        require(principal, capabilities::CONFIGURE)?;
+        let default = SuggestedReplyInstructions::default();
+        if let Some(stored) = self.ports.content.suggested_reply_instructions().await? {
+            let audit = audit_record(
+                Some(&stored),
+                &default,
+                AuditAction::Deleted,
+                principal.actor(),
+                self.ports.clock.now(),
+            );
+            self.ports
+                .content
+                .delete_suggested_reply_instructions(&audit)
+                .await?;
+        }
+        Ok(default)
+    }
+
+    async fn current_instructions(&self) -> Result<SuggestedReplyInstructions, AppError> {
+        Ok(self
+            .ports
+            .content
+            .suggested_reply_instructions()
+            .await?
+            .unwrap_or_default())
+    }
+
     /// Suggests Reply text for a ticket from its description, emails and Notes (internal
     /// ones included, marked as such) and the Analyst's optional guidance (FR-AI-003).
     /// Nothing is stored or sent: the Analyst reviews the text and sends it as a Reply.
@@ -352,18 +440,32 @@ impl ServiceDesk {
             _ => String::new(),
         };
         let details = ticket.details();
+        let instructions = self.current_instructions().await?;
+        let context = ReplyContext {
+            ticket_number: ticket.number(),
+            subject: &details.subject,
+            description: &details.description,
+            requester_name: &requester_name,
+            analyst_name: &analyst_name,
+            summary: "",
+        };
+        let started = std::time::Instant::now();
+        let summary = if instructions.uses_summary() {
+            self.ticket_summary(suggester.as_ref(), id, &context, &thread)
+                .await
+        } else {
+            String::new()
+        };
         let request = SuggestedReplyRequest::for_ticket(
+            &instructions,
             &ReplyContext {
-                ticket_number: ticket.number(),
-                subject: &details.subject,
-                description: &details.description,
-                requester_name: &requester_name,
-                analyst_name: &analyst_name,
+                summary: &summary,
+                ..context
             },
             &thread,
             guidance,
-        )?;
-        let started = std::time::Instant::now();
+        )?
+        .with_time_limit(SUGGESTION_TIME_LIMIT.saturating_sub(started.elapsed()));
         match suggester.suggest(&request).await {
             Ok(reply) => {
                 tracing::info!(
@@ -384,6 +486,30 @@ impl ServiceDesk {
                     }
                 }
                 Err(err.into())
+            }
+        }
+    }
+
+    /// The AI-written summary for `{ticket_summary}`, within [`SUMMARY_TIME_LIMIT`]. A
+    /// failure is logged and gives an empty summary: the Reply is still suggested.
+    async fn ticket_summary(
+        &self,
+        suggester: &dyn ReplySuggester,
+        id: TicketId,
+        context: &ReplyContext<'_>,
+        thread: &[ThreadEntry],
+    ) -> String {
+        let request = SuggestedReplyRequest::summary_for_ticket(context, thread)
+            .with_time_limit(SUMMARY_TIME_LIMIT);
+        match suggester.suggest(&request).await {
+            Ok(summary) => summary.text().to_owned(),
+            Err(err) => {
+                tracing::warn!(
+                    ticket_id = %id,
+                    reason = %err,
+                    "Ticket summary for a Suggested Reply failed; suggesting without it"
+                );
+                String::new()
             }
         }
     }
