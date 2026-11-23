@@ -122,6 +122,7 @@ where
         .routes(routes!(log_time, list_time_entries))
         .routes(routes!(timeline))
         .routes(routes!(send_reply))
+        .routes(routes!(suggest_reply))
         .routes(routes!(list_emails))
         .routes(routes!(list_templates, create_template))
         .routes(routes!(update_template))
@@ -242,10 +243,12 @@ async fn get_ticket(
     Authenticated(p): Authenticated,
     Path(id): Path<Uuid>,
 ) -> ApiResult<Json<TicketDto>> {
-    Ok(Json(TicketDto::detail(
+    let mut dto = TicketDto::detail(
         api.service.ticket(&p, TicketId::from_uuid(id)).await?,
         api.service.now(),
-    )))
+    );
+    dto.can_suggest_reply = Some(api.service.can_suggest_reply(&p));
+    Ok(Json(dto))
 }
 
 /// Finds a ticket by its Ticket Number.
@@ -566,6 +569,26 @@ async fn send_reply(
         )
         .await?;
     Ok(created(super::dto::TicketEmailDto::from(email)))
+}
+
+/// Suggests Reply text from the ticket's description, emails and Notes and your optional
+/// guidance (FR-AI-003). Nothing is sent: review the text, then send it as a Reply.
+#[utoipa::path(post, path = "/tickets/{id}/suggested-reply", tag = "Tickets", params(("id" = Uuid, Path)),
+    request_body = super::dto::SuggestReplyRequest,
+    responses((status = 200, body = super::dto::SuggestedReplyDto),
+        (status = 503, description = "Not configured, or the AI provider is busy")))]
+async fn suggest_reply(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Path(id): Path<Uuid>,
+    Json(body): Json<super::dto::SuggestReplyRequest>,
+) -> ApiResult<Json<super::dto::SuggestedReplyDto>> {
+    Ok(Json(
+        api.service
+            .suggest_reply(&p, TicketId::from_uuid(id), body.guidance.as_deref())
+            .await?
+            .into(),
+    ))
 }
 
 /// Emails of a ticket, oldest first.

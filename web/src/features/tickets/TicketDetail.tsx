@@ -374,6 +374,7 @@ function TicketView({ ticket }: { ticket: Ticket }) {
               ticketId={ticket.id}
               requesterName={requester?.full_name}
               hasRequester={Boolean(ticket.requester_id)}
+              canSuggestReply={ticket.can_suggest_reply === true}
               onComposingChange={setComposing}
             />
           ) : null}

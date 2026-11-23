@@ -43,3 +43,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0034](0034-assets.md) | Assets: retirement on the Asset, one open Check Out, exact money, and Suppliers by ID | Accepted |
 | [0035](0035-contracts.md) | Contracts: per-Company Suppliers and Contracts, a calculated Notice Date, a Calendar event contract and once-only reminders | Accepted |
 | [0036](0036-calendar-context.md) | Calendar: per-Company events, instance-wide categories, and read-only events generated from other contexts' outbox events | Accepted |
+| [0037](0037-suggested-replies-with-an-ai-provider.md) | Suggested Replies through a provider port in the service desk, Gemini configured by environment | Accepted |

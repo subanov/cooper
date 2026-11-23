@@ -304,6 +304,64 @@ describe("tickets", () => {
     expect(submit).toBeEnabled();
   });
 
+  it("suggests a reply with AI, using typed text as guidance, and offers Undo", async () => {
+    const user = userEvent.setup();
+    const tk = ticket({ requester_id: "req-1", can_suggest_reply: true });
+    const calls = mockApi({
+      ...analystApi(["tickets.read", "tickets.update"]),
+      ...ticketApi(tk),
+      [`POST /api/v1/tickets/${tk.id}/suggested-reply`]: {
+        status: 200,
+        body: { text: "Hello, please restart the printer.", model: "gemini-test" },
+      },
+    });
+    const { container } = renderApp(`/tickets/${tk.id}?view=open`);
+    const box = await screen.findByRole("textbox", { name: /^Reply to/ });
+    expect(screen.getByRole("button", { name: "Suggest reply" })).toBeInTheDocument();
+    await user.type(box, "ask them to restart");
+    await user.click(screen.getByRole("button", { name: "Improve with AI" }));
+    await waitFor(() => expect(box).toHaveValue("Hello, please restart the printer."));
+    expect(calls.find((c) => c.path.endsWith("/suggested-reply"))?.body).toEqual({
+      guidance: "ask them to restart",
+    });
+    expect(
+      await screen.findByText("Suggested reply inserted. Review it before sending."),
+    ).toBeInTheDocument();
+    expect(calls.some((c) => c.path.endsWith("/replies"))).toBe(false);
+    expect(await axeViolations(container)).toEqual([]);
+    await user.click(screen.getByRole("button", { name: "Undo" }));
+    expect(box).toHaveValue("ask them to restart");
+  });
+
+  it("keeps the typed text when no reply can be suggested", async () => {
+    const user = userEvent.setup();
+    const tk = ticket({ requester_id: "req-1", can_suggest_reply: true });
+    mockApi({
+      ...analystApi(["tickets.read", "tickets.update"]),
+      ...ticketApi(tk),
+      [`POST /api/v1/tickets/${tk.id}/suggested-reply`]: {
+        status: 503,
+        body: { type: "https://cooper.dev/problems/ai-unavailable", status: 503 },
+      },
+    });
+    renderApp(`/tickets/${tk.id}?view=open`);
+    const box = await screen.findByRole("textbox", { name: /^Reply to/ });
+    await user.type(box, "my draft");
+    await user.click(screen.getByRole("button", { name: "Improve with AI" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Improve with AI" })).toBeEnabled(),
+    );
+    expect(box).toHaveValue("my draft");
+  });
+
+  it("offers no Suggest reply when the API does not", async () => {
+    const tk = ticket({ requester_id: "req-1", can_suggest_reply: false });
+    mockApi({ ...analystApi(["tickets.read", "tickets.update"]), ...ticketApi(tk) });
+    renderApp(`/tickets/${tk.id}?view=open`);
+    await screen.findByRole("textbox", { name: /^Reply to/ });
+    expect(screen.queryByRole("button", { name: "Suggest reply" })).not.toBeInTheDocument();
+  });
+
   it("asks for a Resolution Code when closing from the Properties panel", async () => {
     const user = userEvent.setup();
     const tk = ticket();

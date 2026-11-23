@@ -15447,6 +15447,50 @@
         }
       }
     },
+    "/api/v1/tickets/{id}/suggested-reply": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Suggests Reply text from the ticket's description, emails and Notes and your optional\nguidance (FR-AI-003). Nothing is sent: review the text, then send it as a Reply.",
+        "operationId": "suggest_reply",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestReplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestedReplyDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Not configured, or the AI provider is busy"
+          }
+        }
+      }
+    },
     "/api/v1/tickets/{id}/time-entries": {
       "get": {
         "tags": [
@@ -25916,6 +25960,37 @@
           }
         }
       },
+      "SuggestReplyRequest": {
+        "type": "object",
+        "description": "Ask for a Suggested Reply (FR-AI-003).",
+        "properties": {
+          "guidance": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The Analyst's instructions or rough draft (at most 4000 characters)."
+          }
+        }
+      },
+      "SuggestedReplyDto": {
+        "type": "object",
+        "description": "AI-generated Reply text for the Analyst to review; never sent automatically.",
+        "required": [
+          "text",
+          "model"
+        ],
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "The model that wrote it."
+          },
+          "text": {
+            "type": "string",
+            "description": "The suggested text (no Signature; it is added when the Reply is sent)."
+          }
+        }
+      },
       "SupplierDto": {
         "type": "object",
         "description": "A Supplier.",
@@ -27071,6 +27146,13 @@
             ],
             "format": "uuid",
             "description": "Assignee."
+          },
+          "can_suggest_reply": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether the caller can ask for a Suggested Reply (single-ticket responses only;\nFR-AI-003)."
           },
           "category_id": {
             "type": [

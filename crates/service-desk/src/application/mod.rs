@@ -138,6 +138,12 @@ pub enum AppError {
     /// A uniqueness rule was violated.
     #[error("{0}")]
     Conflict(String),
+    /// Suggested Replies are not configured (FR-AI-003).
+    #[error("Suggested Replies are not configured")]
+    SuggestionsOff,
+    /// The AI provider could not suggest a Reply.
+    #[error(transparent)]
+    Suggestion(#[from] crate::domain::SuggestError),
     /// Unexpected failure; logged, not returned.
     #[error("internal error")]
     Internal,
@@ -210,6 +216,8 @@ pub struct ServiceDeskPorts {
     pub directory: Arc<dyn Directory>,
     /// Settings.
     pub settings: Arc<dyn TicketSettingsProvider>,
+    /// The AI provider for Suggested Replies; `None` turns them off (FR-AI-003).
+    pub suggester: Option<Arc<dyn crate::domain::ReplySuggester>>,
     /// Time.
     pub clock: Arc<dyn Clock>,
 }

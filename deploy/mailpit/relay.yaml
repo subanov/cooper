@@ -1,0 +1,9 @@
+# Mailpit SMTP relay (local development only). With MP_SMTP_RELAY_ALL every message Cooper
+# sends is kept in Mailpit and also delivered to GreenMail, so a Requester signed in to
+# Roundcube (http://localhost:8026) sees Cooper's replies in their inbox.
+host: greenmail
+port: 3025
+starttls: false
+allow-insecure: true
+auth: none
+preserve-message-ids: true

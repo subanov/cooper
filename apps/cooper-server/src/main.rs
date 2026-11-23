@@ -49,6 +49,9 @@ async fn main() -> anyhow::Result<()> {
     let (system_log, system_log_writer) = system_log::channel("server");
     let _telemetry = telemetry::init(config.log_format, Some(system_log), "cooper-server")
         .context("failed to initialise logging")?;
+    if let Some(suggester) = &config.security.reply_suggester {
+        tracing::info!(?suggester, "Suggested Replies enabled");
+    }
     if let Some(addr) = config.metrics_addr {
         let handle = cooper_platform::metrics::install().context("failed to install metrics")?;
         tokio::spawn(async move {

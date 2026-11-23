@@ -12,9 +12,24 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use super::{
-    Category, Lookup, LookupKind, MovedRows, Note, Ticket, TicketField, TicketLink, TicketMerge,
-    TicketPresence, TicketSplit, TicketTypeRule, TimeEntry,
+    Category, Lookup, LookupKind, MovedRows, Note, SuggestError, SuggestedReply,
+    SuggestedReplyRequest, Ticket, TicketField, TicketLink, TicketMerge, TicketPresence,
+    TicketSplit, TicketTypeRule, TimeEntry,
 };
+
+/// An AI provider that suggests Reply text (FR-AI-003, ADR-0037).
+#[async_trait]
+pub trait ReplySuggester: Send + Sync + std::fmt::Debug {
+    /// Suggests a Reply for the request.
+    ///
+    /// # Errors
+    ///
+    /// The provider is unavailable, gave no text, or is misconfigured.
+    async fn suggest(
+        &self,
+        request: &SuggestedReplyRequest,
+    ) -> Result<SuggestedReply, SuggestError>;
+}
 
 /// A storage operation failed.
 #[derive(Debug, Clone, PartialEq, Eq, Error)]

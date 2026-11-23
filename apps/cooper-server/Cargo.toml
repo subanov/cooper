@@ -8,11 +8,13 @@ repository.workspace = true
 publish.workspace = true
 
 [features]
-default = ["graph", "google", "otlp"]
+default = ["graph", "google", "ai", "otlp"]
 ## Microsoft 365 Mailboxes (Microsoft Graph).
 graph = ["cooper-service-desk/graph"]
 ## Google Workspace Mailboxes (Gmail API).
 google = ["cooper-service-desk/google"]
+## Suggested Replies through the Google Gemini API (FR-AI-003).
+ai = ["cooper-service-desk/ai"]
 ## Export traces over OTLP/HTTP when OTEL_EXPORTER_OTLP_ENDPOINT is set (ADR-0023).
 otlp = ["cooper-platform/otlp"]
 

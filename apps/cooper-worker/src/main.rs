@@ -124,6 +124,8 @@ async fn main() -> anyhow::Result<()> {
             blobs: config.blobs.clone(),
             public_url: config.public_url.clone(),
             mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints::default(),
+            // The worker serves no requests, so it never suggests Replies.
+            reply_suggester: None,
         },
     )
     .context("failed to initialise application services")?;

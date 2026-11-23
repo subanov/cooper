@@ -92,6 +92,9 @@ export const ticketActions = {
     call(api.POST("/api/v1/tickets/{id}/notes", { ...path(id), body })),
   reply: (id: string, body: Schemas["ReplyRequest"]) =>
     call(api.POST("/api/v1/tickets/{id}/replies", { ...path(id), body })),
+  /** AI-generated Reply text to review; nothing is sent (FR-AI-003). */
+  suggestReply: (id: string, body: Schemas["SuggestReplyRequest"]) =>
+    call(api.POST("/api/v1/tickets/{id}/suggested-reply", { ...path(id), body })),
   snooze: (id: string, body: Schemas["SnoozeRequest"]) =>
     call(api.PUT("/api/v1/tickets/{id}/snooze", { ...path(id), body })),
   wake: (id: string) => call(api.DELETE("/api/v1/tickets/{id}/snooze", path(id))),

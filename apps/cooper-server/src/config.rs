@@ -126,8 +126,63 @@ fn security_from_env() -> Result<SecuritySettings, ConfigError> {
         blobs: blob_store()?,
         public_url: public_url()?,
         mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints::default(),
+        reply_suggester: reply_suggester()?,
     })
 }
+
+/// The AI provider for Suggested Replies from `GEMINI_API_KEY`, `GEMINI_MODEL` and
+/// `GEMINI_FALLBACK_MODELS` (FR-AI-003, ADR-0037); `None` when no key is set.
+///
+/// # Errors
+///
+/// The client cannot be built.
+pub fn reply_suggester()
+-> Result<Option<std::sync::Arc<dyn cooper_service_desk::domain::ReplySuggester>>, ConfigError> {
+    let Some(key) = config::var("GEMINI_API_KEY")?.filter(|k| !k.trim().is_empty()) else {
+        return Ok(None);
+    };
+    build_suggester(&key)
+}
+
+#[cfg(feature = "ai")]
+fn build_suggester(
+    key: &str,
+) -> Result<Option<std::sync::Arc<dyn cooper_service_desk::domain::ReplySuggester>>, ConfigError> {
+    use cooper_service_desk::infrastructure::{GeminiConfig, GeminiSuggester};
+    let model = config::var("GEMINI_MODEL")?
+        .map(|m| m.trim().to_owned())
+        .filter(|m| !m.is_empty())
+        .unwrap_or_else(|| DEFAULT_GEMINI_MODEL.to_owned());
+    let fallbacks = config::var("GEMINI_FALLBACK_MODELS")?
+        .unwrap_or_default()
+        .split(',')
+        .map(str::trim)
+        .filter(|m| !m.is_empty())
+        .map(str::to_owned)
+        .collect();
+    let suggester =
+        GeminiSuggester::new(GeminiConfig::new(key, &model, fallbacks)).map_err(|reason| {
+            ConfigError::Invalid {
+                name: "GEMINI_API_KEY",
+                reason,
+            }
+        })?;
+    Ok(Some(std::sync::Arc::new(suggester)))
+}
+
+#[cfg(not(feature = "ai"))]
+fn build_suggester(
+    _key: &str,
+) -> Result<Option<std::sync::Arc<dyn cooper_service_desk::domain::ReplySuggester>>, ConfigError> {
+    Err(ConfigError::Invalid {
+        name: "GEMINI_API_KEY",
+        reason: "this build has no `ai` feature; unset GEMINI_API_KEY".to_owned(),
+    })
+}
+
+/// The Gemini model used when `GEMINI_MODEL` is unset.
+#[cfg(feature = "ai")]
+const DEFAULT_GEMINI_MODEL: &str = "gemini-3.6-flash";
 
 /// The attachment blob store from `COOPER_BLOB_STORE`, `COOPER_BLOB_DIR` and the
 /// `COOPER_S3_*` variables (ADR-0033).

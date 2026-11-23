@@ -6,8 +6,11 @@
 #
 # Services:
 #   postgres  PostgreSQL 18. Owner role `cooper` (runs migrations), app role `cooper_app`.
-#   mailpit   SMTP capture for outbound mail. Web UI: http://localhost:8025
+#   mailpit   SMTP capture for outbound mail. Web UI: http://localhost:8025. Relays every
+#             message on to GreenMail (deploy/mailpit/relay.yaml), so recipients get it too.
 #   greenmail IMAP/SMTP test server for mailbox intake. Users are created on first login.
+#   roundcube Webmail on GreenMail: http://localhost:8026. Sign in as any address (any
+#             password) to write to a Mailbox and read Cooper's replies.
 #   s3        (profile `s3`) SeaweedFS, an S3-compatible blob store, for COOPER_BLOB_STORE=s3
 #             and the S3 test (COOPER_TEST_S3_ENDPOINT=http://localhost:8333, which creates
 #             its bucket). Access key `cooper`, secret `cooper-secret` (deploy/s3/s3.json).
@@ -36,6 +39,11 @@ services:
 
   mailpit:
     image: axllent/mailpit:v1.33
+    environment:
+      MP_SMTP_RELAY_CONFIG: /etc/mailpit/relay.yaml
+      MP_SMTP_RELAY_ALL: "true"
+    volumes:
+      - ./deploy/mailpit/relay.yaml:/etc/mailpit/relay.yaml:ro
     ports:
       - "${MAILPIT_SMTP_PORT:-1025}:1025"
       - "${MAILPIT_UI_PORT:-8025}:8025"
@@ -52,6 +60,22 @@ services:
       - "${GREENMAIL_SMTP_PORT:-3025}:3025"
       - "${GREENMAIL_IMAP_PORT:-3143}:3143"
       - "${GREENMAIL_IMAPS_PORT:-3993}:3993"
+
+  roundcube:
+    image: roundcube/roundcubemail:1.7.6-apache
+    environment:
+      ROUNDCUBEMAIL_DEFAULT_HOST: greenmail
+      ROUNDCUBEMAIL_DEFAULT_PORT: 3143
+      ROUNDCUBEMAIL_SMTP_SERVER: greenmail
+      ROUNDCUBEMAIL_SMTP_PORT: 3025
+      ROUNDCUBEMAIL_DB_TYPE: sqlite
+      ROUNDCUBEMAIL_SKIN: elastic
+    volumes:
+      - ./deploy/roundcube/config.inc.php:/var/roundcube/config/cooper.inc.php:ro
+    ports:
+      - "${ROUNDCUBE_PORT:-8026}:80"
+    depends_on:
+      - greenmail
 
   s3:
     profiles: ["s3"]

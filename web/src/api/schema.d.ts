@@ -5241,6 +5241,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tickets/{id}/suggested-reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggests Reply text from the ticket's description, emails and Notes and your optional
+         *     guidance (FR-AI-003). Nothing is sent: review the text, then send it as a Reply.
+         */
+        post: operations["suggest_reply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tickets/{id}/time-entries": {
         parameters: {
             query?: never;
@@ -10452,6 +10472,18 @@ export interface components {
              */
             sort_order?: number;
         };
+        /** @description Ask for a Suggested Reply (FR-AI-003). */
+        SuggestReplyRequest: {
+            /** @description The Analyst's instructions or rough draft (at most 4000 characters). */
+            guidance?: string | null;
+        };
+        /** @description AI-generated Reply text for the Analyst to review; never sent automatically. */
+        SuggestedReplyDto: {
+            /** @description The model that wrote it. */
+            model: string;
+            /** @description The suggested text (no Signature; it is added when the Reply is sent). */
+            text: string;
+        };
         /** @description A Supplier. */
         SupplierDto: {
             /**
@@ -11043,6 +11075,11 @@ export interface components {
              * @description Assignee.
              */
             analyst_id?: string | null;
+            /**
+             * @description Whether the caller can ask for a Suggested Reply (single-ticket responses only;
+             *     FR-AI-003).
+             */
+            can_suggest_reply?: boolean | null;
             /**
              * Format: uuid
              * @description Category.
@@ -21709,6 +21746,38 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TicketDto"];
                 };
+            };
+        };
+    };
+    suggest_reply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestReplyRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestedReplyDto"];
+                };
+            };
+            /** @description Not configured, or the AI provider is busy */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
