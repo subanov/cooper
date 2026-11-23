@@ -5,8 +5,9 @@ use uuid::Uuid;
 
 use super::{AppError, ServiceDesk, capabilities, require};
 use crate::domain::{
-    AttachmentInfo, Placeholders, ReplyDraft, ReplyEmail, ReplyTemplate, TicketEmail, TicketError,
-    TicketReplySent, audit_record,
+    AttachmentInfo, Direction, Placeholders, ReplyContext, ReplyDraft, ReplyEmail, ReplyTemplate,
+    SuggestError, SuggestedReply, SuggestedReplyRequest, ThreadEntry, ThreadEntryKind, TicketEmail,
+    TicketError, TicketReplySent, audit_record,
 };
 
 /// A Reply request.
@@ -269,6 +270,122 @@ impl ServiceDesk {
             ticket_subject: t.details().subject.clone(),
             analyst_name,
         }))
+    }
+
+    /// Whether the caller can ask for Suggested Replies (FR-AI-003): a provider is
+    /// configured and the caller may reply.
+    #[must_use]
+    pub fn can_suggest_reply(&self, principal: &Principal) -> bool {
+        self.ports.suggester.is_some() && require(principal, capabilities::UPDATE).is_ok()
+    }
+
+    /// Suggests Reply text for a ticket from its description, emails and Notes (internal
+    /// ones included, marked as such) and the Analyst's optional guidance (FR-AI-003).
+    /// Nothing is stored or sent: the Analyst reviews the text and sends it as a Reply.
+    ///
+    /// # Errors
+    ///
+    /// Forbidden, not found, not configured, invalid guidance, or the provider failed.
+    pub async fn suggest_reply(
+        &self,
+        principal: &Principal,
+        id: TicketId,
+        guidance: Option<&str>,
+    ) -> Result<SuggestedReply, AppError> {
+        require(principal, capabilities::UPDATE)?;
+        let suggester = self
+            .ports
+            .suggester
+            .clone()
+            .ok_or(AppError::SuggestionsOff)?;
+        let ticket = self.load(principal, id, false).await?;
+        let scope = principal.scope();
+        let mut thread: Vec<ThreadEntry> = self
+            .ports
+            .tickets
+            .notes(scope, id)
+            .await?
+            .into_iter()
+            .map(|n| ThreadEntry {
+                kind: if n.is_public() {
+                    ThreadEntryKind::PublicNote
+                } else {
+                    ThreadEntryKind::InternalNote
+                },
+                at: n.created_at(),
+                text: n.body().to_owned(),
+            })
+            .collect();
+        thread.extend(
+            self.ports
+                .content
+                .emails(scope, id)
+                .await?
+                .into_iter()
+                .map(|e| ThreadEntry {
+                    kind: match e.direction {
+                        Direction::Inbound => ThreadEntryKind::InboundEmail,
+                        Direction::Outbound => ThreadEntryKind::OutboundEmail,
+                    },
+                    at: e.occurred_at,
+                    text: e.text_body,
+                }),
+        );
+        let requester_name = match ticket.details().requester_id {
+            Some(r) => self
+                .ports
+                .directory
+                .requester_contact(scope, r)
+                .await?
+                .map(|c| c.name)
+                .unwrap_or_default(),
+            None => String::new(),
+        };
+        let analyst_name = match principal.actor() {
+            Actor::Analyst(a) => self
+                .ports
+                .directory
+                .analyst_profile(a)
+                .await?
+                .map(|p| p.name)
+                .unwrap_or_default(),
+            _ => String::new(),
+        };
+        let details = ticket.details();
+        let request = SuggestedReplyRequest::for_ticket(
+            &ReplyContext {
+                ticket_number: ticket.number(),
+                subject: &details.subject,
+                description: &details.description,
+                requester_name: &requester_name,
+                analyst_name: &analyst_name,
+            },
+            &thread,
+            guidance,
+        )?;
+        let started = std::time::Instant::now();
+        match suggester.suggest(&request).await {
+            Ok(reply) => {
+                tracing::info!(
+                    ticket_id = %id,
+                    model = reply.model(),
+                    elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+                    "Suggested Reply generated"
+                );
+                Ok(reply)
+            }
+            Err(err) => {
+                match &err {
+                    SuggestError::Misconfigured(reason) => {
+                        tracing::error!(ticket_id = %id, %reason, "Suggested Reply failed: AI provider misconfigured");
+                    }
+                    SuggestError::Unavailable(reason) | SuggestError::Rejected(reason) => {
+                        tracing::info!(ticket_id = %id, %reason, "Suggested Reply failed");
+                    }
+                }
+                Err(err.into())
+            }
+        }
     }
 
     /// The largest attachment allowed, in bytes, after checking the caller may attach

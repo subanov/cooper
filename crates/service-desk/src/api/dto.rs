@@ -253,6 +253,9 @@ pub struct TicketDto {
     pub deleted_at: Option<DateTime<Utc>>,
     /// Total minutes of Time Entries (single-ticket responses only).
     pub total_minutes: Option<u64>,
+    /// Whether the caller can ask for a Suggested Reply (single-ticket responses only;
+    /// FR-AI-003).
+    pub can_suggest_reply: Option<bool>,
     /// SLA state and time remaining (FR-SLA-007).
     pub sla: SlaDto,
     /// Created.
@@ -292,6 +295,7 @@ impl From<Ticket> for TicketDto {
             merged_into_id: t.merged_into().map(|m| m.as_uuid()),
             deleted_at: t.deleted_at(),
             total_minutes: None,
+            can_suggest_reply: None,
             sla: SlaDto::default(),
             created_at: t.created_at(),
             updated_at: t.updated_at(),
@@ -1066,6 +1070,32 @@ impl From<EmailTemplateDto> for crate::domain::EmailTemplateInput {
 pub struct RenderedTemplateDto {
     /// The text with placeholders filled in.
     pub text: String,
+}
+
+/// Ask for a Suggested Reply (FR-AI-003).
+#[derive(Debug, Default, Deserialize, ToSchema)]
+pub struct SuggestReplyRequest {
+    /// The Analyst's instructions or rough draft (at most 4000 characters).
+    #[serde(default)]
+    pub guidance: Option<String>,
+}
+
+/// AI-generated Reply text for the Analyst to review; never sent automatically.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct SuggestedReplyDto {
+    /// The suggested text (no Signature; it is added when the Reply is sent).
+    pub text: String,
+    /// The model that wrote it.
+    pub model: String,
+}
+
+impl From<crate::domain::SuggestedReply> for SuggestedReplyDto {
+    fn from(s: crate::domain::SuggestedReply) -> Self {
+        Self {
+            text: s.text().to_owned(),
+            model: s.model().to_owned(),
+        }
+    }
 }
 
 /// An attachment.

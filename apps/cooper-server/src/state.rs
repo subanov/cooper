@@ -55,6 +55,9 @@ pub struct SecuritySettings {
     pub public_url: Option<String>,
     /// Microsoft and Google sign-in endpoints for Mailbox Consent.
     pub mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints,
+    /// The AI provider for Suggested Replies (`GEMINI_*`; FR-AI-003); `None` turns
+    /// them off.
+    pub reply_suggester: Option<Arc<dyn cooper_service_desk::domain::ReplySuggester>>,
 }
 
 impl SecuritySettings {
@@ -74,6 +77,7 @@ impl SecuritySettings {
             ),
             public_url: None,
             mailbox_oauth: cooper_service_desk::domain::OAuthEndpoints::default(),
+            reply_suggester: None,
         })
     }
 }
@@ -381,6 +385,7 @@ impl AppState {
                 admin: admin.clone(),
                 public_url: security.public_url.clone(),
             }),
+            suggester: security.reply_suggester.clone(),
             clock: clock.clone(),
         });
         let notifications = Notifications::new(

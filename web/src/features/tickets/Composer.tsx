@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Lock, Mail } from "lucide-react";
+import { Lock, Mail, Sparkles } from "lucide-react";
 import { type Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Button } from "@/components/Button";
 import { ProblemNotice } from "@/components/Feedback";
@@ -19,17 +19,22 @@ export interface ComposerHandle {
  * Writes a Reply (emailed to the Requester) or a Note (internal unless made public).
  * Internal Notes are tinted and say so, so they are never mistaken for a reply (H5).
  * Ctrl+Enter sends; the text survives errors (H9); Discard can be undone (H3).
+ * Suggest reply drafts the Reply with AI (FR-AI-003): typed text is sent as guidance,
+ * the suggestion replaces it and can be undone, and nothing is sent automatically.
  */
 export function Composer({
   ticketId,
   requesterName,
   hasRequester,
+  canSuggestReply = false,
   ref,
   onComposingChange,
 }: {
   ticketId: string;
   requesterName?: string | undefined;
   hasRequester: boolean;
+  /** The API says a Suggested Reply is available to this Analyst. */
+  canSuggestReply?: boolean | undefined;
   ref?: Ref<ComposerHandle> | undefined;
   onComposingChange?: ((composing: boolean) => void) | undefined;
 }) {
@@ -74,6 +79,20 @@ export function Composer({
       },
     },
   );
+
+  const suggest = useAction(
+    (previous: string) =>
+      ticketActions.suggestReply(ticketId, previous.trim() ? { guidance: previous } : {}),
+    {
+      success: () => t("composer.suggested"),
+      undo: (_, previous) => ({ label: t("common.undo"), run: () => setBody(previous) }),
+      onSuccess: (data) => {
+        setBody(data.text);
+        requestAnimationFrame(() => area.current?.focus());
+      },
+    },
+  );
+  const suggesting = suggest.isPending;
 
   async function insertTemplate(templateId: string) {
     if (!templateId) return;
@@ -145,7 +164,7 @@ export function Composer({
         className="grid gap-3"
         onSubmit={(e) => {
           e.preventDefault();
-          if (hasText) send.mutate();
+          if (hasText && !suggesting) send.mutate();
         }}
       >
         <label htmlFor="composer-body" className="sr-only">
@@ -158,9 +177,11 @@ export function Composer({
           placeholder={label}
           value={body}
           rows={5}
+          readOnly={suggesting}
+          aria-busy={suggesting}
           onChange={(e) => setBody(e.target.value)}
           onKeyDown={(e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && hasText) {
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && hasText && !suggesting) {
               e.preventDefault();
               send.mutate();
             }
@@ -177,20 +198,39 @@ export function Composer({
               onChange={(e) => setCc(e.target.value)}
               className="h-8"
             />
-            {activeTemplates.length > 0 ? (
-              <Select
-                aria-label={t("composer.template")}
-                value=""
-                onChange={(e) => void insertTemplate(e.target.value)}
-                className="h-8 w-auto"
-              >
-                <option value="">{t("composer.templateNone")}</option>
-                {activeTemplates.map((tpl) => (
-                  <option key={tpl.id} value={tpl.id ?? ""}>
-                    {tpl.name}
-                  </option>
-                ))}
-              </Select>
+            <div className="flex flex-wrap gap-2">
+              {activeTemplates.length > 0 ? (
+                <Select
+                  aria-label={t("composer.template")}
+                  value=""
+                  onChange={(e) => void insertTemplate(e.target.value)}
+                  className="h-8 w-auto"
+                >
+                  <option value="">{t("composer.templateNone")}</option>
+                  {activeTemplates.map((tpl) => (
+                    <option key={tpl.id} value={tpl.id ?? ""}>
+                      {tpl.name}
+                    </option>
+                  ))}
+                </Select>
+              ) : null}
+              {canSuggestReply ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Sparkles aria-hidden="true" />}
+                  loading={suggesting}
+                  aria-describedby="composer-suggest-hint"
+                  onClick={() => suggest.mutate(body)}
+                >
+                  {hasText ? t("composer.improve") : t("composer.suggest")}
+                </Button>
+              ) : null}
+            </div>
+            {canSuggestReply ? (
+              <span id="composer-suggest-hint" className="sr-only">
+                {t("composer.suggestHint")}
+              </span>
             ) : null}
             <span id="composer-cc-hint" className="sr-only">
               {t("composer.ccHint")}
@@ -198,6 +238,7 @@ export function Composer({
           </div>
         ) : null}
         <ProblemNotice error={send.error} />
+        {mode === "reply" ? <ProblemNotice error={suggest.error} /> : null}
         <div className="flex flex-wrap items-center gap-3">
           {mode === "note" ? (
             <Checkbox
@@ -226,7 +267,12 @@ export function Composer({
                 {t("composer.discard")}
               </Button>
             ) : null}
-            <Button type="submit" variant="primary" loading={send.isPending} disabled={!hasText}>
+            <Button
+              type="submit"
+              variant="primary"
+              loading={send.isPending}
+              disabled={!hasText || suggesting}
+            >
               {mode === "reply" ? t("composer.send") : t("composer.addNote")}
             </Button>
           </div>

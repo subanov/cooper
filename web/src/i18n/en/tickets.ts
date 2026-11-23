@@ -164,6 +164,11 @@ export const tickets = {
   "composer.templateNone": "Reply Templates…",
   "composer.discard": "Discard",
   "composer.discarded": "Draft discarded.",
+  "composer.suggest": "Suggest reply",
+  "composer.improve": "Improve with AI",
+  "composer.suggestHint":
+    "Drafts a Reply with AI from this ticket's emails and Notes. Text you typed is used as guidance. Nothing is sent until you send it.",
+  "composer.suggested": "Suggested reply inserted. Review it before sending.",
 
   "timeline.title": "Timeline",
   "timeline.empty": "Nothing has happened on this ticket yet.",

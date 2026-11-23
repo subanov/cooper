@@ -355,12 +355,15 @@ come from [VOCABULARY.md](VOCABULARY.md).
 ## 21. AI Features (AI)
 
 All AI features are optional and use a provider and key that the Administrator configures.
+Suggested Replies (FR-AI-003) are configured with environment variables for now
+(`GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS`; ADR-0037). Configuration
+per Company in the Administration screens is deferred.
 
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
 | FR-AI-001 | Generate a versioned **AI Summary** of a ticket. | C | P4 |
 | FR-AI-002 | **Knowledge Q&A**: answer questions from Articles (embeddings in PostgreSQL / pgvector), respecting audience and ACLs. | C | P4 |
-| FR-AI-003 | Suggest replies, clean up reply text, and draft root cause analyses for Problems. | C | P4 |
+| FR-AI-003 | Suggest replies, clean up reply text, and draft root cause analyses for Problems. **Suggested Reply** (done): in the Composer's Reply mode, **Suggest reply** drafts the Reply from the ticket's subject, description, emails and all Notes (internal Notes are marked so they are not quoted to the Requester). Text the Analyst has typed is sent as guidance (**Improve with AI**), and the suggestion replaces it with Undo. Nothing is sent or stored automatically: the Analyst reviews the text and sends it as a Reply. Needs `tickets.update` and the normal ticket visibility (Confidential tickets included). `POST /api/v1/tickets/{id}/suggested-reply`; the ticket's `can_suggest_reply` says whether to offer it. Cleaning up reply text and Problem root cause drafts are not built yet. | C | P4 |
 
 ## 22. System Administration (SYS)
 

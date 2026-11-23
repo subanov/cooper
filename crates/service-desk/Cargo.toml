@@ -12,6 +12,8 @@ publish.workspace = true
 graph = ["dep:reqwest"]
 ## Google Workspace Mailboxes through the Gmail API.
 google = ["dep:reqwest"]
+## Suggested Replies through the Google Gemini API (FR-AI-003).
+ai = ["dep:reqwest"]
 
 [dependencies]
 async-imap.workspace = true

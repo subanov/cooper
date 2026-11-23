@@ -2,13 +2,16 @@
 
 mod consent;
 mod content;
+#[cfg(feature = "ai")]
+mod gemini;
 #[cfg(feature = "google")]
 mod google;
 #[cfg(feature = "graph")]
 mod graph;
 mod imap;
 mod mailboxes;
-#[cfg(any(feature = "graph", feature = "google"))]
+#[cfg(any(feature = "graph", feature = "google", feature = "ai"))]
+#[cfg_attr(not(any(feature = "graph", feature = "google")), allow(dead_code))]
 mod oauth;
 mod reference;
 mod relations;
@@ -18,6 +21,8 @@ mod template_mailer;
 mod tickets;
 
 pub use consent::ProviderConsentClient;
+#[cfg(feature = "ai")]
+pub use gemini::{GEMINI_API_BASE, GeminiConfig, GeminiSuggester};
 #[cfg(feature = "google")]
 pub use google::GmailClient;
 #[cfg(feature = "graph")]

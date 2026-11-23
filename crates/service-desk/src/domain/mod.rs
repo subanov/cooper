@@ -14,6 +14,7 @@ mod number;
 mod ports;
 mod sla;
 mod statistics;
+mod suggested_reply;
 mod ticket;
 mod type_rules;
 
@@ -51,8 +52,8 @@ pub use number::{NumberContext, NumberFormat};
 pub use ports::{
     AnalystProfile, AttachmentInfo, ContentRepository, DepartmentInfo, Directory, ListFilter,
     MailboxConnector, MailboxConsentClient, MailboxRepository, ManagedTickets, ReferenceData,
-    RepoError, RequesterContact, RequesterNotificationPreferences, RetiredNumber, SlaRepository,
-    SortField, TicketListQuery, TicketRelations, TicketRepository, TicketSettings,
+    ReplySuggester, RepoError, RequesterContact, RequesterNotificationPreferences, RetiredNumber,
+    SlaRepository, SortField, TicketListQuery, TicketRelations, TicketRepository, TicketSettings,
     TicketSettingsProvider, TicketSummary, TicketView, Visibility,
 };
 pub use sla::{
@@ -62,6 +63,10 @@ pub use sla::{
 pub use statistics::{
     GroupValue, Interval, SlaTally, StatisticsFilter, TargetTally, TicketGrouping,
     TicketStatistics, TicketTally, TimeGrouping, TimeTally,
+};
+pub use suggested_reply::{
+    MAX_GUIDANCE_CHARS, MAX_THREAD_CHARS, ReplyContext, SuggestError, SuggestedReply,
+    SuggestedReplyRequest, ThreadEntry, ThreadEntryKind,
 };
 pub use ticket::{
     NewTicket, Note, SlaTargets, StatusTransition, Ticket, TicketDetails, TicketSla, TimeEntry,

@@ -18,7 +18,7 @@ use http::StatusCode;
 use utoipa_axum::router::OpenApiRouter;
 
 use crate::application::{AppError, ServiceDesk};
-use crate::domain::TicketError;
+use crate::domain::{SuggestError, TicketError};
 
 pub use dto::*;
 pub use relations::*;
@@ -117,6 +117,27 @@ impl IntoResponse for ApiError {
             AppError::Forbidden(f) => forbidden(&f),
             AppError::NotFound(_) => typed(StatusCode::NOT_FOUND, "not-found", "Not found"),
             AppError::Conflict(_) => typed(StatusCode::CONFLICT, "conflict", "Conflict"),
+            AppError::SuggestionsOff => typed(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "suggestions-off",
+                "Suggested Replies are not configured",
+            ),
+            AppError::Suggestion(SuggestError::Unavailable(_)) => typed(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "ai-unavailable",
+                "The AI provider is busy; try again in a moment",
+            ),
+            AppError::Suggestion(SuggestError::Rejected(_)) => typed(
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "ai-no-suggestion",
+                "The AI provider gave no suggestion",
+            ),
+            AppError::Suggestion(SuggestError::Misconfigured(_)) => {
+                Problem::new(StatusCode::BAD_GATEWAY).with_type(
+                    "https://cooper.dev/problems/ai-misconfigured",
+                    "The AI provider is misconfigured; ask an administrator",
+                )
+            }
             AppError::Internal => Problem::internal(),
         }
         .into_response()

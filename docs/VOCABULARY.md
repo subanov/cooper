@@ -97,6 +97,7 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Ticket Checklist** | A checklist attached to a ticket from a Checklist Template. | `TicketChecklist` | |
 | **Workspace** | A ticket used as a personal work area (`is_workspace`). | `Ticket::is_workspace` | |
 | **AI Summary** | An AI-generated, versioned summary of a ticket. | `TicketAiSummary` | |
+| **Suggested Reply** | Reply text an AI provider drafts for an Analyst in the Composer, from the ticket's emails and Notes and the Analyst's optional guidance. Never sent or stored by itself: the Analyst reviews it and sends it as a Reply. | `SuggestedReply`, `ReplySuggester` | AI response, auto-reply, AI draft |
 
 ### 2.1 Intake: Mailboxes & Channels
 
