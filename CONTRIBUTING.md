@@ -25,7 +25,9 @@ Your development data in the compose `cooper` database is never touched by tests
 `_sqlx_test_*` databases tests create never appear there. `just test-db-down` removes it.
 
 `docker compose up -d` also starts Mailpit (outbound mail capture, UI on
-<http://localhost:8025>) and GreenMail (IMAP/SMTP test server for mailbox intake).
+<http://localhost:8025>) and GreenMail (IMAP/SMTP test server for mailbox intake). Mailpit relays every message on to GreenMail, and Roundcube (webmail
+on <http://localhost:8026>) lets you sign in as any address with any password: write to a
+Mailbox address to open a ticket and read Cooper's replies in the same inbox.
 
 ### Web UI (`web/`)
 

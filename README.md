@@ -75,7 +75,9 @@ Release builds (and the Docker image) embed `web/dist` into `cooper-server`; deb
 read it from disk. Without a build, the API works and non-API paths answer `404`.
 
 `docker compose up -d` also starts Mailpit (captures outbound mail, UI on
-<http://localhost:8025>) and GreenMail (IMAP/SMTP test server).
+<http://localhost:8025>) and GreenMail (IMAP/SMTP test server). Mailpit relays every message on to GreenMail, and Roundcube (webmail
+on <http://localhost:8026>) lets you sign in as any address with any password: write to a
+Mailbox address to open a ticket and read Cooper's replies in the same inbox.
 
 To run Cooper itself in containers instead (migrations, server and worker, built from the
 [Dockerfile](Dockerfile)):
