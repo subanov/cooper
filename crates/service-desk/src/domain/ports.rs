@@ -442,6 +442,21 @@ pub trait ContentRepository: Send + Sync {
         template: &super::ReplyTemplate,
         audit: &AuditRecord,
     ) -> Result<(), RepoError>;
+    /// The stored Suggested Reply Instructions; `None` while the default applies.
+    async fn suggested_reply_instructions(
+        &self,
+    ) -> Result<Option<super::SuggestedReplyInstructions>, RepoError>;
+    /// Stores the Suggested Reply Instructions.
+    async fn save_suggested_reply_instructions(
+        &self,
+        instructions: &super::SuggestedReplyInstructions,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
+    /// Removes the stored Suggested Reply Instructions, so the default applies again.
+    async fn delete_suggested_reply_instructions(
+        &self,
+        audit: &AuditRecord,
+    ) -> Result<(), RepoError>;
     /// Stores attachment metadata (after the content).
     async fn add_attachment(
         &self,

@@ -37,7 +37,8 @@ Forces:
 Option 1.
 
 - Domain (`service-desk`, pure): `SuggestedReplyRequest::for_ticket` builds the system
-  instruction and the content: the subject, the description, and emails and Notes oldest
+  instruction (editable since [ADR-0038](0038-editable-suggested-reply-instructions.md))
+  and the content: the subject, the description, and emails and Notes oldest
   first, each marked by kind. Internal Notes are labelled as Analyst-only and must not be
   revealed. Ticket text sits inside `<ticket>` delimiters, with angle brackets replaced,
   and the instruction says it is data, never instructions. Quoted email lines are dropped.

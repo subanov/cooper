@@ -11456,6 +11456,72 @@
         }
       }
     },
+    "/api/v1/suggested-reply-instructions": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "The Suggested Reply Instructions in force (needs `tickets.configure`).",
+        "operationId": "get_suggested_reply_instructions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestedReplyInstructionsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Replaces the Suggested Reply Instructions (needs `tickets.configure`). Cooper always\nadds its fixed rules after them.",
+        "operationId": "update_suggested_reply_instructions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestedReplyInstructionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestedReplyInstructionsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Goes back to the default Suggested Reply Instructions (needs `tickets.configure`).",
+        "operationId": "reset_suggested_reply_instructions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestedReplyInstructionsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/supplier-statuses": {
       "get": {
         "tags": [
@@ -25988,6 +26054,69 @@
           "text": {
             "type": "string",
             "description": "The suggested text (no Signature; it is added when the Reply is sent)."
+          }
+        }
+      },
+      "SuggestedReplyInstructionsDto": {
+        "type": "object",
+        "description": "Suggested Reply Instructions: the editable part of what the AI provider is told.",
+        "required": [
+          "body",
+          "is_default",
+          "default_body",
+          "fixed_rules",
+          "placeholders",
+          "max_chars"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "The instructions in force, with placeholders."
+          },
+          "default_body": {
+            "type": "string",
+            "description": "The built-in default, for comparison and reset."
+          },
+          "fixed_rules": {
+            "type": "string",
+            "description": "Rules Cooper always adds after the instructions; they cannot be changed."
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "Whether these are the built-in default."
+          },
+          "max_chars": {
+            "type": "integer",
+            "description": "Longest allowed instructions, in characters.",
+            "minimum": 0
+          },
+          "placeholders": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Placeholders the instructions may use."
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When they were last changed; absent for the default."
+          }
+        }
+      },
+      "SuggestedReplyInstructionsRequest": {
+        "type": "object",
+        "description": "New Suggested Reply Instructions.",
+        "required": [
+          "body"
+        ],
+        "properties": {
+          "body": {
+            "type": "string",
+            "description": "The instructions, with placeholders from `placeholders`."
           }
         }
       },

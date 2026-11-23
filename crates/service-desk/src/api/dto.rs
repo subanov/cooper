@@ -1098,6 +1098,49 @@ impl From<crate::domain::SuggestedReply> for SuggestedReplyDto {
     }
 }
 
+/// Suggested Reply Instructions: the editable part of what the AI provider is told.
+#[derive(Debug, Serialize, ToSchema)]
+pub struct SuggestedReplyInstructionsDto {
+    /// The instructions in force, with placeholders.
+    pub body: String,
+    /// Whether these are the built-in default.
+    pub is_default: bool,
+    /// When they were last changed; absent for the default.
+    pub updated_at: Option<DateTime<Utc>>,
+    /// The built-in default, for comparison and reset.
+    pub default_body: String,
+    /// Rules Cooper always adds after the instructions; they cannot be changed.
+    pub fixed_rules: String,
+    /// Placeholders the instructions may use.
+    pub placeholders: Vec<String>,
+    /// Longest allowed instructions, in characters.
+    pub max_chars: usize,
+}
+
+impl From<crate::domain::SuggestedReplyInstructions> for SuggestedReplyInstructionsDto {
+    fn from(i: crate::domain::SuggestedReplyInstructions) -> Self {
+        Self {
+            body: i.body().to_owned(),
+            is_default: i.is_default(),
+            updated_at: i.updated_at(),
+            default_body: crate::domain::DEFAULT_INSTRUCTIONS.to_owned(),
+            fixed_rules: crate::domain::FIXED_RULES.to_owned(),
+            placeholders: crate::domain::INSTRUCTION_PLACEHOLDERS
+                .iter()
+                .map(|p| (*p).to_owned())
+                .collect(),
+            max_chars: crate::domain::MAX_INSTRUCTIONS_CHARS,
+        }
+    }
+}
+
+/// New Suggested Reply Instructions.
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct SuggestedReplyInstructionsRequest {
+    /// The instructions, with placeholders from `placeholders`.
+    pub body: String,
+}
+
 /// An attachment.
 #[derive(Debug, Serialize, ToSchema)]
 pub struct AttachmentDto {

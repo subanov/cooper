@@ -55,6 +55,7 @@ pub const ROUTE_PREFIXES: &[&str] = &[
     "/sla-calendars",
     "/sla-notification-rules",
     "/reply-templates",
+    "/suggested-reply-instructions",
     "/email-templates",
     "/mailboxes",
     "/ticket-fields",

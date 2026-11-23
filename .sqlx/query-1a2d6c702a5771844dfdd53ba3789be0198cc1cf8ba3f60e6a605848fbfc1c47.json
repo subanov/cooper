@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM suggested_reply_instructions",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "1a2d6c702a5771844dfdd53ba3789be0198cc1cf8ba3f60e6a605848fbfc1c47"
+}

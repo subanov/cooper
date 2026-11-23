@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO suggested_reply_instructions (id, body, updated_at) VALUES (true, $1, $2)\n             ON CONFLICT (id) DO UPDATE SET body = EXCLUDED.body, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e1e86a9589d4934b8a8d3885daf02e47963164a58991e0516d6c1c5b17c35f98"
+}

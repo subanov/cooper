@@ -65,8 +65,10 @@ pub use statistics::{
     TicketStatistics, TicketTally, TimeGrouping, TimeTally,
 };
 pub use suggested_reply::{
-    MAX_GUIDANCE_CHARS, MAX_THREAD_CHARS, ReplyContext, SuggestError, SuggestedReply,
-    SuggestedReplyRequest, ThreadEntry, ThreadEntryKind,
+    DEFAULT_INSTRUCTIONS, FIXED_RULES, INSTRUCTION_PLACEHOLDERS, MAX_GUIDANCE_CHARS,
+    MAX_INSTRUCTIONS_CHARS, MAX_SUMMARY_CHARS, MAX_THREAD_CHARS, ReplyContext,
+    SUMMARY_INSTRUCTIONS, SUMMARY_PLACEHOLDER, SuggestError, SuggestedReply,
+    SuggestedReplyInstructions, SuggestedReplyRequest, ThreadEntry, ThreadEntryKind,
 };
 pub use ticket::{
     NewTicket, Note, SlaTargets, StatusTransition, Ticket, TicketDetails, TicketSla, TimeEntry,

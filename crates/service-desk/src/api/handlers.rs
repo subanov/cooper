@@ -123,6 +123,11 @@ where
         .routes(routes!(timeline))
         .routes(routes!(send_reply))
         .routes(routes!(suggest_reply))
+        .routes(routes!(
+            get_suggested_reply_instructions,
+            update_suggested_reply_instructions,
+            reset_suggested_reply_instructions
+        ))
         .routes(routes!(list_emails))
         .routes(routes!(list_templates, create_template))
         .routes(routes!(update_template))
@@ -586,6 +591,51 @@ async fn suggest_reply(
     Ok(Json(
         api.service
             .suggest_reply(&p, TicketId::from_uuid(id), body.guidance.as_deref())
+            .await?
+            .into(),
+    ))
+}
+
+/// The Suggested Reply Instructions in force (needs `tickets.configure`).
+#[utoipa::path(get, path = "/suggested-reply-instructions", tag = "Tickets",
+    responses((status = 200, body = super::dto::SuggestedReplyInstructionsDto)))]
+async fn get_suggested_reply_instructions(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<super::dto::SuggestedReplyInstructionsDto>> {
+    Ok(Json(
+        api.service.suggested_reply_instructions(&p).await?.into(),
+    ))
+}
+
+/// Replaces the Suggested Reply Instructions (needs `tickets.configure`). Cooper always
+/// adds its fixed rules after them.
+#[utoipa::path(put, path = "/suggested-reply-instructions", tag = "Tickets",
+    request_body = super::dto::SuggestedReplyInstructionsRequest,
+    responses((status = 200, body = super::dto::SuggestedReplyInstructionsDto)))]
+async fn update_suggested_reply_instructions(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+    Json(body): Json<super::dto::SuggestedReplyInstructionsRequest>,
+) -> ApiResult<Json<super::dto::SuggestedReplyInstructionsDto>> {
+    Ok(Json(
+        api.service
+            .update_suggested_reply_instructions(&p, &body.body)
+            .await?
+            .into(),
+    ))
+}
+
+/// Goes back to the default Suggested Reply Instructions (needs `tickets.configure`).
+#[utoipa::path(delete, path = "/suggested-reply-instructions", tag = "Tickets",
+    responses((status = 200, body = super::dto::SuggestedReplyInstructionsDto)))]
+async fn reset_suggested_reply_instructions(
+    State(api): State<ServiceDeskApi>,
+    Authenticated(p): Authenticated,
+) -> ApiResult<Json<super::dto::SuggestedReplyInstructionsDto>> {
+    Ok(Json(
+        api.service
+            .reset_suggested_reply_instructions(&p)
             .await?
             .into(),
     ))

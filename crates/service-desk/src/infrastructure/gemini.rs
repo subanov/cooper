@@ -169,9 +169,12 @@ impl ReplySuggester for GeminiSuggester {
             "generationConfig": {"temperature": 0.3},
         });
         let started = Instant::now();
+        let deadline = request.time_limit().map_or(self.config.deadline, |limit| {
+            limit.min(self.config.deadline)
+        });
         let mut failure: Option<SuggestError> = None;
         for model in self.models() {
-            let left = self.config.deadline.saturating_sub(started.elapsed());
+            let left = deadline.saturating_sub(started.elapsed());
             if left < Duration::from_secs(1) {
                 break;
             }
@@ -311,6 +314,9 @@ mod tests {
             .unwrap_or_default()
             .to_owned();
         mock.calls.lock().unwrap().push((model.clone(), key, body));
+        if model == "slow" {
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+        }
         let answer = mock
             .answers
             .lock()
@@ -351,12 +357,14 @@ mod tests {
 
     fn request() -> SuggestedReplyRequest {
         SuggestedReplyRequest::for_ticket(
+            &crate::domain::SuggestedReplyInstructions::default(),
             &ReplyContext {
                 ticket_number: "DEF-1",
                 subject: "Printer",
                 description: "It jams.",
                 requester_name: "Rita",
                 analyst_name: "Ann",
+                summary: "",
             },
             &[],
             None,
@@ -392,6 +400,27 @@ mod tests {
                 .as_str()
                 .unwrap()
                 .contains("It jams.")
+        );
+    }
+
+    #[tokio::test]
+    async fn a_request_time_limit_shortens_the_deadline() {
+        let (base, _) = server(vec![("slow", 200, text("too late"))]).await;
+        let slow = GeminiSuggester::new(GeminiConfig {
+            base_url: base,
+            ..GeminiConfig::new("test-key", "slow", vec![])
+        })
+        .unwrap();
+        let started = Instant::now();
+        let err = slow
+            .suggest(&request().with_time_limit(Duration::from_millis(1_500)))
+            .await
+            .unwrap_err();
+        assert!(matches!(err, SuggestError::Unavailable(_)), "{err:?}");
+        assert!(
+            started.elapsed() < Duration::from_secs(4),
+            "{:?}",
+            started.elapsed()
         );
     }
 

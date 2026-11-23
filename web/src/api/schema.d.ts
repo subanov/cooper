@@ -4008,6 +4008,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/suggested-reply-instructions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Suggested Reply Instructions in force (needs `tickets.configure`). */
+        get: operations["get_suggested_reply_instructions"];
+        /**
+         * Replaces the Suggested Reply Instructions (needs `tickets.configure`). Cooper always
+         *     adds its fixed rules after them.
+         */
+        put: operations["update_suggested_reply_instructions"];
+        post?: never;
+        /** Goes back to the default Suggested Reply Instructions (needs `tickets.configure`). */
+        delete: operations["reset_suggested_reply_instructions"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/supplier-statuses": {
         parameters: {
             query?: never;
@@ -10483,6 +10505,31 @@ export interface components {
             model: string;
             /** @description The suggested text (no Signature; it is added when the Reply is sent). */
             text: string;
+        };
+        /** @description Suggested Reply Instructions: the editable part of what the AI provider is told. */
+        SuggestedReplyInstructionsDto: {
+            /** @description The instructions in force, with placeholders. */
+            body: string;
+            /** @description The built-in default, for comparison and reset. */
+            default_body: string;
+            /** @description Rules Cooper always adds after the instructions; they cannot be changed. */
+            fixed_rules: string;
+            /** @description Whether these are the built-in default. */
+            is_default: boolean;
+            /** @description Longest allowed instructions, in characters. */
+            max_chars: number;
+            /** @description Placeholders the instructions may use. */
+            placeholders: string[];
+            /**
+             * Format: date-time
+             * @description When they were last changed; absent for the default.
+             */
+            updated_at?: string | null;
+        };
+        /** @description New Suggested Reply Instructions. */
+        SuggestedReplyInstructionsRequest: {
+            /** @description The instructions, with placeholders from `placeholders`. */
+            body: string;
         };
         /** @description A Supplier. */
         SupplierDto: {
@@ -19288,6 +19335,67 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    get_suggested_reply_instructions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestedReplyInstructionsDto"];
+                };
+            };
+        };
+    };
+    update_suggested_reply_instructions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestedReplyInstructionsRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestedReplyInstructionsDto"];
+                };
+            };
+        };
+    };
+    reset_suggested_reply_instructions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestedReplyInstructionsDto"];
+                };
             };
         };
     };

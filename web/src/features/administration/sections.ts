@@ -80,6 +80,12 @@ export const ADMIN_SECTIONS: readonly AdminSection[] = [
     capabilities: ["tickets.configure"],
   },
   {
+    to: "/administration/suggested-reply-instructions",
+    label: "admin.suggestedReplyInstructions",
+    group: "tickets",
+    capabilities: ["tickets.configure"],
+  },
+  {
     to: "/administration/companies",
     label: "admin.companies",
     group: "organisation",
