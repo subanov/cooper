@@ -225,6 +225,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TSK-006 | **Recurrence**: daily, weekly (weekdays), monthly (date or nth weekday), yearly. Repeats on completion or on a fixed schedule, with an end condition. Occurrences are real Tasks; only completing (a Done status) repeats, cancelling does not. | S | P2 |
 | FR-TSK-007 | Knowledge Articles can be attached as **Procedures** (snapshotted at attach time). | C | P3 |
 | FR-TSK-008 | **Checklist Templates** (versioned, with category and role) contain items that can be mandatory or require input. They can be applied to tasks and tickets. | S | P3 |
+| FR-TSK-010 | **Tasks follow their linked tickets.** When a linked ticket is worked on (an Analyst Reply, an Analyst Note, or a move between open statuses), a Task still in the default (not started) status moves to the status keyed `in_progress`. When a linked ticket is closed, an open Task moves to the status keyed `done` (a completion, so it repeats on completion) once every ticket linked to it is closed. Blocked, In Progress and closed Tasks are not touched by work, reopening a ticket does not reopen its Tasks, and the moves are made and audited as Automation. System Setting `tasks.follow_linked_tickets` (on by default); off while the Tasks Module is off. New in Cooper, no FreeITSM equivalent (ADR-0039). | S | P2 |
 | FR-TSK-009 | **Projects** built on tasks: method (Simple, Staged, Agile), stages with gates, milestones, RAID log, decision log, budget. | W | — |
 
 ## 11. Knowledge (KNW)

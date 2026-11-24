@@ -12,7 +12,8 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::domain::{
-    Lookup, LookupInput, LookupKind, Moved, Task, TaskAssigned, TaskDetails, TaskError, reorder,
+    Lookup, LookupInput, LookupKind, Moved, Task, TaskAssigned, TaskDetails, TaskError,
+    TicketActivity, reorder,
 };
 use crate::ports::{
     Directory, LinkKind, OpenTaskTally, Recurrence, RepoError, TaskComment, TaskLink, TaskQuery,
@@ -33,6 +34,22 @@ pub mod capabilities {
 
     /// Every Capability declared by Tasks.
     pub const ALL: &[&str] = &[READ, CREATE, UPDATE, CONFIGURE];
+}
+
+/// System Settings Tasks declares.
+pub mod settings {
+    use cooper_kernel::{SettingDefinition, SettingKind};
+
+    /// Tasks follow their linked tickets (FR-TSK-010).
+    pub const FOLLOW_LINKED_TICKETS: SettingDefinition = SettingDefinition {
+        key: "tasks.follow_linked_tickets",
+        description: "Move a not-started Task to In Progress when a linked ticket gets a Reply, a Note or a status change, and to Done when every ticket linked to it is closed.",
+        kind: SettingKind::Bool,
+        default: "true",
+    };
+
+    /// Every setting declared by Tasks.
+    pub const ALL: &[SettingDefinition] = &[FOLLOW_LINKED_TICKETS];
 }
 
 /// A use case failed.
@@ -1098,6 +1115,79 @@ impl TaskService {
     ) -> Result<Vec<cooper_platform::audit::AuditEntry>, AppError> {
         self.get(principal, id).await?;
         Ok(self.ports.tasks.history(principal.scope(), id).await?)
+    }
+
+    // --- Following linked tickets (FR-TSK-010) --------------------------------------------
+
+    /// Moves the open Tasks linked to a ticket after activity on it, as Automation:
+    /// work starts not-started Tasks (In Progress), closing completes Tasks whose linked
+    /// tickets are all closed (Done; a Task that repeats on completion repeats). Returns
+    /// how many Tasks moved. Re-running it for the same activity moves nothing more.
+    ///
+    /// # Errors
+    ///
+    /// Storage failures.
+    pub async fn follow_ticket(
+        &self,
+        ticket: Uuid,
+        activity: TicketActivity,
+    ) -> Result<usize, AppError> {
+        let automation = Principal::automation();
+        let statuses = self.ports.tasks.lookups(LookupKind::Status).await?;
+        let Some(target) = activity.target(&statuses).map(|s| s.id) else {
+            tracing::warn!(
+                key = activity.status_key(),
+                %ticket,
+                "no active Task Status with this key; linked Tasks were not moved"
+            );
+            return Ok(0);
+        };
+        let default = self.default_lookup(LookupKind::Status).await?.id;
+        let linked = self
+            .ports
+            .tasks
+            .list(
+                automation.scope(),
+                &TaskQuery {
+                    open: Some(true),
+                    linked: Some((LinkKind::Ticket, ticket)),
+                    limit: cooper_kernel::Limit::new(cooper_kernel::Limit::MAX).unwrap_or_default(),
+                    ..TaskQuery::default()
+                },
+            )
+            .await?;
+        let mut moved = 0;
+        for task in linked {
+            let all_closed = activity == TicketActivity::Closed
+                && self.linked_tickets_closed(&automation, task.id()).await?;
+            if task.follows_ticket(activity, default, all_closed) {
+                self.move_to(&automation, task.id(), target, None).await?;
+                moved += 1;
+            }
+        }
+        Ok(moved)
+    }
+
+    /// Whether every ticket linked to a Task is closed (tickets that are gone count as
+    /// closed).
+    async fn linked_tickets_closed(
+        &self,
+        principal: &Principal,
+        task: Uuid,
+    ) -> Result<bool, AppError> {
+        for l in self.ports.tasks.links(principal.scope(), task).await? {
+            if l.kind == LinkKind::Ticket
+                && self
+                    .ports
+                    .directory
+                    .ticket_is_closed(principal, l.target_id)
+                    .await?
+                    == Some(false)
+            {
+                return Ok(false);
+            }
+        }
+        Ok(true)
     }
 
     /// A Task for a Notification (Automation; no permission checks).

@@ -363,8 +363,38 @@ pub trait Directory: Send + Sync {
         principal: &Principal,
         id: Uuid,
     ) -> Result<Option<(TenantId, String)>, RepoError>;
+    /// Whether a ticket the caller may see is closed; `None` when it is gone or not
+    /// visible (FR-TSK-010).
+    async fn ticket_is_closed(
+        &self,
+        principal: &Principal,
+        id: Uuid,
+    ) -> Result<Option<bool>, RepoError>;
     /// Whether an Analyst exists and is active.
     async fn analyst_active(&self, analyst: AnalystId) -> Result<bool, RepoError>;
     /// Whether a Team exists.
     async fn team_exists(&self, team: TeamId) -> Result<bool, RepoError>;
+}
+
+/// Tasks' System Settings (FR-TSK-010).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TaskSettings {
+    /// Tasks follow their linked tickets: In Progress when worked on, Done when every
+    /// linked ticket is closed. Off as well when the Tasks Module is off.
+    pub follow_linked_tickets: bool,
+}
+
+impl Default for TaskSettings {
+    fn default() -> Self {
+        Self {
+            follow_linked_tickets: true,
+        }
+    }
+}
+
+/// Reads [`TaskSettings`].
+#[async_trait]
+pub trait TaskSettingsProvider: Send + Sync {
+    /// The current settings.
+    async fn settings(&self) -> TaskSettings;
 }

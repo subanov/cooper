@@ -1,7 +1,8 @@
 //! Tasks end to end (ADR-0029): Statuses and Priorities, Subtasks, Tags, Collaborators,
 //! comments, time entries and history, links to tickets and Changes with the ticket's
 //! related records, the Board, Recurrence on completion and on a fixed schedule,
-//! assignment Notifications, Company isolation and the Tasks Module switch.
+//! assignment Notifications, Company isolation, the Tasks Module switch, and Tasks
+//! following their linked tickets (FR-TSK-010).
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)] // test code
 
@@ -21,6 +22,7 @@ use sqlx::PgPool;
 
 const TO_DO: &str = "019a0000-0000-7000-8000-000000000b01";
 const IN_PROGRESS: &str = "019a0000-0000-7000-8000-000000000b02";
+const BLOCKED: &str = "019a0000-0000-7000-8000-000000000b03";
 const DONE: &str = "019a0000-0000-7000-8000-000000000b04";
 const CANCELLED: &str = "019a0000-0000-7000-8000-000000000b05";
 const MEDIUM: &str = "019a0000-0000-7000-8000-000000000b12";
@@ -94,6 +96,51 @@ impl World {
         let r = client.post("/api/v1/tasks", body).await;
         assert_eq!(r.status, StatusCode::CREATED, "{:?}", r.body);
         r.body
+    }
+
+    async fn lookup(&self, path: &str, key: &str) -> String {
+        let rows = self.admin.get(&format!("/api/v1/{path}")).await.body;
+        rows.as_array()
+            .unwrap()
+            .iter()
+            .find(|r| r["key"] == key)
+            .unwrap()["id"]
+            .as_str()
+            .unwrap()
+            .to_owned()
+    }
+
+    async fn ticket(&self, subject: &str) -> Value {
+        let r = self
+            .admin
+            .post(
+                "/api/v1/tickets",
+                json!({ "company_id": self.company, "subject": subject }),
+            )
+            .await;
+        assert_eq!(r.status, StatusCode::CREATED, "{:?}", r.body);
+        r.body
+    }
+
+    async fn link(&self, task: &Value, ticket: &Value) {
+        let r = self
+            .admin
+            .post(
+                &format!("/api/v1/tasks/{}/links", id(task)),
+                json!({ "kind": "ticket", "target_id": ticket["id"] }),
+            )
+            .await;
+        assert_eq!(r.status, StatusCode::CREATED, "{:?}", r.body);
+    }
+
+    async fn status_of(&self, task: &Value) -> String {
+        self.admin
+            .get(&format!("/api/v1/tasks/{}", id(task)))
+            .await
+            .body["status_id"]
+            .as_str()
+            .unwrap()
+            .to_owned()
     }
 
     async fn dispatch(&self, clock: Arc<dyn Clock>) {
@@ -703,4 +750,125 @@ async fn tasks_are_isolated_by_company_and_need_capabilities(pool: PgPool) {
             .status,
         StatusCode::FORBIDDEN
     );
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn tasks_follow_their_linked_tickets(pool: PgPool) {
+    let w = World::new(&pool).await;
+    let closed = w.lookup("ticket-statuses", "closed").await;
+    let fixed = w.lookup("resolution-codes", "fixed_remotely").await;
+    let printer = w.ticket("Printer jams").await;
+    let toner = w.ticket("Toner low").await;
+    let service = w
+        .task(&w.admin, json!({ "title": "Service the printer" }))
+        .await;
+    let parts = w.task(&w.admin, json!({ "title": "Order parts" })).await;
+    let held = w
+        .task(
+            &w.admin,
+            json!({ "title": "Swap drum", "status_id": BLOCKED }),
+        )
+        .await;
+    w.link(&service, &printer).await;
+    w.link(&service, &toner).await;
+    w.link(&parts, &printer).await;
+    w.link(&held, &printer).await;
+
+    // An Analyst Note is work: not-started Tasks start, a Blocked one stays put.
+    let r = w
+        .admin
+        .post(
+            &format!("/api/v1/tickets/{}/notes", id(&printer)),
+            json!({ "body": "Took the tray out" }),
+        )
+        .await;
+    assert_eq!(r.status, StatusCode::CREATED, "{:?}", r.body);
+    w.dispatch(Arc::new(SystemClock)).await;
+    assert_eq!(w.status_of(&service).await, IN_PROGRESS);
+    assert_eq!(w.status_of(&parts).await, IN_PROGRESS);
+    assert_eq!(w.status_of(&held).await, BLOCKED);
+    let history = w
+        .admin
+        .get(&format!("/api/v1/tasks/{}/history", id(&service)))
+        .await
+        .body;
+    assert!(
+        history
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|h| h["field"] == "status_id" && h["actor"]["kind"] == "automation"),
+        "{history:?}"
+    );
+
+    // Closing one ticket completes only the Tasks whose linked tickets are all closed.
+    let close = |t: &Value| {
+        let path = format!("/api/v1/tickets/{}/status", id(t));
+        let body = json!({ "status_id": closed, "resolution_code_id": fixed });
+        let admin = &w.admin;
+        async move {
+            let r = admin.post(&path, body).await;
+            assert_eq!(r.status, StatusCode::OK, "{:?}", r.body);
+        }
+    };
+    close(&printer).await;
+    w.dispatch(Arc::new(SystemClock)).await;
+    assert_eq!(w.status_of(&parts).await, DONE);
+    assert_eq!(w.status_of(&held).await, DONE);
+    assert_eq!(
+        w.status_of(&service).await,
+        IN_PROGRESS,
+        "the toner ticket is open"
+    );
+    close(&toner).await;
+    w.dispatch(Arc::new(SystemClock)).await;
+    assert_eq!(w.status_of(&service).await, DONE);
+}
+
+#[sqlx::test(migrations = "../../migrations")]
+async fn following_linked_tickets_stops_with_the_setting_or_the_module(pool: PgPool) {
+    let w = World::new(&pool).await;
+    let ticket = w.ticket("Laptop slow").await;
+    let task = w.task(&w.admin, json!({ "title": "Reimage laptop" })).await;
+    w.link(&task, &ticket).await;
+    let note = |body: &str| {
+        let path = format!("/api/v1/tickets/{}/notes", id(&ticket));
+        let body = json!({ "body": body });
+        let admin = &w.admin;
+        async move {
+            assert_eq!(admin.post(&path, body).await.status, StatusCode::CREATED);
+        }
+    };
+
+    let r = w
+        .admin
+        .put(
+            "/api/v1/settings/tasks.follow_linked_tickets",
+            json!({ "value": false }),
+        )
+        .await;
+    assert!(r.status.is_success(), "{:?}", r.body);
+    note("Checked the disk").await;
+    w.dispatch(Arc::new(SystemClock)).await;
+    assert_eq!(w.status_of(&task).await, TO_DO, "setting off");
+
+    w.admin
+        .put(
+            "/api/v1/settings/tasks.follow_linked_tickets",
+            json!({ "value": true }),
+        )
+        .await;
+    w.admin
+        .put("/api/v1/modules/tasks", json!({ "is_enabled": false }))
+        .await;
+    note("Checked the memory").await;
+    w.dispatch(Arc::new(SystemClock)).await;
+    w.admin
+        .put("/api/v1/modules/tasks", json!({ "is_enabled": true }))
+        .await;
+    assert_eq!(w.status_of(&task).await, TO_DO, "Module off");
+
+    note("Ordered an SSD").await;
+    w.dispatch(Arc::new(SystemClock)).await;
+    assert_eq!(w.status_of(&task).await, IN_PROGRESS);
 }

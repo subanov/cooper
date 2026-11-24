@@ -45,3 +45,4 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0036](0036-calendar-context.md) | Calendar: per-Company events, instance-wide categories, and read-only events generated from other contexts' outbox events | Accepted |
 | [0037](0037-suggested-replies-with-an-ai-provider.md) | Suggested Replies through a provider port in the service desk, Gemini configured by environment | Accepted |
 | [0038](0038-editable-suggested-reply-instructions.md) | Editable Suggested Reply Instructions with fixed rules Cooper always adds | Accepted |
+| [0039](0039-tasks-follow-linked-tickets.md) | Tasks follow their linked tickets through ticket outbox events | Accepted |

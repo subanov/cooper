@@ -242,6 +242,7 @@ pub fn setting_catalogue() -> Vec<SettingDefinition> {
         .chain(cooper_service_status::application::settings::ALL)
         .chain(cooper_morning_checks::application::settings::ALL)
         .chain(cooper_contracts::application::settings::ALL)
+        .chain(cooper_tasks::application::settings::ALL)
         .copied()
         .collect()
 }
@@ -685,6 +686,13 @@ impl AppState {
             }),
             Arc::new(cooper_notifications::email::ReplyMailer {
                 outbox: cooper_notifications::email::EmailOutbox::new(self.pool.clone()),
+            }),
+            Arc::new(cooper_tasks::handlers::LinkedTicketFollower {
+                tasks: self.tasks.service.clone(),
+                settings: Arc::new(crate::adapters::TaskSettings {
+                    admin: self.administration.service.clone(),
+                    gate: self.administration.gate.clone(),
+                }),
             }),
             Arc::new(cooper_calendar::handlers::GeneratedEventsSync {
                 calendar: self.calendar.service.clone(),

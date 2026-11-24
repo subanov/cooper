@@ -655,6 +655,62 @@ impl DomainEvent for TaskAssigned {
     }
 }
 
+/// What happened on a ticket that Tasks are linked to (FR-TSK-010).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TicketActivity {
+    /// An Analyst worked on it: a Reply, a Note, or a move between open statuses.
+    Worked,
+    /// It was closed.
+    Closed,
+}
+
+impl TicketActivity {
+    /// Stable key of the status linked Tasks follow their ticket to.
+    #[must_use]
+    pub const fn status_key(self) -> &'static str {
+        match self {
+            Self::Worked => "in_progress",
+            Self::Closed => "done",
+        }
+    }
+
+    /// The status linked Tasks move to: the active status with [`Self::status_key`],
+    /// open for work and *done* for a closed ticket. `None` when an administrator removed,
+    /// deactivated or changed it.
+    #[must_use]
+    pub fn target(self, statuses: &[Lookup]) -> Option<&Lookup> {
+        statuses.iter().find(|s| {
+            s.kind == LookupKind::Status
+                && s.is_active
+                && s.key.as_deref() == Some(self.status_key())
+                && match self {
+                    Self::Worked => !s.is_closed,
+                    Self::Closed => s.is_done,
+                }
+        })
+    }
+}
+
+impl Task {
+    /// Whether this Task follows activity on a linked ticket (FR-TSK-010). Closed Tasks
+    /// never move. Work starts only a Task still in the default (not started) status, so
+    /// an Analyst's choice (Blocked, say) is never overridden. A closed ticket completes
+    /// the Task only when every ticket linked to it is closed.
+    #[must_use]
+    pub fn follows_ticket(
+        &self,
+        activity: TicketActivity,
+        default_status: Uuid,
+        all_tickets_closed: bool,
+    ) -> bool {
+        !self.is_closed
+            && match activity {
+                TicketActivity::Worked => self.status_id == default_status,
+                TicketActivity::Closed => all_tickets_closed,
+            }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -686,6 +742,79 @@ mod tests {
             title: title.into(),
             ..TaskDetails::default()
         }
+    }
+
+    fn keyed(key: &str, closed: bool, done: bool) -> Lookup {
+        let mut l = status(closed, done);
+        l.key = Some(key.into());
+        l
+    }
+
+    #[test]
+    fn ticket_activity_targets_the_keyed_active_status() {
+        let started = keyed("in_progress", false, false);
+        let done = keyed("done", true, true);
+        let statuses = vec![status(false, false), started.clone(), done.clone()];
+        assert_eq!(
+            TicketActivity::Worked.target(&statuses).map(|s| s.id),
+            Some(started.id)
+        );
+        assert_eq!(
+            TicketActivity::Closed.target(&statuses).map(|s| s.id),
+            Some(done.id)
+        );
+        let mut inactive = done.clone();
+        inactive.is_active = false;
+        let mut not_done = done;
+        not_done.is_done = false;
+        let mut closed_started = started;
+        closed_started.is_closed = true;
+        assert!(TicketActivity::Closed.target(&[inactive]).is_none());
+        assert!(TicketActivity::Closed.target(&[not_done]).is_none());
+        assert!(TicketActivity::Worked.target(&[closed_started]).is_none());
+        assert!(TicketActivity::Worked.target(&[]).is_none());
+    }
+
+    #[test]
+    fn ticket_work_starts_only_a_not_started_open_task() {
+        let to_do = status(false, false);
+        let blocked = status(false, false);
+        let done = status(true, true);
+        let task = Task::open(
+            TenantId::new(),
+            details("Swap disk"),
+            &to_do,
+            None,
+            Actor::Automation,
+            now(),
+        )
+        .unwrap();
+        assert!(task.follows_ticket(TicketActivity::Worked, to_do.id, false));
+        let mut held = task.clone();
+        held.move_to(&blocked, now()).unwrap();
+        assert!(!held.follows_ticket(TicketActivity::Worked, to_do.id, false));
+        let mut finished = task;
+        finished.move_to(&done, now()).unwrap();
+        assert!(!finished.follows_ticket(TicketActivity::Worked, to_do.id, false));
+        assert!(!finished.follows_ticket(TicketActivity::Closed, to_do.id, true));
+    }
+
+    #[test]
+    fn closing_tickets_completes_a_task_only_when_all_are_closed() {
+        let to_do = status(false, false);
+        let blocked = status(false, false);
+        let mut task = Task::open(
+            TenantId::new(),
+            details("Swap disk"),
+            &to_do,
+            None,
+            Actor::Automation,
+            now(),
+        )
+        .unwrap();
+        task.move_to(&blocked, now()).unwrap();
+        assert!(task.follows_ticket(TicketActivity::Closed, to_do.id, true));
+        assert!(!task.follows_ticket(TicketActivity::Closed, to_do.id, false));
     }
 
     #[test]

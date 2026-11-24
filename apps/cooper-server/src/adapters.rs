@@ -911,6 +911,23 @@ impl cooper_tasks::ports::Directory for TaskDirectory {
         }
     }
 
+    async fn ticket_is_closed(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<bool>, cooper_tasks::ports::RepoError> {
+        use cooper_service_desk::application::AppError;
+        match self
+            .desk
+            .ticket(principal, cooper_kernel::TicketId::from_uuid(id))
+            .await
+        {
+            Ok(d) => Ok(Some(d.ticket.closed_at().is_some())),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(task_err(e)),
+        }
+    }
+
     async fn analyst_active(
         &self,
         analyst: AnalystId,
@@ -1403,5 +1420,34 @@ impl cooper_notifications::handlers::ContractLookup for ContractFactsLookup {
                 end_date: c.details().end_date,
                 is_active: c.is_active(),
             }))
+    }
+}
+
+/// Tasks' System Settings; following linked tickets is off while the Tasks Module is off
+/// (FR-TSK-010).
+pub struct TaskSettings {
+    /// Administration.
+    pub admin: AdministrationService,
+    /// Module switches.
+    pub gate: cooper_administration::api::ModuleGate,
+}
+
+#[async_trait]
+impl cooper_tasks::ports::TaskSettingsProvider for TaskSettings {
+    async fn settings(&self) -> cooper_tasks::ports::TaskSettings {
+        use cooper_tasks::application::settings;
+        let defaults = cooper_tasks::ports::TaskSettings::default();
+        let follow = self
+            .admin
+            .setting_value(settings::FOLLOW_LINKED_TICKETS.key)
+            .await
+            .ok()
+            .flatten()
+            .and_then(|v| v.as_bool())
+            .unwrap_or(defaults.follow_linked_tickets);
+        cooper_tasks::ports::TaskSettings {
+            follow_linked_tickets: follow
+                && self.gate.is_enabled(cooper_kernel::Module::Tasks).await,
+        }
     }
 }
