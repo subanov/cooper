@@ -118,7 +118,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TKT-029 | Administrators define custom **Ticket Fields** (typed: text, number, date, dropdown, checkbox, …) with *required on create*, *required on close* and *ask requester* options. A field's key and type never change; fields are retired, not deleted. Emailed tickets cannot be asked and skip *required on create*. Deviation from FreeITSM: fields are instance-wide, not per Company (ADR-0024). | S | P2 |
 | FR-TKT-030 | Tickets can be linked to Assets, CIs, Problems, Changes and Tasks. Each context owns its links; `GET /tickets/{id}/related` gathers Problems, Changes, Tasks, Knowledge Articles and Morning Check Results (ADR-0031). Assets and CIs join with their contexts (ADR-0029). | S | P2 |
 | FR-TKT-031 | Analysts can schedule work on a ticket (start, end, all-day) for an **Owner**. The work appears on the Calendar. Deviation from FreeITSM: work has an active Owner and a span; cancelling keeps the record (ADR-0042). | C | P3 |
-| FR-TKT-032 | **Checklists** from templates can be attached to a ticket. The template's Closure Mode decides whether incomplete mandatory items block closure. | C | P3 |
+| FR-TKT-032 | **Checklists** from templates can be attached to a ticket. The template's Closure Mode decides whether incomplete mandatory items block closure. Deviation from FreeITSM: a blocking Checklist stops closure through the ticket status change; bulk close paths need the same guard (ADR-0043). | C | P3 |
 | FR-TKT-033 | After closure, the Requester receives a **CSAT** request. Ratings are stored per ticket and reported. | C | P4 |
 
 ### 3.3 Views
@@ -223,8 +223,8 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TSK-004 | Tasks can be linked to a ticket, change, contract or project. Contract links follow the Contracts context, project links Projects (FR-TSK-009) (ADR-0029). Contracts can be linked as well (ADR-0042). | S | P2 |
 | FR-TSK-005 | **Board** (Kanban) view with drag-and-drop between statuses, plus a list view. | S | P2 |
 | FR-TSK-006 | **Recurrence**: daily, weekly (weekdays), monthly (date or nth weekday), yearly. Repeats on completion or on a fixed schedule, with an end condition. Occurrences are real Tasks; only completing (a Done status) repeats, cancelling does not. | S | P2 |
-| FR-TSK-007 | Knowledge Articles can be attached as **Procedures** (snapshotted at attach time). | C | P3 |
-| FR-TSK-008 | **Checklist Templates** (versioned, with category and role) contain items that can be mandatory or require input. They can be applied to tasks and tickets. | S | P3 |
+| FR-TSK-007 | Knowledge Articles can be attached as **Procedures** (snapshotted at attach time). Deviation from FreeITSM: a procedure is a copy taken at attach time; only live articles of the Company or instance-wide ones (ADR-0043). | C | P3 |
+| FR-TSK-008 | **Checklist Templates** (versioned, with category and role) contain items that can be mandatory or require input. They can be applied to tasks and tickets. Deviation from FreeITSM: templates are versioned per Company; a Checklist copies the template version it was made from (ADR-0043). | S | P3 |
 | FR-TSK-009 | **Projects** built on tasks: method (Simple, Staged, Agile), stages with gates, milestones, RAID log, decision log, budget. | W | — |
 
 ## 11. Knowledge (KNW)

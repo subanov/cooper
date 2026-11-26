@@ -339,6 +339,10 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Rota Shift** | A named time of day that Analysts are scheduled into. | `RotaShift`, `rota_shifts` | roster slot |
 | **Rota Location** | Where an Analyst works on a shift, such as Office or WFH. | `RotaLocation`, `rota_locations` | site |
 | **Rota Entry** | An Analyst placed on a day, shift and location, optionally on call. | `RotaEntry`, `rota_entries` | roster entry |
+| **Checklist Template** | A versioned list of items with a category, a role and a Closure Mode, used to make Checklists. | `ChecklistTemplate`, `checklist_templates` | template, checklist |
+| **Checklist** | A copy of a Checklist Template version attached to a ticket or task. | `Checklist`, `checklists` | list |
+| **Closure Mode** | Whether open mandatory items of a Checklist block closing its ticket: `advisory` or `blocking`. | `ClosureMode` | |
+| **Procedure** | A Knowledge Article's text copied onto a task when attached. | `Procedure`, `task_procedures` | runbook copy |
 | **Asset Owner** | The Analyst reminded of an Asset's warranty and lease expiry. | `asset_owners` | asset manager |
 
 ---

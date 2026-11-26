@@ -1298,6 +1298,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/checklist-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Checklist Templates in the caller's Companies (needs `checklists.read`). */
+        get: operations["list_checklist_templates"];
+        put?: never;
+        /** Creates a template (needs `checklists.configure`). */
+        post: operations["create_checklist_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checklist-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One template (needs `checklists.read`). */
+        get: operations["get_checklist_template"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checklist-templates/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publishes a new version of a template (needs `checklists.configure`). */
+        post: operations["publish_checklist_template"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checklists/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Checklist (needs `checklists.read`). */
+        get: operations["get_checklist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checklists/{id}/items/{item_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Completes an item (needs `checklists.write`). */
+        post: operations["complete_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checklists/{id}/items/{item_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marks an item not done again (needs `checklists.write`). */
+        post: operations["reopen_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies": {
         parameters: {
             query?: never;
@@ -4952,6 +5055,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tasks/{id}/checklists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Checklists on a task (needs `checklists.read`). */
+        get: operations["list_task_checklists"];
+        put?: never;
+        /** Attaches a template to a task (needs `checklists.write`). */
+        post: operations["attach_task_checklist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tasks/{id}/collaborators": {
         parameters: {
             query?: never;
@@ -5035,6 +5156,41 @@ export interface paths {
         post?: never;
         /** Removes a link (needs `tasks.update`). */
         delete: operations["unlink_task"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/procedures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Procedures of a task (needs `tasks.read`). */
+        get: operations["list_procedures"];
+        put?: never;
+        /** Attaches an article to a task as a procedure (needs `tasks.update`). */
+        post: operations["attach_procedure"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/procedures/{procedure_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Removes a procedure from a task (needs `tasks.update`). */
+        delete: operations["detach_procedure"];
         options?: never;
         head?: never;
         patch?: never;
@@ -5594,6 +5750,24 @@ export interface paths {
         get: operations["download_attachment"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/checklists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Checklists on a ticket (needs `checklists.read`). */
+        get: operations["list_ticket_checklists"];
+        put?: never;
+        /** Attaches a template to a ticket (needs `checklists.write`). */
+        post: operations["attach_ticket_checklist"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6669,6 +6843,22 @@ export interface components {
              * @description Queue; `null` to clear.
              */
             team_id?: string | null;
+        };
+        /** @description The article to attach. */
+        AttachProcedureRequest: {
+            /**
+             * Format: uuid
+             * @description A published Knowledge Article the caller may read.
+             */
+            article_id: string;
+        };
+        /** @description Attaches a template. */
+        AttachRequest: {
+            /**
+             * Format: uuid
+             * @description The template (of the target's Company).
+             */
+            template_id: string;
         };
         /** @description An attachment. */
         AttachmentDto: {
@@ -8034,6 +8224,72 @@ export interface components {
              */
             recorded: number;
         };
+        /** @description A Checklist on a ticket or task. */
+        ChecklistDto: {
+            /** @description Whether it blocks closure now. */
+            blocks_closure: boolean;
+            /** @description `advisory` or `blocking`. */
+            closure_mode: string;
+            /**
+             * Format: date-time
+             * @description When it was attached.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Items. */
+            items: components["schemas"]["ChecklistItemDto"][];
+            /** @description Name. */
+            name: string;
+            /** @description `ticket` or `task`. */
+            target: string;
+            /**
+             * Format: uuid
+             * @description The ticket or task.
+             */
+            target_id: string;
+            /**
+             * Format: uuid
+             * @description The template it came from.
+             */
+            template_id: string;
+            /**
+             * Format: int32
+             * @description The version it copies.
+             */
+            template_version: number;
+        };
+        /** @description One item of a Checklist. */
+        ChecklistItemDto: {
+            /** @description Answer. */
+            answer?: string | null;
+            /** @description Done. */
+            done: boolean;
+            /**
+             * Format: date-time
+             * @description When it was last completed.
+             */
+            done_at?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Mandatory. */
+            mandatory: boolean;
+            /**
+             * Format: int32
+             * @description Position.
+             */
+            position: number;
+            /** @description Needs an answer when done. */
+            requires_input: boolean;
+            /** @description Text. */
+            text: string;
+        };
         /** @description Company access of an Analyst or Team. */
         CompanyAccessDto: {
             /** @description Every Company, including future ones. */
@@ -8077,6 +8333,11 @@ export interface components {
             sender_domains?: string[];
             /** @description Ticket Code. */
             ticket_code: string;
+        };
+        /** @description The answer to an item that needs one. */
+        CompleteRequest: {
+            /** @description The answer, required when the item needs one. */
+            answer?: string | null;
         };
         /** @description The outcome of a Connection Check. */
         ConnectionCheckDto: {
@@ -8981,6 +9242,15 @@ export interface components {
             api_key: components["schemas"]["ApiKeyDto"];
             /** @description The full key. Store it now: it cannot be retrieved again. */
             key: string;
+        };
+        /** @description One item of a template version or a request. */
+        ItemDto: {
+            /** @description Mandatory: blocks closure when the Checklist is blocking. */
+            mandatory?: boolean;
+            /** @description Needs an answer when done. */
+            requires_input?: boolean;
+            /** @description Text. */
+            text: string;
         };
         /** @description A Background Job. */
         JobDto: {
@@ -10919,6 +11189,38 @@ export interface components {
              */
             ticket_id: string;
         };
+        /** @description A procedure: an article's text as it was when attached. */
+        ProcedureDto: {
+            /**
+             * Format: uuid
+             * @description The article it came from.
+             */
+            article_id: string;
+            /**
+             * Format: int32
+             * @description The article version it copies.
+             */
+            article_version: number;
+            /**
+             * Format: date-time
+             * @description When it was attached.
+             */
+            attached_at: string;
+            /** @description Body, as attached. */
+            body: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description The task.
+             */
+            task_id: string;
+            /** @description Title, as attached. */
+            title: string;
+        };
         /** @description An Impact Level as Requesters and the public see it. */
         PublicImpactDto: {
             /** @description `#rrggbb`. */
@@ -12528,6 +12830,59 @@ export interface components {
             /** @description Name. */
             name: string;
         };
+        /** @description A template with its current version. */
+        TemplateDto: {
+            /** @description Category. */
+            category: string;
+            /** @description Closure mode of the current version. */
+            closure_mode: string;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description When it was created.
+             */
+            created_at: string;
+            /**
+             * Format: int32
+             * @description Current version number.
+             */
+            current_version: number;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Items of the current version. */
+            items: components["schemas"]["ItemDto"][];
+            /** @description Name. */
+            name: string;
+            /** @description Role. */
+            role: string;
+            /** @description Number of published versions. */
+            versions: number;
+        };
+        /** @description A new template. */
+        TemplateRequest: {
+            /** @description Category. */
+            category: string;
+            /** @description `advisory` or `blocking`. */
+            closure_mode: string;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description Items. */
+            items: components["schemas"]["ItemDto"][];
+            /** @description Name. */
+            name: string;
+            /** @description Role. */
+            role: string;
+        };
         /** @description A Terms tab. */
         TermTabDto: {
             /** @description Active. */
@@ -13218,6 +13573,13 @@ export interface components {
             is_active?: boolean;
             /** @description Name. */
             name: string;
+        };
+        /** @description A new version of a template. */
+        VersionRequest: {
+            /** @description `advisory` or `blocking`. */
+            closure_mode: string;
+            /** @description The complete item list. */
+            items: components["schemas"]["ItemDto"][];
         };
         /** @description Another Analyst who has the ticket open (FR-TKT-025). */
         ViewerDto: {
@@ -15882,6 +16244,163 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ChangeDto"];
+                };
+            };
+        };
+    };
+    list_checklist_templates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateDto"][];
+                };
+            };
+        };
+    };
+    create_checklist_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TemplateRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateDto"];
+                };
+            };
+        };
+    };
+    get_checklist_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateDto"];
+                };
+            };
+        };
+    };
+    publish_checklist_template: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VersionRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateDto"];
+                };
+            };
+        };
+    };
+    get_checklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDto"];
+                };
+            };
+        };
+    };
+    complete_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDto"];
+                };
+            };
+        };
+    };
+    reopen_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDto"];
                 };
             };
         };
@@ -22783,6 +23302,52 @@ export interface operations {
             };
         };
     };
+    list_task_checklists: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDto"][];
+                };
+            };
+        };
+    };
+    attach_task_checklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDto"];
+                };
+            };
+        };
+    };
     get_task_collaborators: {
         parameters: {
             query?: never;
@@ -22950,6 +23515,72 @@ export interface operations {
                 id: string;
                 kind: string;
                 target_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_procedures: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcedureDto"][];
+                };
+            };
+        };
+    };
+    attach_procedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachProcedureRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcedureDto"];
+                };
+            };
+        };
+    };
+    detach_procedure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                procedure_id: string;
             };
             cookie?: never;
         };
@@ -24100,6 +24731,52 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_ticket_checklists: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDto"][];
+                };
+            };
+        };
+    };
+    attach_ticket_checklist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttachRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChecklistDto"];
+                };
             };
         };
     };

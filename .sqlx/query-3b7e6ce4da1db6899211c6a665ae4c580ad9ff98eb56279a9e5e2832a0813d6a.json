@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO task_procedures (id, tenant_id, task_id, article_id, article_version, title, body,\n                                          attached_by_kind, attached_by_id, attached_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3b7e6ce4da1db6899211c6a665ae4c580ad9ff98eb56279a9e5e2832a0813d6a"
+}

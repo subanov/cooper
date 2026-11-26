@@ -7,6 +7,7 @@
 //! can drive the full stack with `tower::ServiceExt::oneshot`.
 
 mod adapters;
+mod checklist_adapters;
 mod forms_adapters;
 pub mod config;
 mod health;
@@ -80,6 +81,8 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_contracts::api::router())
         .merge(cooper_contracts::terms_api::router())
         .merge(cooper_service_desk::scheduling_api::router())
+        .merge(cooper_checklists::api::router())
+        .merge(cooper_tasks::procedures_api::router())
         .merge(cooper_forms::api::router())
         .merge(cooper_assets::extras_api::router())
         .merge(cooper_calendar::api::router())

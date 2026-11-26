@@ -8,3 +8,7 @@ pub mod domain;
 pub mod infrastructure;
 pub mod ports;
 pub mod recurrence;
+pub mod procedures;
+pub mod procedures_api;
+pub mod procedures_service;
+pub mod procedures_store;

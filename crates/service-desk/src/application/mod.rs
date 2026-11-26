@@ -218,6 +218,8 @@ pub struct ServiceDeskPorts {
     pub settings: Arc<dyn TicketSettingsProvider>,
     /// The AI provider for Suggested Replies; `None` turns them off (FR-AI-003).
     pub suggester: Option<Arc<dyn crate::domain::ReplySuggester>>,
+    /// Open mandatory Checklist items that stop closure (FR-TKT-032).
+    pub checklists: Arc<dyn crate::domain::ChecklistGuard>,
     /// Time.
     pub clock: Arc<dyn Clock>,
 }

@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO checklist_template_versions (template_id, tenant_id, version_no, closure_mode, created_by_kind, created_by_id, created_at)\n                 VALUES ($1, $2, $3, $4, $5, $6, $7)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b8368491701b9d254b869853c74006302f06ef64d9e151d6f3de1c35b3e485f5"
+}

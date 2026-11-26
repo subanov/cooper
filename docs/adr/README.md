@@ -48,4 +48,5 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0039](0039-forms.md) | Forms: per-Company, versioned Forms with typed Form Fields | Accepted |
 | [0040](0040-forms-on-the-portal.md) | Forms on the Portal: audiences, approval rounds, Submission Actions and Drafts | Accepted |
 | [0041](0041-asset-extras.md) | Asset extras: custom fields, software inventory, licences and CSV import | Accepted |
+| [0043](0043-checklists-and-procedures.md) | Checklists, closure rules and procedures on tasks | Accepted |
 | [0042](0042-contract-terms-scheduling-and-reminders.md) | Contract Terms, Task links to Contracts, scheduled work, the rota and Asset reminders | Accepted |

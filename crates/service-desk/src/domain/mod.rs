@@ -98,6 +98,9 @@ pub enum TicketError {
     /// Closing needs a Resolution Code.
     #[error("closing a ticket needs a Resolution Code")]
     ResolutionCodeRequired,
+    /// Open mandatory items of blocking Checklists stop the ticket from closing (FR-TKT-032).
+    #[error("closing is blocked by open mandatory checklist items: {}", .0.join("; "))]
+    ChecklistsOpen(Vec<String>),
     /// Closing needs a Closure Category (System Setting).
     #[error("closing a ticket needs a Closure Category")]
     ClosureCategoryRequired,
@@ -164,4 +167,13 @@ pub fn audit_record<A: Audited>(
         record = record.change(field, previous, Some(&new));
     }
     record
+}
+
+/// Which open mandatory Checklist items stop a ticket from closing (FR-TKT-032). The
+/// Checklists context answers it; the ticket context only asks.
+#[async_trait::async_trait]
+pub trait ChecklistGuard: Send + Sync {
+    /// The "checklist: item" texts of the blocking Checklists of a ticket that are still
+    /// open. Empty means the ticket may close.
+    async fn blocking_items(&self, tenant: cooper_kernel::TenantId, ticket: uuid::Uuid) -> Result<Vec<String>, RepoError>;
 }

@@ -1,0 +1,76 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT template_id, version_no, item_text, is_mandatory, requires_input FROM checklist_template_items\n         WHERE template_id = ANY($1) ORDER BY template_id, version_no, position",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "template_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_items",
+            "name": "template_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "version_no",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_items",
+            "name": "version_no"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "item_text",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_items",
+            "name": "item_text"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "is_mandatory",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_items",
+            "name": "is_mandatory"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "requires_input",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_items",
+            "name": "requires_input"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "c01b2865221613721a583fd6f61bd49f7aec4287d794ef12da3376707ab083c9"
+}

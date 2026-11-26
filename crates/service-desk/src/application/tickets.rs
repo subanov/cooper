@@ -635,6 +635,16 @@ impl ServiceDesk {
         if status.flags().is_closed && ticket.closed_at().is_none() {
             self.check_fields_for_close(principal, &ticket).await?;
         }
+        if status.flags().is_closed {
+            let open = self
+                .ports
+                .checklists
+                .blocking_items(ticket.tenant_id(), id.as_uuid())
+                .await?;
+            if !open.is_empty() {
+                return Err(TicketError::ChecklistsOpen(open).into());
+            }
+        }
         let settings = self.ports.settings.settings().await;
         let before = ticket.clone();
         let now = self.ports.clock.now();

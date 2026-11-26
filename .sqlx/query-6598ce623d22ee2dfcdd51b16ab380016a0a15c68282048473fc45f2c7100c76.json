@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO checklist_templates (id, tenant_id, name, category, role, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, category = EXCLUDED.category, role = EXCLUDED.role,\n                 updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6598ce623d22ee2dfcdd51b16ab380016a0a15c68282048473fc45f2c7100c76"
+}

@@ -1,0 +1,148 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, checklist_id, position, item_text, is_mandatory, requires_input, is_done, answer, done_at, done_by_kind, done_by_id\n         FROM checklist_items WHERE checklist_id = ANY($1) ORDER BY checklist_id, position",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "checklist_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "checklist_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "position",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "position"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "item_text",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "item_text"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_mandatory",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "is_mandatory"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "requires_input",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "requires_input"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "is_done",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "is_done"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "answer",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "answer"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "done_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "done_at"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "done_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "done_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "done_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "checklist_items",
+            "name": "done_by_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "bdfe8d519e9dd5e629ae7c6a3dafe3b781d1970025a3de93d95a039ebba161d4"
+}

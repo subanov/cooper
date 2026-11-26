@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT template_id, version_no, closure_mode, created_by_kind, created_by_id, created_at\n         FROM checklist_template_versions WHERE template_id = ANY($1) ORDER BY template_id, version_no",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "template_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_versions",
+            "name": "template_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "version_no",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_versions",
+            "name": "version_no"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "closure_mode",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_versions",
+            "name": "closure_mode"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_versions",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_versions",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "checklist_template_versions",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "c868eaa6bcebd61595e8b859bcfcd50aa0d207785a35e0ef024c2e5fc074ed2a"
+}

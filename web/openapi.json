@@ -3865,6 +3865,250 @@
         }
       }
     },
+    "/api/v1/checklist-templates": {
+      "get": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Checklist Templates in the caller's Companies (needs `checklists.read`).",
+        "operationId": "list_checklist_templates",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TemplateDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Creates a template (needs `checklists.configure`).",
+        "operationId": "create_checklist_template",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checklist-templates/{id}": {
+      "get": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "One template (needs `checklists.read`).",
+        "operationId": "get_checklist_template",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checklist-templates/{id}/versions": {
+      "post": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Publishes a new version of a template (needs `checklists.configure`).",
+        "operationId": "publish_checklist_template",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checklists/{id}": {
+      "get": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "One Checklist (needs `checklists.read`).",
+        "operationId": "get_checklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checklists/{id}/items/{item_id}/complete": {
+      "post": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Completes an item (needs `checklists.write`).",
+        "operationId": "complete_item",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checklists/{id}/items/{item_id}/reopen": {
+      "post": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Marks an item not done again (needs `checklists.write`).",
+        "operationId": "reopen_item",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/companies": {
       "get": {
         "tags": [
@@ -14459,6 +14703,79 @@
         }
       }
     },
+    "/api/v1/tasks/{id}/checklists": {
+      "get": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Checklists on a task (needs `checklists.read`).",
+        "operationId": "list_task_checklists",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChecklistDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Attaches a template to a task (needs `checklists.write`).",
+        "operationId": "attach_task_checklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{id}/collaborators": {
       "get": {
         "tags": [
@@ -14736,6 +15053,111 @@
           },
           {
             "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/procedures": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Procedures of a task (needs `tasks.read`).",
+        "operationId": "list_procedures",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProcedureDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Attaches an article to a task as a procedure (needs `tasks.update`).",
+        "operationId": "attach_procedure",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachProcedureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcedureDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{id}/procedures/{procedure_id}": {
+      "delete": {
+        "tags": [
+          "Tasks"
+        ],
+        "summary": "Removes a procedure from a task (needs `tasks.update`).",
+        "operationId": "detach_procedure",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "procedure_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -16518,6 +16940,79 @@
         "responses": {
           "200": {
             "description": "The file"
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/checklists": {
+      "get": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Checklists on a ticket (needs `checklists.read`).",
+        "operationId": "list_ticket_checklists",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChecklistDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Checklists"
+        ],
+        "summary": "Attaches a template to a ticket (needs `checklists.write`).",
+        "operationId": "attach_ticket_checklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistDto"
+                }
+              }
+            }
           }
         }
       }
@@ -18942,6 +19437,34 @@
             ],
             "format": "uuid",
             "description": "Queue; `null` to clear."
+          }
+        }
+      },
+      "AttachProcedureRequest": {
+        "type": "object",
+        "description": "The article to attach.",
+        "required": [
+          "article_id"
+        ],
+        "properties": {
+          "article_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "A published Knowledge Article the caller may read."
+          }
+        }
+      },
+      "AttachRequest": {
+        "type": "object",
+        "description": "Attaches a template.",
+        "required": [
+          "template_id"
+        ],
+        "properties": {
+          "template_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The template (of the target's Company)."
           }
         }
       },
@@ -21475,6 +21998,129 @@
           }
         }
       },
+      "ChecklistDto": {
+        "type": "object",
+        "description": "A Checklist on a ticket or task.",
+        "required": [
+          "id",
+          "target",
+          "target_id",
+          "template_id",
+          "template_version",
+          "name",
+          "closure_mode",
+          "items",
+          "blocks_closure",
+          "created_at"
+        ],
+        "properties": {
+          "blocks_closure": {
+            "type": "boolean",
+            "description": "Whether it blocks closure now."
+          },
+          "closure_mode": {
+            "type": "string",
+            "description": "`advisory` or `blocking`."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was attached."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemDto"
+            },
+            "description": "Items."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "target": {
+            "type": "string",
+            "description": "`ticket` or `task`."
+          },
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket or task."
+          },
+          "template_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The template it came from."
+          },
+          "template_version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The version it copies.",
+            "minimum": 0
+          }
+        }
+      },
+      "ChecklistItemDto": {
+        "type": "object",
+        "description": "One item of a Checklist.",
+        "required": [
+          "id",
+          "position",
+          "text",
+          "mandatory",
+          "requires_input",
+          "done"
+        ],
+        "properties": {
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Answer."
+          },
+          "done": {
+            "type": "boolean",
+            "description": "Done."
+          },
+          "done_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "When it was last completed."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "mandatory": {
+            "type": "boolean",
+            "description": "Mandatory."
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Position.",
+            "minimum": 0
+          },
+          "requires_input": {
+            "type": "boolean",
+            "description": "Needs an answer when done."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text."
+          }
+        }
+      },
       "CompanyAccessDto": {
         "type": "object",
         "description": "Company access of an Analyst or Team.",
@@ -21572,6 +22218,19 @@
           "ticket_code": {
             "type": "string",
             "description": "Ticket Code."
+          }
+        }
+      },
+      "CompleteRequest": {
+        "type": "object",
+        "description": "The answer to an item that needs one.",
+        "properties": {
+          "answer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The answer, required when the item needs one."
           }
         }
       },
@@ -23533,6 +24192,27 @@
           "key": {
             "type": "string",
             "description": "The full key. Store it now: it cannot be retrieved again."
+          }
+        }
+      },
+      "ItemDto": {
+        "type": "object",
+        "description": "One item of a template version or a request.",
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "mandatory": {
+            "type": "boolean",
+            "description": "Mandatory: blocks closure when the Checklist is blocking."
+          },
+          "requires_input": {
+            "type": "boolean",
+            "description": "Needs an answer when done."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text."
           }
         }
       },
@@ -27461,6 +28141,54 @@
           }
         }
       },
+      "ProcedureDto": {
+        "type": "object",
+        "description": "A procedure: an article's text as it was when attached.",
+        "required": [
+          "id",
+          "task_id",
+          "article_id",
+          "article_version",
+          "title",
+          "body",
+          "attached_at"
+        ],
+        "properties": {
+          "article_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The article it came from."
+          },
+          "article_version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The article version it copies."
+          },
+          "attached_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was attached."
+          },
+          "body": {
+            "type": "string",
+            "description": "Body, as attached."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The task."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title, as attached."
+          }
+        }
+      },
       "PublicImpactDto": {
         "type": "object",
         "description": "An Impact Level as Requesters and the public see it.",
@@ -30707,6 +31435,115 @@
           }
         }
       },
+      "TemplateDto": {
+        "type": "object",
+        "description": "A template with its current version.",
+        "required": [
+          "id",
+          "company_id",
+          "name",
+          "category",
+          "role",
+          "current_version",
+          "closure_mode",
+          "items",
+          "versions",
+          "created_at"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Category."
+          },
+          "closure_mode": {
+            "type": "string",
+            "description": "Closure mode of the current version."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was created."
+          },
+          "current_version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Current version number.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemDto"
+            },
+            "description": "Items of the current version."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "role": {
+            "type": "string",
+            "description": "Role."
+          },
+          "versions": {
+            "type": "integer",
+            "description": "Number of published versions.",
+            "minimum": 0
+          }
+        }
+      },
+      "TemplateRequest": {
+        "type": "object",
+        "description": "A new template.",
+        "required": [
+          "company_id",
+          "name",
+          "category",
+          "role",
+          "closure_mode",
+          "items"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Category."
+          },
+          "closure_mode": {
+            "type": "string",
+            "description": "`advisory` or `blocking`."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemDto"
+            },
+            "description": "Items."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "role": {
+            "type": "string",
+            "description": "Role."
+          }
+        }
+      },
       "TermTabDto": {
         "type": "object",
         "description": "A Terms tab.",
@@ -31989,6 +32826,27 @@
           "name": {
             "type": "string",
             "description": "Name."
+          }
+        }
+      },
+      "VersionRequest": {
+        "type": "object",
+        "description": "A new version of a template.",
+        "required": [
+          "closure_mode",
+          "items"
+        ],
+        "properties": {
+          "closure_mode": {
+            "type": "string",
+            "description": "`advisory` or `blocking`."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemDto"
+            },
+            "description": "The complete item list."
           }
         }
       },

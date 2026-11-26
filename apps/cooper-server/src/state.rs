@@ -205,6 +205,10 @@ pub struct AppState {
     pub terms: cooper_contracts::terms_api::TermsApi,
     /// Scheduled work and rota API state (FR-TKT-031, FR-SLA-008).
     pub scheduling: cooper_service_desk::scheduling_api::SchedulingApi,
+    /// Checklists API state (FR-TSK-008, FR-TKT-032).
+    pub checklists: cooper_checklists::api::ChecklistApi,
+    /// Procedures on tasks API state (FR-TSK-007).
+    pub procedures: cooper_tasks::procedures_api::ProcedureApi,
     /// Forms API state.
     pub forms: cooper_forms::api::FormsApi,
     /// Asset extras API state (custom fields, software, licences, inventory, import).
@@ -238,6 +242,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_forms::application::capabilities::ALL)
         .chain(cooper_assets::extras::capabilities::ALL)
         .chain(cooper_service_desk::scheduling_service::capabilities::ALL)
+        .chain(cooper_checklists::service::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -331,6 +336,11 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
                 .map(|p| (*p, Module::Tickets)),
         )
         .chain(
+            cooper_checklists::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Tasks)),
+        )
+        .chain(
             cooper_assets::extras_api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Assets)),
@@ -393,6 +403,9 @@ impl AppState {
         );
         let mailbox_clients = mailbox_clients();
         let desk = ServiceDesk::new(ServiceDeskPorts {
+            checklists: Arc::new(crate::checklist_adapters::ChecklistGuardAdapter {
+                store: cooper_checklists::store::PgChecklistStore::new(pool.clone()),
+            }),
             tickets: Arc::new(PgServiceDeskStore::new(pool.clone())),
             reference: Arc::new(PgServiceDeskStore::new(pool.clone())),
             sla: Arc::new(PgServiceDeskStore::new(pool.clone())),
@@ -497,6 +510,27 @@ impl AppState {
                     }),
                     clock: clock.clone(),
                 },
+            ),
+        };
+        let checklist_service = cooper_checklists::service::ChecklistService::new(
+            Arc::new(cooper_checklists::store::PgChecklistStore::new(pool.clone())),
+            Arc::new(crate::checklist_adapters::ChecklistTargets {
+                desk: desk.clone(),
+                tasks: tasks.service.clone(),
+            }),
+            clock.clone(),
+        );
+        let checklists = cooper_checklists::api::ChecklistApi {
+            service: checklist_service,
+        };
+        let procedures = cooper_tasks::procedures_api::ProcedureApi {
+            service: cooper_tasks::procedures_service::ProcedureService::new(
+                Arc::new(cooper_tasks::procedures_store::PgProcedureStore::new(pool.clone())),
+                Arc::new(crate::checklist_adapters::KnowledgeArticles {
+                    knowledge: knowledge_service.clone(),
+                }),
+                tasks.service.clone(),
+                clock.clone(),
             ),
         };
         let service_status = cooper_service_status::api::ServiceStatusApi {
@@ -690,6 +724,8 @@ impl AppState {
             contracts,
             terms,
             scheduling,
+            checklists,
+            procedures,
             forms,
             asset_extras,
             assets,
@@ -838,6 +874,18 @@ impl FromRef<AppState> for cooper_assets::extras_api::AssetExtrasApi {
     }
 }
 
+impl FromRef<AppState> for cooper_checklists::api::ChecklistApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.checklists.clone()
+    }
+}
+
+impl FromRef<AppState> for cooper_tasks::procedures_api::ProcedureApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.procedures.clone()
+    }
+}
+
 impl FromRef<AppState> for cooper_service_desk::scheduling_api::SchedulingApi {
     fn from_ref(state: &AppState) -> Self {
         state.scheduling.clone()
@@ -958,6 +1006,7 @@ mod tests {
                 + cooper_forms::application::capabilities::ALL.len()
                 + cooper_assets::extras::capabilities::ALL.len()
                 + cooper_service_desk::scheduling_service::capabilities::ALL.len()
+                + cooper_checklists::service::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(
