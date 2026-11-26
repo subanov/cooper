@@ -1,7 +1,7 @@
 //! Requester aggregate (FR-IAM-011).
 
 use chrono::{DateTime, Utc};
-use cooper_kernel::{RequesterId, TenantId};
+use cooper_kernel::{DepartmentId, RequesterId, TenantId};
 use serde_json::{Value, json};
 use uuid::Uuid;
 
@@ -24,6 +24,8 @@ pub struct NewRequester {
     pub manager_id: Option<RequesterId>,
     /// The Requester's Cost Centre, in the same Company.
     pub cost_centre_id: Option<CostCentreId>,
+    /// The Requester's Department (FR-FRM-002 audiences).
+    pub department_id: Option<DepartmentId>,
 }
 
 /// A person who asks IT for help.
@@ -37,6 +39,7 @@ pub struct Requester {
     phone: Option<String>,
     manager_id: Option<RequesterId>,
     cost_centre_id: Option<CostCentreId>,
+    department_id: Option<DepartmentId>,
     deactivated_at: Option<DateTime<Utc>>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
@@ -73,6 +76,7 @@ impl Requester {
             phone: clean_phone(new.phone)?,
             manager_id: new.manager_id,
             cost_centre_id: new.cost_centre_id,
+            department_id: new.department_id,
             deactivated_at: None,
             created_at: now,
             updated_at: now,
@@ -104,10 +108,18 @@ impl Requester {
             phone,
             manager_id,
             cost_centre_id,
+            department_id: None,
             deactivated_at,
             created_at,
             updated_at,
         }
+    }
+
+    /// Sets the Department of a Requester read from storage.
+    #[must_use]
+    pub(crate) const fn with_department(mut self, department: Option<DepartmentId>) -> Self {
+        self.department_id = department;
+        self
     }
 
     /// Replaces the editable fields.
@@ -126,6 +138,7 @@ impl Requester {
         self.username = new.username;
         self.manager_id = new.manager_id;
         self.cost_centre_id = new.cost_centre_id;
+        self.department_id = new.department_id;
         self.updated_at = now;
         Ok(())
     }
@@ -202,6 +215,12 @@ impl Requester {
     pub const fn cost_centre_id(&self) -> Option<CostCentreId> {
         self.cost_centre_id
     }
+
+    /// The Department, if any.
+    #[must_use]
+    pub const fn department_id(&self) -> Option<DepartmentId> {
+        self.department_id
+    }
     /// Whether the Requester is active.
     #[must_use]
     pub const fn is_active(&self) -> bool {
@@ -240,6 +259,7 @@ impl Audited for Requester {
             ("phone", json!(self.phone)),
             ("manager_id", json!(self.manager_id)),
             ("cost_centre_id", json!(self.cost_centre_id)),
+            ("department_id", json!(self.department_id)),
             ("deactivated_at", json!(self.deactivated_at)),
         ]
     }
@@ -262,6 +282,7 @@ mod tests {
             phone: Some("  ".into()),
             manager_id: None,
             cost_centre_id: None,
+            department_id: None,
         }
     }
 

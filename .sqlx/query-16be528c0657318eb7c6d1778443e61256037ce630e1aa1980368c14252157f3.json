@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO asset_field_definitions (id, field_set_id, field_key, label, kind, options, is_required, is_unique,\n                                                  is_searchable, show_in_list, is_active)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)\n             ON CONFLICT (id) DO UPDATE SET label = EXCLUDED.label, is_required = EXCLUDED.is_required,\n                 is_unique = EXCLUDED.is_unique, is_searchable = EXCLUDED.is_searchable,\n                 show_in_list = EXCLUDED.show_in_list, is_active = EXCLUDED.is_active",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "16be528c0657318eb7c6d1778443e61256037ce630e1aa1980368c14252157f3"
+}

@@ -28,6 +28,7 @@ cooper-reporting = { path = "crates/reporting" }
 cooper-assets = { path = "crates/assets" }
 cooper-contracts = { path = "crates/contracts" }
 cooper-calendar = { path = "crates/calendar" }
+cooper-forms = { path = "crates/forms" }
 
 # Runtime and web
 tokio = { version = "1.54", features = ["fs", "io-util", "macros", "rt-multi-thread", "signal", "sync", "time"] }

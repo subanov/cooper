@@ -114,6 +114,7 @@ async fn seed(pool: &PgPool) -> (TenantId, TenantId) {
                     phone: None,
                     manager_id: None,
                     cost_centre_id: Some(cc.id()),
+                    department_id: None,
                 },
             )
             .await

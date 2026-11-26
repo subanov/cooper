@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM asset_installations WHERE asset_id = $1 AND NOT (application_id = ANY($2))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "930053e4afd0b79bd2ac24a11b6945612be6913dde4262a0f51992077366175d"
+}

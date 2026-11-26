@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT (SELECT count(*) FROM licence_applications la WHERE la.licence_id = $1 AND ($2 OR la.tenant_id = ANY($3)))::bigint AS \"linked!\",\n                    (SELECT count(DISTINCT i.asset_id) FROM asset_installations i\n                       JOIN licence_applications la ON la.application_id = i.application_id AND la.licence_id = $1\n                       JOIN assets a ON a.id = i.asset_id AND a.retired_on IS NULL)::bigint AS \"installed!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "linked!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 1,
+        "name": "installed!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "47d53cfbd8f42453c11b26a8c233609f0ff8bb1bd6e018a136c9486467afa165"
+}

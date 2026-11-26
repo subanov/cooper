@@ -198,6 +198,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/asset-field-sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Field Sets with their custom fields (needs `assets.read`). */
+        get: operations["list_field_sets"];
+        put?: never;
+        /** Creates a Field Set (needs `assets.configure`). */
+        post: operations["create_field_set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-field-sets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes a Field Set (needs `assets.configure`). */
+        put: operations["update_field_set"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-field-sets/{id}/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adds a custom field to a Field Set (needs `assets.configure`). */
+        post: operations["add_field"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/asset-field-sets/{id}/fields/{field_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes a custom field (needs `assets.configure`). Key, type and options are fixed. */
+        put: operations["update_asset_field"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/asset-locations": {
         parameters: {
             query?: never;
@@ -315,6 +384,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assets/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Imports Assets from CSV: a preview with `dry_run`, otherwise the Assets are written
+         *     (needs `assets.import` and the Asset Capabilities it uses).
+         */
+        post: operations["import_assets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assets/summary": {
         parameters: {
             query?: never;
@@ -407,6 +496,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assets/{id}/custom-fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The custom values of an Asset (needs `assets.read`). */
+        get: operations["get_custom_values"];
+        /** Replaces the custom values of an Asset (needs `assets.update`). */
+        put: operations["set_custom_values"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assets/{id}/history": {
         parameters: {
             query?: never;
@@ -476,6 +583,23 @@ export interface paths {
          *     in first; retired Assets are excluded from active counts and lists.
          */
         post: operations["retire_asset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assets/{id}/software": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The software installed on an Asset (needs `assets.read`). */
+        get: operations["asset_software"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1441,6 +1565,170 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/form-submissions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Submission with its votes (needs `forms.read`). */
+        get: operations["get_submission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/form-submissions/{id}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Runs an approved Submission's actions again after a failure (needs `forms.approve`). */
+        post: operations["retry_actions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/form-submissions/{id}/votes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Votes on a Submission waiting for approval (needs `forms.approve`). */
+        post: operations["vote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Forms in the caller's Companies, by name (needs `forms.read`). */
+        get: operations["list_forms"];
+        put?: never;
+        /** Creates a Form with its first version (needs `forms.write`). */
+        post: operations["create_form"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Form with its versions and settings (needs `forms.read`). */
+        get: operations["get_form"];
+        /**
+         * Changes a Form's name, description and active flag, not its fields (needs
+         *     `forms.write`).
+         */
+        put: operations["edit_form"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Replaces a Form's Portal settings, approval rule and Submission Actions (needs
+         *     `forms.write`). Publishes no version.
+         */
+        put: operations["configure_form"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Submissions of a Form, newest first (needs `forms.read`). */
+        get: operations["list_submissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/forms/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publishes a new version of a Form's fields (needs `forms.write`). Earlier versions are
+         *     kept unchanged.
+         */
+        post: operations["publish_version"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Records an inventory report for the Asset it identifies (needs `assets.inventory`). */
+        post: operations["push_inventory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/knowledge/articles": {
         parameters: {
             query?: never;
@@ -1691,6 +1979,76 @@ export interface paths {
         put: operations["set_knowledge_folder_access"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/licences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Licences in the caller's Companies (needs `assets.read`). */
+        get: operations["list_licences"];
+        put?: never;
+        /** Records a licence (needs `assets.update`). */
+        post: operations["create_licence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/licences/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One licence with its compliance (needs `assets.read`). */
+        get: operations["get_licence"];
+        /** Changes a licence (needs `assets.update`). */
+        put: operations["update_licence"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/licences/{id}/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Links an application to a licence (needs `assets.update`). */
+        post: operations["link_application"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/licences/{id}/applications/{application_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Unlinks an application from a licence (needs `assets.update`). */
+        delete: operations["unlink_application"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2295,6 +2653,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/portal/forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Forms the signed-in Requester may fill in (FR-FRM-002). */
+        get: operations["portal_forms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/forms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One Form the signed-in Requester may fill in. */
+        get: operations["portal_form"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/forms/{id}/draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Requester's Draft of a Form, or null (FR-FRM-005). */
+        get: operations["get_draft"];
+        /** Saves the Requester's Draft of a Form (FR-FRM-005). */
+        put: operations["save_draft"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/forms/{id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submits a Form (FR-FRM-003). Its Draft is removed. */
+        post: operations["submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portal/knowledge": {
         parameters: {
             query?: never;
@@ -2566,6 +2993,57 @@ export interface paths {
         get: operations["portal_sign_in_options"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in Requester's own Submissions, newest first. */
+        get: operations["my_submissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/submissions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One of the Requester's own Submissions. */
+        get: operations["my_submission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/submissions/{id}/resubmit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Amends a returned Submission and resubmits it for a new approval round (FR-FRM-004). */
+        post: operations["resubmit"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5417,6 +5895,20 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Submission Actions of a Form. */
+        ActionsDto: {
+            task?: components["schemas"]["TaskActionDto"] | null;
+            ticket?: components["schemas"]["TicketActionDto"] | null;
+        };
+        /** @description A network adapter. */
+        AdapterDto: {
+            /** @description IP address. */
+            ip?: string | null;
+            /** @description MAC address. */
+            mac?: string | null;
+            /** @description Name. */
+            name: string;
+        };
         /** @description An Analyst. */
         AnalystDto: {
             /** @description Company access granted directly. */
@@ -5472,6 +5964,13 @@ export interface components {
             password?: string | null;
             /** @description Username. */
             username: string;
+        };
+        /** @description Answers to a Form. */
+        AnswersRequest: {
+            /** @description Answers by field key. */
+            answers?: {
+                [key: string]: string;
+            };
         };
         /** @description An API key (without its secret). */
         ApiKeyDto: {
@@ -5542,6 +6041,35 @@ export interface components {
              * @description Requests per minute (1 to 10000, default 60).
              */
             rate_limit_per_minute?: number;
+        };
+        /** @description The approval rule of a Form. */
+        ApprovalDto: {
+            /** @description Who may approve. */
+            approvers: components["schemas"]["ApproversDto"];
+            /** @description Whether an Analyst with the Requester's e-mail address may not approve. */
+            exclude_requester?: boolean;
+            /**
+             * Format: int32
+             * @description Approvals that approve a Submission in a round (1 to 50).
+             */
+            required_approvals: number;
+            /**
+             * Format: int32
+             * @description Rejections that return a Submission in a round (1 to 50).
+             */
+            required_rejections: number;
+        };
+        /** @description Who approves: named Analysts, or the members of a Team. */
+        ApproversDto: {
+            /** @description The Analysts (for `analysts`). */
+            analyst_ids?: string[];
+            /** @description `analysts` or `team`. */
+            kind: string;
+            /**
+             * Format: uuid
+             * @description The Team (for `team`).
+             */
+            team_id?: string | null;
         };
         /** @description Checks an Asset in. */
         AssetCheckInRequest: {
@@ -5975,6 +6503,16 @@ export interface components {
              * @description Size in bytes.
              */
             size_bytes: number;
+        };
+        /** @description One audience of a Portal-visible Form. */
+        AudienceDto: {
+            /**
+             * Format: uuid
+             * @description The Requester, User Group or Department.
+             */
+            id: string;
+            /** @description `requester`, `group` or `department`. */
+            kind: string;
         };
         /** @description One action for many tickets (FR-TKT-042). Set `action` and the fields it uses. */
         BulkRequest: {
@@ -7697,6 +8235,39 @@ export interface components {
             /** @description Name. */
             name: string;
         };
+        /** @description A custom field. */
+        CustomFieldDto: {
+            /** @description Active. */
+            active: boolean;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Key. */
+            key: string;
+            /** @description `text`, `number`, `date`, `boolean` or `choice`. */
+            kind: string;
+            /** @description Label. */
+            label: string;
+            /** @description Options of a choice field. */
+            options: string[];
+            /** @description Required. */
+            required: boolean;
+            /** @description Searchable. */
+            searchable: boolean;
+            /** @description Shown in lists. */
+            show_in_list: boolean;
+            /** @description Unique per Company. */
+            unique: boolean;
+        };
+        /** @description Custom values of an Asset, by key. */
+        CustomValuesDto: {
+            /** @description Values by field key. */
+            values: {
+                [key: string]: string;
+            };
+        };
         /** @description A Department. */
         DepartmentDto: {
             /**
@@ -7734,6 +8305,33 @@ export interface components {
             /** @description Teams serving it. */
             team_ids?: string[];
         };
+        /** @description A disk. */
+        DiskDto: {
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Size in GB.
+             */
+            size_gb: number;
+        };
+        /** @description A Requester's saved answers to a Form. */
+        DraftDto: {
+            /** @description Answers so far. */
+            answers: {
+                [key: string]: string;
+            };
+            /**
+             * Format: uuid
+             * @description The Form.
+             */
+            form_id: string;
+            /**
+             * Format: date-time
+             * @description When they were saved.
+             */
+            updated_at: string;
+        };
         /** @description An Email Template (FR-EML-009). */
         EmailTemplateDto: {
             /**
@@ -7769,6 +8367,65 @@ export interface components {
          * @enum {string}
          */
         EmailTemplateEventDto: "ticket_created" | "ticket_assigned" | "ticket_replied" | "ticket_closed";
+        /** @description A custom field to add. */
+        FieldRequest: {
+            /** @description Key. */
+            key: string;
+            /** @description `text`, `number`, `date`, `boolean` or `choice`. */
+            kind: string;
+            /** @description Label. */
+            label: string;
+            /** @description Options of a choice field. */
+            options?: string[];
+            /** @description Required. */
+            required?: boolean;
+            /** @description Searchable. */
+            searchable?: boolean;
+            /** @description Shown in lists. */
+            show_in_list?: boolean;
+            /** @description Unique per Company. */
+            unique?: boolean;
+        };
+        /** @description A Field Set. */
+        FieldSetDto: {
+            /** @description Active. */
+            active: boolean;
+            /** @description Asset Types it applies to. */
+            asset_type_ids: string[];
+            /** @description Fields. */
+            fields: components["schemas"]["CustomFieldDto"][];
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Name. */
+            name: string;
+        };
+        /** @description A Field Set to create or change. */
+        FieldSetRequest: {
+            /** @description Active (default true). */
+            active?: boolean;
+            /** @description Asset Types it applies to. */
+            asset_type_ids?: string[];
+            /** @description Name. */
+            name: string;
+        };
+        /** @description What may change on a custom field. */
+        FieldUpdateRequest: {
+            /** @description Active. */
+            active?: boolean;
+            /** @description Label. */
+            label: string;
+            /** @description Required. */
+            required?: boolean;
+            /** @description Searchable. */
+            searchable?: boolean;
+            /** @description Shown in lists. */
+            show_in_list?: boolean;
+            /** @description Unique per Company. */
+            unique?: boolean;
+        };
         /** @description A Ticket Field with its value on a ticket. */
         FieldValueDto: {
             /** @description The field. */
@@ -7822,6 +8479,138 @@ export interface components {
             /** @description Title (default: the Check, its status and date). */
             title?: string | null;
         };
+        /** @description A Form with its current version and settings. */
+        FormDto: {
+            /** @description Submission Actions. */
+            actions: components["schemas"]["ActionsDto"];
+            approval?: components["schemas"]["ApprovalDto"] | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description When it was created.
+             */
+            created_at: string;
+            /**
+             * Format: int32
+             * @description The current version number.
+             */
+            current_version: number;
+            /** @description Description. */
+            description: string;
+            /** @description Fields of the current version, in layout order. */
+            fields: components["schemas"]["FormFieldDto"][];
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Active Forms are offered; inactive ones are kept. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+            /** @description Portal settings. */
+            portal: components["schemas"]["PortalDto"];
+            /**
+             * Format: date-time
+             * @description When it last changed.
+             */
+            updated_at: string;
+            /** @description Every version, oldest first. */
+            versions: components["schemas"]["FormVersionSummaryDto"][];
+        };
+        /** @description One Form Field. */
+        FormFieldDto: {
+            /** @description Stable identifier within the version. */
+            key: string;
+            /** @description Field type: `text`, `long_text`, `number`, `date`, `boolean` or `choice`. */
+            kind: string;
+            /** @description Label shown to the Requester. */
+            label: string;
+            /** @description Options of a choice field. */
+            options?: string[];
+            /** @description Whether an answer is required. */
+            required?: boolean;
+            /** @description Layout width: `full` or `half`. */
+            width?: string;
+        };
+        /** @description A page of Forms. */
+        FormPage: {
+            /** @description The Forms. */
+            items: components["schemas"]["FormDto"][];
+            /** @description Cursor of the next page, when there is one. */
+            next_cursor?: string | null;
+        };
+        /** @description A new Form. */
+        FormRequest: {
+            /**
+             * Format: uuid
+             * @description Company (required).
+             */
+            company_id?: string | null;
+            /** @description Description. */
+            description?: string;
+            /** @description Fields of the first version. */
+            fields: components["schemas"]["FormFieldDto"][];
+            /** @description Name. */
+            name: string;
+        };
+        /** @description Portal settings, approval rule and Submission Actions of a Form. */
+        FormSettingsRequest: {
+            /** @description Submission Actions. */
+            actions?: components["schemas"]["ActionsDto"];
+            approval?: components["schemas"]["ApprovalDto"] | null;
+            /** @description Portal settings. */
+            portal?: components["schemas"]["PortalDto"];
+        };
+        /** @description Name, description and active flag of a Form. */
+        FormUpdateRequest: {
+            /** @description Description. */
+            description?: string;
+            /** @description Active flag. */
+            is_active: boolean;
+            /** @description Name. */
+            name: string;
+        };
+        /** @description Fields of a new version. */
+        FormVersionRequest: {
+            /** @description The complete field list of the new version. */
+            fields: components["schemas"]["FormFieldDto"][];
+        };
+        /** @description A published version, without its fields. */
+        FormVersionSummaryDto: {
+            /**
+             * Format: date-time
+             * @description When it was published.
+             */
+            created_at: string;
+            /** @description Number of fields in it. */
+            field_count: number;
+            /**
+             * Format: int32
+             * @description Version number, from 1.
+             */
+            number: number;
+        };
+        /** @description Hardware of an inventory report. */
+        HardwareDto: {
+            /** @description Processor. */
+            cpu?: string | null;
+            /** @description Manufacturer. */
+            manufacturer?: string | null;
+            /** @description Model. */
+            model?: string | null;
+            /** @description Operating system. */
+            os?: string | null;
+            /**
+             * Format: int32
+             * @description Memory in MB.
+             */
+            ram_mb?: number | null;
+        };
         /** @description Working hours of one day. */
         HoursDto: {
             /** @description End, `HH:MM`. */
@@ -7872,6 +8661,55 @@ export interface components {
              */
             severity_order: number;
         };
+        /** @description A CSV import. */
+        ImportAssetsRequest: {
+            /**
+             * Format: uuid
+             * @description Asset Type for new Assets, and the scope of the missing-asset rule.
+             */
+            asset_type_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description The CSV text, with a header row. */
+            csv: string;
+            /** @description Only preview: nothing is written. */
+            dry_run?: boolean;
+            /**
+             * @description Column header to field: `hostname`, `service_tag`, `asset_tag`, `purchase_date`,
+             *     `warranty_expires_on`, `lease_starts_on` or `lease_expires_on`.
+             */
+            mapping: {
+                [key: string]: string;
+            };
+            /** @description `ignore` (default), `flag` or `deactivate`. */
+            missing?: string | null;
+            /** @description `fill` (default) or `overwrite`. */
+            write_mode?: string | null;
+        };
+        /** @description The outcome of an import. */
+        ImportResultDto: {
+            /** @description Whether this was only a preview. */
+            dry_run: boolean;
+            /** @description One entry per row, then per Asset not in the file. */
+            log: components["schemas"]["ImportRowDto"][];
+        };
+        /** @description One row of the outcome log. */
+        ImportRowDto: {
+            /**
+             * Format: uuid
+             * @description The Asset concerned.
+             */
+            asset_id?: string | null;
+            /** @description Line in the file (the header is line 1; 0 for Assets not in the file). */
+            line: number;
+            /** @description Why, when it failed or was flagged. */
+            message?: string | null;
+            /** @description `created`, `updated`, `unchanged`, `failed`, `flagged`, `deactivated` or `would_deactivate`. */
+            outcome: string;
+        };
         /** @description An Incident Update (FR-SST-005). */
         IncidentUpdateDto: {
             /** @description Who posted it (`{kind, id}`). */
@@ -7902,6 +8740,47 @@ export interface components {
              * @description Incident Status at the time.
              */
             status_id: string;
+        };
+        /** @description An installed application. */
+        InstallationDto: {
+            /**
+             * Format: uuid
+             * @description The application.
+             */
+            application_id: string;
+            /** @description Name. */
+            name: string;
+            /** @description Publisher. */
+            publisher: string;
+            /** @description Installed version. */
+            version: string;
+        };
+        /** @description Where an inventory report was recorded. */
+        InventoryReceiptDto: {
+            /**
+             * Format: uuid
+             * @description The Asset.
+             */
+            asset_id: string;
+            /** @description Applications recorded as installed. */
+            installed_software: number;
+        };
+        /** @description An inventory report, pushed by an agent or script. */
+        InventoryRequest: {
+            /** @description Asset tag (finds the Asset). */
+            asset_tag?: string | null;
+            /** @description Disks. */
+            disks?: components["schemas"]["DiskDto"][];
+            /** @description Hardware. */
+            hardware?: components["schemas"]["HardwareDto"];
+            /** @description Hostname (finds the Asset). */
+            hostname?: string | null;
+            /** @description Network adapters. */
+            network_adapters?: components["schemas"]["AdapterDto"][];
+            /** @description Service tag (finds the Asset). */
+            service_tag?: string | null;
+            /** @description Installed software. */
+            software?: components["schemas"]["SoftwareDto"][];
         };
         /** @description A newly created API key. `key` is shown only in this response. */
         IssuedApiKeyDto: {
@@ -8213,6 +9092,89 @@ export interface components {
              * @description The ticket.
              */
             ticket_id: string;
+        };
+        /** @description A licence with its use and compliance. */
+        LicenceDto: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description `compliant`, `over_used` or `no_applications`. */
+            compliance: string;
+            /** @description Cost as decimal text. */
+            cost?: string | null;
+            /** @description Currency. */
+            currency?: string | null;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: int32
+             * @description Assets with any of them installed.
+             */
+            installed_on: number;
+            /** @description Last four characters of the key. */
+            key_hint?: string | null;
+            /** @description Type. */
+            licence_type: string;
+            /**
+             * Format: int32
+             * @description Applications linked.
+             */
+            linked_applications: number;
+            /**
+             * Format: int32
+             * @description Notice period, in days.
+             */
+            notice_period_days?: number | null;
+            /**
+             * Format: int32
+             * @description Quantity.
+             */
+            quantity: number;
+            /**
+             * Format: date
+             * @description Renewal date.
+             */
+            renewal_date?: string | null;
+            /** @description Status. */
+            status: string;
+        };
+        /** @description A licence to create or change. */
+        LicenceRequest: {
+            /**
+             * Format: uuid
+             * @description Company (create only).
+             */
+            company_id?: string | null;
+            /** @description Cost as decimal text, e.g. `"1299.00`". */
+            cost?: string | null;
+            /** @description Currency (ISO 4217), with `cost`. */
+            currency?: string | null;
+            /** @description The key (sealed at rest; never shown again). Omit to keep the stored key. */
+            key?: string | null;
+            /** @description Type. */
+            licence_type: string;
+            /**
+             * Format: int32
+             * @description Notice period, in days.
+             */
+            notice_period_days?: number | null;
+            /**
+             * Format: int32
+             * @description Quantity.
+             */
+            quantity: number;
+            /**
+             * Format: date
+             * @description Renewal date.
+             */
+            renewal_date?: string | null;
+            /** @description `active`, `expired` or `cancelled` (default active). */
+            status?: string | null;
         };
         /** @description Links a ticket to another. */
         LinkRequest: {
@@ -9002,6 +9964,11 @@ export interface components {
                  * @description When deactivated.
                  */
                 deactivated_at?: string | null;
+                /**
+                 * Format: uuid
+                 * @description Department.
+                 */
+                department_id?: string | null;
                 /** @description Email. */
                 email: string;
                 /** @description Display name. */
@@ -9199,6 +10166,32 @@ export interface components {
              */
             updated_at: string;
         };
+        /** @description Portal settings of a Form. */
+        PortalDto: {
+            /** @description Audiences; none means every Requester of the Company. */
+            audiences?: components["schemas"]["AudienceDto"][];
+            /** @description Whether the Form is on the Portal. */
+            visible?: boolean;
+        };
+        /** @description A Form as the Requester fills it in. */
+        PortalFormDto: {
+            /**
+             * Format: int32
+             * @description The version the Requester fills in.
+             */
+            current_version: number;
+            /** @description Description. */
+            description: string;
+            /** @description Fields, in layout order. */
+            fields: components["schemas"]["FormFieldDto"][];
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Name. */
+            name: string;
+        };
         /** @description A Portal Notification. */
         PortalNotificationDto: {
             /** @description Longer text (the ticket subject). */
@@ -9308,6 +10301,54 @@ export interface components {
             email: string;
             /** @description Password. */
             password: string;
+        };
+        /** @description A Submission as the Requester sees it: no approver identities. */
+        PortalSubmissionDto: {
+            /** @description Answers by field key. */
+            answers: {
+                [key: string]: string;
+            };
+            /**
+             * Format: date-time
+             * @description When it was submitted.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description The Form.
+             */
+            form_id: string;
+            /**
+             * Format: int32
+             * @description The Form version the answers were given against.
+             */
+            form_version: number;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Decisions and comments of the current round's rejections, for the Requester to act on. */
+            rejections: string[];
+            /**
+             * Format: int32
+             * @description Approval round, from 1.
+             */
+            round: number;
+            /** @description Status. */
+            status: string;
+            /**
+             * Format: date-time
+             * @description When it last changed.
+             */
+            updated_at: string;
+        };
+        /** @description A page of the Requester's own Submissions. */
+        PortalSubmissionPage: {
+            /** @description The Submissions, newest first. */
+            items: components["schemas"]["PortalSubmissionDto"][];
+            /** @description Cursor of the next page, when there is one. */
+            next_cursor?: string | null;
         };
         /** @description A ticket as the Requester sees it. */
         PortalTicketDto: {
@@ -9866,6 +10907,11 @@ export interface components {
              * @description When deactivated.
              */
             deactivated_at?: string | null;
+            /**
+             * Format: uuid
+             * @description Department.
+             */
+            department_id?: string | null;
             /** @description Email. */
             email: string;
             /** @description Display name. */
@@ -9904,6 +10950,11 @@ export interface components {
              * @description Cost Centre.
              */
             cost_centre_id?: string | null;
+            /**
+             * Format: uuid
+             * @description Department.
+             */
+            department_id?: string | null;
             /** @description Email. */
             email: string;
             /** @description Display name. */
@@ -10371,6 +11422,15 @@ export interface components {
              */
             until: string;
         };
+        /** @description An installed application in an inventory report. */
+        SoftwareDto: {
+            /** @description Name. */
+            name: string;
+            /** @description Publisher. */
+            publisher?: string;
+            /** @description Version. */
+            version?: string;
+        };
         /** @description Splits emails and Notes off a ticket. */
         SplitRequest: {
             /** @description Emails to move. */
@@ -10493,6 +11553,69 @@ export interface components {
              * @description Display order.
              */
             sort_order?: number;
+        };
+        /** @description A Submission, for staff. */
+        SubmissionDto: {
+            /** @description Answers by field key. */
+            answers: {
+                [key: string]: string;
+            };
+            /**
+             * Format: date-time
+             * @description When it was submitted.
+             */
+            created_at: string;
+            /**
+             * Format: uuid
+             * @description The Form.
+             */
+            form_id: string;
+            /**
+             * Format: int32
+             * @description The Form version the answers were given against.
+             */
+            form_version: number;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description The Requester.
+             */
+            requester_id: string;
+            /**
+             * Format: int32
+             * @description Approval round, from 1.
+             */
+            round: number;
+            /** @description `pending_approval`, `returned`, `approved` or `completed`. */
+            status: string;
+            /**
+             * Format: uuid
+             * @description The task the actions created.
+             */
+            task_id?: string | null;
+            /**
+             * Format: uuid
+             * @description The ticket the actions opened.
+             */
+            ticket_id?: string | null;
+            /**
+             * Format: date-time
+             * @description When it last changed.
+             */
+            updated_at: string;
+            /** @description Votes, in the order cast. */
+            votes: components["schemas"]["VoteDto"][];
+        };
+        /** @description A page of Submissions, for staff. */
+        SubmissionPage: {
+            /** @description The Submissions, newest first. */
+            items: components["schemas"]["SubmissionDto"][];
+            /** @description Cursor of the next page, when there is one. */
+            next_cursor?: string | null;
         };
         /** @description Ask for a Suggested Reply (FR-AI-003). */
         SuggestReplyRequest: {
@@ -10658,6 +11781,13 @@ export interface components {
              * @description Not satisfied yet, not past due (or paused).
              */
             running: number;
+        };
+        /** @description Creates a task on submission. */
+        TaskActionDto: {
+            /** @description Description template. */
+            description?: string;
+            /** @description Title template. */
+            title: string;
         };
         /** @description A Board column. */
         TaskBoardColumnDto: {
@@ -11084,6 +12214,18 @@ export interface components {
             is_active?: boolean;
             /** @description Name. */
             name: string;
+        };
+        /** @description Opens a ticket on submission. */
+        TicketActionDto: {
+            /**
+             * Format: uuid
+             * @description The Portal Catalogue Category of the ticket.
+             */
+            category_id: string;
+            /** @description Description template. */
+            description?: string;
+            /** @description Subject template, with `{field_key}` placeholders. */
+            subject: string;
         };
         /** @description Ticket counts by one dimension: a Dashboard Widget. */
         TicketCountReportDto: {
@@ -11772,6 +12914,35 @@ export interface components {
              */
             period: string;
         };
+        /** @description One vote on a Submission. */
+        VoteDto: {
+            /**
+             * Format: uuid
+             * @description The approver.
+             */
+            approver_id: string;
+            /**
+             * Format: date-time
+             * @description When it was cast.
+             */
+            cast_at: string;
+            /** @description Comment. */
+            comment: string;
+            /** @description `approve` or `reject`. */
+            decision: string;
+            /**
+             * Format: int32
+             * @description Approval round.
+             */
+            round: number;
+        };
+        /** @description A vote on a Submission. */
+        VoteRequest: {
+            /** @description Comment (required to reject). */
+            comment?: string;
+            /** @description `approve` or `reject`. */
+            decision: string;
+        };
         /** @description The Watchtower. */
         WatchtowerDto: {
             /**
@@ -12181,6 +13352,124 @@ export interface operations {
             };
         };
     };
+    list_field_sets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldSetDto"][];
+                };
+            };
+        };
+    };
+    create_field_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldSetRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldSetDto"];
+                };
+            };
+        };
+    };
+    update_field_set: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldSetRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FieldSetDto"];
+                };
+            };
+        };
+    };
+    add_field: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomFieldDto"];
+                };
+            };
+        };
+    };
+    update_asset_field: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                field_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FieldUpdateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomFieldDto"];
+                };
+            };
+        };
+    };
     list_asset_locations: {
         parameters: {
             query?: never;
@@ -12449,6 +13738,29 @@ export interface operations {
             };
         };
     };
+    import_assets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportAssetsRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResultDto"];
+                };
+            };
+        };
+    };
     asset_summary: {
         parameters: {
             query?: {
@@ -12588,6 +13900,52 @@ export interface operations {
             };
         };
     };
+    get_custom_values: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomValuesDto"];
+                };
+            };
+        };
+    };
+    set_custom_values: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomValuesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomValuesDto"];
+                };
+            };
+        };
+    };
     asset_history: {
         parameters: {
             query?: never;
@@ -12697,6 +14055,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssetDto"];
+                };
+            };
+        };
+    };
+    asset_software: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstallationDto"][];
                 };
             };
         };
@@ -14719,6 +16098,273 @@ export interface operations {
             };
         };
     };
+    get_submission: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionDto"];
+                };
+            };
+        };
+    };
+    retry_actions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionDto"];
+                };
+            };
+        };
+    };
+    vote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoteRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionDto"];
+                };
+            };
+        };
+    };
+    list_forms: {
+        parameters: {
+            query?: {
+                /** @description Only this Company. */
+                company_id?: string;
+                /** @description Text in the name. */
+                q?: string;
+                /** @description Only active (`true`) or inactive (`false`) Forms. */
+                active?: boolean;
+                /** @description Page size (1 to 200, default 50). */
+                limit?: number;
+                /** @description Cursor from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormPage"];
+                };
+            };
+        };
+    };
+    create_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FormRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormDto"];
+                };
+            };
+        };
+    };
+    get_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormDto"];
+                };
+            };
+        };
+    };
+    edit_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FormUpdateRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormDto"];
+                };
+            };
+        };
+    };
+    configure_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FormSettingsRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormDto"];
+                };
+            };
+        };
+    };
+    list_submissions: {
+        parameters: {
+            query?: {
+                /** @description Only this status. */
+                status?: string;
+                /** @description Page size (1 to 200, default 50). */
+                limit?: number;
+                /** @description Cursor from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionPage"];
+                };
+            };
+        };
+    };
+    publish_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FormVersionRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FormDto"];
+                };
+            };
+        };
+    };
+    push_inventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryReceiptDto"];
+                };
+            };
+        };
+    };
     list_knowledge_articles: {
         parameters: {
             query?: {
@@ -15160,6 +16806,141 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KnowledgeFolderDto"];
+                };
+            };
+        };
+    };
+    list_licences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenceDto"][];
+                };
+            };
+        };
+    };
+    create_licence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LicenceRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenceDto"];
+                };
+            };
+        };
+    };
+    get_licence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenceDto"];
+                };
+            };
+        };
+    };
+    update_licence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LicenceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenceDto"];
+                };
+            };
+        };
+    };
+    link_application: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenceDto"];
+                };
+            };
+        };
+    };
+    unlink_application: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LicenceDto"];
                 };
             };
         };
@@ -16109,6 +17890,117 @@ export interface operations {
             };
         };
     };
+    portal_forms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalFormDto"][];
+                };
+            };
+        };
+    };
+    portal_form: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalFormDto"];
+                };
+            };
+        };
+    };
+    get_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDto"] | null;
+                };
+            };
+        };
+    };
+    save_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswersRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DraftDto"];
+                };
+            };
+        };
+    };
+    submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswersRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalSubmissionDto"];
+                };
+            };
+        };
+    };
     search_portal_knowledge: {
         parameters: {
             query?: {
@@ -16565,6 +18457,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PortalSignInOptionsDto"];
+                };
+            };
+        };
+    };
+    my_submissions: {
+        parameters: {
+            query?: {
+                /** @description Only this status. */
+                status?: string;
+                /** @description Page size (1 to 200, default 50). */
+                limit?: number;
+                /** @description Cursor from the previous page. */
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalSubmissionPage"];
+                };
+            };
+        };
+    };
+    my_submission: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalSubmissionDto"];
+                };
+            };
+        };
+    };
+    resubmit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswersRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortalSubmissionDto"];
                 };
             };
         };

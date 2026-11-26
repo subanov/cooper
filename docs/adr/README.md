@@ -45,3 +45,6 @@ rewrite an accepted ADR: supersede it with a new one.
 | [0036](0036-calendar-context.md) | Calendar: per-Company events, instance-wide categories, and read-only events generated from other contexts' outbox events | Accepted |
 | [0037](0037-suggested-replies-with-an-ai-provider.md) | Suggested Replies through a provider port in the service desk, Gemini configured by environment | Accepted |
 | [0038](0038-editable-suggested-reply-instructions.md) | Editable Suggested Reply Instructions with fixed rules Cooper always adds | Accepted |
+| [0039](0039-forms.md) | Forms: per-Company, versioned Forms with typed Form Fields | Accepted |
+| [0040](0040-forms-on-the-portal.md) | Forms on the Portal: audiences, approval rounds, Submission Actions and Drafts | Accepted |
+| [0041](0041-asset-extras.md) | Asset extras: custom fields, software inventory, licences and CSV import | Accepted |

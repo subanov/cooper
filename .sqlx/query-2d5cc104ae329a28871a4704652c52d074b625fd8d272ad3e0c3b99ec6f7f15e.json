@@ -1,0 +1,168 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, form_id, form_version, requester_id, answers, status, round, ticket_id, task_id,\n                    created_at, updated_at\n             FROM form_submissions\n             WHERE ($1 OR tenant_id = ANY($2))\n               AND ($3::uuid IS NULL OR tenant_id = $3)\n               AND ($4::uuid IS NULL OR form_id = $4)\n               AND ($5::uuid IS NULL OR requester_id = $5)\n               AND ($6::text IS NULL OR status = $6)\n               AND ($7::timestamptz IS NULL OR (created_at, id) < ($7, $8::uuid))\n             ORDER BY created_at DESC, id DESC\n             LIMIT $9",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "form_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "form_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "form_version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "form_version"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "requester_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "requester_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "answers",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "answers"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "round",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "round"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "ticket_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "ticket_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "task_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "task_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "2d5cc104ae329a28871a4704652c52d074b625fd8d272ad3e0c3b99ec6f7f15e"
+}

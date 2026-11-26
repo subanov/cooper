@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO asset_inventory (asset_id, tenant_id, snapshot, collected_at) VALUES ($1, $2, $3, $4)\n             ON CONFLICT (asset_id) DO UPDATE SET snapshot = EXCLUDED.snapshot, collected_at = EXCLUDED.collected_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Jsonb",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d4c7df1c36a5d32ec7228197a6daa88ec6bc22901df1fa47df28a2d11a9de9f7"
+}

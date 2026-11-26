@@ -322,11 +322,11 @@ come from [VOCABULARY.md](VOCABULARY.md).
 
 | ID | Requirement | Pri | Phase |
 |---|---|---|---|
-| FR-FRM-001 | Administrators build **Forms** with typed **Form Fields** (label, options, required, layout). Forms are versioned. | S | P3 |
-| FR-FRM-002 | Forms can be Portal-visible and limited to audiences (users, groups, departments). | S | P3 |
-| FR-FRM-003 | Submitting a Form runs **Submission Actions**: create a ticket and/or task with mapped values. | S | P3 |
-| FR-FRM-004 | Optional approval: an Approver or approval Team, with required approval and rejection counts, an option to exclude the Requester, and approval rounds. | S | P3 |
-| FR-FRM-005 | Requesters can save **Drafts**. | C | P3 |
+| FR-FRM-001 | Administrators build **Forms** with typed **Form Fields** (label, options, required, layout). Forms are versioned. Deviation from FreeITSM: Forms belong to a Company, names are unique per Company, and each change of the fields publishes an immutable version (ADR-0039). | S | P3 |
+| FR-FRM-002 | Forms can be Portal-visible and limited to audiences (users, groups, departments). Deviation from FreeITSM: with no audience every active Requester of the Company is offered the Form; a Requester outside the audience gets not found (ADR-0040). | S | P3 |
+| FR-FRM-003 | Submitting a Form runs **Submission Actions**: create a ticket and/or task with mapped values. Deviation from FreeITSM: actions run once after approval; a failed action keeps the Submission approved and can be retried, and they are not atomic across contexts (ADR-0040). | S | P3 |
+| FR-FRM-004 | Optional approval: an Approver or approval Team, with required approval and rejection counts, an option to exclude the Requester, and approval rounds. Deviation from FreeITSM: a rejection returns the Submission for amendment in a new round rather than ending it (ADR-0040). | S | P3 |
+| FR-FRM-005 | Requesters can save **Drafts**. Deviation from FreeITSM: one Draft per Requester and Form, validated but never required (ADR-0040). | C | P3 |
 | FR-FRM-006 | **Form Collections**: time-boxed campaigns of submissions. | C | P4 |
 
 ## 19. Workflow, Webhooks & Integrations (WFL)

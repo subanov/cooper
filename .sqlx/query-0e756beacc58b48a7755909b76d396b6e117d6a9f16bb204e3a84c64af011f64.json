@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,\n                    deactivated_at, created_at, updated_at\n             FROM requesters\n             WHERE ($1 OR tenant_id = ANY($2))\n               AND ($3::uuid IS NULL OR tenant_id = $3)\n               AND ($4 OR is_active)\n               AND ($5::text IS NULL OR lower(full_name) LIKE $5 OR lower(email) LIKE $5 OR lower(username) LIKE $5)\n               AND ($6::text IS NULL OR (lower(full_name), id) > ($6, $7))\n               AND (cardinality($9::uuid[]) = 0 OR id = ANY($9))\n             ORDER BY lower(full_name), id\n             LIMIT $8",
+  "query": "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id, department_id,\n                    deactivated_at, created_at, updated_at\n             FROM requesters WHERE lower(email) = lower($1) AND ($2 OR tenant_id = ANY($3))\n             ORDER BY created_at",
   "describe": {
     "columns": [
       {
@@ -93,6 +93,17 @@
       },
       {
         "ordinal": 8,
+        "name": "department_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "department_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
         "name": "deactivated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -103,7 +114,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -114,7 +125,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -127,14 +138,8 @@
     ],
     "parameters": {
       "Left": [
-        "Bool",
-        "UuidArray",
-        "Uuid",
-        "Bool",
         "Text",
-        "Text",
-        "Uuid",
-        "Int8",
+        "Bool",
         "UuidArray"
       ]
     },
@@ -148,9 +153,10 @@
       true,
       true,
       true,
+      true,
       false,
       false
     ]
   },
-  "hash": "4fca8d35998156bcb1832f30bdf0cefb5e0323d98ad8ffa46f32d56bc4d330f1"
+  "hash": "0e756beacc58b48a7755909b76d396b6e117d6a9f16bb204e3a84c64af011f64"
 }

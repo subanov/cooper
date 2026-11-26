@@ -604,6 +604,189 @@
         }
       }
     },
+    "/api/v1/asset-field-sets": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Field Sets with their custom fields (needs `assets.read`).",
+        "operationId": "list_field_sets",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldSetDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Creates a Field Set (needs `assets.configure`).",
+        "operationId": "create_field_set",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldSetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldSetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-field-sets/{id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Changes a Field Set (needs `assets.configure`).",
+        "operationId": "update_field_set",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldSetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldSetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-field-sets/{id}/fields": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Adds a custom field to a Field Set (needs `assets.configure`).",
+        "operationId": "add_field",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomFieldDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/asset-field-sets/{id}/fields/{field_id}": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Changes a custom field (needs `assets.configure`). Key, type and options are fixed.",
+        "operationId": "update_asset_field",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "field_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomFieldDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/asset-locations": {
       "get": {
         "tags": [
@@ -1036,6 +1219,36 @@
         }
       }
     },
+    "/api/v1/assets/imports": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Imports Assets from CSV: a preview with `dry_run`, otherwise the Assets are written\n(needs `assets.import` and the Asset Capabilities it uses).",
+        "operationId": "import_assets",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportAssetsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/summary": {
       "get": {
         "tags": [
@@ -1254,6 +1467,76 @@
         }
       }
     },
+    "/api/v1/assets/{id}/custom-fields": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "The custom values of an Asset (needs `assets.read`).",
+        "operationId": "get_custom_values",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomValuesDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Replaces the custom values of an Asset (needs `assets.update`).",
+        "operationId": "set_custom_values",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomValuesDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomValuesDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/{id}/history": {
       "get": {
         "tags": [
@@ -1435,6 +1718,40 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AssetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/{id}/software": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "The software installed on an Asset (needs `assets.read`).",
+        "operationId": "asset_software",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InstallationDto"
+                  }
                 }
               }
             }
@@ -4612,6 +4929,449 @@
         }
       }
     },
+    "/api/v1/form-submissions/{id}": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "One Submission with its votes (needs `forms.read`).",
+        "operationId": "get_submission",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/form-submissions/{id}/actions": {
+      "post": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Runs an approved Submission's actions again after a failure (needs `forms.approve`).",
+        "operationId": "retry_actions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/form-submissions/{id}/votes": {
+      "post": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Votes on a Submission waiting for approval (needs `forms.approve`).",
+        "operationId": "vote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forms": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Forms in the caller's Companies, by name (needs `forms.read`).",
+        "operationId": "list_forms",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Text in the name.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Only active (`true`) or inactive (`false`) Forms.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200, default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor from the previous page.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormPage"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Creates a Form with its first version (needs `forms.write`).",
+        "operationId": "create_form",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forms/{id}": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "One Form with its versions and settings (needs `forms.read`).",
+        "operationId": "get_form",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Changes a Form's name, description and active flag, not its fields (needs\n`forms.write`).",
+        "operationId": "edit_form",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forms/{id}/settings": {
+      "put": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Replaces a Form's Portal settings, approval rule and Submission Actions (needs\n`forms.write`). Publishes no version.",
+        "operationId": "configure_form",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormSettingsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forms/{id}/submissions": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Submissions of a Form, newest first (needs `forms.read`).",
+        "operationId": "list_submissions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Only this status.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200, default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor from the previous page.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/forms/{id}/versions": {
+      "post": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Publishes a new version of a Form's fields (needs `forms.write`). Earlier versions are\nkept unchanged.",
+        "operationId": "publish_version",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FormVersionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FormDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inventory/push": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Records an inventory report for the Asset it identifies (needs `assets.inventory`).",
+        "operationId": "push_inventory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryReceiptDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/knowledge/articles": {
       "get": {
         "tags": [
@@ -5330,6 +6090,208 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/KnowledgeFolderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/licences": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Licences in the caller's Companies (needs `assets.read`).",
+        "operationId": "list_licences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LicenceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Records a licence (needs `assets.update`).",
+        "operationId": "create_licence",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LicenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/licences/{id}": {
+      "get": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "One licence with its compliance (needs `assets.read`).",
+        "operationId": "get_licence",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenceDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Changes a licence (needs `assets.update`).",
+        "operationId": "update_licence",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LicenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/licences/{id}/applications": {
+      "post": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Links an application to a licence (needs `assets.update`).",
+        "operationId": "link_application",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenceDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/licences/{id}/applications/{application_id}": {
+      "delete": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Unlinks an application from a licence (needs `assets.update`).",
+        "operationId": "unlink_application",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenceDto"
                 }
               }
             }
@@ -6703,6 +7665,178 @@
         }
       }
     },
+    "/api/v1/portal/forms": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "The Forms the signed-in Requester may fill in (FR-FRM-002).",
+        "operationId": "portal_forms",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PortalFormDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/forms/{id}": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "One Form the signed-in Requester may fill in.",
+        "operationId": "portal_form",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalFormDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/forms/{id}/draft": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "The Requester's Draft of a Form, or null (FR-FRM-005).",
+        "operationId": "get_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/DraftDto"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Saves the Requester's Draft of a Form (FR-FRM-005).",
+        "operationId": "save_draft",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/forms/{id}/submissions": {
+      "post": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Submits a Form (FR-FRM-003). Its Draft is removed.",
+        "operationId": "submit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalSubmissionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/portal/knowledge": {
       "get": {
         "tags": [
@@ -7216,6 +8350,129 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PortalSignInOptionsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/submissions": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "The signed-in Requester's own Submissions, newest first.",
+        "operationId": "my_submissions",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Only this status.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size (1 to 200, default 50).",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor from the previous page.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalSubmissionPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/submissions/{id}": {
+      "get": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "One of the Requester's own Submissions.",
+        "operationId": "my_submission",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalSubmissionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/portal/submissions/{id}/resubmit": {
+      "post": {
+        "tags": [
+          "Forms"
+        ],
+        "summary": "Amends a returned Submission and resubmits it for a new approval round (FR-FRM-004).",
+        "operationId": "resubmit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalSubmissionDto"
                 }
               }
             }
@@ -15914,6 +17171,61 @@
   },
   "components": {
     "schemas": {
+      "ActionsDto": {
+        "type": "object",
+        "description": "Submission Actions of a Form.",
+        "properties": {
+          "task": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskActionDto",
+                "description": "The task to create, if any."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ticket": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TicketActionDto",
+                "description": "The ticket to open, if any."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "AdapterDto": {
+        "type": "object",
+        "description": "A network adapter.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "ip": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IP address."
+          },
+          "mac": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "MAC address."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
       "AnalystDto": {
         "type": "object",
         "description": "An Analyst.",
@@ -16033,6 +17345,22 @@
           "username": {
             "type": "string",
             "description": "Username."
+          }
+        }
+      },
+      "AnswersRequest": {
+        "type": "object",
+        "description": "Answers to a Form.",
+        "properties": {
+          "answers": {
+            "type": "object",
+            "description": "Answers by field key.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
           }
         }
       },
@@ -16160,6 +17488,66 @@
             "format": "int32",
             "description": "Requests per minute (1 to 10000, default 60).",
             "minimum": 0
+          }
+        }
+      },
+      "ApprovalDto": {
+        "type": "object",
+        "description": "The approval rule of a Form.",
+        "required": [
+          "approvers",
+          "required_approvals",
+          "required_rejections"
+        ],
+        "properties": {
+          "approvers": {
+            "$ref": "#/components/schemas/ApproversDto",
+            "description": "Who may approve."
+          },
+          "exclude_requester": {
+            "type": "boolean",
+            "description": "Whether an Analyst with the Requester's e-mail address may not approve."
+          },
+          "required_approvals": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Approvals that approve a Submission in a round (1 to 50).",
+            "minimum": 0
+          },
+          "required_rejections": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Rejections that return a Submission in a round (1 to 50).",
+            "minimum": 0
+          }
+        }
+      },
+      "ApproversDto": {
+        "type": "object",
+        "description": "Who approves: named Analysts, or the members of a Team.",
+        "required": [
+          "kind"
+        ],
+        "properties": {
+          "analyst_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "The Analysts (for `analysts`)."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`analysts` or `team`."
+          },
+          "team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Team (for `team`)."
           }
         }
       },
@@ -16975,6 +18363,25 @@
             "type": "integer",
             "format": "int64",
             "description": "Size in bytes."
+          }
+        }
+      },
+      "AudienceDto": {
+        "type": "object",
+        "description": "One audience of a Portal-visible Form.",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Requester, User Group or Department."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`requester`, `group` or `department`."
           }
         }
       },
@@ -20258,6 +21665,87 @@
           }
         }
       },
+      "CustomFieldDto": {
+        "type": "object",
+        "description": "A custom field.",
+        "required": [
+          "id",
+          "key",
+          "label",
+          "kind",
+          "options",
+          "required",
+          "unique",
+          "searchable",
+          "show_in_list",
+          "active"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "key": {
+            "type": "string",
+            "description": "Key."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`text`, `number`, `date`, `boolean` or `choice`."
+          },
+          "label": {
+            "type": "string",
+            "description": "Label."
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Options of a choice field."
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Required."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Searchable."
+          },
+          "show_in_list": {
+            "type": "boolean",
+            "description": "Shown in lists."
+          },
+          "unique": {
+            "type": "boolean",
+            "description": "Unique per Company."
+          }
+        }
+      },
+      "CustomValuesDto": {
+        "type": "object",
+        "description": "Custom values of an Asset, by key.",
+        "required": [
+          "values"
+        ],
+        "properties": {
+          "values": {
+            "type": "object",
+            "description": "Values by field key.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "DepartmentDto": {
         "type": "object",
         "description": "A Department.",
@@ -20340,6 +21828,57 @@
           }
         }
       },
+      "DiskDto": {
+        "type": "object",
+        "description": "A disk.",
+        "required": [
+          "name",
+          "size_gb"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "size_gb": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Size in GB.",
+            "minimum": 0
+          }
+        }
+      },
+      "DraftDto": {
+        "type": "object",
+        "description": "A Requester's saved answers to a Form.",
+        "required": [
+          "form_id",
+          "answers",
+          "updated_at"
+        ],
+        "properties": {
+          "answers": {
+            "type": "object",
+            "description": "Answers so far.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "form_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Form."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When they were saved."
+          }
+        }
+      },
       "EmailTemplateDto": {
         "type": "object",
         "description": "An Email Template (FR-EML-009).",
@@ -20396,6 +21935,151 @@
           "ticket_replied",
           "ticket_closed"
         ]
+      },
+      "FieldRequest": {
+        "type": "object",
+        "description": "A custom field to add.",
+        "required": [
+          "key",
+          "label",
+          "kind"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Key."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`text`, `number`, `date`, `boolean` or `choice`."
+          },
+          "label": {
+            "type": "string",
+            "description": "Label."
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Options of a choice field."
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Required."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Searchable."
+          },
+          "show_in_list": {
+            "type": "boolean",
+            "description": "Shown in lists."
+          },
+          "unique": {
+            "type": "boolean",
+            "description": "Unique per Company."
+          }
+        }
+      },
+      "FieldSetDto": {
+        "type": "object",
+        "description": "A Field Set.",
+        "required": [
+          "id",
+          "name",
+          "asset_type_ids",
+          "active",
+          "fields"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "asset_type_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Asset Types it applies to."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomFieldDto"
+            },
+            "description": "Fields."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
+      "FieldSetRequest": {
+        "type": "object",
+        "description": "A Field Set to create or change.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active (default true)."
+          },
+          "asset_type_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Asset Types it applies to."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
+      "FieldUpdateRequest": {
+        "type": "object",
+        "description": "What may change on a custom field.",
+        "required": [
+          "label"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "label": {
+            "type": "string",
+            "description": "Label."
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Required."
+          },
+          "searchable": {
+            "type": "boolean",
+            "description": "Searchable."
+          },
+          "show_in_list": {
+            "type": "boolean",
+            "description": "Shown in lists."
+          },
+          "unique": {
+            "type": "boolean",
+            "description": "Unique per Company."
+          }
+        }
       },
       "FieldValueDto": {
         "type": "object",
@@ -20517,6 +22201,324 @@
           }
         }
       },
+      "FormDto": {
+        "type": "object",
+        "description": "A Form with its current version and settings.",
+        "required": [
+          "id",
+          "company_id",
+          "name",
+          "description",
+          "is_active",
+          "current_version",
+          "fields",
+          "versions",
+          "portal",
+          "actions",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "actions": {
+            "$ref": "#/components/schemas/ActionsDto",
+            "description": "Submission Actions."
+          },
+          "approval": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalDto",
+                "description": "Approval rule, if any."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was created."
+          },
+          "current_version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The current version number.",
+            "minimum": 0
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormFieldDto"
+            },
+            "description": "Fields of the current version, in layout order."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active Forms are offered; inactive ones are kept."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "portal": {
+            "$ref": "#/components/schemas/PortalDto",
+            "description": "Portal settings."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it last changed."
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormVersionSummaryDto"
+            },
+            "description": "Every version, oldest first."
+          }
+        }
+      },
+      "FormFieldDto": {
+        "type": "object",
+        "description": "One Form Field.",
+        "required": [
+          "key",
+          "label",
+          "kind"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Stable identifier within the version."
+          },
+          "kind": {
+            "type": "string",
+            "description": "Field type: `text`, `long_text`, `number`, `date`, `boolean` or `choice`."
+          },
+          "label": {
+            "type": "string",
+            "description": "Label shown to the Requester."
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Options of a choice field."
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether an answer is required."
+          },
+          "width": {
+            "type": "string",
+            "description": "Layout width: `full` or `half`."
+          }
+        }
+      },
+      "FormPage": {
+        "type": "object",
+        "description": "A page of Forms.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormDto"
+            },
+            "description": "The Forms."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor of the next page, when there is one."
+          }
+        }
+      },
+      "FormRequest": {
+        "type": "object",
+        "description": "A new Form.",
+        "required": [
+          "name",
+          "fields"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (required)."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormFieldDto"
+            },
+            "description": "Fields of the first version."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
+      "FormSettingsRequest": {
+        "type": "object",
+        "description": "Portal settings, approval rule and Submission Actions of a Form.",
+        "properties": {
+          "actions": {
+            "$ref": "#/components/schemas/ActionsDto",
+            "description": "Submission Actions."
+          },
+          "approval": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalDto",
+                "description": "Approval rule, or none."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "portal": {
+            "$ref": "#/components/schemas/PortalDto",
+            "description": "Portal settings."
+          }
+        }
+      },
+      "FormUpdateRequest": {
+        "type": "object",
+        "description": "Name, description and active flag of a Form.",
+        "required": [
+          "name",
+          "is_active"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Active flag."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
+      "FormVersionRequest": {
+        "type": "object",
+        "description": "Fields of a new version.",
+        "required": [
+          "fields"
+        ],
+        "properties": {
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormFieldDto"
+            },
+            "description": "The complete field list of the new version."
+          }
+        }
+      },
+      "FormVersionSummaryDto": {
+        "type": "object",
+        "description": "A published version, without its fields.",
+        "required": [
+          "number",
+          "created_at",
+          "field_count"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was published."
+          },
+          "field_count": {
+            "type": "integer",
+            "description": "Number of fields in it.",
+            "minimum": 0
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Version number, from 1.",
+            "minimum": 0
+          }
+        }
+      },
+      "HardwareDto": {
+        "type": "object",
+        "description": "Hardware of an inventory report.",
+        "properties": {
+          "cpu": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Processor."
+          },
+          "manufacturer": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Manufacturer."
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Model."
+          },
+          "os": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Operating system."
+          },
+          "ram_mb": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Memory in MB.",
+            "minimum": 0
+          }
+        }
+      },
       "HoursDto": {
         "type": "object",
         "description": "Working hours of one day.",
@@ -20627,6 +22629,117 @@
           }
         }
       },
+      "ImportAssetsRequest": {
+        "type": "object",
+        "description": "A CSV import.",
+        "required": [
+          "company_id",
+          "csv",
+          "mapping"
+        ],
+        "properties": {
+          "asset_type_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Asset Type for new Assets, and the scope of the missing-asset rule."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "csv": {
+            "type": "string",
+            "description": "The CSV text, with a header row."
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "Only preview: nothing is written."
+          },
+          "mapping": {
+            "type": "object",
+            "description": "Column header to field: `hostname`, `service_tag`, `asset_tag`, `purchase_date`,\n`warranty_expires_on`, `lease_starts_on` or `lease_expires_on`.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "missing": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`ignore` (default), `flag` or `deactivate`."
+          },
+          "write_mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`fill` (default) or `overwrite`."
+          }
+        }
+      },
+      "ImportResultDto": {
+        "type": "object",
+        "description": "The outcome of an import.",
+        "required": [
+          "dry_run",
+          "log"
+        ],
+        "properties": {
+          "dry_run": {
+            "type": "boolean",
+            "description": "Whether this was only a preview."
+          },
+          "log": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportRowDto"
+            },
+            "description": "One entry per row, then per Asset not in the file."
+          }
+        }
+      },
+      "ImportRowDto": {
+        "type": "object",
+        "description": "One row of the outcome log.",
+        "required": [
+          "line",
+          "outcome"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Asset concerned."
+          },
+          "line": {
+            "type": "integer",
+            "description": "Line in the file (the header is line 1; 0 for Assets not in the file).",
+            "minimum": 0
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why, when it failed or was flagged."
+          },
+          "outcome": {
+            "type": "string",
+            "description": "`created`, `updated`, `unchanged`, `failed`, `flagged`, `deactivated` or `would_deactivate`."
+          }
+        }
+      },
       "IncidentUpdateDto": {
         "type": "object",
         "description": "An Incident Update (FR-SST-005).",
@@ -20681,6 +22794,107 @@
             "type": "string",
             "format": "uuid",
             "description": "Incident Status at the time."
+          }
+        }
+      },
+      "InstallationDto": {
+        "type": "object",
+        "description": "An installed application.",
+        "required": [
+          "application_id",
+          "name",
+          "publisher",
+          "version"
+        ],
+        "properties": {
+          "application_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The application."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "publisher": {
+            "type": "string",
+            "description": "Publisher."
+          },
+          "version": {
+            "type": "string",
+            "description": "Installed version."
+          }
+        }
+      },
+      "InventoryReceiptDto": {
+        "type": "object",
+        "description": "Where an inventory report was recorded.",
+        "required": [
+          "asset_id",
+          "installed_software"
+        ],
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Asset."
+          },
+          "installed_software": {
+            "type": "integer",
+            "description": "Applications recorded as installed.",
+            "minimum": 0
+          }
+        }
+      },
+      "InventoryRequest": {
+        "type": "object",
+        "description": "An inventory report, pushed by an agent or script.",
+        "properties": {
+          "asset_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Asset tag (finds the Asset)."
+          },
+          "disks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiskDto"
+            },
+            "description": "Disks."
+          },
+          "hardware": {
+            "$ref": "#/components/schemas/HardwareDto",
+            "description": "Hardware."
+          },
+          "hostname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Hostname (finds the Asset)."
+          },
+          "network_adapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdapterDto"
+            },
+            "description": "Network adapters."
+          },
+          "service_tag": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Service tag (finds the Asset)."
+          },
+          "software": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SoftwareDto"
+            },
+            "description": "Installed software."
           }
         }
       },
@@ -21279,6 +23493,173 @@
             "type": "string",
             "format": "uuid",
             "description": "The ticket."
+          }
+        }
+      },
+      "LicenceDto": {
+        "type": "object",
+        "description": "A licence with its use and compliance.",
+        "required": [
+          "id",
+          "company_id",
+          "licence_type",
+          "quantity",
+          "status",
+          "linked_applications",
+          "installed_on",
+          "compliance"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "compliance": {
+            "type": "string",
+            "description": "`compliant`, `over_used` or `no_applications`."
+          },
+          "cost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cost as decimal text."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Currency."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "installed_on": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Assets with any of them installed.",
+            "minimum": 0
+          },
+          "key_hint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Last four characters of the key."
+          },
+          "licence_type": {
+            "type": "string",
+            "description": "Type."
+          },
+          "linked_applications": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Applications linked.",
+            "minimum": 0
+          },
+          "notice_period_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Notice period, in days.",
+            "minimum": 0
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Quantity.",
+            "minimum": 0
+          },
+          "renewal_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Renewal date."
+          },
+          "status": {
+            "type": "string",
+            "description": "Status."
+          }
+        }
+      },
+      "LicenceRequest": {
+        "type": "object",
+        "description": "A licence to create or change.",
+        "required": [
+          "licence_type",
+          "quantity"
+        ],
+        "properties": {
+          "company_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Company (create only)."
+          },
+          "cost": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cost as decimal text, e.g. `\"1299.00`\"."
+          },
+          "currency": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Currency (ISO 4217), with `cost`."
+          },
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The key (sealed at rest; never shown again). Omit to keep the stored key."
+          },
+          "licence_type": {
+            "type": "string",
+            "description": "Type."
+          },
+          "notice_period_days": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Notice period, in days.",
+            "minimum": 0
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Quantity.",
+            "minimum": 0
+          },
+          "renewal_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Renewal date."
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`active`, `expired` or `cancelled` (default active)."
           }
         }
       },
@@ -22934,6 +25315,14 @@
                   "format": "date-time",
                   "description": "When deactivated."
                 },
+                "department_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid",
+                  "description": "Department."
+                },
                 "email": {
                   "type": "string",
                   "description": "Email."
@@ -23334,6 +25723,62 @@
           }
         }
       },
+      "PortalDto": {
+        "type": "object",
+        "description": "Portal settings of a Form.",
+        "properties": {
+          "audiences": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AudienceDto"
+            },
+            "description": "Audiences; none means every Requester of the Company."
+          },
+          "visible": {
+            "type": "boolean",
+            "description": "Whether the Form is on the Portal."
+          }
+        }
+      },
+      "PortalFormDto": {
+        "type": "object",
+        "description": "A Form as the Requester fills it in.",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "current_version",
+          "fields"
+        ],
+        "properties": {
+          "current_version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The version the Requester fills in.",
+            "minimum": 0
+          },
+          "description": {
+            "type": "string",
+            "description": "Description."
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FormFieldDto"
+            },
+            "description": "Fields, in layout order."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
       "PortalNotificationDto": {
         "type": "object",
         "description": "A Portal Notification.",
@@ -23571,6 +26016,99 @@
           "password": {
             "type": "string",
             "description": "Password."
+          }
+        }
+      },
+      "PortalSubmissionDto": {
+        "type": "object",
+        "description": "A Submission as the Requester sees it: no approver identities.",
+        "required": [
+          "id",
+          "form_id",
+          "form_version",
+          "status",
+          "round",
+          "answers",
+          "rejections",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "answers": {
+            "type": "object",
+            "description": "Answers by field key.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was submitted."
+          },
+          "form_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Form."
+          },
+          "form_version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The Form version the answers were given against.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "rejections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Decisions and comments of the current round's rejections, for the Requester to act on."
+          },
+          "round": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Approval round, from 1.",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "description": "Status."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it last changed."
+          }
+        }
+      },
+      "PortalSubmissionPage": {
+        "type": "object",
+        "description": "A page of the Requester's own Submissions.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PortalSubmissionDto"
+            },
+            "description": "The Submissions, newest first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor of the next page, when there is one."
           }
         }
       },
@@ -24693,6 +27231,14 @@
             "format": "date-time",
             "description": "When deactivated."
           },
+          "department_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Department."
+          },
           "email": {
             "type": "string",
             "description": "Email."
@@ -24762,6 +27308,14 @@
             ],
             "format": "uuid",
             "description": "Cost Centre."
+          },
+          "department_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Department."
           },
           "email": {
             "type": "string",
@@ -25778,6 +28332,27 @@
           }
         }
       },
+      "SoftwareDto": {
+        "type": "object",
+        "description": "An installed application in an inventory report.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "publisher": {
+            "type": "string",
+            "description": "Publisher."
+          },
+          "version": {
+            "type": "string",
+            "description": "Version."
+          }
+        }
+      },
       "SplitRequest": {
         "type": "object",
         "description": "Splits emails and Notes off a ticket.",
@@ -26023,6 +28598,121 @@
             "type": "integer",
             "format": "int32",
             "description": "Display order."
+          }
+        }
+      },
+      "SubmissionDto": {
+        "type": "object",
+        "description": "A Submission, for staff.",
+        "required": [
+          "id",
+          "form_id",
+          "form_version",
+          "requester_id",
+          "status",
+          "round",
+          "answers",
+          "votes",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "answers": {
+            "type": "object",
+            "description": "Answers by field key.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was submitted."
+          },
+          "form_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Form."
+          },
+          "form_version": {
+            "type": "integer",
+            "format": "int32",
+            "description": "The Form version the answers were given against.",
+            "minimum": 0
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "requester_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Requester."
+          },
+          "round": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Approval round, from 1.",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "description": "`pending_approval`, `returned`, `approved` or `completed`."
+          },
+          "task_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The task the actions created."
+          },
+          "ticket_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The ticket the actions opened."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it last changed."
+          },
+          "votes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VoteDto"
+            },
+            "description": "Votes, in the order cast."
+          }
+        }
+      },
+      "SubmissionPage": {
+        "type": "object",
+        "description": "A page of Submissions, for staff.",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubmissionDto"
+            },
+            "description": "The Submissions, newest first."
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Cursor of the next page, when there is one."
           }
         }
       },
@@ -26362,6 +29052,23 @@
             "format": "int64",
             "description": "Not satisfied yet, not past due (or paused).",
             "minimum": 0
+          }
+        }
+      },
+      "TaskActionDto": {
+        "type": "object",
+        "description": "Creates a task on submission.",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description template."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title template."
           }
         }
       },
@@ -27172,6 +29879,29 @@
           "name": {
             "type": "string",
             "description": "Name."
+          }
+        }
+      },
+      "TicketActionDto": {
+        "type": "object",
+        "description": "Opens a ticket on submission.",
+        "required": [
+          "category_id",
+          "subject"
+        ],
+        "properties": {
+          "category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Portal Catalogue Category of the ticket."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description template."
+          },
+          "subject": {
+            "type": "string",
+            "description": "Subject template, with `{field_key}` placeholders."
           }
         }
       },
@@ -28440,6 +31170,60 @@
             "type": "string",
             "format": "date",
             "description": "The day, or the first day of the month."
+          }
+        }
+      },
+      "VoteDto": {
+        "type": "object",
+        "description": "One vote on a Submission.",
+        "required": [
+          "round",
+          "approver_id",
+          "decision",
+          "comment",
+          "cast_at"
+        ],
+        "properties": {
+          "approver_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The approver."
+          },
+          "cast_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it was cast."
+          },
+          "comment": {
+            "type": "string",
+            "description": "Comment."
+          },
+          "decision": {
+            "type": "string",
+            "description": "`approve` or `reject`."
+          },
+          "round": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Approval round.",
+            "minimum": 0
+          }
+        }
+      },
+      "VoteRequest": {
+        "type": "object",
+        "description": "A vote on a Submission.",
+        "required": [
+          "decision"
+        ],
+        "properties": {
+          "comment": {
+            "type": "string",
+            "description": "Comment (required to reject)."
+          },
+          "decision": {
+            "type": "string",
+            "description": "`approve` or `reject`."
           }
         }
       },

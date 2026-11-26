@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO form_drafts (tenant_id, form_id, requester_id, answers, updated_at)\n             VALUES ($1, $2, $3, $4, $5)\n             ON CONFLICT (form_id, requester_id) DO UPDATE SET answers = EXCLUDED.answers, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Jsonb",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7cf0b9d3abbf2c9351204d1951fdfe53d6e95208e7dba8fb2c087c6ef07ad686"
+}

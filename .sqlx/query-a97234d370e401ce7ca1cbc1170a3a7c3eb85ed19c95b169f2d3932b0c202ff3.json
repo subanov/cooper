@@ -1,0 +1,263 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, name, description, is_active, portal_visible, approval_mode, approval_team_id,\n                    approval_required_approvals, approval_required_rejections, approval_exclude_requester,\n                    ticket_category_id, ticket_subject, ticket_description, task_title, task_description,\n                    created_by_kind, created_by_id, created_at, updated_at\n             FROM forms\n             WHERE ($1 OR tenant_id = ANY($2))\n               AND ($3::uuid IS NULL OR tenant_id = $3)\n               AND ($4::text IS NULL OR name ILIKE $4)\n               AND ($5::bool IS NULL OR is_active = $5)\n               AND ($6::text IS NULL OR (lower(name), id) > ($6, $7::uuid))\n             ORDER BY lower(name), id\n             LIMIT $8",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_active",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "is_active"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "portal_visible",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "portal_visible"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "approval_mode",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "approval_mode"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "approval_team_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "approval_team_id"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "approval_required_approvals",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "approval_required_approvals"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "approval_required_rejections",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "approval_required_rejections"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "approval_exclude_requester",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "approval_exclude_requester"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "ticket_category_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "ticket_category_id"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "ticket_subject",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "ticket_subject"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "ticket_description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "ticket_description"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "task_title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "task_title"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "task_description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "task_description"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "forms",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "UuidArray",
+        "Uuid",
+        "Text",
+        "Bool",
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "a97234d370e401ce7ca1cbc1170a3a7c3eb85ed19c95b169f2d3932b0c202ff3"
+}

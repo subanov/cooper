@@ -1,0 +1,181 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, licence_type, key_hint, quantity, renewal_date, notice_period_days,\n                    (cost * 100)::bigint AS cost_minor, currency, status, created_by_kind, created_by_id, created_at, updated_at\n             FROM licences WHERE id = $1 AND ($2 OR tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "licence_type",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "licence_type"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "key_hint",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "key_hint"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "quantity",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "quantity"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "renewal_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "renewal_date"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "notice_period_days",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "notice_period_days"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "cost_minor",
+        "type_info": "Int8",
+        "origin": "Expression"
+      },
+      {
+        "ordinal": 8,
+        "name": "currency",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "currency"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_by_kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "created_by_kind"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "created_by_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "created_by_id"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "licences",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      null,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "45b9b04489583fe455ae49d291471d989ede2acad19103a0039b79687128bd8f"
+}

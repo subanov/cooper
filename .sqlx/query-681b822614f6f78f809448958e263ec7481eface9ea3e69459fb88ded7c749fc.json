@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO forms (id, tenant_id, name, description, is_active, portal_visible, approval_mode, approval_team_id,\n                                approval_required_approvals, approval_required_rejections, approval_exclude_requester,\n                                ticket_category_id, ticket_subject, ticket_description, task_title, task_description,\n                                created_by_kind, created_by_id, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)\n             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, description = EXCLUDED.description,\n                 is_active = EXCLUDED.is_active, portal_visible = EXCLUDED.portal_visible,\n                 approval_mode = EXCLUDED.approval_mode, approval_team_id = EXCLUDED.approval_team_id,\n                 approval_required_approvals = EXCLUDED.approval_required_approvals,\n                 approval_required_rejections = EXCLUDED.approval_required_rejections,\n                 approval_exclude_requester = EXCLUDED.approval_exclude_requester,\n                 ticket_category_id = EXCLUDED.ticket_category_id, ticket_subject = EXCLUDED.ticket_subject,\n                 ticket_description = EXCLUDED.ticket_description, task_title = EXCLUDED.task_title,\n                 task_description = EXCLUDED.task_description, updated_at = EXCLUDED.updated_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Text",
+        "Uuid",
+        "Int4",
+        "Int4",
+        "Bool",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "681b822614f6f78f809448958e263ec7481eface9ea3e69459fb88ded7c749fc"
+}

@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO asset_installations (asset_id, tenant_id, application_id, version, last_seen_at)\n                 VALUES ($1, $2, $3, $4, $5)\n                 ON CONFLICT (asset_id, application_id) DO UPDATE SET version = EXCLUDED.version, last_seen_at = EXCLUDED.last_seen_at",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d7e9b8c389e41c05e8af5c09394a2059773eaedfae0e560a8a091d1fb1a3f49a"
+}

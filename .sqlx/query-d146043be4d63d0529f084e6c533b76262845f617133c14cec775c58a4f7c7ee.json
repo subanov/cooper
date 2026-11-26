@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM licence_applications WHERE licence_id = $1 AND application_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d146043be4d63d0529f084e6c533b76262845f617133c14cec775c58a4f7c7ee"
+}

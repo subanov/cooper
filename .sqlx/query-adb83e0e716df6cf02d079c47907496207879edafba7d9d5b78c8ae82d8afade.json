@@ -1,0 +1,31 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO software_applications (id, tenant_id, name, publisher, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, now(), now())\n             ON CONFLICT (tenant_id, lower(name), lower(publisher)) DO UPDATE SET updated_at = software_applications.updated_at\n             RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "software_applications",
+            "name": "id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "adb83e0e716df6cf02d079c47907496207879edafba7d9d5b78c8ae82d8afade"
+}

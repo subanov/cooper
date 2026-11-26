@@ -1,0 +1,79 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT tenant_id, form_id, requester_id, answers, updated_at\n             FROM form_drafts WHERE form_id = $1 AND requester_id = $2 AND ($3 OR tenant_id = ANY($4))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_drafts",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "form_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_drafts",
+            "name": "form_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "requester_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_drafts",
+            "name": "requester_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "answers",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "form_drafts",
+            "name": "answers"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "form_drafts",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "581853387c52be001a4f0732921e8d8e54fe43a54187859acb07497f293bb2dd"
+}

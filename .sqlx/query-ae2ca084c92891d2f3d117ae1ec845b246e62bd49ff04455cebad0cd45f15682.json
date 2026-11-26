@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO licence_applications (licence_id, tenant_id, application_id) VALUES ($1, $2, $3)\n             ON CONFLICT (licence_id, application_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ae2ca084c92891d2f3d117ae1ec845b246e62bd49ff04455cebad0cd45f15682"
+}

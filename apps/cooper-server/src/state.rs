@@ -201,6 +201,10 @@ pub struct AppState {
     pub calendar: cooper_calendar::api::CalendarApi,
     /// Contracts API state.
     pub contracts: cooper_contracts::api::ContractsApi,
+    /// Forms API state.
+    pub forms: cooper_forms::api::FormsApi,
+    /// Asset extras API state (custom fields, software, licences, inventory, import).
+    pub asset_extras: cooper_assets::extras_api::AssetExtrasApi,
     /// Assets API state.
     pub assets: cooper_assets::api::AssetsApi,
     /// Live Updates fan-out (ADR-0022). Listens only once a stream subscribes.
@@ -227,6 +231,8 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_morning_checks::application::capabilities::ALL)
         .chain(cooper_reporting::application::capabilities::ALL)
         .chain(cooper_assets::application::capabilities::ALL)
+        .chain(cooper_forms::application::capabilities::ALL)
+        .chain(cooper_assets::extras::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -304,6 +310,16 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
                 .iter()
                 .map(|p| (*p, Module::Calendar)),
         )
+        .chain(
+            cooper_forms::api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Forms)),
+        )
+        .chain(
+            cooper_assets::extras_api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Assets)),
+        )
         .collect()
 }
 
@@ -348,7 +364,7 @@ impl AppState {
         let ports = PgIdentityStore::ports(
             pool.clone(),
             clock.clone(),
-            security.keyring,
+            security.keyring.clone(),
             policy,
             reset_mailer,
             Arc::new(SettingsIdentity {
@@ -535,6 +551,25 @@ impl AppState {
                 },
             ),
         };
+        let forms = cooper_forms::api::FormsApi {
+            service: cooper_forms::application::FormsService::new(
+                cooper_forms::application::FormsPorts {
+                    forms: Arc::new(cooper_forms::infrastructure::PgFormsStore::new(
+                        pool.clone(),
+                    )),
+                    directory: Arc::new(crate::forms_adapters::FormsDirectory {
+                        identity: crate::adapters::IdentityDirectory {
+                            identity: service.clone(),
+                        },
+                    }),
+                    targets: Arc::new(crate::forms_adapters::FormsTargets {
+                        desk: desk.clone(),
+                        tasks: tasks.service.clone(),
+                    }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let assets = cooper_assets::api::AssetsApi {
             service: cooper_assets::application::AssetService::new(
                 cooper_assets::application::AssetPorts {
@@ -551,6 +586,14 @@ impl AppState {
                     clock: clock.clone(),
                 },
             ),
+        };
+        let asset_extras = cooper_assets::extras_api::AssetExtrasApi {
+            service: cooper_assets::extras::ExtrasService::new(cooper_assets::extras::ExtrasPorts {
+                assets: assets.service.clone(),
+                store: Arc::new(cooper_assets::extras_store::PgExtrasStore::new(pool.clone())),
+                clock: clock.clone(),
+                keyring: security.keyring.clone(),
+            }),
         };
         let changes = cooper_change_management::api::ChangesApi {
             service: change_service,
@@ -603,6 +646,8 @@ impl AppState {
             reporting,
             calendar,
             contracts,
+            forms,
+            asset_extras,
             assets,
             service_desk: ServiceDeskApi {
                 service: desk,
@@ -740,6 +785,18 @@ impl FromRef<AppState> for cooper_assets::api::AssetsApi {
     }
 }
 
+impl FromRef<AppState> for cooper_assets::extras_api::AssetExtrasApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.asset_extras.clone()
+    }
+}
+
+impl FromRef<AppState> for cooper_forms::api::FormsApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.forms.clone()
+    }
+}
+
 impl FromRef<AppState> for cooper_contracts::api::ContractsApi {
     fn from_ref(state: &AppState) -> Self {
         state.contracts.clone()
@@ -839,6 +896,8 @@ mod tests {
                 + cooper_calendar::application::capabilities::ALL.len()
                 + cooper_contracts::application::capabilities::ALL.len()
                 + cooper_assets::application::capabilities::ALL.len()
+                + cooper_forms::application::capabilities::ALL.len()
+                + cooper_assets::extras::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

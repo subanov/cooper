@@ -24,6 +24,8 @@ pub struct RequesterInput {
     pub manager_id: Option<RequesterId>,
     /// Cost Centre (same Company).
     pub cost_centre_id: Option<CostCentreId>,
+    /// Department.
+    pub department_id: Option<cooper_kernel::DepartmentId>,
 }
 
 impl From<RequesterInput> for NewRequester {
@@ -35,6 +37,7 @@ impl From<RequesterInput> for NewRequester {
             phone: i.phone,
             manager_id: i.manager_id,
             cost_centre_id: i.cost_centre_id,
+            department_id: i.department_id,
         }
     }
 }
@@ -228,6 +231,16 @@ impl IdentityService {
                 }
             }
         }
+        if let Some(department_id) = input.department_id {
+            self.ports
+                .departments
+                .get(department_id)
+                .await?
+                .ok_or(AppError::Invalid {
+                    field: "department_id",
+                    reason: "does not exist".into(),
+                })?;
+        }
         if let Some(cc_id) = input.cost_centre_id {
             let cc = self
                 .ports
@@ -397,6 +410,7 @@ mod tests {
             phone: None,
             manager_id: manager,
             cost_centre_id: None,
+            department_id: None,
         }
     }
 

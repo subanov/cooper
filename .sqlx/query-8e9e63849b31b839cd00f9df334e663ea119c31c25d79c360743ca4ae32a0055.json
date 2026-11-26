@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO form_submission_votes (submission_id, tenant_id, round, analyst_id, decision, comment, cast_at)\n                 VALUES ($1, $2, $3, $4, $5, $6, $7)\n                 ON CONFLICT (submission_id, round, analyst_id) DO NOTHING",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Uuid",
+        "Text",
+        "Text",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8e9e63849b31b839cd00f9df334e663ea119c31c25d79c360743ca4ae32a0055"
+}

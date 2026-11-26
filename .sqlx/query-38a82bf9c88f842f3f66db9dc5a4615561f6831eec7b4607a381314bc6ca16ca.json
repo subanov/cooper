@@ -1,0 +1,162 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, tenant_id, form_id, form_version, requester_id, answers, status, round, ticket_id, task_id,\n                    created_at, updated_at\n             FROM form_submissions WHERE id = $1 AND ($2 OR tenant_id = ANY($3))",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "form_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "form_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "form_version",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "form_version"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "requester_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "requester_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "answers",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "answers"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "status",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "round",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "round"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "ticket_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "ticket_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "task_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "task_id"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "form_submissions",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Bool",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "38a82bf9c88f842f3f66db9dc5a4615561f6831eec7b4607a381314bc6ca16ca"
+}

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM form_approvers WHERE form_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fc0b38afe1ccd8edabc86cbc7587fad29e8d1d2fba0d17e1215def8cda52b29b"
+}

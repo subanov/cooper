@@ -344,6 +344,7 @@ impl IdentityService {
                 phone: None,
                 manager_id: None,
                 cost_centre_id: None,
+                department_id: None,
             },
             now,
         )?;
@@ -564,6 +565,7 @@ mod tests {
                 phone: None,
                 manager_id: None,
                 cost_centre_id: None,
+                department_id: None,
             },
         )
         .await

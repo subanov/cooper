@@ -662,6 +662,8 @@ pub struct RequesterDto {
     pub manager_id: Option<Uuid>,
     /// Cost Centre.
     pub cost_centre_id: Option<Uuid>,
+    /// Department.
+    pub department_id: Option<Uuid>,
     /// Active flag.
     pub is_active: bool,
     /// When deactivated.
@@ -683,6 +685,7 @@ impl From<Requester> for RequesterDto {
             phone: r.phone().map(str::to_owned),
             manager_id: r.manager_id().map(|m| m.as_uuid()),
             cost_centre_id: r.cost_centre_id().map(|c| c.as_uuid()),
+            department_id: r.department_id().map(|d| d.as_uuid()),
             is_active: r.is_active(),
             deactivated_at: r.deactivated_at(),
             created_at: r.created_at(),
@@ -708,6 +711,8 @@ pub struct RequesterRequest {
     pub manager_id: Option<Uuid>,
     /// Cost Centre.
     pub cost_centre_id: Option<Uuid>,
+    /// Department.
+    pub department_id: Option<Uuid>,
 }
 
 impl TryFrom<RequesterRequest> for RequesterInput {
@@ -724,6 +729,7 @@ impl TryFrom<RequesterRequest> for RequesterInput {
             phone: r.phone,
             manager_id: r.manager_id.map(cooper_kernel::RequesterId::from_uuid),
             cost_centre_id: r.cost_centre_id.map(crate::domain::CostCentreId::from_uuid),
+            department_id: r.department_id.map(cooper_kernel::DepartmentId::from_uuid),
         })
     }
 }

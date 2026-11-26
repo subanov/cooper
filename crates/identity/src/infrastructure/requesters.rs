@@ -22,6 +22,7 @@ struct RequesterRow {
     phone: Option<String>,
     manager_id: Option<Uuid>,
     cost_centre_id: Option<Uuid>,
+    department_id: Option<Uuid>,
     deactivated_at: Option<DateTime<Utc>>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
@@ -46,7 +47,8 @@ impl TryFrom<RequesterRow> for Requester {
             r.deactivated_at,
             r.created_at,
             r.updated_at,
-        ))
+        )
+        .with_department(r.department_id.map(cooper_kernel::DepartmentId::from_uuid)))
     }
 }
 
@@ -61,7 +63,7 @@ impl RequesterRepository for PgIdentityStore {
         let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
         let row = sqlx::query_as!(
             RequesterRow,
-            "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,
+            "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id, department_id,
                     deactivated_at, created_at, updated_at
              FROM requesters WHERE id = $1 AND ($2 OR tenant_id = ANY($3))",
             id.as_uuid(),
@@ -85,7 +87,7 @@ impl RequesterRepository for PgIdentityStore {
         let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
         let rows = sqlx::query_as!(
             RequesterRow,
-            "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,
+            "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id, department_id,
                     deactivated_at, created_at, updated_at
              FROM requesters
              WHERE ($1 OR tenant_id = ANY($2))
@@ -122,7 +124,7 @@ impl RequesterRepository for PgIdentityStore {
         let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
         let rows = sqlx::query_as!(
             RequesterRow,
-            "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,
+            "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id, department_id,
                     deactivated_at, created_at, updated_at
              FROM requesters WHERE lower(email) = lower($1) AND ($2 OR tenant_id = ANY($3))
              ORDER BY created_at",
@@ -172,8 +174,8 @@ impl RequesterRepository for PgIdentityStore {
         let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
         sqlx::query!(
             "INSERT INTO requesters (id, tenant_id, full_name, email, username, phone, manager_id,
-                                     cost_centre_id, is_active, deactivated_at, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+                                     cost_centre_id, is_active, deactivated_at, created_at, updated_at, department_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
             r.id().as_uuid(),
             r.tenant_id().as_uuid(),
             r.full_name().as_str(),
@@ -186,6 +188,7 @@ impl RequesterRepository for PgIdentityStore {
             r.deactivated_at(),
             r.created_at(),
             r.updated_at(),
+            r.department_id().map(|d| d.as_uuid()),
         )
         .execute(&mut *tx)
         .await
@@ -204,7 +207,7 @@ impl RequesterRepository for PgIdentityStore {
         let mut tx = tenancy::begin(&self.pool, scope).await.map_err(db_err)?;
         let result = sqlx::query!(
             "UPDATE requesters SET full_name = $2, email = $3, username = $4, phone = $5, manager_id = $6,
-                    cost_centre_id = $7, is_active = $8, deactivated_at = $9, updated_at = $10
+                    cost_centre_id = $7, is_active = $8, deactivated_at = $9, updated_at = $10, department_id = $14
              WHERE id = $1 AND tenant_id = $11 AND ($12 OR tenant_id = ANY($13))",
             r.id().as_uuid(),
             r.full_name().as_str(),
@@ -219,6 +222,7 @@ impl RequesterRepository for PgIdentityStore {
             r.tenant_id().as_uuid(),
             all,
             &ids,
+            r.department_id().map(|d| d.as_uuid()),
         )
         .execute(&mut *tx)
         .await

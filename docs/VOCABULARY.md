@@ -331,6 +331,9 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Form Approval** | Approval by an Approver or approval Team, with required approval and rejection counts. Can exclude the Requester. | — | |
 | **Form Collection** | A time-boxed campaign that collects Submissions. | `FormCollection` | |
 | **Draft** | A Submission saved but not yet submitted. | `FormDraft` | |
+| **Form Audience** | Who may see a Portal-visible Form: a Requester, a User Group or a Department. None means every Requester of the Company. | `FormAudience`, `form_audiences` | target group |
+| **Submission Action** | What a submitted Form creates: a ticket (through the Portal Catalogue) and/or a task. Templates use `{field_key}` placeholders. | `SubmissionAction` | workflow step |
+| **Form Approver** | An Analyst, or a Team's members, who may approve a Submission. | `FormApprover` | reviewer |
 
 ---
 

@@ -220,6 +220,7 @@ impl Directory for IdentityDirectory {
             phone: None,
             manager_id: None,
             cost_centre_id: None,
+            department_id: None,
         };
         let r = self
             .identity

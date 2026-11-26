@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id,\n                    deactivated_at, created_at, updated_at\n             FROM requesters WHERE id = $1 AND ($2 OR tenant_id = ANY($3))",
+  "query": "SELECT id, tenant_id, full_name, email, username, phone, manager_id, cost_centre_id, department_id,\n                    deactivated_at, created_at, updated_at\n             FROM requesters WHERE id = $1 AND ($2 OR tenant_id = ANY($3))",
   "describe": {
     "columns": [
       {
@@ -93,6 +93,17 @@
       },
       {
         "ordinal": 8,
+        "name": "department_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "requesters",
+            "name": "department_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
         "name": "deactivated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -103,7 +114,7 @@
         }
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "created_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -114,7 +125,7 @@
         }
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "updated_at",
         "type_info": "Timestamptz",
         "origin": {
@@ -142,9 +153,10 @@
       true,
       true,
       true,
+      true,
       false,
       false
     ]
   },
-  "hash": "51095affeefe5a912a4b317dffab33664b79bef0c912e9308b88edd0fd346fcb"
+  "hash": "d5682907fca2a2209d1ffdbc4dc06515bf435a44c71dee45a742f64bae2531ed"
 }

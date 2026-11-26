@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO asset_field_set_types (field_set_id, asset_type_id) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f780a7faef358a65039e97b4c8408c258844e4b9112b1a21755b23a27f5f5ebf"
+}
