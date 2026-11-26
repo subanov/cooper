@@ -569,6 +569,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assets/{id}/owner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets or clears the owner of an Asset (needs `assets.update`). */
+        put: operations["set_asset_owner"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assets/{id}/retire": {
         parameters: {
             query?: never;
@@ -1401,6 +1418,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/contract-term-tabs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All Contract Terms tabs (needs `contracts.read`). */
+        get: operations["list_tabs"];
+        put?: never;
+        /** Creates a Contract Terms tab (needs `contracts.configure`). */
+        post: operations["create_tab"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contract-term-tabs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes a Contract Terms tab (needs `contracts.configure`). */
+        put: operations["update_tab"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/contracts": {
         parameters: {
             query?: never;
@@ -1451,6 +1503,24 @@ export interface paths {
         /** The audit trail of a Contract. */
         get: operations["contract_history"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/contracts/{id}/terms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Terms of a Contract (needs `contracts.read`). */
+        get: operations["get_terms"];
+        /** Replaces the Terms of a Contract (needs `contracts.write`). */
+        put: operations["set_terms"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3882,6 +3952,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rota": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who is on the rota on a day, or in a range (needs `rota.read`). */
+        get: operations["rota_day"];
+        put?: never;
+        /** Puts an Analyst on the rota (needs `rota.manage`). */
+        post: operations["schedule_rota"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rota/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Locations of a Company (needs `rota.read`). */
+        get: operations["list_locations"];
+        put?: never;
+        /** Defines a location, such as Office or WFH (needs `rota.configure`). */
+        post: operations["create_location"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rota/shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shifts of a Company (needs `rota.read`). */
+        get: operations["list_shifts"];
+        put?: never;
+        /** Defines a shift (needs `rota.configure`). */
+        post: operations["create_shift"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scheduled-work": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scheduled work, by Owner and day range (needs `tickets.read`). */
+        get: operations["list_work"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scheduled-work/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Moves or changes scheduled work (needs `tickets.update`). */
+        put: operations["reschedule_work"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scheduled-work/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancels scheduled work; it stays in the history (needs `tickets.update`). */
+        post: operations["cancel_work"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/service-status": {
         parameters: {
             query?: never;
@@ -5677,6 +5852,24 @@ export interface paths {
         put?: never;
         /** Restores a soft-deleted ticket (Administrators). */
         post: operations["restore_ticket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{id}/scheduled-work": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scheduled work on a ticket (needs visibility of the ticket). */
+        get: operations["list_ticket_work"];
+        put?: never;
+        /** Schedules work on a ticket for an Owner (needs `tickets.update`). */
+        post: operations["schedule_work"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9211,6 +9404,28 @@ export interface components {
             /** @description Subject. */
             subject: string;
         };
+        /** @description A rota location. */
+        LocationDto: {
+            /** @description Active. */
+            active: boolean;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Name. */
+            name: string;
+        };
+        /** @description A location to define. */
+        LocationRequest: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description Name, such as Office or WFH. */
+            name: string;
+        };
         /** @description A system log entry. */
         LogEntryDto: {
             /** @description Structured fields. */
@@ -9673,6 +9888,14 @@ export interface components {
             status_id?: string | null;
             /** @description Title. */
             title: string;
+        };
+        /** @description The owner of an Asset, reminded of its warranty and lease expiries. */
+        OwnerDto: {
+            /**
+             * Format: uuid
+             * @description The Analyst, or none.
+             */
+            owner_id?: string | null;
         };
         /** @description A page of results with an opaque cursor for the next page. */
         PageDto_AnalystDto: {
@@ -11065,6 +11288,66 @@ export interface components {
             /** @description Name. */
             name: string;
         };
+        /** @description A rota entry. */
+        RotaEntryDto: {
+            /**
+             * Format: uuid
+             * @description The Analyst.
+             */
+            analyst_id: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description The location.
+             */
+            location_id: string;
+            /** @description On call. */
+            on_call: boolean;
+            /**
+             * Format: uuid
+             * @description The shift.
+             */
+            shift_id: string;
+            /**
+             * Format: date
+             * @description The day.
+             */
+            work_date: string;
+        };
+        /** @description An Analyst to put on the rota. */
+        RotaEntryRequest: {
+            /**
+             * Format: uuid
+             * @description The Analyst.
+             */
+            analyst_id: string;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: uuid
+             * @description The location (of the Company).
+             */
+            location_id: string;
+            /** @description On call (default false). */
+            on_call?: boolean;
+            /**
+             * Format: uuid
+             * @description The shift (of the Company).
+             */
+            shift_id: string;
+            /**
+             * Format: date
+             * @description The day.
+             */
+            work_date: string;
+        };
         /** @description New schedule of a job. */
         ScheduleDto: {
             /** @description For `daily`: UTC time as `HH:MM`. */
@@ -11284,6 +11567,36 @@ export interface components {
         SetupStatusDto: {
             /** @description `true` until the first Administrator exists. */
             required: boolean;
+        };
+        /** @description A shift. */
+        ShiftDto: {
+            /** @description Active. */
+            active: boolean;
+            /** @description End time (HH:MM:SS; may be earlier than the start for a night shift). */
+            ends_at: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Name. */
+            name: string;
+            /** @description Start time (HH:MM:SS). */
+            starts_at: string;
+        };
+        /** @description A shift to define. */
+        ShiftRequest: {
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /** @description End time. */
+            ends_at: string;
+            /** @description Name. */
+            name: string;
+            /** @description Start time. */
+            starts_at: string;
         };
         /** @description Sign-in request. */
         SignInRequest: {
@@ -11939,7 +12252,7 @@ export interface components {
         };
         /** @description A linked ticket or Change. */
         TaskLinkDto: {
-            /** @description `ticket` or `change`. */
+            /** @description `ticket`, `change` or `contract`. */
             kind: string;
             /**
              * Format: date-time
@@ -11956,7 +12269,7 @@ export interface components {
         };
         /** @description Links a record. */
         TaskLinkRequest: {
-            /** @description `ticket` or `change`. */
+            /** @description `ticket`, `change` or `contract`. */
             kind: string;
             /**
              * Format: uuid
@@ -12214,6 +12527,50 @@ export interface components {
             is_active?: boolean;
             /** @description Name. */
             name: string;
+        };
+        /** @description A Terms tab. */
+        TermTabDto: {
+            /** @description Active. */
+            active: boolean;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order: number;
+        };
+        /** @description A tab to create or change. */
+        TermTabRequest: {
+            /** @description Active (default true). */
+            active?: boolean;
+            /** @description Name. */
+            name: string;
+            /**
+             * Format: int32
+             * @description Display order.
+             */
+            sort_order?: number;
+        };
+        /** @description One value of a Contract's Terms. */
+        TermValueDto: {
+            /**
+             * Format: uuid
+             * @description The tab.
+             */
+            tab_id: string;
+            /** @description The value. */
+            value: string;
+        };
+        /** @description The Terms of a Contract. */
+        TermsDto: {
+            /** @description Values by tab (blank values are not kept). */
+            values: components["schemas"]["TermValueDto"][];
         };
         /** @description Opens a ticket on submission. */
         TicketActionDto: {
@@ -12982,6 +13339,87 @@ export interface components {
             allow: boolean;
             /** @description Address or domain. */
             pattern: string;
+        };
+        /** @description Scheduled work on a ticket. */
+        WorkDto: {
+            /** @description False once cancelled. */
+            active: boolean;
+            /** @description Whole days (true) or a time range. */
+            all_day: boolean;
+            /**
+             * Format: uuid
+             * @description Company.
+             */
+            company_id: string;
+            /**
+             * Format: date-time
+             * @description End instant, for timed work.
+             */
+            ends_at?: string | null;
+            /**
+             * Format: date
+             * @description Last day.
+             */
+            ends_on: string;
+            /**
+             * Format: uuid
+             * @description ID.
+             */
+            id: string;
+            /** @description Notes. */
+            notes: string;
+            /**
+             * Format: uuid
+             * @description The Owner (an Analyst).
+             */
+            owner_id: string;
+            /**
+             * Format: date-time
+             * @description Start instant, for timed work.
+             */
+            starts_at?: string | null;
+            /**
+             * Format: date
+             * @description First day.
+             */
+            starts_on: string;
+            /**
+             * Format: uuid
+             * @description The ticket.
+             */
+            ticket_id: string;
+        };
+        /** @description Scheduled work to make or change. */
+        WorkRequest: {
+            /** @description Whole days. */
+            all_day?: boolean;
+            /**
+             * Format: date-time
+             * @description End (timed work).
+             */
+            ends_at?: string | null;
+            /**
+             * Format: date
+             * @description Last day (whole days; defaults to the first).
+             */
+            ends_on?: string | null;
+            /** @description Notes. */
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description The Owner (an active Analyst).
+             */
+            owner_id: string;
+            /**
+             * Format: date-time
+             * @description Start (timed work).
+             */
+            starts_at?: string | null;
+            /**
+             * Format: date
+             * @description First day (whole days).
+             */
+            starts_on?: string | null;
         };
     };
     responses: never;
@@ -14031,6 +14469,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    set_asset_owner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnerDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OwnerDto"];
+                };
             };
         };
     };
@@ -15679,6 +16142,73 @@ export interface operations {
             };
         };
     };
+    list_tabs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TermTabDto"][];
+                };
+            };
+        };
+    };
+    create_tab: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TermTabRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TermTabDto"];
+                };
+            };
+        };
+    };
+    update_tab: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TermTabRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TermTabDto"];
+                };
+            };
+        };
+    };
     list_contracts: {
         parameters: {
             query?: {
@@ -15825,6 +16355,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContractHistoryDto"][];
+                };
+            };
+        };
+    };
+    get_terms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TermsDto"];
+                };
+            };
+        };
+    };
+    set_terms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TermsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TermsDto"];
                 };
             };
         };
@@ -20171,6 +20747,217 @@ export interface operations {
             };
         };
     };
+    rota_day: {
+        parameters: {
+            query: {
+                /** @description Company. */
+                company_id: string;
+                /** @description First day (default today, UTC). */
+                from?: string;
+                /** @description Last day (default the first day). */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RotaEntryDto"][];
+                };
+            };
+        };
+    };
+    schedule_rota: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RotaEntryRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RotaEntryDto"];
+                };
+            };
+        };
+    };
+    list_locations: {
+        parameters: {
+            query: {
+                company_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationDto"][];
+                };
+            };
+        };
+    };
+    create_location: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LocationRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LocationDto"];
+                };
+            };
+        };
+    };
+    list_shifts: {
+        parameters: {
+            query: {
+                company_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftDto"][];
+                };
+            };
+        };
+    };
+    create_shift: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftDto"];
+                };
+            };
+        };
+    };
+    list_work: {
+        parameters: {
+            query?: {
+                /** @description Only this Company. */
+                company_id?: string;
+                /** @description Only this Owner. */
+                owner_id?: string;
+                /** @description Work that ends on or after this day. */
+                from?: string;
+                /** @description Work that starts on or before this day. */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkDto"][];
+                };
+            };
+        };
+    };
+    reschedule_work: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkDto"];
+                };
+            };
+        };
+    };
+    cancel_work: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkDto"];
+                };
+            };
+        };
+    };
     get_service_status_board: {
         parameters: {
             query?: never;
@@ -23721,6 +24508,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TicketDto"];
+                };
+            };
+        };
+    };
+    list_ticket_work: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkDto"][];
+                };
+            };
+        };
+    };
+    schedule_work: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkDto"];
                 };
             };
         };

@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ticket_scheduled_work (id, tenant_id, ticket_id, owner_id, all_day, starts_on, ends_on, starts_at, ends_at,\n                                                notes, is_active, created_by_kind, created_by_id, created_at, updated_at)\n             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, now(), now())\n             ON CONFLICT (id) DO UPDATE SET owner_id = EXCLUDED.owner_id, all_day = EXCLUDED.all_day,\n                 starts_on = EXCLUDED.starts_on, ends_on = EXCLUDED.ends_on, starts_at = EXCLUDED.starts_at,\n                 ends_at = EXCLUDED.ends_at, notes = EXCLUDED.notes, is_active = EXCLUDED.is_active, updated_at = now()",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Bool",
+        "Date",
+        "Date",
+        "Timestamptz",
+        "Timestamptz",
+        "Text",
+        "Bool",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a2761e6c32ae8dad52b13d49ca1e222896b9f29274112c6e6d279f1313c1ab8d"
+}

@@ -12,3 +12,7 @@ pub mod api;
 pub mod application;
 pub mod domain;
 pub mod infrastructure;
+pub mod scheduling;
+pub mod scheduling_api;
+pub mod scheduling_service;
+pub mod scheduling_store;

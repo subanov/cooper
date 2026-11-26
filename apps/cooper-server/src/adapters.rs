@@ -872,6 +872,8 @@ pub struct TaskDirectory {
     pub identity: IdentityDirectory,
     /// Tickets.
     pub desk: cooper_service_desk::application::ServiceDesk,
+    /// Contracts.
+    pub contracts: cooper_contracts::application::ContractsService,
     /// Changes.
     pub changes: cooper_change_management::application::ChangeService,
 }
@@ -882,6 +884,23 @@ fn task_err(e: impl std::fmt::Display) -> cooper_tasks::ports::RepoError {
 
 #[async_trait]
 impl cooper_tasks::ports::Directory for TaskDirectory {
+    async fn contract(
+        &self,
+        principal: &Principal,
+        id: uuid::Uuid,
+    ) -> Result<Option<(TenantId, String)>, cooper_tasks::ports::RepoError> {
+        use cooper_contracts::application::AppError;
+        match self
+            .contracts
+            .get_contract(principal, cooper_contracts::domain::ContractId::from_uuid(id))
+            .await
+        {
+            Ok(view) => Ok(Some((view.contract.tenant_id(), view.contract.details().contract_number.clone()))),
+            Err(AppError::NotFound(_) | AppError::Forbidden(_)) => Ok(None),
+            Err(e) => Err(task_err(e)),
+        }
+    }
+
     async fn ticket(
         &self,
         principal: &Principal,

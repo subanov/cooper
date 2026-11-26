@@ -59,6 +59,10 @@ pub enum NotificationKind {
     ContractNoticeDue,
     /// The end date of a Contract the recipient owns is coming up.
     ContractEndDue,
+    /// An Asset's warranty expires soon (FR-AST-012).
+    AssetWarrantyDue,
+    /// An Asset's lease expires soon (FR-AST-012).
+    AssetLeaseDue,
 }
 
 impl NotificationKind {
@@ -82,6 +86,8 @@ impl NotificationKind {
             Self::ChecksUnrecorded => "checks_unrecorded",
             Self::ContractNoticeDue => "contract_notice_due",
             Self::ContractEndDue => "contract_end_due",
+            Self::AssetWarrantyDue => "asset_warranty_due",
+            Self::AssetLeaseDue => "asset_lease_due",
         }
     }
 
@@ -103,6 +109,8 @@ impl NotificationKind {
             Self::ChecksUnrecorded,
             Self::ContractNoticeDue,
             Self::ContractEndDue,
+            Self::AssetWarrantyDue,
+            Self::AssetLeaseDue,
         ]
         .into_iter()
         .find(|k| k.as_str() == s)

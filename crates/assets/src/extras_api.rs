@@ -10,7 +10,7 @@ use axum::response::{IntoResponse, Response};
 use chrono::NaiveDate;
 use cooper_http::auth::forbidden;
 use cooper_http::{Authenticated, Problem as ProblemJson};
-use cooper_kernel::TenantId;
+use cooper_kernel::{AnalystId, TenantId};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use utoipa_axum::router::OpenApiRouter;
@@ -48,6 +48,7 @@ where
         .routes(routes!(update_asset_field))
         .routes(routes!(get_custom_values, set_custom_values))
         .routes(routes!(asset_software))
+        .routes(routes!(set_asset_owner))
         .routes(routes!(push_inventory))
         .routes(routes!(list_licences, create_licence))
         .routes(routes!(get_licence, update_licence))
@@ -616,6 +617,20 @@ async fn set_custom_values(State(api): State<AssetExtrasApi>, Authenticated(p): 
 async fn asset_software(State(api): State<AssetExtrasApi>, Authenticated(p): Authenticated, Path(id): Path<Uuid>) -> ApiResult<Json<Vec<InstallationDto>>> {
     let rows = api.service.software_of(&p, id).await?;
     Ok(Json(rows.into_iter().map(InstallationDto::from).collect()))
+}
+
+/// The owner of an Asset, reminded of its warranty and lease expiries.
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct OwnerDto {
+    /// The Analyst, or none.
+    pub owner_id: Option<Uuid>,
+}
+
+/// Sets or clears the owner of an Asset (needs `assets.update`).
+#[utoipa::path(put, path = "/assets/{id}/owner", tag = "Assets", params(("id" = Uuid, Path)), request_body = OwnerDto, responses((status = 200, body = OwnerDto)))]
+async fn set_asset_owner(State(api): State<AssetExtrasApi>, Authenticated(p): Authenticated, Path(id): Path<Uuid>, Json(b): Json<OwnerDto>) -> ApiResult<Json<OwnerDto>> {
+    api.service.set_owner(&p, id, b.owner_id.map(AnalystId::from_uuid)).await?;
+    Ok(Json(b))
 }
 
 /// Records an inventory report for the Asset it identifies (needs `assets.inventory`).

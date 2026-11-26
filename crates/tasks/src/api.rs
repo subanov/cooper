@@ -771,7 +771,7 @@ async fn delete_task_time(
 /// A linked ticket or Change.
 #[derive(Debug, Serialize, ToSchema)]
 pub struct TaskLinkDto {
-    /// `ticket` or `change`.
+    /// `ticket`, `change` or `contract`.
     pub kind: String,
     /// The record.
     pub target_id: Uuid,
@@ -795,7 +795,7 @@ impl From<(TaskLink, String)> for TaskLinkDto {
 /// Links a record.
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct TaskLinkRequest {
-    /// `ticket` or `change`.
+    /// `ticket`, `change` or `contract`.
     pub kind: String,
     /// The record (same Company).
     pub target_id: Uuid,

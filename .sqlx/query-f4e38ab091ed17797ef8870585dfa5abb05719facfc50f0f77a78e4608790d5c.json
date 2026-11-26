@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO rota_locations (id, tenant_id, name, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, now(), now())",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f4e38ab091ed17797ef8870585dfa5abb05719facfc50f0f77a78e4608790d5c"
+}

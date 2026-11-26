@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM contract_term_values WHERE contract_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "60fc138b8b532454bb14b2f7342736cd19b80c3ed9489043259c355f79cb25ce"
+}

@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use chrono::{DateTime, NaiveDate, Utc};
 use cooper_kernel::{
-    Actor, AuditAction, AuditRecord, Clock, Forbidden, Principal, TenantId, TenantScope,
+    Actor, AnalystId, AuditAction, AuditRecord, Clock, Forbidden, Principal, TenantId, TenantScope,
 };
 use cooper_platform::crypto::Keyring;
 use serde_json::{Value, json};
@@ -109,6 +109,40 @@ impl From<ExtrasRepoError> for ExtrasError {
     }
 }
 
+/// Warranty and lease expiries are reminded this many days ahead (FR-AST-012).
+pub const REMINDER_DAYS: u64 = 30;
+
+/// The event published when an Asset's warranty or lease is due (FR-AST-012).
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct AssetReminderDue {
+    /// The Asset.
+    pub asset_id: Uuid,
+    /// Company (envelope only).
+    #[serde(skip)]
+    pub tenant_id: TenantId,
+    /// The owner to remind.
+    pub owner_id: Uuid,
+    /// `warranty` or `lease`.
+    pub kind: String,
+    /// The expiry day.
+    pub date: chrono::NaiveDate,
+    /// The Asset's label.
+    pub label: String,
+}
+
+impl cooper_kernel::DomainEvent for AssetReminderDue {
+    const EVENT_TYPE: &'static str = "asset.reminder_due";
+    const AGGREGATE_TYPE: &'static str = "asset";
+
+    fn aggregate_id(&self) -> Uuid {
+        self.asset_id
+    }
+
+    fn tenant_id(&self) -> Option<TenantId> {
+        Some(self.tenant_id)
+    }
+}
+
 /// Dependencies.
 #[derive(Clone)]
 pub struct ExtrasPorts {
@@ -120,6 +154,8 @@ pub struct ExtrasPorts {
     pub clock: Arc<dyn Clock>,
     /// Seals licence keys at rest.
     pub keyring: Keyring,
+    /// Analysts (owners of Assets).
+    pub directory: Arc<dyn crate::ports::Directory>,
 }
 
 /// Asset extras use cases.
@@ -470,6 +506,64 @@ impl ExtrasService {
 
     async fn asset(&self, principal: &Principal, id: Uuid) -> Result<crate::domain::Asset, ExtrasError> {
         Ok(self.ports.assets.get(principal, crate::domain::AssetId::from_uuid(id)).await?)
+    }
+
+    /// Sets or clears the owner of an Asset: the Analyst reminded of its expiries (needs
+    /// `assets.update`).
+    ///
+    /// # Errors
+    ///
+    /// Forbidden, not found, or an owner that is not an active Analyst.
+    pub async fn set_owner(&self, principal: &Principal, asset: Uuid, owner: Option<AnalystId>) -> Result<(), ExtrasError> {
+        require(principal, crate::application::capabilities::UPDATE)?;
+        let found = self.asset(principal, asset).await?;
+        if let Some(o) = owner {
+            let active = self.ports.directory.analyst_active(o).await.map_err(|_| ExtrasError::Internal)?;
+            if !active {
+                return Err(invalid("owner_id", "is not an active Analyst"));
+            }
+        }
+        let now = self.ports.clock.now();
+        let rec = audit(
+            found.tenant_id(),
+            ("asset", asset),
+            AuditAction::Updated,
+            &[],
+            vec![("owner_id", json!(owner.map(|o| o.as_uuid())))],
+            principal.actor(),
+            now,
+        );
+        self.ports.store.save_owner(found.tenant_id(), asset, owner.map(|o| o.as_uuid()), &rec).await?;
+        Ok(())
+    }
+
+    /// Sends the reminders due now: owners of Assets whose warranty or lease ends within
+    /// `REMINDER_DAYS`. Each is sent once. Returns how many were sent (system job).
+    ///
+    /// # Errors
+    ///
+    /// Storage failure.
+    pub async fn send_reminders(&self) -> Result<usize, ExtrasError> {
+        let now = self.ports.clock.now();
+        let today = now.date_naive();
+        let until = today.checked_add_days(chrono::Days::new(REMINDER_DAYS)).unwrap_or(NaiveDate::MAX);
+        let due = self.ports.store.due_reminders(today, until).await?;
+        let mut sent = 0;
+        for d in &due {
+            let payload = AssetReminderDue {
+                asset_id: d.asset_id,
+                tenant_id: d.tenant_id,
+                owner_id: d.owner_id,
+                kind: d.kind.clone(),
+                date: d.date,
+                label: d.label.clone(),
+            };
+            let event = cooper_kernel::EventEnvelope::wrap(&payload, Actor::Automation, now).map_err(|_| ExtrasError::Internal)?;
+            if self.ports.store.record_reminder(d, &event).await? {
+                sent += 1;
+            }
+        }
+        Ok(sent)
     }
 
     // --- Inventory (FR-AST-008) and software (FR-AST-013) --------------------------------

@@ -107,11 +107,13 @@ pub enum SourceKind {
     Contract,
     /// An Asset (Assets context).
     Asset,
+    /// Scheduled work on a ticket (Service Desk context, FR-TKT-031).
+    TicketWork,
 }
 
 impl SourceKind {
     /// Every source kind.
-    pub const ALL: [Self; 2] = [Self::Contract, Self::Asset];
+    pub const ALL: [Self; 3] = [Self::Contract, Self::Asset, Self::TicketWork];
 
     /// Storage and API name.
     #[must_use]
@@ -119,6 +121,7 @@ impl SourceKind {
         match self {
             Self::Contract => "contract",
             Self::Asset => "asset",
+            Self::TicketWork => "ticket_work",
         }
     }
 
@@ -128,6 +131,7 @@ impl SourceKind {
         match self {
             Self::Contract => "contracts",
             Self::Asset => "assets",
+            Self::TicketWork => "tickets",
         }
     }
 
@@ -137,6 +141,7 @@ impl SourceKind {
         match self {
             Self::Contract => "Contracts",
             Self::Asset => "Assets",
+            Self::TicketWork => "Tickets",
         }
     }
 
@@ -146,6 +151,7 @@ impl SourceKind {
         match self {
             Self::Contract => "#7c3aed",
             Self::Asset => "#0f766e",
+            Self::TicketWork => "#2563eb",
         }
     }
 }
@@ -156,9 +162,10 @@ impl FromStr for SourceKind {
         match s {
             "contract" => Ok(Self::Contract),
             "asset" => Ok(Self::Asset),
+            "ticket_work" => Ok(Self::TicketWork),
             _ => Err(CalendarError::invalid(
                 "source_kind",
-                "must be contract or asset",
+                "must be contract, asset or ticket_work",
             )),
         }
     }
@@ -175,6 +182,10 @@ pub enum SourceDate {
     WarrantyExpires,
     /// An Asset's lease expiry.
     LeaseExpires,
+    /// The day scheduled ticket work starts.
+    WorkStarts,
+    /// The day scheduled ticket work ends.
+    WorkEnds,
 }
 
 impl SourceDate {
@@ -186,6 +197,8 @@ impl SourceDate {
             Self::EndDate => "end_date",
             Self::WarrantyExpires => "warranty_expires_on",
             Self::LeaseExpires => "lease_expires_on",
+            Self::WorkStarts => "work_starts_on",
+            Self::WorkEnds => "work_ends_on",
         }
     }
 
@@ -195,6 +208,7 @@ impl SourceDate {
         match self {
             Self::NoticeDate | Self::EndDate => SourceKind::Contract,
             Self::WarrantyExpires | Self::LeaseExpires => SourceKind::Asset,
+            Self::WorkStarts | Self::WorkEnds => SourceKind::TicketWork,
         }
     }
 
@@ -206,6 +220,8 @@ impl SourceDate {
             Self::EndDate => "Contract ends",
             Self::WarrantyExpires => "Warranty expires",
             Self::LeaseExpires => "Lease expires",
+            Self::WorkStarts => "Work starts",
+            Self::WorkEnds => "Work ends",
         }
     }
 }
@@ -218,6 +234,8 @@ impl FromStr for SourceDate {
             "end_date" => Ok(Self::EndDate),
             "warranty_expires_on" => Ok(Self::WarrantyExpires),
             "lease_expires_on" => Ok(Self::LeaseExpires),
+            "work_starts_on" => Ok(Self::WorkStarts),
+            "work_ends_on" => Ok(Self::WorkEnds),
             _ => Err(CalendarError::invalid("source_date", "unknown source date")),
         }
     }

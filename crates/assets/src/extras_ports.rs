@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
-use cooper_kernel::{Actor, AuditRecord, TenantId, TenantScope};
+use cooper_kernel::{Actor, AuditRecord, EventEnvelope, TenantId, TenantScope};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -69,6 +69,23 @@ pub struct Installation {
     pub publisher: String,
     /// The installed version.
     pub version: String,
+}
+
+/// An expiry that is due for a reminder.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DueReminder {
+    /// The Asset.
+    pub asset_id: Uuid,
+    /// Its Company.
+    pub tenant_id: TenantId,
+    /// Its owner (an Analyst).
+    pub owner_id: Uuid,
+    /// `warranty` or `lease`.
+    pub kind: String,
+    /// The expiry day.
+    pub date: NaiveDate,
+    /// The Asset's tag, hostname or ID.
+    pub label: String,
 }
 
 /// An Asset found by an identifier.
@@ -146,6 +163,14 @@ pub trait ExtrasRepository: Send + Sync {
     async fn unlink_application(&self, licence: Uuid, application: Uuid) -> Result<(), ExtrasRepoError>;
     /// The applications linked to a licence, and the Assets that have any of them.
     async fn compliance_counts(&self, scope: &TenantScope, licence: Uuid) -> Result<(u32, u32), ExtrasRepoError>;
+    /// Sets or clears the owner of an Asset (audited).
+    async fn save_owner(&self, tenant: TenantId, asset: Uuid, owner: Option<Uuid>, audit: &AuditRecord) -> Result<(), ExtrasRepoError>;
+    /// Warranty and lease expiries in `from..=to` of active Assets that have an owner, across
+    /// Companies (for the reminder job).
+    async fn due_reminders(&self, from: NaiveDate, to: NaiveDate) -> Result<Vec<DueReminder>, ExtrasRepoError>;
+    /// Records a reminder and appends its event, unless this one was sent already. Returns
+    /// whether it was new.
+    async fn record_reminder(&self, due: &DueReminder, event: &EventEnvelope) -> Result<bool, ExtrasRepoError>;
     /// Assets of a Company with an Asset Type, that are active (not retired), with their IDs
     /// and identifiers, for the import's missing-asset rule.
     async fn active_assets_of_type(

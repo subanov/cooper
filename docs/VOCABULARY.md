@@ -334,6 +334,12 @@ exactly in code, database, API, UI and conversation. Each section is one **bound
 | **Form Audience** | Who may see a Portal-visible Form: a Requester, a User Group or a Department. None means every Requester of the Company. | `FormAudience`, `form_audiences` | target group |
 | **Submission Action** | What a submitted Form creates: a ticket (through the Portal Catalogue) and/or a task. Templates use `{field_key}` placeholders. | `SubmissionAction` | workflow step |
 | **Form Approver** | An Analyst, or a Team's members, who may approve a Submission. | `FormApprover` | reviewer |
+| **Contract Term** | A configurable tab of a Contract (for example SLA credits or Exit), with a value per Contract. | `ContractTermTab`, `contract_term_tabs` | clause |
+| **Scheduled Work** | Time an Analyst (the Owner) plans to spend on a ticket, as whole days or a time range. | `ScheduledWork`, `ticket_scheduled_work` | booking, appointment |
+| **Rota Shift** | A named time of day that Analysts are scheduled into. | `RotaShift`, `rota_shifts` | roster slot |
+| **Rota Location** | Where an Analyst works on a shift, such as Office or WFH. | `RotaLocation`, `rota_locations` | site |
+| **Rota Entry** | An Analyst placed on a day, shift and location, optionally on call. | `RotaEntry`, `rota_entries` | roster entry |
+| **Asset Owner** | The Analyst reminded of an Asset's warranty and lease expiry. | `asset_owners` | asset manager |
 
 ---
 

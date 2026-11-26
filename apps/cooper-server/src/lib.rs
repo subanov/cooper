@@ -78,6 +78,8 @@ fn api() -> (Router<AppState>, OpenApi) {
         .merge(cooper_reporting::api::router())
         .merge(cooper_assets::api::router())
         .merge(cooper_contracts::api::router())
+        .merge(cooper_contracts::terms_api::router())
+        .merge(cooper_service_desk::scheduling_api::router())
         .merge(cooper_forms::api::router())
         .merge(cooper_assets::extras_api::router())
         .merge(cooper_calendar::api::router())

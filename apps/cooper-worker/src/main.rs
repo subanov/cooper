@@ -225,6 +225,9 @@ fn with_jobs(
                 service: state.contracts.service.clone(),
             },
         ))
+        .with_job(Arc::new(cooper_assets::extras_store::AssetReminderJob {
+            service: state.asset_extras.service.clone(),
+        }))
 }
 
 async fn job_loop(
@@ -371,6 +374,7 @@ mod tests {
         let mut names: Vec<&str> = runner.job_names().collect();
         names.sort_unstable();
         let expected = [
+            "asset-reminders",
             "attachment-orphan-cleanup",
             "attachment-text-extraction",
             "contract-reminders",

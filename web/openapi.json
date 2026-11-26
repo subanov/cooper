@@ -1684,6 +1684,47 @@
         }
       }
     },
+    "/api/v1/assets/{id}/owner": {
+      "put": {
+        "tags": [
+          "Assets"
+        ],
+        "summary": "Sets or clears the owner of an Asset (needs `assets.update`).",
+        "operationId": "set_asset_owner",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnerDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnerDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assets/{id}/retire": {
       "post": {
         "tags": [
@@ -4222,6 +4263,98 @@
         }
       }
     },
+    "/api/v1/contract-term-tabs": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "All Contract Terms tabs (needs `contracts.read`).",
+        "operationId": "list_tabs",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TermTabDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Creates a Contract Terms tab (needs `contracts.configure`).",
+        "operationId": "create_tab",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TermTabRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TermTabDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contract-term-tabs/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Changes a Contract Terms tab (needs `contracts.configure`).",
+        "operationId": "update_tab",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TermTabRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TermTabDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/contracts": {
       "get": {
         "tags": [
@@ -4476,6 +4609,76 @@
                   "items": {
                     "$ref": "#/components/schemas/ContractHistoryDto"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{id}/terms": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "The Terms of a Contract (needs `contracts.read`).",
+        "operationId": "get_terms",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TermsDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Replaces the Terms of a Contract (needs `contracts.write`).",
+        "operationId": "set_terms",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TermsDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TermsDto"
                 }
               }
             }
@@ -11177,6 +11380,350 @@
         }
       }
     },
+    "/api/v1/rota": {
+      "get": {
+        "tags": [
+          "Rota"
+        ],
+        "summary": "Who is on the rota on a day, or in a range (needs `rota.read`).",
+        "operationId": "rota_day",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Company.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "First day (default today, UTC).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Last day (default the first day).",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RotaEntryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Rota"
+        ],
+        "summary": "Puts an Analyst on the rota (needs `rota.manage`).",
+        "operationId": "schedule_rota",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotaEntryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RotaEntryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rota/locations": {
+      "get": {
+        "tags": [
+          "Rota"
+        ],
+        "summary": "Locations of a Company (needs `rota.read`).",
+        "operationId": "list_locations",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Rota"
+        ],
+        "summary": "Defines a location, such as Office or WFH (needs `rota.configure`).",
+        "operationId": "create_location",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LocationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LocationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rota/shifts": {
+      "get": {
+        "tags": [
+          "Rota"
+        ],
+        "summary": "Shifts of a Company (needs `rota.read`).",
+        "operationId": "list_shifts",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShiftDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Rota"
+        ],
+        "summary": "Defines a shift (needs `rota.configure`).",
+        "operationId": "create_shift",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scheduled-work": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Scheduled work, by Owner and day range (needs `tickets.read`).",
+        "operationId": "list_work",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "query",
+            "description": "Only this Company.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "owner_id",
+            "in": "query",
+            "description": "Only this Owner.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Work that ends on or after this day.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Work that starts on or before this day.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scheduled-work/{id}": {
+      "put": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Moves or changes scheduled work (needs `tickets.update`).",
+        "operationId": "reschedule_work",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scheduled-work/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Cancels scheduled work; it stays in the history (needs `tickets.update`).",
+        "operationId": "cancel_work",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/service-status": {
       "get": {
         "tags": [
@@ -16611,6 +17158,79 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TicketDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tickets/{id}/scheduled-work": {
+      "get": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Scheduled work on a ticket (needs visibility of the ticket).",
+        "operationId": "list_ticket_work",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Tickets"
+        ],
+        "summary": "Schedules work on a ticket for an Owner (needs `tickets.update`).",
+        "operationId": "schedule_work",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkDto"
                 }
               }
             }
@@ -23720,6 +24340,49 @@
           }
         }
       },
+      "LocationDto": {
+        "type": "object",
+        "description": "A rota location.",
+        "required": [
+          "id",
+          "name",
+          "active"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          }
+        }
+      },
+      "LocationRequest": {
+        "type": "object",
+        "description": "A location to define.",
+        "required": [
+          "company_id",
+          "name"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name, such as Office or WFH."
+          }
+        }
+      },
       "LogEntryDto": {
         "type": "object",
         "description": "A system log entry.",
@@ -24692,6 +25355,20 @@
           "title": {
             "type": "string",
             "description": "Title."
+          }
+        }
+      },
+      "OwnerDto": {
+        "type": "object",
+        "description": "The owner of an Asset, reminded of its warranty and lease expiries.",
+        "properties": {
+          "owner_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "The Analyst, or none."
           }
         }
       },
@@ -27556,6 +28233,91 @@
           }
         }
       },
+      "RotaEntryDto": {
+        "type": "object",
+        "description": "A rota entry.",
+        "required": [
+          "id",
+          "analyst_id",
+          "work_date",
+          "shift_id",
+          "location_id",
+          "on_call"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Analyst."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "location_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The location."
+          },
+          "on_call": {
+            "type": "boolean",
+            "description": "On call."
+          },
+          "shift_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The shift."
+          },
+          "work_date": {
+            "type": "string",
+            "format": "date",
+            "description": "The day."
+          }
+        }
+      },
+      "RotaEntryRequest": {
+        "type": "object",
+        "description": "An Analyst to put on the rota.",
+        "required": [
+          "company_id",
+          "analyst_id",
+          "work_date",
+          "shift_id",
+          "location_id"
+        ],
+        "properties": {
+          "analyst_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Analyst."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "location_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The location (of the Company)."
+          },
+          "on_call": {
+            "type": "boolean",
+            "description": "On call (default false)."
+          },
+          "shift_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The shift (of the Company)."
+          },
+          "work_date": {
+            "type": "string",
+            "format": "date",
+            "description": "The day."
+          }
+        }
+      },
       "ScheduleDto": {
         "type": "object",
         "description": "New schedule of a job.",
@@ -28027,6 +28789,69 @@
           "required": {
             "type": "boolean",
             "description": "`true` until the first Administrator exists."
+          }
+        }
+      },
+      "ShiftDto": {
+        "type": "object",
+        "description": "A shift.",
+        "required": [
+          "id",
+          "name",
+          "starts_at",
+          "ends_at",
+          "active"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "ends_at": {
+            "type": "string",
+            "description": "End time (HH:MM:SS; may be earlier than the start for a night shift)."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "starts_at": {
+            "type": "string",
+            "description": "Start time (HH:MM:SS)."
+          }
+        }
+      },
+      "ShiftRequest": {
+        "type": "object",
+        "description": "A shift to define.",
+        "required": [
+          "company_id",
+          "name",
+          "starts_at",
+          "ends_at"
+        ],
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "ends_at": {
+            "type": "string",
+            "description": "End time."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "starts_at": {
+            "type": "string",
+            "description": "Start time."
           }
         }
       },
@@ -29359,7 +30184,7 @@
         "properties": {
           "kind": {
             "type": "string",
-            "description": "`ticket` or `change`."
+            "description": "`ticket`, `change` or `contract`."
           },
           "linked_at": {
             "type": "string",
@@ -29387,7 +30212,7 @@
         "properties": {
           "kind": {
             "type": "string",
-            "description": "`ticket` or `change`."
+            "description": "`ticket`, `change` or `contract`."
           },
           "target_id": {
             "type": "string",
@@ -29879,6 +30704,93 @@
           "name": {
             "type": "string",
             "description": "Name."
+          }
+        }
+      },
+      "TermTabDto": {
+        "type": "object",
+        "description": "A Terms tab.",
+        "required": [
+          "id",
+          "name",
+          "sort_order",
+          "active"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "TermTabRequest": {
+        "type": "object",
+        "description": "A tab to create or change.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Active (default true)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name."
+          },
+          "sort_order": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Display order."
+          }
+        }
+      },
+      "TermValueDto": {
+        "type": "object",
+        "description": "One value of a Contract's Terms.",
+        "required": [
+          "tab_id",
+          "value"
+        ],
+        "properties": {
+          "tab_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The tab."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value."
+          }
+        }
+      },
+      "TermsDto": {
+        "type": "object",
+        "description": "The Terms of a Contract.",
+        "required": [
+          "values"
+        ],
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TermValueDto"
+            },
+            "description": "Values by tab (blank values are not kept)."
           }
         }
       },
@@ -31342,6 +32254,135 @@
           "pattern": {
             "type": "string",
             "description": "Address or domain."
+          }
+        }
+      },
+      "WorkDto": {
+        "type": "object",
+        "description": "Scheduled work on a ticket.",
+        "required": [
+          "id",
+          "company_id",
+          "ticket_id",
+          "owner_id",
+          "all_day",
+          "starts_on",
+          "ends_on",
+          "notes",
+          "active"
+        ],
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "False once cancelled."
+          },
+          "all_day": {
+            "type": "boolean",
+            "description": "Whole days (true) or a time range."
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company."
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "End instant, for timed work."
+          },
+          "ends_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "owner_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Owner (an Analyst)."
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Start instant, for timed work."
+          },
+          "starts_on": {
+            "type": "string",
+            "format": "date",
+            "description": "First day."
+          },
+          "ticket_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The ticket."
+          }
+        }
+      },
+      "WorkRequest": {
+        "type": "object",
+        "description": "Scheduled work to make or change.",
+        "required": [
+          "owner_id"
+        ],
+        "properties": {
+          "all_day": {
+            "type": "boolean",
+            "description": "Whole days."
+          },
+          "ends_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "End (timed work)."
+          },
+          "ends_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Last day (whole days; defaults to the first)."
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notes."
+          },
+          "owner_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The Owner (an active Analyst)."
+          },
+          "starts_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "Start (timed work)."
+          },
+          "starts_on": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "First day (whole days)."
           }
         }
       }

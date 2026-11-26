@@ -201,6 +201,10 @@ pub struct AppState {
     pub calendar: cooper_calendar::api::CalendarApi,
     /// Contracts API state.
     pub contracts: cooper_contracts::api::ContractsApi,
+    /// Contract Terms API state (FR-CON-005).
+    pub terms: cooper_contracts::terms_api::TermsApi,
+    /// Scheduled work and rota API state (FR-TKT-031, FR-SLA-008).
+    pub scheduling: cooper_service_desk::scheduling_api::SchedulingApi,
     /// Forms API state.
     pub forms: cooper_forms::api::FormsApi,
     /// Asset extras API state (custom fields, software, licences, inventory, import).
@@ -233,6 +237,7 @@ pub fn capability_catalogue() -> BTreeSet<Capability> {
         .chain(cooper_assets::application::capabilities::ALL)
         .chain(cooper_forms::application::capabilities::ALL)
         .chain(cooper_assets::extras::capabilities::ALL)
+        .chain(cooper_service_desk::scheduling_service::capabilities::ALL)
         .filter_map(|c| Capability::from_static(c))
         .collect()
 }
@@ -314,6 +319,16 @@ pub fn module_routes() -> Vec<(&'static str, Module)> {
             cooper_forms::api::ROUTE_PREFIXES
                 .iter()
                 .map(|p| (*p, Module::Forms)),
+        )
+        .chain(
+            cooper_contracts::terms_api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Contracts)),
+        )
+        .chain(
+            cooper_service_desk::scheduling_api::ROUTE_PREFIXES
+                .iter()
+                .map(|p| (*p, Module::Tickets)),
         )
         .chain(
             cooper_assets::extras_api::ROUTE_PREFIXES
@@ -450,6 +465,24 @@ impl AppState {
                 clock: clock.clone(),
             },
         );
+        let contracts = cooper_contracts::api::ContractsApi {
+            service: cooper_contracts::application::ContractsService::new(
+                cooper_contracts::application::ContractsPorts {
+                    contracts: Arc::new(cooper_contracts::infrastructure::PgContractsStore::new(
+                        pool.clone(),
+                    )),
+                    directory: Arc::new(crate::adapters::ContractDirectory {
+                        identity: IdentityDirectory {
+                            identity: service.clone(),
+                        },
+                    }),
+                    settings: Arc::new(crate::adapters::ContractSettings {
+                        admin: admin.clone(),
+                    }),
+                    clock: clock.clone(),
+                },
+            ),
+        };
         let tasks = cooper_tasks::api::TasksApi {
             service: cooper_tasks::application::TaskService::new(
                 cooper_tasks::application::TaskPorts {
@@ -460,6 +493,7 @@ impl AppState {
                         },
                         desk: desk.clone(),
                         changes: change_service.clone(),
+                        contracts: contracts.service.clone(),
                     }),
                     clock: clock.clone(),
                 },
@@ -533,22 +567,23 @@ impl AppState {
                 },
             ),
         };
-        let contracts = cooper_contracts::api::ContractsApi {
-            service: cooper_contracts::application::ContractsService::new(
-                cooper_contracts::application::ContractsPorts {
-                    contracts: Arc::new(cooper_contracts::infrastructure::PgContractsStore::new(
-                        pool.clone(),
-                    )),
-                    directory: Arc::new(crate::adapters::ContractDirectory {
-                        identity: IdentityDirectory {
-                            identity: service.clone(),
-                        },
-                    }),
-                    settings: Arc::new(crate::adapters::ContractSettings {
-                        admin: admin.clone(),
-                    }),
-                    clock: clock.clone(),
-                },
+        let scheduling_ports = cooper_service_desk::scheduling_service::SchedulingPorts {
+            store: Arc::new(cooper_service_desk::scheduling_store::PgSchedulingStore::new(pool.clone())),
+            desk: desk.clone(),
+            directory: Arc::new(crate::adapters::IdentityDirectory {
+                identity: service.clone(),
+            }),
+            clock: clock.clone(),
+        };
+        let scheduling = cooper_service_desk::scheduling_api::SchedulingApi {
+            work: cooper_service_desk::scheduling_service::ScheduledWorkService::new(scheduling_ports.clone()),
+            rota: cooper_service_desk::scheduling_service::RotaService::new(scheduling_ports),
+        };
+        let terms = cooper_contracts::terms_api::TermsApi {
+            service: cooper_contracts::terms_service::TermsService::new(
+                Arc::new(cooper_contracts::terms_store::PgTermsStore::new(pool.clone())),
+                contracts.service.clone(),
+                clock.clone(),
             ),
         };
         let forms = cooper_forms::api::FormsApi {
@@ -593,6 +628,13 @@ impl AppState {
                 store: Arc::new(cooper_assets::extras_store::PgExtrasStore::new(pool.clone())),
                 clock: clock.clone(),
                 keyring: security.keyring.clone(),
+                directory: Arc::new(crate::adapters::AssetDirectory {
+                    identity: crate::adapters::IdentityDirectory {
+                        identity: service.clone(),
+                    },
+                    desk: desk.clone(),
+                    contracts: contracts.service.clone(),
+                }),
             }),
         };
         let changes = cooper_change_management::api::ChangesApi {
@@ -646,6 +688,8 @@ impl AppState {
             reporting,
             calendar,
             contracts,
+            terms,
+            scheduling,
             forms,
             asset_extras,
             assets,
@@ -706,6 +750,9 @@ impl AppState {
                 checks: Arc::new(crate::adapters::UnrecordedChecks {
                     checks: self.morning_checks.service.clone(),
                 }),
+            }),
+            Arc::new(cooper_notifications::handlers::AssetReminderNotifier {
+                notifications: self.notifications.service.clone(),
             }),
             Arc::new(cooper_notifications::handlers::ContractReminderNotifier {
                 notifications: self.notifications.service.clone(),
@@ -788,6 +835,18 @@ impl FromRef<AppState> for cooper_assets::api::AssetsApi {
 impl FromRef<AppState> for cooper_assets::extras_api::AssetExtrasApi {
     fn from_ref(state: &AppState) -> Self {
         state.asset_extras.clone()
+    }
+}
+
+impl FromRef<AppState> for cooper_service_desk::scheduling_api::SchedulingApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.scheduling.clone()
+    }
+}
+
+impl FromRef<AppState> for cooper_contracts::terms_api::TermsApi {
+    fn from_ref(state: &AppState) -> Self {
+        state.terms.clone()
     }
 }
 
@@ -898,6 +957,7 @@ mod tests {
                 + cooper_assets::application::capabilities::ALL.len()
                 + cooper_forms::application::capabilities::ALL.len()
                 + cooper_assets::extras::capabilities::ALL.len()
+                + cooper_service_desk::scheduling_service::capabilities::ALL.len()
         );
         let keys: BTreeSet<&str> = setting_catalogue().iter().map(|s| s.key).collect();
         assert_eq!(

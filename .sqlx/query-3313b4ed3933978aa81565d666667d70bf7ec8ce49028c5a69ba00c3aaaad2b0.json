@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM asset_owners WHERE asset_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3313b4ed3933978aa81565d666667d70bf7ec8ce49028c5a69ba00c3aaaad2b0"
+}

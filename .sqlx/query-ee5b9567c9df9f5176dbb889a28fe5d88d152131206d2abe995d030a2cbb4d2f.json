@@ -1,0 +1,72 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT a.id AS \"asset_id!\", a.tenant_id AS \"tenant_id!\", o.owner_id AS \"owner_id!\",\n                      a.lease_expires_on AS \"day!: NaiveDate\",\n                      COALESCE(a.asset_tag, a.hostname, a.service_tag, a.id::text) AS \"label!\"\n               FROM assets a JOIN asset_owners o ON o.asset_id = a.id\n               WHERE a.retired_on IS NULL AND a.lease_expires_on BETWEEN $1 AND $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "asset_id!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "tenant_id!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "tenant_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "owner_id!",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "asset_owners",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "day!: NaiveDate",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "assets",
+            "name": "lease_expires_on"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "label!",
+        "type_info": "Text",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Date"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      null
+    ]
+  },
+  "hash": "ee5b9567c9df9f5176dbb889a28fe5d88d152131206d2abe995d030a2cbb4d2f"
+}

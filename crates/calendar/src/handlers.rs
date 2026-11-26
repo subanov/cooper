@@ -27,6 +27,38 @@ use crate::domain::{SourceDate, SourceFacts, SourceKind};
 pub const CONTRACT_DATES_CHANGED: &str = "contract.dates_changed";
 /// Event type the Assets context publishes when an Asset's dates or state change.
 pub const ASSET_DATES_CHANGED: &str = "asset.dates_changed";
+/// Event type the Service Desk publishes when scheduled work on a ticket is made or changed.
+pub const TICKET_WORK_CHANGED: &str = "ticket.work_changed";
+
+/// The Calendar's view of `ticket.work_changed`: its days, for the start and end markers.
+#[derive(Debug, Clone, Deserialize)]
+pub struct TicketWorkDates {
+    /// The work.
+    pub work_id: Uuid,
+    /// The ticket's number.
+    pub ticket_number: String,
+    /// First day.
+    pub starts_on: NaiveDate,
+    /// Last day.
+    pub ends_on: NaiveDate,
+    /// False once cancelled.
+    pub active: bool,
+}
+
+impl From<TicketWorkDates> for SourceFacts {
+    fn from(w: TicketWorkDates) -> Self {
+        Self {
+            kind: SourceKind::TicketWork,
+            id: w.work_id,
+            label: format!("{} work", w.ticket_number.trim()),
+            active: w.active,
+            dates: vec![
+                (SourceDate::WorkStarts, Some(w.starts_on)),
+                (SourceDate::WorkEnds, Some(w.ends_on)),
+            ],
+        }
+    }
+}
 
 /// The Calendar's view of `contract.dates_changed`.
 #[derive(Debug, Clone, Deserialize)]
@@ -107,6 +139,7 @@ pub fn source_facts(event: &EventEnvelope) -> Result<SourceFacts, String> {
     match event.event_type.as_str() {
         CONTRACT_DATES_CHANGED => Ok(event.payload_as::<ContractDates>().map_err(bad)?.into()),
         ASSET_DATES_CHANGED => Ok(event.payload_as::<AssetDates>().map_err(bad)?.into()),
+        TICKET_WORK_CHANGED => Ok(event.payload_as::<TicketWorkDates>().map_err(bad)?.into()),
         other => Err(format!("unexpected event type {other}")),
     }
 }
@@ -125,7 +158,7 @@ impl EventHandler for GeneratedEventsSync {
     }
 
     fn handles(&self, event_type: &str) -> bool {
-        matches!(event_type, CONTRACT_DATES_CHANGED | ASSET_DATES_CHANGED)
+        matches!(event_type, CONTRACT_DATES_CHANGED | ASSET_DATES_CHANGED | TICKET_WORK_CHANGED)
     }
 
     async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {

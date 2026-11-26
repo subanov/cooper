@@ -5,13 +5,13 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
-use cooper_kernel::{Actor, AuditRecord, TenantId, TenantScope};
+use cooper_kernel::{Actor, AuditRecord, EventEnvelope, TenantId, TenantScope};
 use cooper_platform::tenancy;
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::custom_fields::{CustomKind, FieldDefinition, FieldSet};
-use crate::extras_ports::{ExtrasRepoError, ExtrasRepository, FoundAsset, Installation, LicenceRecord};
+use crate::extras_ports::{DueReminder, ExtrasRepoError, ExtrasRepository, FoundAsset, Installation, LicenceRecord};
 use crate::inventory::{LicenceStatus, SoftwareItem};
 
 /// sqlx implementation of [`ExtrasRepository`].
@@ -593,5 +593,113 @@ impl ExtrasRepository for PgExtrasStore {
         .map_err(db_err)?;
         tx.commit().await.map_err(db_err)?;
         Ok(rows.into_iter().map(|r| (r.id, r.service_tag, r.hostname, r.asset_tag)).collect())
+    }
+
+    async fn save_owner(&self, tenant: TenantId, asset: Uuid, owner: Option<Uuid>, audit: &AuditRecord) -> Result<(), ExtrasRepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(tenant)).await.map_err(db_err)?;
+        match owner {
+            Some(o) => {
+                sqlx::query!(
+                    "INSERT INTO asset_owners (asset_id, tenant_id, owner_id, updated_at) VALUES ($1, $2, $3, now())
+                     ON CONFLICT (asset_id) DO UPDATE SET owner_id = EXCLUDED.owner_id, updated_at = now()",
+                    asset,
+                    tenant.as_uuid(),
+                    o
+                )
+                .execute(&mut *tx)
+                .await
+                .map_err(db_err)?;
+            }
+            None => {
+                sqlx::query!("DELETE FROM asset_owners WHERE asset_id = $1", asset)
+                    .execute(&mut *tx)
+                    .await
+                    .map_err(db_err)?;
+            }
+        }
+        write(&mut tx, audit).await?;
+        tx.commit().await.map_err(db_err)
+    }
+
+    async fn due_reminders(&self, from: NaiveDate, to: NaiveDate) -> Result<Vec<DueReminder>, ExtrasRepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::All).await.map_err(db_err)?;
+        let warranty = sqlx::query!(
+            r#"SELECT a.id AS "asset_id!", a.tenant_id AS "tenant_id!", o.owner_id AS "owner_id!",
+                      a.warranty_expires_on AS "day!: NaiveDate",
+                      COALESCE(a.asset_tag, a.hostname, a.service_tag, a.id::text) AS "label!"
+               FROM assets a JOIN asset_owners o ON o.asset_id = a.id
+               WHERE a.retired_on IS NULL AND a.warranty_expires_on BETWEEN $1 AND $2"#,
+            from,
+            to
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        let lease = sqlx::query!(
+            r#"SELECT a.id AS "asset_id!", a.tenant_id AS "tenant_id!", o.owner_id AS "owner_id!",
+                      a.lease_expires_on AS "day!: NaiveDate",
+                      COALESCE(a.asset_tag, a.hostname, a.service_tag, a.id::text) AS "label!"
+               FROM assets a JOIN asset_owners o ON o.asset_id = a.id
+               WHERE a.retired_on IS NULL AND a.lease_expires_on BETWEEN $1 AND $2"#,
+            from,
+            to
+        )
+        .fetch_all(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        let mut out: Vec<DueReminder> = warranty
+            .into_iter()
+            .map(|r| DueReminder { asset_id: r.asset_id, tenant_id: TenantId::from_uuid(r.tenant_id), owner_id: r.owner_id, kind: "warranty".into(), date: r.day, label: r.label })
+            .collect();
+        out.extend(lease.into_iter().map(|r| DueReminder { asset_id: r.asset_id, tenant_id: TenantId::from_uuid(r.tenant_id), owner_id: r.owner_id, kind: "lease".into(), date: r.day, label: r.label }));
+        Ok(out)
+    }
+
+    async fn record_reminder(&self, due: &DueReminder, event: &EventEnvelope) -> Result<bool, ExtrasRepoError> {
+        let mut tx = tenancy::begin(&self.pool, &TenantScope::single(due.tenant_id)).await.map_err(db_err)?;
+        let new = sqlx::query_scalar!(
+            "INSERT INTO asset_reminders (asset_id, tenant_id, kind, reminded_date, owner_id, sent_at)
+             VALUES ($1, $2, $3, $4, $5, now())
+             ON CONFLICT (asset_id, kind, reminded_date) DO NOTHING
+             RETURNING 1 AS \"one!\"",
+            due.asset_id,
+            due.tenant_id.as_uuid(),
+            due.kind,
+            due.date,
+            due.owner_id
+        )
+        .fetch_optional(&mut *tx)
+        .await
+        .map_err(db_err)?;
+        if new.is_none() {
+            return Ok(false);
+        }
+        cooper_platform::outbox::append(&mut tx, event).await.map_err(db_err)?;
+        tx.commit().await.map_err(db_err)?;
+        Ok(true)
+    }
+
+}
+
+/// Sends the reminders of warranty and lease expiries (FR-AST-012), hourly.
+pub struct AssetReminderJob {
+    /// The service.
+    pub service: crate::extras::ExtrasService,
+}
+
+#[async_trait]
+impl cooper_platform::jobs::Job for AssetReminderJob {
+    fn name(&self) -> &'static str {
+        "asset-reminders"
+    }
+
+    fn default_schedule(&self) -> cooper_platform::jobs::Schedule {
+        cooper_platform::jobs::Schedule::every_seconds(3600)
+    }
+
+    async fn run(&self, _ctx: &cooper_platform::jobs::JobContext) -> Result<Option<String>, cooper_platform::jobs::JobError> {
+        let n = self.service.send_reminders().await.map_err(|e| e.to_string())?;
+        Ok(Some(format!("sent {n} Asset reminders")))
     }
 }

@@ -1016,10 +1016,11 @@ impl TaskService {
         Ok(match kind {
             LinkKind::Ticket => self.ports.directory.ticket(principal, id).await?,
             LinkKind::Change => self.ports.directory.change(principal, id).await?,
+            LinkKind::Contract => self.ports.directory.contract(principal, id).await?,
         })
     }
 
-    /// Links a ticket or Change of the Task's Company (needs `tasks.update`).
+    /// Links a ticket, Change or Contract of the Task's Company (needs `tasks.update`).
     ///
     /// # Errors
     ///
@@ -1036,10 +1037,10 @@ impl TaskService {
         let (tenant, number) =
             self.target(principal, kind, target)
                 .await?
-                .ok_or(AppError::NotFound(if kind == LinkKind::Ticket {
-                    "ticket"
-                } else {
-                    "Change"
+                .ok_or(AppError::NotFound(match kind {
+                    LinkKind::Ticket => "ticket",
+                    LinkKind::Change => "Change",
+                    LinkKind::Contract => "Contract",
                 }))?;
         if tenant != task.tenant_id() {
             return Err(TaskError::invalid("target_id", "belongs to another Company").into());

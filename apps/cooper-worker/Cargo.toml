@@ -22,6 +22,7 @@ cooper-service-status.workspace = true
 cooper-morning-checks.workspace = true
 cooper-tasks.workspace = true
 cooper-contracts.workspace = true
+cooper-assets.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
 cooper-http.workspace = true

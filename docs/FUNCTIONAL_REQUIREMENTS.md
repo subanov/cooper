@@ -117,7 +117,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TKT-028 | **Ticket Links** between tickets: related, duplicate, parent/child. Links stay within one Company, a ticket has at most one parent and one master, parent/child cycles are refused, and links to tickets an Analyst may not see are hidden from them. | S | P2 |
 | FR-TKT-029 | Administrators define custom **Ticket Fields** (typed: text, number, date, dropdown, checkbox, …) with *required on create*, *required on close* and *ask requester* options. A field's key and type never change; fields are retired, not deleted. Emailed tickets cannot be asked and skip *required on create*. Deviation from FreeITSM: fields are instance-wide, not per Company (ADR-0024). | S | P2 |
 | FR-TKT-030 | Tickets can be linked to Assets, CIs, Problems, Changes and Tasks. Each context owns its links; `GET /tickets/{id}/related` gathers Problems, Changes, Tasks, Knowledge Articles and Morning Check Results (ADR-0031). Assets and CIs join with their contexts (ADR-0029). | S | P2 |
-| FR-TKT-031 | Analysts can schedule work on a ticket (start, end, all-day) for an **Owner**. The work appears on the Calendar. | C | P3 |
+| FR-TKT-031 | Analysts can schedule work on a ticket (start, end, all-day) for an **Owner**. The work appears on the Calendar. Deviation from FreeITSM: work has an active Owner and a span; cancelling keeps the record (ADR-0042). | C | P3 |
 | FR-TKT-032 | **Checklists** from templates can be attached to a ticket. The template's Closure Mode decides whether incomplete mandatory items block closure. | C | P3 |
 | FR-TKT-033 | After closure, the Requester receives a **CSAT** request. Ratings are stored per ticket and reported. | C | P4 |
 
@@ -168,7 +168,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-SLA-005 | A background job raises **SLA Warning** (configurable threshold) and **SLA Breach** events. Each event is raised at most once per ticket, target and trigger. | M | P1 |
 | FR-SLA-006 | **SLA Notification Rules** decide who is notified (assignee, team, specific Analysts) for warning or breach, for response, resolution or both. | S | P1 |
 | FR-SLA-007 | Ticket lists show SLA state (on track, warning, breached, paused) and time remaining. | M | P1 |
-| FR-SLA-008 | **Rota**: Administrators define Shifts and Rota Locations (Office, WFH). Analysts are scheduled through Rota Entries, which can be flagged On Call. A rota view shows who is working today. | C | P3 |
+| FR-SLA-008 | **Rota**: Administrators define Shifts and Rota Locations (Office, WFH). Analysts are scheduled through Rota Entries, which can be flagged On Call. A rota view shows who is working today. Deviation from FreeITSM: shifts and locations are per Company; one entry per Analyst, day and shift (ADR-0042). | C | P3 |
 
 ## 7. Self-Service Portal (PRT)
 
@@ -220,7 +220,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-TSK-001 | Analysts create **Tasks** (title, description, status, priority, start and due date, estimate) assigned to an Analyst, Team, Supplier or Contact. Assigning an Analyst notifies them. Supplier and Contact assignees follow the Contracts context (FR-CON-001) (ADR-0029). | M | P2 |
 | FR-TSK-002 | Task Statuses and Priorities are configurable. | M | P2 |
 | FR-TSK-003 | Tasks support **Subtasks**, **Tags**, **Collaborators**, comments, time entries and an audit trail. Deviation from FreeITSM: one level of Subtasks (ADR-0029). | S | P2 |
-| FR-TSK-004 | Tasks can be linked to a ticket, change, contract or project. Contract links follow the Contracts context, project links Projects (FR-TSK-009) (ADR-0029). | S | P2 |
+| FR-TSK-004 | Tasks can be linked to a ticket, change, contract or project. Contract links follow the Contracts context, project links Projects (FR-TSK-009) (ADR-0029). Contracts can be linked as well (ADR-0042). | S | P2 |
 | FR-TSK-005 | **Board** (Kanban) view with drag-and-drop between statuses, plus a list view. | S | P2 |
 | FR-TSK-006 | **Recurrence**: daily, weekly (weekdays), monthly (date or nth weekday), yearly. Repeats on completion or on a fixed schedule, with an end condition. Occurrences are real Tasks; only completing (a Done status) repeats, cancelling does not. | S | P2 |
 | FR-TSK-007 | Knowledge Articles can be attached as **Procedures** (snapshotted at attach time). | C | P3 |
@@ -282,7 +282,7 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-AST-009 | Inventory connectors: Microsoft Intune, Proxmox, VMware vCenter / Cloud Director, Hyper-V. | C | P4 |
 | FR-AST-010 | **Reconciliation**: possible duplicates or conflicts become Review Items (open, merged, different, ignored, resolved). **Protected Fields** are never overwritten by imports. | C | P4 |
 | FR-AST-011 | Print **Asset Labels** with QR codes. Scanning a code opens the Asset. | C | P4 |
-| FR-AST-012 | Warranty and lease expiry create Calendar Events and notifications ahead of time. The Calendar Events come from `asset.dates_changed` (FR-CAL-002, ADR-0036). | S | P3 |
+| FR-AST-012 | Warranty and lease expiry create Calendar Events and notifications ahead of time. The Calendar Events come from `asset.dates_changed` (FR-CAL-002, ADR-0036). Deviation from FreeITSM: the owner is kept beside the Asset; the reminder window is fixed at 30 days (ADR-0042). | S | P3 |
 | FR-AST-013 | **Software** inventory: distinct Applications (name, publisher) and Installations per Asset with version. | S | P3 |
 | FR-AST-014 | **Licences** (type, key, quantity, renewal date, notice period, cost, currency, status), with compliance shown as installations vs. quantity. | S | P3 |
 | FR-AST-015 | Asset and software dashboards (by type, status, OS, manufacturer, model; top installed; publisher distribution). | C | P4 |
@@ -306,8 +306,8 @@ come from [VOCABULARY.md](VOCABULARY.md).
 | FR-CON-002 | Manage **Contracts**: number, title, supplier (or customer Company/Requester), owner, status, start and end, notice period, value, currency, payment schedule, cost centre, DMS link. The Contract number is unique per Company; Contract Statuses carry an `is_closed` behaviour flag (ADR-0035). Deviation from FreeITSM: a Contract is with a Supplier or with its Company as customer (optionally a Requester), never both; the value is `NUMERIC(14,2)` with a required ISO 4217 currency; the start must not be after the end; deleting is a soft delete that frees the number. | M | P3 |
 | FR-CON-003 | Cooper calculates the **Notice Date**. Calendar Events and notifications are generated ahead of the notice date and end date. The notice period is a number of days or months; the Notice Date is the end date minus it (months clamp to the month end, and a month-end end date gives a month-end Notice Date). Every change of a Contract's Calendar facts publishes `contract.dates_changed`, from which the Calendar keeps read-only Notice Date and end date Calendar Events (FR-CAL-002, ADR-0036); the `contract-reminders` job reminds the owner `contracts.reminder_days` ahead (default 30, 0 turns it off), once per Contract, date kind and date (ADR-0035). Deviation from FreeITSM: the Notice Date is always calculated, never typed in, so it cannot drift from the end date and notice period; closed or deleted Contracts get no reminders. | M | P3 |
 | FR-CON-004 | Data protection fields: personal data transferred, DPIA required, DPIA completed date and link. Deviation from FreeITSM: a DPIA completion date or link needs DPIA required (ADR-0035). | S | P3 |
-| FR-CON-005 | Configurable **Contract Terms** tabs with values per contract. | C | P3 |
-| FR-CON-006 | Link Contracts to Assets and Tasks. | S | P3 |
+| FR-CON-005 | Configurable **Contract Terms** tabs with values per contract. Deviation from FreeITSM: tabs are reference data and a value is kept only on an active tab (ADR-0042). | C | P3 |
+| FR-CON-006 | Link Contracts to Assets and Tasks. Deviation from FreeITSM: the Contract link is checked through the Contracts context; Assets already link to Contracts (ADR-0042). | S | P3 |
 | FR-CON-007 | **RFP** builder (documents, requirements extraction, supplier scoring). | W | — |
 
 ## 17. Calendar (CAL)

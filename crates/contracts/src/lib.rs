@@ -12,3 +12,7 @@ pub mod application;
 pub mod domain;
 pub mod infrastructure;
 pub mod ports;
+pub mod terms;
+pub mod terms_api;
+pub mod terms_service;
+pub mod terms_store;

@@ -67,6 +67,8 @@ pub enum LinkKind {
     Ticket,
     /// A Change.
     Change,
+    /// A Contract (FR-TSK-004; Contracts context).
+    Contract,
 }
 
 impl LinkKind {
@@ -76,6 +78,7 @@ impl LinkKind {
         match self {
             Self::Ticket => "ticket",
             Self::Change => "change",
+            Self::Contract => "contract",
         }
     }
 }
@@ -86,6 +89,7 @@ impl std::str::FromStr for LinkKind {
         match s {
             "ticket" => Ok(Self::Ticket),
             "change" => Ok(Self::Change),
+            "contract" => Ok(Self::Contract),
             _ => Err(crate::domain::TaskError::invalid(
                 "kind",
                 "must be ticket or change",
@@ -359,6 +363,12 @@ pub trait Directory: Send + Sync {
     ) -> Result<Option<(TenantId, String)>, RepoError>;
     /// The Company and Change Number of a Change the caller may see.
     async fn change(
+        &self,
+        principal: &Principal,
+        id: Uuid,
+    ) -> Result<Option<(TenantId, String)>, RepoError>;
+    /// The Company and Contract Number of a Contract the caller may see.
+    async fn contract(
         &self,
         principal: &Principal,
         id: Uuid,

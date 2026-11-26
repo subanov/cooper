@@ -1,0 +1,90 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, analyst_id, work_date, shift_id, location_id, on_call FROM rota_entries\n             WHERE tenant_id = $1 AND work_date BETWEEN $2 AND $3\n             ORDER BY work_date, shift_id, analyst_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "rota_entries",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "analyst_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "rota_entries",
+            "name": "analyst_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "work_date",
+        "type_info": "Date",
+        "origin": {
+          "Table": {
+            "table": "rota_entries",
+            "name": "work_date"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "shift_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "rota_entries",
+            "name": "shift_id"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "location_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "rota_entries",
+            "name": "location_id"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "on_call",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "rota_entries",
+            "name": "on_call"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Date",
+        "Date"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "e22140aa963eda1cb37ffcd64b3066865dc4f07255c0104f136b107f1e605a01"
+}

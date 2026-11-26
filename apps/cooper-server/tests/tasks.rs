@@ -572,7 +572,7 @@ async fn tasks_link_to_tickets_and_changes_and_tickets_show_their_related_record
             )
             .await
             .status,
-        StatusCode::UNPROCESSABLE_ENTITY
+        StatusCode::NOT_FOUND
     );
     w.admin
         .post(

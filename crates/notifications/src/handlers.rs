@@ -716,6 +716,61 @@ pub trait ContractLookup: Send + Sync {
     async fn contract(&self, id: Uuid) -> Result<Option<ContractFacts>, String>;
 }
 
+/// Reminds an Asset's owner that its warranty or lease expires soon (FR-AST-012).
+pub struct AssetReminderNotifier {
+    /// The notifications service.
+    pub notifications: Notifications,
+}
+
+#[async_trait]
+impl EventHandler for AssetReminderNotifier {
+    fn name(&self) -> &'static str {
+        "asset-reminder-notifier"
+    }
+
+    fn handles(&self, event_type: &str) -> bool {
+        event_type == "asset.reminder_due"
+    }
+
+    async fn handle(&self, event: &EventEnvelope) -> Result<(), HandlerError> {
+        let (Some(to), Some(kind), Some(date)) = (
+            uuid(&event.payload, "owner_id").map(AnalystId::from_uuid),
+            field(&event.payload, "kind").and_then(Value::as_str),
+            field(&event.payload, "date")
+                .and_then(Value::as_str)
+                .and_then(|d| d.parse::<chrono::NaiveDate>().ok()),
+        ) else {
+            return Ok(());
+        };
+        let label = field(&event.payload, "label")
+            .and_then(Value::as_str)
+            .unwrap_or("an Asset")
+            .to_owned();
+        let (notification, what) = match kind {
+            "warranty" => (NotificationKind::AssetWarrantyDue, "Warranty"),
+            "lease" => (NotificationKind::AssetLeaseDue, "Lease"),
+            _ => return Ok(()),
+        };
+        let draft = Draft {
+            kind: notification,
+            tenant_id: event.tenant_id,
+            title: format!("{what} expires {date}: {label}"),
+            body: format!("The {} of {label} ends on {date}. Decide whether it needs renewing.", what.to_lowercase()),
+            ticket_id: None,
+            change_id: None,
+            article_id: None,
+            task_id: None,
+            contract_id: None,
+            source_event_id: event.id,
+        };
+        self.notifications
+            .send(draft, BTreeSet::from([to]), event.actor)
+            .await
+            .map(|_| ())
+            .map_err(|e| handler_error(e.to_string()))
+    }
+}
+
 /// Reminds a Contract's owner that its Notice Date or end date is coming up
 /// (FR-CON-003), unless the Contract has moved on since (deleted, closed, another owner
 /// or another date).
